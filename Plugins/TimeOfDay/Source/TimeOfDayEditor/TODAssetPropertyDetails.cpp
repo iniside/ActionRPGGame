@@ -213,16 +213,17 @@ void FTODAssetPropertyDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayo
 			if (structProp)
 			{
 				FRuntimeFloatCurve* floatCurve = structProp->ContainerPtrToValuePtr<FRuntimeFloatCurve>(TODAsset);
-				if (floatCurve && floatCurve->IsOfType(FRuntimeFloatCurve::CurveTypeID))
-				{
-					TSharedPtr<FTODFloatCurveProperty> tempFloatProp = MakeShareable(new FTODFloatCurveProperty());
-					tempFloatProp->OnPropertySelected = OnPropertySelected;
-					tempFloatProp->OnFloatCurveValueChanged = OnFloatCurveValueChanged;
-					tempFloatProp->PropertyHandle = DetailLayout.GetProperty(prop->GetFName());
-					tempFloatProp->TODAsset = TODAsset;
-					tempFloatProp->CategoryName = tempFloatProp->PropertyHandle->GetMetaData(TEXT("Category"));
-					FloatCurves.Add(tempFloatProp);
-				}
+				//wont work without changes to engine. Commenting it out for now.
+				//if (floatCurve && floatCurve->IsOfType(FRuntimeFloatCurve::CurveTypeID))
+				//{
+				//	TSharedPtr<FTODFloatCurveProperty> tempFloatProp = MakeShareable(new FTODFloatCurveProperty());
+				//	tempFloatProp->OnPropertySelected = OnPropertySelected;
+				//	tempFloatProp->OnFloatCurveValueChanged = OnFloatCurveValueChanged;
+				//	tempFloatProp->PropertyHandle = DetailLayout.GetProperty(prop->GetFName());
+				//	tempFloatProp->TODAsset = TODAsset;
+				//	tempFloatProp->CategoryName = tempFloatProp->PropertyHandle->GetMetaData(TEXT("Category"));
+				//	FloatCurves.Add(tempFloatProp);
+				//}
 			}
 		}
 		for (TFieldIterator<UProperty> PropIt(TODAsset->GetClass()); PropIt; ++PropIt)
@@ -234,16 +235,16 @@ void FTODAssetPropertyDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayo
 			if (structProp)
 			{
 				FRuntimeCurveLinearColor* colorCurve = structProp->ContainerPtrToValuePtr<FRuntimeCurveLinearColor>(TODAsset);
-				if (colorCurve && colorCurve->IsOfType(FRuntimeCurveLinearColor::CurveTypeID))
-				{
-					TSharedPtr<FTODColorCurveProperty> tempColorProp = MakeShareable(new FTODColorCurveProperty());
-					tempColorProp->OnPropertySelected = OnPropertySelected;
-					tempColorProp->OnColorCurveValueChanged = OnColorCurveValueChanged;
-					tempColorProp->PropertyHandle = DetailLayout.GetProperty(prop->GetFName());
-					tempColorProp->TODAsset = TODAsset;
-					tempColorProp->CategoryName = tempColorProp->PropertyHandle->GetMetaData(TEXT("Category"));
-					ColorCurves.Add(tempColorProp);
-				}
+				//if (colorCurve && colorCurve->IsOfType(FRuntimeCurveLinearColor::CurveTypeID))
+				//{
+				//	TSharedPtr<FTODColorCurveProperty> tempColorProp = MakeShareable(new FTODColorCurveProperty());
+				//	tempColorProp->OnPropertySelected = OnPropertySelected;
+				//	tempColorProp->OnColorCurveValueChanged = OnColorCurveValueChanged;
+				//	tempColorProp->PropertyHandle = DetailLayout.GetProperty(prop->GetFName());
+				//	tempColorProp->TODAsset = TODAsset;
+				//	tempColorProp->CategoryName = tempColorProp->PropertyHandle->GetMetaData(TEXT("Category"));
+				//	ColorCurves.Add(tempColorProp);
+				//}
 			}
 
 		}

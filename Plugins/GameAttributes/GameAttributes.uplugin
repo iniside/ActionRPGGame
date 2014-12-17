@@ -19,7 +19,7 @@
         },
         {
 			"Name" : "GameAttributesEditor",
-			"Type" : "Editor"
+			"Type" : "Developer"
 		}
     ],
     "CanContainContent" : true

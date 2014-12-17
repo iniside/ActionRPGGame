@@ -11,7 +11,7 @@
 		},
 		{
 			"Name": "ActionRPGGameEditor",
-			"Type": "Editor",
+			"Type": "Developer",
 			"LoadingPhase": "Default"
 		}
 	],

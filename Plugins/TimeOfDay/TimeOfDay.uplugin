@@ -18,7 +18,7 @@
         },
         {
             "Name": "TimeOfDayEditor",
-            "Type": "Editor"
+            "Type": "Developer"
         }
     ],
     "CanContainContent" : true
