@@ -1,0 +1,27 @@
+{
+	"FileVersion" : 3,
+
+	"FriendlyName" : "Game Inventory System",
+	"Version" : 1,
+	"VersionName" : "1.0",
+	"CreatedBy" : "Lukasz 'iniside' Baran",
+	"CreatedByURL" : "",
+	"EngineVersion" : "4.6.0",
+	"Description" : "Game Inventory System",
+	"Category" : "GameInventorySystem",
+	"EnabledByDefault" : true,
+
+	"Modules" :
+	[
+        {
+            "Name": "GameInventorySystem",
+            "Type": "Runtime",
+			"LoadingPhase" : "PreDefault"
+        },
+        {
+			"Name" : "GameInventorySystemEditor",
+			"Type" : "Editor"
+		}
+    ],
+    "CanContainContent" : true
+}

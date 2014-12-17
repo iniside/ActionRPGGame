@@ -1,0 +1,25 @@
+{
+	"FileVersion" : 3,
+
+	"FriendlyName" : "Time Of Day",
+	"Version" : 1,
+	"VersionName" : "1.0",
+	"CreatedBy" : "Lukasz 'iniside' Baran",
+	"CreatedByURL" : "http://epicgames.com",
+	"EngineVersion" : "4.5.0",
+	"Description" : "Time Of Day",
+	"Category" : "Time Of Day",
+	"EnabledByDefault" : true,
+
+    "Modules": [
+        {
+            "Name": "TimeOfDay",
+            "Type": "Runtime"
+        },
+        {
+            "Name": "TimeOfDayEditor",
+            "Type": "Editor"
+        }
+    ],
+    "CanContainContent" : true
+}

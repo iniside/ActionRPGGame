@@ -1,0 +1,26 @@
+{
+    "FileVersion": 3,
+
+    "FriendlyName": "GameAttributes",
+    "Version": 1,
+    "VersionName": "1.0",
+    "CreatedBy": "Lukasz 'iniside' Baran",
+    "CreatedByURL": "",
+    "EngineVersion": "4.6.0",
+    "Description": "GameAttributes",
+    "Category": "GameAttributes",
+    "EnabledByDefault": true,
+
+    "Modules": [
+        {
+            "Name": "GameAttributes",
+            "Type": "Runtime",
+            "LoadingPhase": "PreDefault"
+        },
+        {
+			"Name" : "GameAttributesEditor",
+			"Type" : "Editor"
+		}
+    ],
+    "CanContainContent" : true
+}
