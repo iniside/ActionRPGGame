@@ -35,25 +35,6 @@ namespace UnrealBuildTool.Rules
 				new string[]
 				{
 					// ... add private dependencies that you statically link with here ...
-                    //"InputCore",
-                    //"Slate",
-                    //"Engine",
-                    //"AssetTools",
-                    //"UnrealEd", // for FAssetEditorManager
-                    //"KismetWidgets",
-                    //"KismetCompiler",
-                    //"BlueprintGraph",
-                    //"GraphEditor",
-                    //"Kismet",  // for FWorkflowCentricApplication
-                    //"PropertyEditor",
-                    //"EditorStyle",
-                    //"Slate",
-                    //"SlateCore",
-                    //"MovieSceneCore",
-                    //"Sequencer",
-                    //"DetailCustomizations",
-                    //"Settings",
-                    //"RenderCore",
 				}
 				);
 

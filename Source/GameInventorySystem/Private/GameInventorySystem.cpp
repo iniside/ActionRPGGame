@@ -11,7 +11,7 @@ class FGameInventorySystem : public IGameInventorySystem
 	virtual void ShutdownModule() override;
 };
 
-IMPLEMENT_MODULE( FGameInventorySystem, GameInventorySystem )
+IMPLEMENT_GAME_MODULE( FGameInventorySystem, GameInventorySystem )
 
 
 

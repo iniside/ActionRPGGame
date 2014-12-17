@@ -10,18 +10,5 @@
 	"Description" : "Game Inventory System",
 	"Category" : "GameInventorySystem",
 	"EnabledByDefault" : true,
-
-	"Modules" :
-	[
-        {
-            "Name": "GameInventorySystem",
-            "Type": "Runtime",
-			"LoadingPhase" : "PreDefault"
-        },
-        {
-			"Name" : "GameInventorySystemEditor",
-			"Type" : "Editor"
-		}
-    ],
     "CanContainContent" : true
 }
