@@ -89,12 +89,12 @@ FLinearColor FTODColorCurveProperty::GetCurrentColorValue() const
 		UStructProperty* structProp = Cast<UStructProperty>(propPtr);
 		if (structProp)
 		{
-			FRuntimeCurveLinearColor* colorCurve = structProp->ContainerPtrToValuePtr<FRuntimeCurveLinearColor>(TODAsset);
-			if (colorCurve && colorCurve->IsOfType(FRuntimeCurveLinearColor::CurveTypeID))
-			{
-				returnColor = colorCurve->GetLinearColorValue(TODAsset->Hour);
-				return returnColor;
-			}
+			//FRuntimeCurveLinearColor* colorCurve = structProp->ContainerPtrToValuePtr<FRuntimeCurveLinearColor>(TODAsset);
+			//if (colorCurve && colorCurve->IsOfType(FRuntimeCurveLinearColor::CurveTypeID))
+			//{
+			//	returnColor = colorCurve->GetLinearColorValue(TODAsset->Hour);
+			//	return returnColor;
+			//}
 		}
 	}
 	return returnColor;

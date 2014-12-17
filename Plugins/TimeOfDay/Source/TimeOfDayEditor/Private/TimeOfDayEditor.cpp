@@ -3,7 +3,7 @@
 #include "TimeOfDayEditor.h"
 #include "TimeOfDayEditorPrivatePCH.h"
 #include "../TODAssetTypeAction.h"
-#include "Editor/DetailCustomizations/Private/CurveStructCustomization.h"
+//#include "Editor/DetailCustomizations/Private/CurveStructCustomization.h"
 #include "Editor/PropertyEditor/Public/PropertyCustomizationHelpers.h"
 //#include "../CurveColorCustomization.h"
 

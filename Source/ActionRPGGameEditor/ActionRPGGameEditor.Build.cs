@@ -22,6 +22,7 @@ public class ActionRPGGameEditor : ModuleRules
 		);
         PublicDependencyModuleNames.AddRange(new string[] 
 		{ 
+            "ActionRPGGame",
             "GameplayTags",
             "AssetTools",
             "GameplayTags",
@@ -30,9 +31,8 @@ public class ActionRPGGameEditor : ModuleRules
             "AssetTools"
 		});
         PrivateDependencyModuleNames.AddRange(new string[] 
-		{ 
-			"ActionRPGGame",
-            "MainFrame",
+		{
+            //"MainFrame",
             "Core",
 			"CoreUObject",
 			"Slate",

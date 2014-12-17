@@ -36,7 +36,10 @@ namespace UnrealBuildTool.Rules
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);
-
+            if (Target.Type == TargetRules.TargetType.Editor)
+            {
+                PublicDependencyModuleNames.AddRange(new string[] { "UnrealEd", "PropertyEditor" });
+            }
 			PrivateDependencyModuleNames.AddRange(
 				new string[]
 				{

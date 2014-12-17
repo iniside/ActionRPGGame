@@ -2,7 +2,7 @@
 #include "Toolkits/IToolkitHost.h"
 #include "Editor/WorkspaceMenuStructure/Public/WorkspaceMenuStructureModule.h"
 
-#include "Editor/PropertyEditor/Private/PropertyChangeListener.h"
+//#include "Editor/PropertyEditor/Private/PropertyChangeListener.h"
 #include "Editor/PropertyEditor/Public/IPropertyChangeListener.h"
 
 #include "Editor/PropertyEditor/Public/IDetailsView.h"
@@ -311,27 +311,27 @@ void FTODAssetEditor::SetCurveToEdit(UProperty* CurveProp)
 		UStructProperty* structProp = Cast<UStructProperty>(CurveProp);
 		if (structProp)
 		{
-			FRuntimeFloatCurve* floatCurve = structProp->ContainerPtrToValuePtr<FRuntimeFloatCurve>(EditedItemAsset);
-			if (floatCurve && floatCurve->IsOfType(FRuntimeFloatCurve::CurveTypeID))
-			{
-				SelectedFloatCurve = floatCurve;
-				if (CurveEditorWidget.IsValid())
-				{
-					CurveEditorWidget->SetCurveOwner(this, true);
-				}
-				return;
-			}
+			//FRuntimeFloatCurve* floatCurve = structProp->ContainerPtrToValuePtr<FRuntimeFloatCurve>(EditedItemAsset);
+			//if (floatCurve && floatCurve->IsOfType(FRuntimeFloatCurve::CurveTypeID))
+			//{
+			//	SelectedFloatCurve = floatCurve;
+			//	if (CurveEditorWidget.IsValid())
+			//	{
+			//		CurveEditorWidget->SetCurveOwner(this, true);
+			//	}
+			//	return;
+			//}
 
-			FRuntimeCurveLinearColor* colorCurve = structProp->ContainerPtrToValuePtr<FRuntimeCurveLinearColor>(EditedItemAsset);
-			if (colorCurve && colorCurve->IsOfType(FRuntimeCurveLinearColor::CurveTypeID))
-			{
-				SelectedColorCurve = colorCurve;
-				if (CurveEditorWidget.IsValid())
-				{
-					CurveEditorWidget->SetCurveOwner(this, true);
-				}
-				return;
-			}
+			//FRuntimeCurveLinearColor* colorCurve = structProp->ContainerPtrToValuePtr<FRuntimeCurveLinearColor>(EditedItemAsset);
+			//if (colorCurve && colorCurve->IsOfType(FRuntimeCurveLinearColor::CurveTypeID))
+			//{
+			//	SelectedColorCurve = colorCurve;
+			//	if (CurveEditorWidget.IsValid())
+			//	{
+			//		CurveEditorWidget->SetCurveOwner(this, true);
+			//	}
+			//	return;
+			//}
 		}
 	}
 }

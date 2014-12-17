@@ -32,7 +32,7 @@ public class ActionRPGGame : ModuleRules
 				});
 		if (Target.Type == TargetRules.TargetType.Editor)
         {
-            PublicDependencyModuleNames.AddRange(new string[] { "UnrealEd" });
+            PublicDependencyModuleNames.AddRange(new string[] { "UnrealEd", "PropertyEditor" });
         }
 	}
 

@@ -25,7 +25,29 @@ namespace UnrealBuildTool.Rules
 				new string[]
 				{
 					"Core",
-                    "GameInventorySystem"
+                    "GameInventorySystem",
+                    "GraphEditor",
+                    "MainFrame",
+                    "EditorStyle",
+                    "CoreUObject",
+				    "InputCore",
+				    "Slate",
+				    "Engine",
+				    "AssetTools",
+				    "UnrealEd", // for FAssetEditorManager
+				    "KismetWidgets",
+				    "KismetCompiler",
+				    "BlueprintGraph",
+				    "Kismet",  // for FWorkflowCentricApplication
+				    "PropertyEditor",
+				    
+				    "Slate",
+				    "SlateCore",
+				    "MovieSceneCore",
+				    "Sequencer",
+				    "DetailCustomizations",
+                    "Settings",
+				    "RenderCore",
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);
@@ -35,26 +57,7 @@ namespace UnrealBuildTool.Rules
 				{
 					// ... add private dependencies that you statically link with here ...
 				    "Core",
-				    "CoreUObject",
-				    "InputCore",
-				    "Slate",
-				    "Engine",
-				    "AssetTools",
-				    "UnrealEd", // for FAssetEditorManager
-				    "KismetWidgets",
-				    "KismetCompiler",
-				    "BlueprintGraph",
-				    "GraphEditor",
-				    "Kismet",  // for FWorkflowCentricApplication
-				    "PropertyEditor",
-				    "EditorStyle",
-				    "Slate",
-				    "SlateCore",
-				    "MovieSceneCore",
-				    "Sequencer",
-				    "DetailCustomizations",
-                    "Settings",
-				    "RenderCore",
+
 				}
 				);
 

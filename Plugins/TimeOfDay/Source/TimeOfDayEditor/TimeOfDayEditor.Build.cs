@@ -32,7 +32,7 @@ namespace UnrealBuildTool.Rules
 				new string[]
 				{
 					// ... add private dependencies that you statically link with here ...
-                    "MainFrame",
+                   // "MainFrame",
 			        "CoreUObject",
 			        "Slate",
 			        "SlateCore",

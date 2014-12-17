@@ -1,5 +1,6 @@
 #pragma once
-
+#include "SlateBasics.h"
+#include "EditorStyle.h"
 #include "K2Node.h"
 #include "K2Node_ConstructObjectFromClass.h"
 #include "BPNode_CreateItemData.generated.h"

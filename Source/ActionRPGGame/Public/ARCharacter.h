@@ -24,7 +24,7 @@ class AARCharacter : public ACharacter
 	class UGISInventoryBaseComponent* Inventory;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	class UGISInventoryBaseComponent* ActionBar;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Instanced, Category = "Attributes", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes", meta = (AllowPrivateAccess = "true"))
 	class UGAAttributeComponent* Attributes;
 public:
 	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced)

@@ -20,7 +20,7 @@
         },
         {
 			"Name" : "GameInventorySystemEditor",
-			"Type" : "Developer"
+			"Type" : "Editor"
 		}
     ],
     "CanContainContent" : true
