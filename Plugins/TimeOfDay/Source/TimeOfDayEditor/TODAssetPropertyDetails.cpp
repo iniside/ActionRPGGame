@@ -48,7 +48,7 @@ void FTODFloatCurveProperty::OnFloatValueChanged(float ValueIn)
 }
 void FTODFloatCurveProperty::ConstructWidget(IDetailCategoryBuilder& CategoryBuilder)
 {
-	CategoryBuilder.AddCustomRow(FString("Test Row"))
+	CategoryBuilder.AddCustomRow(FText(FText::FromString("Test Row")))
 		[
 			SNew(SButton)
 			.ForegroundColor(FSlateColor::UseForeground())
@@ -145,7 +145,7 @@ FReply FTODColorCurveProperty::ColorBlock_OnMouseButtonDown(const FGeometry& MyG
 
 void FTODColorCurveProperty::ConstructWidget(IDetailCategoryBuilder& CategoryBuilder)
 {
-	CategoryBuilder.AddCustomRow(FString("Test Row"))
+	CategoryBuilder.AddCustomRow(FText(FText::FromString("Test Row")))
 		[
 			SNew(SButton)
 			.ForegroundColor(FSlateColor::UseForeground())
@@ -250,7 +250,7 @@ void FTODAssetPropertyDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayo
 		}
 	}
 	IDetailCategoryBuilder& DetailCategoryBuilder = DetailLayout.EditCategory("Property Detail");
-	FDetailWidgetRow& DetailRow = DetailCategoryBuilder.AddCustomRow(FString("Custom Row"));
+	FDetailWidgetRow& DetailRow = DetailCategoryBuilder.AddCustomRow(FText(FText::FromString("Custom Row")));
 	////now customize each property
 	//FRuntimeFloatCurve* floatCurve;
 

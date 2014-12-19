@@ -9,7 +9,9 @@ namespace UnrealBuildTool.Rules
 			PublicIncludePaths.AddRange(
 				new string[] {
                     "GameAttributes",
-                    "GameAttributes/Public"
+                    "GameAttributes/Public",
+                 //   "GameAttributesEditor",
+                    "GameAttributesEditor/Public"
 					// ... add public include paths required here ...
 				}
 				);
@@ -25,8 +27,21 @@ namespace UnrealBuildTool.Rules
 				new string[]
 				{
 					"Core",
+                    "Engine",
                     "CoreUObject",
-                    "GameAttributes"
+                    "GameAttributes",
+                    "UnrealEd",
+                    "BlueprintGraph",
+                    "GraphEditor",
+                    "PropertyEditor",
+                    "SlateCore",
+                    "Slate",
+                    "EditorStyle",
+                    "Kismet",
+                    "KismetCompiler",
+                    "AssetTools",
+                    "MainFrame",
+                    "InputCore"
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);

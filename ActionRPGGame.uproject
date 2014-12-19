@@ -1,10 +1,10 @@
 {
-    "FileVersion": 3,
-    "EngineAssociation": "{779EA7A0-4AD7-4AF5-7D8C-B3AB9EF22758}",
-    "Category": "",
-    "Description": "",
-    "Modules": [
-        {
+	"FileVersion": 3,
+	"EngineAssociation": "{CF612759-44C9-6E51-E165-FC8B78EABB69}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
 			"Name": "GameInventorySystem",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
@@ -14,17 +14,17 @@
 			"Type": "Developer",
 			"LoadingPhase": "Default"
 		},
-        {
-            "Name": "ActionRPGGame",
-            "Type": "Runtime",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "ActionRPGGameEditor",
-            "Type": "Developer",
-            "LoadingPhase": "Default"
-        }
-    ],
+		{
+			"Name": "ActionRPGGame",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "ActionRPGGameEditor",
+			"Type": "Developer",
+			"LoadingPhase": "Default"
+		}
+	],
 	"TargetPlatforms": [
 		"WindowsNoEditor"
 	]

@@ -1,26 +1,26 @@
 #pragma once
-
+#include "GAGlobalTypes.h"
 #include "GAAttributesBase.generated.h"
-/*
-	This is base class for item container used in InventoryComponent, to store items.
 
-	How you use this container is up to you. I assume that item container will contain only TSubclassOf<>
-	properties, which will in turn reference proper items (like weapons, construction elements, 
-	consumable, armor items etc), along with any accompaning data for them (like upgrades, stats mods,
-	count of how many items player have etc).
-
-	If you so desire, you can of course just extend any item from this class but I do not recommend it.
-*/
 UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInlineNew)
 class GAMEATTRIBUTES_API UGAAttributesBase : public UObject
 {
 	GENERATED_UCLASS_BODY()
 public:
-	UPROPERTY()
-		int32 ItemIndex;
+	~UGAAttributesBase();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		UProperty* Prop;
+	virtual UProperty* FindProperty(FGAAttribute AttributeIn);
+
+	/*
+		This is proof of concept. Instead of typing name manually I want to display list of all
+		properties from currently referenced object. 
+		From that list user can select attribute which can be affected.
+
+		I will also probabaly wil custom meta like GameAttribute = true, to filter trough
+		other possibly non-attribute related properties.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
+		virtual float GetFloatValue(FGAAttribute AttributeIn);
 
 	bool IsNameStableForNetworking() const override;
 
@@ -31,5 +31,13 @@ public:
 	void SetNetAddressable();
 protected:
 	bool bNetAddressable;
+
+private:
+	//attribute caching
+	//UPROPERTY() - propabaly don't need to be uproperty anyway.
+	UProperty* LastAttributeProp;
+	FName LastAttributeName;
+	// cached numeric property. WEll we probabaly don't need UProperty cache then..
+	UNumericProperty* CachedFloatPropety;
 
 };

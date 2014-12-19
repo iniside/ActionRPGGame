@@ -15,4 +15,4 @@ class FActionRPGGameEditor : public IModuleInterface
 
 };
 
-IMPLEMENT_MODULE(FActionRPGGameEditor, ActionRPGGameEditor);
+IMPLEMENT_GAME_MODULE(FActionRPGGameEditor, ActionRPGGameEditor);

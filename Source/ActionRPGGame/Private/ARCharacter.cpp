@@ -206,9 +206,9 @@ void AARCharacter::ShowHideInventory()
 	{
 		if (Inventory->InventoryContainer->GetVisibility() == ESlateVisibility::Hidden)
 		{
-			Inventory->InventoryContainer->SetVisibility(ESlateVisibility::Visible);
+			Inventory->InventoryContainer->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		}
-		else if (Inventory->InventoryContainer->GetVisibility() == ESlateVisibility::Visible)
+		else if (Inventory->InventoryContainer->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
 		{
 			Inventory->InventoryContainer->SetVisibility(ESlateVisibility::Hidden);
 		}
