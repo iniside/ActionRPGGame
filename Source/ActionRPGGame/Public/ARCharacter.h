@@ -3,7 +3,7 @@
 #include "GameFramework/Character.h"
 #include "GAAttributeComponent.h"
 #include "GISInventoryBaseComponent.h" //need for template
-
+#include "GESEffectComponent.h"
 //#include "GISItemData.h"
 #include "ARCharacter.generated.h"
 
@@ -26,6 +26,8 @@ class AARCharacter : public ACharacter
 	class UGISInventoryBaseComponent* ActionBar;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes", meta = (AllowPrivateAccess = "true"))
 	class UGAAttributeComponent* Attributes;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Effects", meta = (AllowPrivateAccess = "true"))
+	class UGESEffectComponent* GameEffects;
 public:
 	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced)
 	//	class UUserWidget* MasterWidget;

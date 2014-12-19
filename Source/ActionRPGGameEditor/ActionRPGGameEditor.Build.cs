@@ -23,7 +23,14 @@ public class ActionRPGGameEditor : ModuleRules
         PublicDependencyModuleNames.AddRange(new string[] 
 		{ 
             "ActionRPGGame",
+            "GameInventorySystem",
+            "GameInventorySystemEditor",
+            "GameAttributes",
+            "GameAttributesEditor",
+            "GameEffectSystem",
+            "GameEffectSystemEditor",
             "GameplayTags",
+            "GameplayAbilitiesEditor",
             "AssetTools",
             "GameplayTags",
             "GameplayTagsEditor",

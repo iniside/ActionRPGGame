@@ -24,6 +24,8 @@ public class ActionRPGGameEditorTarget : TargetRules
 		OutExtraModuleNames.Add("GameInventorySystemEditor");
 		OutExtraModuleNames.Add("GameAttributes");
 		OutExtraModuleNames.Add("GameAttributesEditor");
+		OutExtraModuleNames.Add("GameEffectSystem");
+		OutExtraModuleNames.Add("GameEffectSystemEditor");
 		OutExtraModuleNames.Add("ActionRPGGame");
 		OutExtraModuleNames.Add("ActionRPGGameEditor");
 	}

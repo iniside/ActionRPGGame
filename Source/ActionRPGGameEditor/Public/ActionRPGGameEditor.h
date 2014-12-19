@@ -5,7 +5,7 @@
 
 #pragma once
 #include "ActionRPGGame.h"
-
+#include "GameplayAbilitiesEditor.h"
 //#include "Runtime/AssetRegistry/Public/IAssetRegistry.h"
 //#include "Runtime/AssetRegistry/Public/AssetRegistryModule.h"
 //#include "Runtime/AssetRegistry/Public/AssetData.h"
