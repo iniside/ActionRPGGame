@@ -1,0 +1,8 @@
+GameInventorySystem - Standalone (you of course need UE4 to use it ;) )
+--GameInventorySystemEditor - Depends on GameInventorySystem and Engine.
+
+
+
+
+ActionRPGGame - Depends on all previously listed modules.
+ActionRPGGameEditor - Depends on ActionRPGGame
