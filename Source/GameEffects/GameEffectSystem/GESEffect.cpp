@@ -20,14 +20,30 @@ void UGESEffect::Initialize()
 	//	OutgoingEffectComponent->OnEffectOutgoing.Broadcast(this);
 	//if (IncomingEffectComponent)
 	//	IncomingEffectComponent->OnEffectIncoming.Broadcast(this);
-	if (OutgoingEffectComponent)
+	if (InstigatorEffectComponent)
 	{
-		OutgoingEffectComponent->OnEffectOutgoing.AddDynamic(this, &UGESEffect::OnOutgoingEffect);
+		InstigatorEffectComponent->OnEffectOutgoing.AddDynamic(this, &UGESEffect::OnOutgoingEffect);
 	}
-	if (IncomingEffectComponent)
+	if (TargetEffectComponent)
 	{
-		IncomingEffectComponent->OnEffectIncoming.AddDynamic(this, &UGESEffect::OnIncomingEffect);
-		IncomingEffectComponent->OnCheckImmunity.BindUObject(this, &UGESEffect::CheckImmunity);
+		TargetEffectComponent->OnEffectIncoming.AddDynamic(this, &UGESEffect::OnIncomingEffect);
+		TargetEffectComponent->OnCheckImmunity.BindUObject(this, &UGESEffect::CheckImmunity);
+	}
+
+	/*
+		I assume that subsequent effects, will have same base data.
+	*/
+	if (OtherEffects.Num() > 0)
+	{
+		for (UGESEffect* effect : OtherEffects)
+		{
+			effect->Target = Target;
+			effect->Instigator = Instigator;
+			effect->Causer = Causer;
+			effect->InstigatorEffectComponent = InstigatorEffectComponent;
+			effect->TargetEffectComponent = TargetEffectComponent;
+			effect->Initialize();
+		}
 	}
 	//if we call it here, we should give other effects chance, to modify this effect.
 	//At least I hope so.

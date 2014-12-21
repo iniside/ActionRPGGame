@@ -83,13 +83,19 @@ public:
 		I originated from this effect component.
 	*/
 	UPROPERTY(BlueprintReadWrite, Category = "Effect")
-	class UGESEffectComponent* OutgoingEffectComponent;
+	class UGESEffectComponent* InstigatorEffectComponent;
 
 	/*
 		I will be appiled to this effect Component.
 	*/
 	UPROPERTY(BlueprintReadWrite, Category = "Effect")
-	class UGESEffectComponent* IncomingEffectComponent;
+	class UGESEffectComponent* TargetEffectComponent;
+
+	/*
+		If this effect is appiled, apply also those effects.
+	*/
+	UPROPERTY(EditAnywhere, Instanced, Category = "Effect")
+		TArray<class UGESEffect*> OtherEffects;
 
 	/**
 	 *	I have these tags
@@ -116,10 +122,7 @@ public:
 	virtual void Initialize();
 
 	/*
-		Called after effect is fully initialized. Should be used, to execute any
-		logic implemented in blueprint. In event graph.
-
-		Possibly could be make override;
+		Called after effect is fully initialized.
 	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Effect")
 		void OnEffectInitialized();

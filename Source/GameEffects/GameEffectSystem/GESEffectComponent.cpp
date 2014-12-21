@@ -23,8 +23,8 @@ void UGESEffectComponent::InitializeComponent()
 			effectOut->Target = GetOwner();
 			effectOut->Causer = GetOwner();
 			effectOut->Instigator = GetOwner();
-			effectOut->OutgoingEffectComponent = this;
-			effectOut->IncomingEffectComponent = this;
+			effectOut->InstigatorEffectComponent = this;
+			effectOut->TargetEffectComponent = this;
 			effectOut->Initialize();
 			
 			for (auto It = effectOut->ImmunityTags.CreateConstIterator(); It; ++It)
@@ -39,17 +39,17 @@ void UGESEffectComponent::InitializeComponent()
 				}
 			}
 
-			for (auto It = effectOut->MyTags.CreateConstIterator(); It; ++It)
-			{
-				if (FTagCounter* tagCount = ActiveEffectsTagsMap.Find(It->GetTagName()))
-				{
-					tagCount->TagCount += 1;
-				}
-				else
-				{
-					ActiveEffectsTagsMap.Add(It->GetTagName()).TagCount += 1;
-				}
-			}
+			//for (auto It = effectOut->MyTags.CreateConstIterator(); It; ++It)
+			//{
+			//	if (FTagCounter* tagCount = ActiveEffectsTagsMap.Find(It->GetTagName()))
+			//	{
+			//		tagCount->TagCount += 1;
+			//	}
+			//	else
+			//	{
+			//		ActiveEffectsTagsMap.Add(It->GetTagName()).TagCount += 1;
+			//	}
+			//}
 			
 			StaticEffects.Add(effectOut);
 		}
@@ -62,15 +62,15 @@ void UGESEffectComponent::ReceiveEffect(class UGESEffect* EffectIn)
 }
 void UGESEffectComponent::ApplyEffectToSelf(class UGESEffect* EffectIn)
 {
-	bool bImmune = false;
-
-	//well that's not the best idea, byecause bImmune will be whatever the last called function
-	//returned...
-	//I would need to stop execution of this as soon as bImmune is true.
-
 	//iterating over tags in container is probabaly not best idea
 	//but it's still far better than others, and frankly I don't think there is going to be more than
 	//few tags at worst in single container...
+	//what if! You are immune to snare, but effect which is incoming deals fire damage and snare ?
+	//should we discard entire effect, or just snare part ?
+	//second choice seems more logical.
+	//which would lead us to second point. One effect- one tag.
+	//if effect apply multiple tags, it is because this effect will try to apply
+	//other effects as well.
 	for (auto It = EffectIn->MyTags.CreateConstIterator(); It; ++It)
 	{
 		if (ActiveImmunityTagsMap.Find(It->GetTagName()))
@@ -79,6 +79,7 @@ void UGESEffectComponent::ApplyEffectToSelf(class UGESEffect* EffectIn)
 			//information on hud, or something.
 		}
 	}
+	OnEffectIncoming.Broadcast(EffectIn);
 	//we should probabaly call it before aggregating tags into maps.
 	//if we get to this point, we are 100% sure that effect will be appiled to target
 	//so there is no reason to delay it's execution by iterating over it's tags and aggregating them.
@@ -113,9 +114,7 @@ void UGESEffectComponent::ApplyEffectToSelf(class UGESEffect* EffectIn)
 			}
 		}
 	}
-	OnEffectIncoming.Broadcast(EffectIn);
 
-	
 }
 void UGESEffectComponent::ApplyEffectToTarget(class UGESEffect* EffectIn, AActor* TargetIn)
 {
@@ -129,8 +128,8 @@ void UGESEffectComponent::ApplyEffectToTarget(class UGESEffect* EffectIn, AActor
 		before it will be appiled to target.
 	*/
 	OnEffectOutgoing.Broadcast(EffectIn);
-
 	effectInt->GetEffectComponent()->ApplyEffectToSelf(EffectIn);
+//	EffectIn->TargetEffectComponent->ApplyEffectToSelf(EffectIn);
 }
 
 
