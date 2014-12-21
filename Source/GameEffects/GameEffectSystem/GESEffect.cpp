@@ -12,16 +12,26 @@ UGESEffect::UGESEffect(const FObjectInitializer& ObjectInitializer)
 
 void UGESEffect::Initialize()
 {
+	/*
+		Broadcast delegates, before binding functions in this event.
+		To avoid self calling. This way only already existing effects, will call functions.
+	*/
+	//if (OutgoingEffectComponent)
+	//	OutgoingEffectComponent->OnEffectOutgoing.Broadcast(this);
+	//if (IncomingEffectComponent)
+	//	IncomingEffectComponent->OnEffectIncoming.Broadcast(this);
 	if (OutgoingEffectComponent)
+	{
 		OutgoingEffectComponent->OnEffectOutgoing.AddDynamic(this, &UGESEffect::OnOutgoingEffect);
-
+	}
 	if (IncomingEffectComponent)
+	{
 		IncomingEffectComponent->OnEffectIncoming.AddDynamic(this, &UGESEffect::OnIncomingEffect);
-
-	if (OutgoingEffectComponent)
-		OutgoingEffectComponent->OnEffectOutgoing.Broadcast(this);
-	if (IncomingEffectComponent)
-		IncomingEffectComponent->OnEffectIncoming.Broadcast(this);
+		IncomingEffectComponent->OnCheckImmunity.BindUObject(this, &UGESEffect::CheckImmunity);
+	}
+	//if we call it here, we should give other effects chance, to modify this effect.
+	//At least I hope so.
+	OnEffectInitialized();
 }
 
 bool UGESEffect::ModifyOutgoingEffect_Implementation(class UGESEffect* EffectIn)
@@ -32,6 +42,23 @@ bool UGESEffect::ModifyOutgoingEffect_Implementation(class UGESEffect* EffectIn)
 bool UGESEffect::ModifyIncomingEffect_Implementation(class UGESEffect* EffectIn)
 {
 	return false;
+}
+
+bool UGESEffect::CheckImmunity(class UGESEffect* EffectIn)
+{
+	if (EffectIn->MyTags.MatchesAny(ImmunityTags, false))
+	{
+		return true;
+	}
+	return false;
+}
+
+void UGESEffect::CheckForImmunities(class UGESEffect* EffectIn)
+{
+	if (EffectIn->MyTags.MatchesAny(ImmunityTags, false))
+	{
+		//call another delegate ?
+	}
 }
 
 void UGESEffect::OnOutgoingEffect(class UGESEffect* EffectIn)

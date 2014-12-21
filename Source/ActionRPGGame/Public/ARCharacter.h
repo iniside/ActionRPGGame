@@ -5,10 +5,13 @@
 #include "GISInventoryBaseComponent.h" //need for template
 #include "GESEffectComponent.h"
 //#include "GISItemData.h"
+
+#include "IGAAttributes.h"
+#include "IGESEffect.h"
 #include "ARCharacter.generated.h"
 
 UCLASS(config=Game)
-class AARCharacter : public ACharacter
+class AARCharacter : public ACharacter, public IIGAAttributes, public IIGESEffect
 {
 	GENERATED_BODY()
 
@@ -29,10 +32,21 @@ class AARCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Effects", meta = (AllowPrivateAccess = "true"))
 	class UGESEffectComponent* GameEffects;
 public:
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced)
-	//	class UUserWidget* MasterWidget;
 
+	/** IIGAAttributes Begin */
+	
+	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
+		virtual class UGAAttributesBase* GetAttributes() override;
 
+	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
+		virtual class UGAAttributeComponent* GetAttributeComponent() override;
+
+	/** IIGAAttributes End */
+
+	/** IIGESEffect Begin */
+	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
+		virtual class UGESEffectComponent* GetEffectComponent();
+	/** IIGESEffect End */
 public:
 	AARCharacter(const FObjectInitializer& ObjectInitializer);
 

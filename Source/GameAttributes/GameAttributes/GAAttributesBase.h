@@ -8,19 +8,21 @@ class GAMEATTRIBUTES_API UGAAttributesBase : public UObject
 	GENERATED_UCLASS_BODY()
 public:
 	~UGAAttributesBase();
+private:
+	UProperty* FindProperty(const FGAAttribute& AttributeIn);
 
-	virtual UProperty* FindProperty(FGAAttribute AttributeIn);
+public:
+	//UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 
 	/*
-		This is proof of concept. Instead of typing name manually I want to display list of all
-		properties from currently referenced object. 
-		From that list user can select attribute which can be affected.
+		Helper C++ functions. Shouldn't never be exposed or valled from blueprint. Alos never
+		try to override them.
 
-		I will also probabaly wil custom meta like GameAttribute = true, to filter trough
-		other possibly non-attribute related properties.
+		probabaly could also add support for int32 values.
 	*/
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
-		virtual float GetFloatValue(FGAAttribute AttributeIn);
+	float GetFloatValue(const FGAAttribute& AttributeIn);
+	float SetFloatValue(const FGAAttribute& AttributeIn, float ValueIn);
+	float AttributeOperation(const FGAAttribute& AttributeIn, float ValueIn, EGAAttributeOp Operation);
 
 	bool IsNameStableForNetworking() const override;
 
@@ -33,11 +35,13 @@ protected:
 	bool bNetAddressable;
 
 private:
-	//attribute caching
-	//UPROPERTY() - propabaly don't need to be uproperty anyway.
 	UProperty* LastAttributeProp;
 	FName LastAttributeName;
 	// cached numeric property. WEll we probabaly don't need UProperty cache then..
 	UNumericProperty* CachedFloatPropety;
-
+	
+	float AddAttributeFloat(float ValueA, float ValueB);
+	float SubtractAttributeFloat(float ValueA, float ValueB);
+	float MultiplyAttributeFloat(float ValueA, float ValueB);
+	float DivideAttributeFloat(float ValueA, float ValueB);
 };

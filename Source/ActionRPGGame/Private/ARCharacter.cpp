@@ -5,6 +5,9 @@
 //#include "GAAttributeComponent.h"
 #include "../Items/ARItemInfo.h"
 #include "Widgets/GISContainerBaseWidget.h"
+
+#include "GAAttributesBase.h"
+
 //#include "Net/UnrealNetwork.h"
 //#include "Engine/ActorChannel.h"
 
@@ -108,6 +111,25 @@ void AARCharacter::CheckIfStructReplicated()
 	//	float lollo = 0;
 	//}
 }
+/** IIGAAttributes Begin */
+class UGAAttributesBase* AARCharacter::GetAttributes()
+{
+	return Attributes->DefaultAttributes;
+}
+
+class UGAAttributeComponent* AARCharacter::GetAttributeComponent()
+{
+	return Attributes;
+}
+/** IIGAAttributes End */
+
+/** IIGESEffect Begin */
+class UGESEffectComponent* AARCharacter::GetEffectComponent()
+{
+	return GameEffects;
+}
+/** IIGESEffect End */
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 

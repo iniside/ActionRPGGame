@@ -25,7 +25,8 @@ UGESEffect* UGESBlueprintLibrary::CreateEffect(TSubclassOf<class UGESEffect> Eff
 		effectOut->OutgoingEffectComponent = instigComp;
 		effectOut->IncomingEffectComponent = targetComp;
 		effectOut->Initialize();
-		//targetComp->AddPeriodicEffect(effectOut);
+		instigComp->ApplyEffectToTarget(effectOut, Target);
+		//instigComp->AddPeriodicEffect(effectOut);
 	}
 
 	return effectOut;

@@ -1,6 +1,8 @@
 #pragma once
 #include "GAAttributeComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGAOnAttributeChanged);
+
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
 class GAMEATTRIBUTES_API UGAAttributeComponent : public UActorComponent
 {

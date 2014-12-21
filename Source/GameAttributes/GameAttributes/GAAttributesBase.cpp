@@ -17,7 +17,7 @@ UGAAttributesBase::~UGAAttributesBase()
 	CachedFloatPropety = nullptr;
 }
 
-UProperty* UGAAttributesBase::FindProperty(FGAAttribute AttributeIn)
+UProperty* UGAAttributesBase::FindProperty(const FGAAttribute& AttributeIn)
 {
 	//if new attribute name is the same as last attribute name and pointer to last property
 	//is not null, then we just return last pointer instead of performing new search.
@@ -29,7 +29,7 @@ UProperty* UGAAttributesBase::FindProperty(FGAAttribute AttributeIn)
 	return LastAttributeProp;
 }
 
-float UGAAttributesBase::GetFloatValue(FGAAttribute AttributeIn)
+float UGAAttributesBase::GetFloatValue(const FGAAttribute& AttributeIn)
 {
 	if ((AttributeIn.AttributeName == LastAttributeName))
 	{
@@ -46,6 +46,62 @@ float UGAAttributesBase::GetFloatValue(FGAAttribute AttributeIn)
 	return NumericProperty->GetFloatingPointPropertyValue(ValuePtr);
 
 
+}
+
+float UGAAttributesBase::SetFloatValue(const FGAAttribute& AttributeIn, float ValueIn)
+{
+	if ((AttributeIn.AttributeName == LastAttributeName))
+	{
+		if (CachedFloatPropety)
+		{
+			void* ValuePtr = CachedFloatPropety->ContainerPtrToValuePtr<void>(this);
+			CachedFloatPropety->SetFloatingPointPropertyValue(ValuePtr, ValueIn);
+			return CachedFloatPropety->GetFloatingPointPropertyValue(ValuePtr);
+		}
+	}
+	LastAttributeName = AttributeIn.AttributeName;
+	UNumericProperty* NumericProperty = CastChecked<UNumericProperty>(FindProperty(AttributeIn));
+	CachedFloatPropety = NumericProperty;
+	void* ValuePtr = CachedFloatPropety->ContainerPtrToValuePtr<void>(this);
+	NumericProperty->SetFloatingPointPropertyValue(ValuePtr, ValueIn);
+	return CachedFloatPropety->GetFloatingPointPropertyValue(ValuePtr);
+}
+
+float UGAAttributesBase::AttributeOperation(const FGAAttribute& AttributeIn, float ValueIn, EGAAttributeOp Operation)
+{
+	switch (Operation)
+	{
+	case EGAAttributeOp::Add:
+		return AddAttributeFloat(GetFloatValue(AttributeIn), ValueIn); //don't want to set.
+	case EGAAttributeOp::Subtract:
+		return SubtractAttributeFloat(GetFloatValue(AttributeIn), ValueIn);
+	case EGAAttributeOp::Multiply:
+		return MultiplyAttributeFloat(GetFloatValue(AttributeIn), ValueIn);
+	case EGAAttributeOp::Divide:
+		return DivideAttributeFloat(GetFloatValue(AttributeIn), ValueIn);
+	case EGAAttributeOp::Set:
+		return SetFloatValue(AttributeIn, ValueIn);
+	default:
+		return 0;
+	}
+	return 0;
+}
+
+float UGAAttributesBase::AddAttributeFloat(float ValueA, float ValueB)
+{
+	return ValueA + ValueB;
+}
+float UGAAttributesBase::SubtractAttributeFloat(float ValueA, float ValueB)
+{
+	return ValueA - ValueB;
+}
+float UGAAttributesBase::MultiplyAttributeFloat(float ValueA, float ValueB)
+{
+	return ValueA * ValueB;
+}
+float UGAAttributesBase::DivideAttributeFloat(float ValueA, float ValueB)
+{
+	return ValueA / ValueB;
 }
 
 bool UGAAttributesBase::IsNameStableForNetworking() const

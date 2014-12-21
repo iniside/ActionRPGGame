@@ -40,7 +40,8 @@ namespace UnrealBuildTool.Rules
                     "KismetCompiler",
                     "AssetTools",
                     "MainFrame",
-                    "InputCore"
+                    "InputCore",
+                    "GameplayTagsEditor"
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);

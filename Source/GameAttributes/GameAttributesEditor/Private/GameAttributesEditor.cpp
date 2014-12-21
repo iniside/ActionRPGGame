@@ -24,7 +24,7 @@ class FGameAttributesEditor : public IGameAttributesEditor
 	}
 };
 
-IMPLEMENT_MODULE(FGameAttributesEditor, GameAttributesEditor)
+IMPLEMENT_GAME_MODULE(FGameAttributesEditor, GameAttributesEditor)
 
 
 //void FGameAttributesEditor::StartupModule()
