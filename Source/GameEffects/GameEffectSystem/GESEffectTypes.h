@@ -1,6 +1,15 @@
 #pragma once
 #include "GESEffectTypes.generated.h"
 
+
+UENUM()
+enum class EGESEffectType : uint8
+{
+	Instant,
+	Periodic,
+	Infinite
+};
+
 USTRUCT()
 struct FGESEffectSpec
 {

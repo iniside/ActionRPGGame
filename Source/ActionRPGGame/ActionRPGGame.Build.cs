@@ -7,30 +7,49 @@ public class ActionRPGGame : ModuleRules
 	public ActionRPGGame(TargetInfo Target)
 	{
         PublicIncludePaths.AddRange(
-         new string[] {
-				// ... add public include paths required here ...
-			}
-        );
+            new string[] {
+                    "GameSystem",
+                    "GameSystem/Public",
+                    "GameAbilities",
+                    "GameAbilities/Public",
+                    "GameAttributes",
+                    "GameAttributes/Public",
+                    "GameEffectSystem",
+                    "GameEffectSystem/Public",
+                    "GameInventorySystem",
+                    "GameInventorySystem/Public",
+                    "ActionRPGGame",
+                    "ActionRPGGame/Public",
+					// ... add public include paths required here ...
+				}
+            );
 
         PrivateIncludePaths.AddRange(
             new string[] {
+					"GameSystem/Private",
+                    "GameAbilities/Private",
+                    "GameAttributes/Private",
+                    "GameEffectSystem/Private",
+                    "GameInventorySystem/Private",
+                    "ActionRPGGame/Private",
 					// ... add other private include paths required here ...
-			}
-        );
+				}
+            );
 		PublicDependencyModuleNames.AddRange(
 			new string[] { 
 				"Core", 
 				"CoreUObject", 
 				"Engine", 
 				"InputCore", 
-				"GameInventorySystem", 
+                "UMG",
+                "Slate",
+                "SlateCore",
+                "GameInventorySystem", 
 				"GameAttributes",
                 "GameEffectSystem",
 				"GameplayTags",
                 "GameplayAbilities",
-                "UMG",
-                "Slate",
-                "SlateCore",
+                "GameSystem"
 				});
 		if (Target.Type == TargetRules.TargetType.Editor)
         {

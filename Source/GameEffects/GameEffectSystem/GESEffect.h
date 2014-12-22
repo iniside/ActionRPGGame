@@ -1,5 +1,6 @@
 #pragma once
 #include "GameplayTagContainer.h"
+#include "GESEffectTypes.h"
 #include "GESEffect.generated.h"
 /*
 	Base class for effect.
@@ -42,6 +43,23 @@
 
 	There is no any preset methods of calculating any numerical mods. You have to implement them
 	yourself in respective functions. Either using blueprint or C++.
+
+
+
+	Update:
+	Effects are small generic objects, which should be be spawnedby other objects.
+	Blueprint which sets effect, doesn't define what the effect is, it just defines what it does.
+
+	For example. Instead of defining burning effect, which will be defined as Fire damage over time
+	we instead should setup generic Damage Over Time effect.
+
+	The for example in ability we setup two effects. One is Damage and one is OverTime.
+
+	On Damage effect we add tag Damage.Burning, and set damage caused,
+	On OverTime time effect we add effect to execute, period, and maximum ticks.
+
+	Of course for sake of convience, we can create base effects, which have pre setup tags,
+	and we can just setup damage in ability.
 */
 /*
 	1. Should I add generic acccess to effect properties trough reflection ? Like GetFloat, GetInt,
@@ -51,8 +69,6 @@
 	3. What is reponsibility for effect ?
 	4. Should I create subclass for effect duration types ? (EffectInstant, EffectPeriodic, EffectInfinite).
 	5. Should effect be able to live outside of EffectComponent ? (probabaly not).
-	6. 
-	
 */
 UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInlineNew)
 class GAMEEFFECTSYSTEM_API UGESEffect : public UObject
@@ -94,8 +110,11 @@ public:
 	/*
 		If this effect is appiled, apply also those effects.
 	*/
-	UPROPERTY(EditAnywhere, Instanced, Category = "Effect")
+	UPROPERTY(BlueprintReadWrite, meta=(ExposeOnSpawn), Category = "Effect")
 		TArray<class UGESEffect*> OtherEffects;
+
+	UPROPERTY(EditAnywhere, Category = "Type")
+		EGESEffectType EffectType;
 
 	/**
 	 *	I have these tags
@@ -129,7 +148,7 @@ public:
 	/**
 	 *	Called if effect has been succeefuly appiled to target;
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category = "Effect")
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Effect")
 		void OnEffectAppiled();
 
 	/*

@@ -21,7 +21,7 @@ class GAMEEFFECTSYSTEMEDITOR_API UBPNode_CreateEffect : public UK2Node_Construct
 	virtual FText GetMenuCategory() const override;
 	// End UK2Node interface.
 
-
+	UEdGraphPin* GetObjectContexPin() const;
 	UEdGraphPin* GetCauserPin() const;
 	UEdGraphPin* GetTargetPin() const;
 	UEdGraphPin* GetInstigatorPin() const;

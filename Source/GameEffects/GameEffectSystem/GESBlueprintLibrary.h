@@ -25,8 +25,8 @@ class GAMEEFFECTSYSTEM_API UGESBlueprintLibrary : public UBlueprintFunctionLibra
 {
 	GENERATED_UCLASS_BODY()
 public:
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"), Category = "Game Effect System")
-	static class UGESEffect* CreateEffect(TSubclassOf<class UGESEffect> EffectClass, AActor* Causer, AActor* Target, AActor* Instigator);
+	UFUNCTION(BlueprintCallable, meta = (HidePin = "ObjectContex", BlueprintInternalUseOnly = "true", DefaultToSelf = "ObjectContex"), Category = "Game Effect System")
+	static class UGESEffect* CreateEffect(UObject* ObjectContex, TSubclassOf<class UGESEffect> EffectClass, AActor* Causer, AActor* Target, AActor* Instigator);
 
 
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")

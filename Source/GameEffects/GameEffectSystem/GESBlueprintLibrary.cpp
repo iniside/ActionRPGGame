@@ -11,7 +11,7 @@ UGESBlueprintLibrary::UGESBlueprintLibrary(const FObjectInitializer& ObjectIniti
 {
 
 }
-UGESEffect* UGESBlueprintLibrary::CreateEffect(TSubclassOf<class UGESEffect> EffectClass, AActor* Causer, AActor* Target, AActor* Instigator)
+UGESEffect* UGESBlueprintLibrary::CreateEffect(UObject* ObjectContex, TSubclassOf<class UGESEffect> EffectClass, AActor* Causer, AActor* Target, AActor* Instigator)
 {
 	UGESEffect* effectOut = nullptr;
 	if (EffectClass && Target && Instigator && Causer)

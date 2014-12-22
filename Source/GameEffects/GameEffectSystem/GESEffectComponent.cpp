@@ -80,15 +80,17 @@ void UGESEffectComponent::ApplyEffectToSelf(class UGESEffect* EffectIn)
 		}
 	}
 	OnEffectIncoming.Broadcast(EffectIn);
+
+	//EffectIn->Initialize();
+	EffectIn->OnEffectAppiled();
+
 	//we should probabaly call it before aggregating tags into maps.
 	//if we get to this point, we are 100% sure that effect will be appiled to target
 	//so there is no reason to delay it's execution by iterating over it's tags and aggregating them.
 
 	//the optimal solution would be to move tag aggregation into seprate thread. and Queue task here from
 	//upocming effects.
-	EffectIn->OnEffectAppiled();
-
-	if (false) //add only if effect is not instant. false for now since, I have not way to check that ;)
+	if (EffectIn->EffectType != EGESEffectType::Instant) //add only if effect is not instant. false for now since, I have not way to check that ;)
 	{
 		for (auto It = EffectIn->ImmunityTags.CreateConstIterator(); It; ++It)
 		{
@@ -129,6 +131,27 @@ void UGESEffectComponent::ApplyEffectToTarget(class UGESEffect* EffectIn, AActor
 	*/
 	OnEffectOutgoing.Broadcast(EffectIn);
 	effectInt->GetEffectComponent()->ApplyEffectToSelf(EffectIn);
+
+	//iterate over effects contained within this effect and apply them.
+	//maybe move it up.
+	if (EffectIn->OtherEffects.Num() > 0)
+	{
+		for (UGESEffect* effect : EffectIn->OtherEffects)
+		{
+			IIGESEffect* childEffectIn = Cast<IIGESEffect>(effect->Target);
+			//check target from child effects, or assume
+			//they are the same as parent affect ?
+			childEffectIn->GetEffectComponent()->ApplyEffectToSelf(effect);
+
+			//effect->Target = Target;
+			//effect->Instigator = Instigator;
+			//effect->Causer = Causer;
+			//effect->InstigatorEffectComponent = InstigatorEffectComponent;
+			//effect->TargetEffectComponent = TargetEffectComponent;
+			effect->Initialize();
+			//effect->OnEffectAppiled();
+		}
+	}
 //	EffectIn->TargetEffectComponent->ApplyEffectToSelf(EffectIn);
 }
 

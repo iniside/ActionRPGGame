@@ -20,31 +20,38 @@ void UGESEffect::Initialize()
 	//	OutgoingEffectComponent->OnEffectOutgoing.Broadcast(this);
 	//if (IncomingEffectComponent)
 	//	IncomingEffectComponent->OnEffectIncoming.Broadcast(this);
-	if (InstigatorEffectComponent)
+	
+	/*
+		Instatn event don't need to listen for any effects, since they don't live long enough.
+	*/
+	if (EffectType == EGESEffectType::Infinite ||
+		EffectType == EGESEffectType::Periodic)
 	{
-		InstigatorEffectComponent->OnEffectOutgoing.AddDynamic(this, &UGESEffect::OnOutgoingEffect);
+		if (InstigatorEffectComponent)
+		{
+			InstigatorEffectComponent->OnEffectOutgoing.AddDynamic(this, &UGESEffect::OnOutgoingEffect);
+		}
+		if (TargetEffectComponent)
+		{
+			TargetEffectComponent->OnEffectIncoming.AddDynamic(this, &UGESEffect::OnIncomingEffect);
+			TargetEffectComponent->OnCheckImmunity.BindUObject(this, &UGESEffect::CheckImmunity);
+		}
 	}
-	if (TargetEffectComponent)
-	{
-		TargetEffectComponent->OnEffectIncoming.AddDynamic(this, &UGESEffect::OnIncomingEffect);
-		TargetEffectComponent->OnCheckImmunity.BindUObject(this, &UGESEffect::CheckImmunity);
-	}
-
 	/*
 		I assume that subsequent effects, will have same base data.
 	*/
-	if (OtherEffects.Num() > 0)
-	{
-		for (UGESEffect* effect : OtherEffects)
-		{
-			effect->Target = Target;
-			effect->Instigator = Instigator;
-			effect->Causer = Causer;
-			effect->InstigatorEffectComponent = InstigatorEffectComponent;
-			effect->TargetEffectComponent = TargetEffectComponent;
-			effect->Initialize();
-		}
-	}
+//	if (OtherEffects.Num() > 0)
+//	{
+//		for (UGESEffect* effect : OtherEffects)
+//		{
+	//		effect->Target = Target;
+	//		effect->Instigator = Instigator;
+	//		effect->Causer = Causer;
+	//		effect->InstigatorEffectComponent = InstigatorEffectComponent;
+	//		effect->TargetEffectComponent = TargetEffectComponent;
+//			effect->Initialize();
+//		}
+//	}
 	//if we call it here, we should give other effects chance, to modify this effect.
 	//At least I hope so.
 	OnEffectInitialized();

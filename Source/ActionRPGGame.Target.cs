@@ -23,12 +23,16 @@ public class ActionRPGGameTarget : TargetRules
 		OutExtraModuleNames.Add("GameInventorySystem");
 		OutExtraModuleNames.Add("GameAttributes");
 		OutExtraModuleNames.Add("GameEffectSystem");
+		OutExtraModuleNames.Add("GameAbilities");
+		OutExtraModuleNames.Add("GameSystem");
         OutExtraModuleNames.Add("ActionRPGGame");
         if (UEBuildConfiguration.bBuildEditor)
         {
 			OutExtraModuleNames.Add("GameInventorySystemEditor");
 			OutExtraModuleNames.Add("GameAttributesEditor");
 			OutExtraModuleNames.Add("GameEffectSystemEditor");
+			OutExtraModuleNames.Add("GameAbilitiesEditor");
+			OutExtraModuleNames.Add("GameSystemEditor");
             OutExtraModuleNames.Add("ActionRPGGameEditor");
         }
 	}

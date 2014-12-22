@@ -66,6 +66,8 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	
 	GameEffects = ObjectInitializer.CreateDefaultSubobject<UGESEffectComponent>(this, TEXT("GameEffects"));
 
+	GameEffectManager = ObjectInitializer.CreateDefaultSubobject<UGESEffectManager>(this, TEXT("GameEffectManager"));
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -127,6 +129,10 @@ class UGAAttributeComponent* AARCharacter::GetAttributeComponent()
 class UGESEffectComponent* AARCharacter::GetEffectComponent()
 {
 	return GameEffects;
+}
+class UGESEffectManager* AARCharacter::GetEffectManager()
+{
+	return GameEffectManager;
 }
 /** IIGESEffect End */
 

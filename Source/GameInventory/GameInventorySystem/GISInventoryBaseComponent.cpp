@@ -56,7 +56,7 @@ void UGISInventoryBaseComponent::InitializeComponent()
 					InventoryContainer->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
 					InventoryContainer->Initialize();
 					InventoryContainer->InventoryComponent = this;
-
+					InventoryContainer->SetVisibility(ESlateVisibility::Hidden);
 					//call last
 					InventoryContainer->InitializeContainer();
 				}
@@ -322,7 +322,7 @@ void UGISInventoryBaseComponent::ConstructLootPickingWidget()
 			LootWidget->ItemsInfos = LootSlotInfos;
 			//LootWidget->OwningPickupActor = CurrentPickupActor;
 			LootWidget->InitializeLootWidget();
-			LootWidget->SetVisibility(ESlateVisibility::Visible);
+			LootWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		}
 		//LootContainer->InteractingInventory = this;
 		//LootContainer->OpenLootWindow();

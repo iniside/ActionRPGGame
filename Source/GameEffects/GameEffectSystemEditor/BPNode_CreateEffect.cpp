@@ -4,6 +4,7 @@
 
 #include "GESBlueprintLibrary.h"
 #include "GESEffect.h"
+#include "GESEffectManager.h"
 
 #include "EngineDefines.h"
 #include "Editor.h"
@@ -23,11 +24,13 @@ struct FBPNode_CreateEffectHelper
 	static FString CauserPinName;
 	static FString TargetPinName;
 	static FString InstigatorPinName;
+	static FString ObjectContexPinName;
 };
 
 FString FBPNode_CreateEffectHelper::CauserPinName(TEXT("Causer"));
 FString FBPNode_CreateEffectHelper::TargetPinName(TEXT("Target"));
 FString FBPNode_CreateEffectHelper::InstigatorPinName(TEXT("Instigator"));
+FString FBPNode_CreateEffectHelper::ObjectContexPinName(TEXT("ObjectContex"));
 
 UBPNode_CreateEffect::UBPNode_CreateEffect(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -43,6 +46,8 @@ void UBPNode_CreateEffect::AllocateDefaultPins()
 	const UEdGraphSchema_K2* K2Schema = GetDefault<UEdGraphSchema_K2>();
 
 	// OwningPlayer pin
+	UEdGraphPin* ObjectContextPin = CreatePin(EGPD_Input, K2Schema->PC_Object, TEXT(""), UObject::StaticClass(), false, false, FBPNode_CreateEffectHelper::ObjectContexPinName);
+	SetPinToolTip(*ObjectContextPin, LOCTEXT("ObjectContextPinTooltip", "Object with effect manager"));
 	UEdGraphPin* CauserPin = CreatePin(EGPD_Input, K2Schema->PC_Object, TEXT(""), AActor::StaticClass(), false, false, FBPNode_CreateEffectHelper::CauserPinName);
 	SetPinToolTip(*CauserPin, LOCTEXT("CauserPinTooltip", "An actor which caused this effect to apply"));
 	UEdGraphPin* TargetPin = CreatePin(EGPD_Input, K2Schema->PC_Object, TEXT(""), AActor::StaticClass(), false, false, FBPNode_CreateEffectHelper::TargetPinName);
@@ -92,6 +97,12 @@ void UBPNode_CreateEffect::GetMenuEntries(FGraphContextMenuBuilder& ContextMenuB
 }
 
 //gets out predefined pin
+UEdGraphPin* UBPNode_CreateEffect::GetObjectContexPin() const
+{
+	UEdGraphPin* Pin = FindPin(FBPNode_CreateEffectHelper::ObjectContexPinName);
+	check(Pin == NULL || Pin->Direction == EGPD_Input);
+	return Pin;
+}
 UEdGraphPin* UBPNode_CreateEffect::GetCauserPin() const
 {
 	UEdGraphPin* Pin = FindPin(FBPNode_CreateEffectHelper::CauserPinName);
@@ -116,7 +127,8 @@ bool UBPNode_CreateEffect::IsSpawnVarPin(UEdGraphPin* Pin)
 	return(Super::IsSpawnVarPin(Pin) &&
 		Pin->PinName != FBPNode_CreateEffectHelper::CauserPinName
 		&& Pin->PinName != FBPNode_CreateEffectHelper::TargetPinName
-		&& Pin->PinName != FBPNode_CreateEffectHelper::InstigatorPinName);
+		&& Pin->PinName != FBPNode_CreateEffectHelper::InstigatorPinName
+		&& Pin->PinName != FBPNode_CreateEffectHelper::ObjectContexPinName);
 }
 
 //amd this is where magic really happens. This will expand node for our custom object, with properties
@@ -128,12 +140,12 @@ void UBPNode_CreateEffect::ExpandNode(class FKismetCompilerContext& CompilerCont
 	//look for static function in BlueprintFunctionLibrary
 	//In this class and of this name
 	static FName Create_FunctionName = GET_FUNCTION_NAME_CHECKED(UGESBlueprintLibrary, CreateEffect);
+	
+	//static FName Create_FunctionName = GET_FUNCTION_NAME_CHECKED(UGESEffectManager, SpawnEffect);
 	//with these inputs (as a Side note, these should be probabaly FName not FString)
-	//static FString WorldContextObject_ParamName = FString(TEXT("WorldContextObject"));
-	//static FString WidgetType_ParamName = FString(TEXT("ItemClass"));
-	//static FString OwningPlayer_ParamName = FString(TEXT("OwningPlayer"));
 
-	static const FString EffectType_Param = FString(TEXT("EffectClass"));
+	static const FString EffectType_Param = FString(TEXT("EffectClass")); 
+	static const FString ObjectContextType_Param = FBPNode_CreateEffectHelper::ObjectContexPinName;
 	static const FString CauserType_Param = FBPNode_CreateEffectHelper::CauserPinName;
 	static const FString TargetType_Param = FBPNode_CreateEffectHelper::TargetPinName;
 	static const FString InstigatorType_Param = FBPNode_CreateEffectHelper::InstigatorPinName;
@@ -144,6 +156,7 @@ void UBPNode_CreateEffect::ExpandNode(class FKismetCompilerContext& CompilerCont
 	//Exec pins are those big arrows, connected with thick white lines.
 	UEdGraphPin* SpawnNodeExec = CreateEffectNode->GetExecPin();
 	//gets world context pin from our static function
+	UEdGraphPin* SpawnObjectContextPin = CreateEffectNode->GetObjectContexPin();
 
 	UEdGraphPin* SpawnCauserPin = CreateEffectNode->GetCauserPin();
 	UEdGraphPin* SpawnTargetPin = CreateEffectNode->GetTargetPin();
@@ -172,6 +185,7 @@ void UBPNode_CreateEffect::ExpandNode(class FKismetCompilerContext& CompilerCont
 
 	//allocate nodes for created widget.
 	UEdGraphPin* CallCreateExec = CallCreateNode->GetExecPin();
+	UEdGraphPin* CallCreateObjectContextPin = CallCreateNode->FindPinChecked(ObjectContextType_Param);
 	UEdGraphPin* CallCreateCauserPin = CallCreateNode->FindPinChecked(CauserType_Param);
 	UEdGraphPin* CallCreateTargetPin = CallCreateNode->FindPinChecked(TargetType_Param);
 	UEdGraphPin* CallCreateInstigatorPin = CallCreateNode->FindPinChecked(InstigatorType_Param);
@@ -191,9 +205,7 @@ void UBPNode_CreateEffect::ExpandNode(class FKismetCompilerContext& CompilerCont
 		// Copy blueprint literal onto 'UWidgetBlueprintLibrary::Create' call 
 		CallCreateEffectTypePin->DefaultObject = SpawnClass;
 	}
-
-
-	// Copy the 'Owning Player' connection from the spawn node to 'UWidgetBlueprintLibrary::Create'
+	CompilerContext.MovePinLinksToIntermediate(*SpawnObjectContextPin, *CallCreateObjectContextPin);
 	CompilerContext.MovePinLinksToIntermediate(*SpawnCauserPin, *CallCreateCauserPin);
 	CompilerContext.MovePinLinksToIntermediate(*SpawnTargetPin, *CallCreateTargetPin);
 	CompilerContext.MovePinLinksToIntermediate(*SpawnInstigatorPin, *CallCreateInstigatorPin);

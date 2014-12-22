@@ -42,9 +42,18 @@ public:
 		TagCount = 0;
 	};
 };
-
 /*
+	I probabaly should add another component, which would allow spawning and caching of effects.
+	Or UObject, which would default subobject. Not really important.
 
+	What is important is that trough this object effect would be created in other objects, 
+	and cached. We wouldn't need to construct new effect every time it is needed,
+	we would just get the cached one, and update it's properties.
+
+	Sounds logical eh ?
+*/
+/*
+This component allows interaction with Effect system.
 */
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
 class GAMEEFFECTSYSTEM_API UGESEffectComponent : public UActorComponent

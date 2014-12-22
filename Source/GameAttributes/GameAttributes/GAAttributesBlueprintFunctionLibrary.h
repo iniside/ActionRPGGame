@@ -35,6 +35,15 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 		static float ChangeAttribute(AActor* Target, FGAAttribute AttributeIn, float ValueIn, EGAAttributeOp Operation, bool bSetAttribute);
-
-
+	/**
+	*	Takes array attributes, change them;
+	*	It always Work Like Attribute + ValueIn, Attribute - ValueIn, Attribute \ ValueIn.
+	*
+	*	@param Target - Actor on which to change attributes
+	*	@param Attributes - Attributes to change.
+	*
+	*   
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
+		static void ModifyAttributes(TArray<FGAAttributeModifier> AttributesIn);
 };
