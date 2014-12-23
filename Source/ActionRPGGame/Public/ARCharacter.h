@@ -4,7 +4,10 @@
 #include "GAAttributeComponent.h"
 #include "GISInventoryBaseComponent.h" //need for template
 #include "GESEffectComponent.h"
-//#include "GISItemData.h"
+
+#include "GISGlobalTypes.h"
+#include "GISItemData.h"
+
 #include "GESEffectManager.h"
 
 #include "IGAAttributes.h"
@@ -74,14 +77,23 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Replication Test")
 		void CheckIfStructReplicated();
 protected:
-
-	template<int Index>
-	void InputActionBar()
+	/*
+		Template. Becuase creating something like 60 functions would be sooo cool!
+	*/
+	/*
+		How to make it work in case where I would need to copy these pointer to other input buttons ?
+		let's think...
+	*/
+	template<int32 TabIndex, int32 SlotIndex>
+	void InputActionBarPressed()
 	{
-		if (Inventory->HotBarButtons[Index].Item)
-		{
-			Inventory->HotBarButtons[Index].Item->OnKeyPressedDown();
-		}
+		ActionBar->InputSlotPressed<TabIndex, SlotIndex>();
+	}
+
+	template<int32 TabIndex, int32 SlotIndex>
+	void InputActionBarReleased()
+	{
+		ActionBar->InputSlotReleased<TabIndex, SlotIndex>();
 	}
 
 	/** Called for forwards/backward input */

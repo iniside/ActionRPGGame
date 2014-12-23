@@ -19,7 +19,9 @@ public:
 	//these should be called on server.
 	virtual bool OnItemAddedToSlot() override;
 	virtual bool OnItemRemovedFromSlot() override;
-	virtual void ActivateItem() override;
+
+	virtual void InputPressed() override;
+	virtual void InputReleased() override;
 
 	static const int32 ItemTypeID = 10;
 

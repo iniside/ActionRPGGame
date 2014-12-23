@@ -95,6 +95,9 @@ public:
 		description to show.
 	*/
 	virtual FText GetDescription() { return FText::FromString("No Description"); };
+
+	virtual FText GetInslotText() { return FText::FromString("No Info"); };
+
 	/*
 		Called when item is added to slot. 
 		Might for example spawn objects from data in item, if you need object to be interactable.
@@ -112,6 +115,9 @@ public:
 	*/
 	virtual void ActivateItem() {}
 
+	virtual void InputPressed() {}
+
+	virtual void InputReleased() {}
 	/*
 		Override to perform action, when item is droped out of inventory.
 		Most likely you will want to spawn actor on level, which will represent dropped item.
@@ -142,6 +148,15 @@ public:
 	virtual int32 GetItemTypeID() const { return UGISItemData::ItemTypeID; }
 
 	virtual bool IsOfType(int32 ItemTypeIDIn) { return UGISItemData::ItemTypeID == ItemTypeIDIn; }
+
+	virtual UWorld* GetWorld() const override;
+private:
+	UWorld* CurrentWorld;
+public:
+	inline void SetWorld(UWorld* WorldIn)
+	{
+		CurrentWorld = WorldIn;
+	};
 
 protected:
 	bool bNetAddressable;

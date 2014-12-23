@@ -19,3 +19,10 @@ void UGISItemData::SetNetAddressable()
 {
 	bNetAddressable = true;
 }
+
+UWorld* UGISItemData::GetWorld() const
+{
+	if (CurrentWorld)
+		return CurrentWorld;
+	return nullptr;
+}

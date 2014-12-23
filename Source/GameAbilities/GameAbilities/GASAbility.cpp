@@ -42,12 +42,53 @@ void AGASAbility::GotoState(class UGASAbilityState* NextState)
 	}
 }
 
-void AGASAbility::InputActivate()
+void AGASAbility::InputPressed()
 {
+	ActivateAbility(); //temporary this never should be called directly.
+	//will change one state machine and replication is fully operational.
+}
 
+void AGASAbility::InputReleased()
+{
+	DeactivateAbility(); //temporary his never should call it directly.
 }
 
 void AGASAbility::ActivateAbility()
 {
-	OnAbilityActivated();
+	if (Role < ROLE_Authority)
+	{
+		ServerActivateAbility();
+	}
+	else
+	{
+		OnAbilityActivated();
+	}
+}
+void AGASAbility::ServerActivateAbility_Implementation()
+{
+	ActivateAbility();
+}
+bool AGASAbility::ServerActivateAbility_Validate()
+{
+	return true;
+}
+
+void AGASAbility::DeactivateAbility()
+{
+	if (Role < ROLE_Authority)
+	{
+		ServerDeactivateAbility();
+	}
+	else
+	{
+		OnAbilityDeactivated();
+	}
+}
+void AGASAbility::ServerDeactivateAbility_Implementation()
+{
+	DeactivateAbility();
+}
+bool AGASAbility::ServerDeactivateAbility_Validate()
+{
+	return true;
 }

@@ -29,6 +29,8 @@ UGISInventoryBaseComponent::UGISInventoryBaseComponent(const FObjectInitializer&
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 	bAllowConcurrentTick = true;
 	OnItemLooted.AddDynamic(this, &UGISInventoryBaseComponent::ConstructLootPickingWidget);
+	InventoryVisibility = ESlateVisibility::Hidden;
+	LootWindowVisibility = ESlateVisibility::Hidden;
 }
 
 
@@ -56,7 +58,7 @@ void UGISInventoryBaseComponent::InitializeComponent()
 					InventoryContainer->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
 					InventoryContainer->Initialize();
 					InventoryContainer->InventoryComponent = this;
-					InventoryContainer->SetVisibility(ESlateVisibility::Hidden);
+					InventoryContainer->SetVisibility(InventoryVisibility);
 					//call last
 					InventoryContainer->InitializeContainer();
 				}
@@ -71,7 +73,7 @@ void UGISInventoryBaseComponent::InitializeComponent()
 					ULocalPlayer* Player = GetWorld()->GetFirstLocalPlayerFromController(); //temporary
 					LootWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
 					LootWidget->Initialize();
-					LootWidget->SetVisibility(ESlateVisibility::Hidden);
+					LootWidget->SetVisibility(LootWindowVisibility);
 				}
 			}
 		}
@@ -208,7 +210,7 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 
 		TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData = TargetItem;
 		LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData = nullptr;
-		
+		TargetItem->SetWorld(GetWorld());
 		TargetItem->OnItemAddedToSlot();
 		//FGISSlotSwapInfo SlotSwapInfo;
 
@@ -231,6 +233,9 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 
 		TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData = TargetItem;
 		LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData = LastItem;
+		
+		TargetItem->SetWorld(GetWorld());
+		LastItem->SetWorld(GetWorld());
 		TargetItem->OnItemAddedToSlot();
 		LastItem->OnItemAddedToSlot();
 

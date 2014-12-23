@@ -160,6 +160,20 @@ void AARCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 	InputComponent->BindAction("ShowHideInventory", IE_Pressed, this, &AARCharacter::ShowHideInventory);
 	InputComponent->BindAction("ShowHideAbilityBook", IE_Pressed, this, &AARCharacter::ShowHideAbilityBook);
 
+	InputComponent->BindAction("ActionButtonTab0Slot0", IE_Pressed, this, &AARCharacter::InputActionBarPressed<0, 0>);
+	InputComponent->BindAction("ActionButtonTab0Slot1", IE_Pressed, this, &AARCharacter::InputActionBarPressed<0, 1>);
+	InputComponent->BindAction("ActionButtonTab0Slot2", IE_Pressed, this, &AARCharacter::InputActionBarPressed<0, 2>);
+	InputComponent->BindAction("ActionButtonTab0Slot3", IE_Pressed, this, &AARCharacter::InputActionBarPressed<0, 3>);
+	InputComponent->BindAction("ActionButtonTab0Slot4", IE_Pressed, this, &AARCharacter::InputActionBarPressed<0, 4>);
+	InputComponent->BindAction("ActionButtonTab0Slot5", IE_Pressed, this, &AARCharacter::InputActionBarPressed<0, 5>);
+
+	InputComponent->BindAction("ActionButtonTab0Slot0", IE_Released, this, &AARCharacter::InputActionBarReleased<0, 0>);
+	InputComponent->BindAction("ActionButtonTab0Slot1", IE_Released, this, &AARCharacter::InputActionBarReleased<0, 1>);
+	InputComponent->BindAction("ActionButtonTab0Slot2", IE_Released, this, &AARCharacter::InputActionBarReleased<0, 2>);
+	InputComponent->BindAction("ActionButtonTab0Slot3", IE_Released, this, &AARCharacter::InputActionBarReleased<0, 3>);
+	InputComponent->BindAction("ActionButtonTab0Slot4", IE_Released, this, &AARCharacter::InputActionBarReleased<0, 4>);
+	InputComponent->BindAction("ActionButtonTab0Slot5", IE_Released, this, &AARCharacter::InputActionBarReleased<0, 5>);
+
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
 	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick

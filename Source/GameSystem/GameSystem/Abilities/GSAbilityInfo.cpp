@@ -24,7 +24,7 @@ bool UGSAbilityInfo::OnItemAddedToSlot()
 {
 	if (AbilityType)
 	{
-	//	GetWorld()->SpawnActor<AGSAbility>(AbilityType);
+		ActiveAbility = GetWorld()->SpawnActor<AGSAbility>(AbilityType);
 	}
 	return false;
 }
@@ -32,10 +32,18 @@ bool UGSAbilityInfo::OnItemRemovedFromSlot()
 {
 	return false;
 }
-void UGSAbilityInfo::ActivateItem()
+
+void UGSAbilityInfo::InputPressed()
 {
-	if (ActiveAbility)
+	if (AbilityType)
 	{
-		ActiveAbility->InputActivate();
+		ActiveAbility->InputPressed();
+	}
+}
+void UGSAbilityInfo::InputReleased()
+{
+	if (AbilityType)
+	{
+		ActiveAbility->InputReleased();
 	}
 }

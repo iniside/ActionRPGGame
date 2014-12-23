@@ -11,6 +11,39 @@ class GAMEABILITIES_API AGASAbility : public AActor
 public:
 	virtual void Tick(float DeltaSeconds) override;
 
+	/*
+		Property here or in states ?
+		CastTime, ChannelTime, period time (Ability pulse, every X seconds while active or while
+		pressed)
+	*/
+	UPROPERTY()
+		float MaxCastTime;
+
+	UPROPERTY()
+		float CooldownTime;
+private:
+	float CurrentCooldownTime;
+	float CurrentCastTime;
+public:
+	inline float GetCooldownTime() { return CurrentCooldownTime; };
+
+	UPROPERTY(EditAnywhere, Category = "Ability Cosmetics")
+		FText AbilityName;
+
+	UPROPERTY(EditAnywhere, Category = "Ability Cosmetics")
+		UTexture2D* AbilityIcon;
+
+	UPROPERTY(EditAnywhere, Category = "Ability Cosmetics")
+		FText AbilityDescription;
+	/*
+		Does this ability have preparation stage. Ie. in AoE ability if you press button to activate it
+		you might want to display AoE targetting circle first, and after second input press, activate
+		ability to launch it place where targetting circle is.
+
+		If this is false, ability will launch instantly after button press.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Ability")
+		bool bHasPreparationStage;
 
 	/**
 	 *	State Machine Properties Begin
@@ -53,10 +86,17 @@ public:
 	/**
 	 *	Hook it up to input.
 	 */
-	void InputActivate();
+	
+	void InputPressed();
+	void InputReleased();
 
 	void ActivateAbility();
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerActivateAbility();
 
+	void DeactivateAbility();
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerDeactivateAbility();
 
 	/**
 	 *	Blueprint Events
@@ -65,8 +105,11 @@ public:
 	 *	Called when ability is Activated (ie. casting finished).
 	 *	Make it overridable in blueprint ? Or just use it to start event graph ?
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category = "Game Abilities")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintAuthorityOnly, Category = "Game Abilities")
 		void OnAbilityActivated();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintAuthorityOnly, Category = "Game Abilities")
+		void OnAbilityDeactivated();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Game Abilities")
 		void OnCooldownStarted();

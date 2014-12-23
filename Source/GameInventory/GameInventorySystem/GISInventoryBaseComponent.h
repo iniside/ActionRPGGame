@@ -53,6 +53,11 @@ public:
 	UPROPERTY(EditAnywhere)
 		TArray<TSubclassOf<class UGISItemData>> AccepectedItems;
 
+	UPROPERTY(EditAnywhere)
+		ESlateVisibility InventoryVisibility;
+
+	UPROPERTY(EditAnywhere)
+		ESlateVisibility LootWindowVisibility;
 	/*
 	Indicates if items can be activated directly in invetory window.
 	Useful if you want to prevent player from activating items in invetory. For example
@@ -278,6 +283,42 @@ public:
 
 	void PostInventoryInitialized();
 
+	/**
+	 *	Template helper for input press, allow easy access by index to elements in inventory
+	 */
+	template<int32 TabIndex, int32 SlotIndex>
+	inline void InputSlotPressed()
+	{
+		if (Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData.IsValid())
+		{
+			Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData->InputPressed();
+		}
+	}
+	/**
+	*	Template helper for input release, allow easy access by index to elements in inventory
+	*/
+	template<int32 TabIndex, int32 SlotIndex>
+	inline void InputSlotReleased()
+	{
+		if (Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData.IsValid())
+		{
+			Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData->InputReleased();
+		}
+	}
+	/*
+		Helper function is you want to copy pointer from slot, to another place.
+		Useful if you for example don't want to activate item in slot, but 
+		copy pointer to diffrent place, and activate it from here.
+	 */
+	template<int32 TabIndex, int32 SlotIndex>
+	inline UGISItemData* GetSlot()
+	{
+		if (Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData.IsValid())
+		{
+			return Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData.Get();
+		}
+		return nullptr;
+	}
 
 	virtual bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags) override;
 	virtual void GetSubobjectsWithStableNamesForNetworking(TArray<UObject*>& Objs) override;
