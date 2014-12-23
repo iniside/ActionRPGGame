@@ -38,11 +38,21 @@ public:
 	/**
 	*	Takes array attributes, change them;
 	*	It always Work Like Attribute + ValueIn, Attribute - ValueIn, Attribute \ ValueIn.
+	*	Works directly on UGAAttributesBase derived class!
 	*
 	*	@param Target - Actor on which to change attributes
 	*	@param Attributes - Attributes to change.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
+		static void AttributesOperation(TArray<FGAAttributeModifier> AttributesIn);
+
+	/**
+	*	Takes array attributes, change them;
+	*	It always Work Like Attribute + ValueIn, Attribute - ValueIn, Attribute \ ValueIn.
+	*	Works on componenet, and will apply attribute mods, if there are any.
 	*
-	*   
+	*	@param Target - Actor on which to change attributes
+	*	@param Attributes - Attributes to change.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 		static void ModifyAttributes(TArray<FGAAttributeModifier> AttributesIn);

@@ -62,3 +62,36 @@ public:
 		Operation = EGAAttributeOp::Add;
 	};
 };
+/*
+	It's going to be helper replication struct
+	mainly used to communicate changes to UI, so you can decide to what do with them.
+*/
+USTRUCT(BlueprintType)
+struct GAMEATTRIBUTES_API FGAModifiedAttribute
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	/**
+	 *	Always increment it, to make sure it will replicate.
+	 */
+	UPROPERTY()
+		int8 ReplicationCounter;
+	
+	/**
+	 *	Attribute we have modified.
+	 */
+	UPROPERTY()
+		FGAAttribute Attribute;
+	
+	/**
+	 *	Final value by which we modified attribute.
+	 */
+	UPROPERTY()
+		float ModifiedByValue;
+	
+	/**
+	 *	Final tags appiled by this change.
+	 */
+	UPROPERTY()
+	FGameplayTagContainer Tags;
+};

@@ -30,6 +30,9 @@ class AARCharacter : public ACharacter, public IIGAAttributes, public IIGESEffec
 	class UGISInventoryBaseComponent* Inventory;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	class UGISInventoryBaseComponent* ActionBar;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	class UGISInventoryBaseComponent* AbilityBook;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes", meta = (AllowPrivateAccess = "true"))
 	class UGAAttributeComponent* Attributes;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Effects", meta = (AllowPrivateAccess = "true"))
@@ -106,6 +109,8 @@ protected:
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 
 	void ShowHideInventory();
+
+	void ShowHideAbilityBook();
 
 protected:
 	// APawn interface

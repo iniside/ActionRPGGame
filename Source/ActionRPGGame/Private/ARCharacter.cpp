@@ -58,6 +58,10 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	Inventory->SetNetAddressable();
 	//testing out multi commponent interaction.
 	
+	AbilityBook = ObjectInitializer.CreateDefaultSubobject<UGISInventoryBaseComponent>(this, TEXT("AbilityBook"));
+	AbilityBook->SetIsReplicated(true);
+	AbilityBook->SetNetAddressable();
+
 	ActionBar = ObjectInitializer.CreateDefaultSubobject<UGISInventoryBaseComponent>(this, TEXT("ActionBar"));
 	ActionBar->SetIsReplicated(true);
 	ActionBar->SetNetAddressable();
@@ -77,8 +81,12 @@ void AARCharacter::BeginPlay()
 	ActionBar->SetIsReplicated(true);
 	ActionBar->SetNetAddressable();
 
+	AbilityBook->SetIsReplicated(true);
+	AbilityBook->SetNetAddressable();
+
 	Inventory->SetIsReplicated(true);
 	Inventory->SetNetAddressable();
+
 	if (Role < ROLE_Authority || GetNetMode() == ENetMode::NM_Standalone)
 	{
 		//if (MasterWidget)
@@ -150,6 +158,7 @@ void AARCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 	InputComponent->BindAxis("MoveRight", this, &AARCharacter::MoveRight);
 
 	InputComponent->BindAction("ShowHideInventory", IE_Pressed, this, &AARCharacter::ShowHideInventory);
+	InputComponent->BindAction("ShowHideAbilityBook", IE_Pressed, this, &AARCharacter::ShowHideAbilityBook);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -241,6 +250,21 @@ void AARCharacter::ShowHideInventory()
 		else if (Inventory->InventoryContainer->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
 		{
 			Inventory->InventoryContainer->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+}
+
+void AARCharacter::ShowHideAbilityBook()
+{
+	if (AbilityBook && AbilityBook->InventoryContainer)
+	{
+		if (AbilityBook->InventoryContainer->GetVisibility() == ESlateVisibility::Hidden)
+		{
+			AbilityBook->InventoryContainer->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		}
+		else if (AbilityBook->InventoryContainer->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
+		{
+			AbilityBook->InventoryContainer->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
 }

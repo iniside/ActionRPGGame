@@ -14,12 +14,12 @@ UGASAbilityStateCasting::UGASAbilityStateCasting(const FObjectInitializer& Objec
 
 void UGASAbilityStateCasting::Tick(float DeltaSeconds)
 {
-	/*GetOuterAGASAbility()->CurrentCastTime += DeltaSeconds;
-	if (GetOuterAGASAbility()->CurrentCastTime >= GetOuterAARAbility()->MaxCastTime)
-	{
-		GetOuterAGASAbility()->CurrentCastTime = 0;
+	//GetOuterAGASAbility()->CurrentCastTime += DeltaSeconds;
+	//if (GetOuterAGASAbility()->CurrentCastTime >= GetOuterAARAbility()->MaxCastTime)
+	//{
+	//	GetOuterAGASAbility()->CurrentCastTime = 0;
 		CastAbility();
-	}*/
+	//}
 }
 
 void UGASAbilityStateCasting::CastAbility()

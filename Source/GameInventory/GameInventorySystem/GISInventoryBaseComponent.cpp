@@ -431,7 +431,7 @@ void UGISInventoryBaseComponent::ClientReconstructLootWidget_Implementation()
 
 void UGISInventoryBaseComponent::ClientUpdateInventory_Implementation(const FGISSlotUpdateData& SlotUpdateInfoIn)
 {
-	OnItemAdded.Broadcast(SlotUpdateInfoIn);
+	//OnItemAdded.Broadcast(SlotUpdateInfoIn);
 }
 void UGISInventoryBaseComponent::ClientSlotSwap_Implementation(const FGISSlotSwapInfo& SlotSwapInfoIn)
 {

@@ -16,7 +16,7 @@ void UGASAbilityStateCooldown::Tick(float DeltaSeconds)
 	//if (GetOuterAARAbility()->CurrentCooldownTime >= GetOuterAARAbility()->MaxRecastTime)
 	//{
 	//	GetOuterAARAbility()->CurrentCooldownTime = 0;
-	//	FinishCooldown();
+		FinishCooldown();
 	//}
 }
 void UGASAbilityStateCooldown::FinishCooldown()

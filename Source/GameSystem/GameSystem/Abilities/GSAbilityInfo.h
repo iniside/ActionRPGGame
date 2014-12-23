@@ -9,7 +9,7 @@ class GAMESYSTEM_API UGSAbilityInfo : public UGISItemData
 {
 	GENERATED_UCLASS_BODY()
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated)
+	UPROPERTY(BlueprintReadWrite, meta=(ExposeOnSpawn), Replicated)
 		TSubclassOf<class AGSAbility> AbilityType;
 
 	//needed ?

@@ -106,7 +106,7 @@ void UGISContainerBaseWidget::Widget_OnItemAdded(const FGISSlotUpdateData& SlotU
 {
 	UObject* Outer = GetWorld()->GetGameInstance() ? StaticCast<UObject*>(GetWorld()->GetGameInstance()) : StaticCast<UObject*>(GetWorld());
 //	UGISItemData* itemData = SlotUpdateInfo.SlotComponent->Tabs.InventoryTabs[SlotUpdateInfo.TabIndex].TabSlots[SlotUpdateInfo.SlotIndex].ItemData;
-	if (SlotUpdateInfo.SlotData.IsValid())
+	if (SlotUpdateInfo.SlotData.IsValid() && ItemClass)
 	{//check against replicated component and struct in tabs in it.
 		UGISItemBaseWidget* ItemWidget = ConstructObject<UGISItemBaseWidget>(ItemClass, Outer);
 		if (ItemWidget && InventoryComponent)
@@ -125,7 +125,7 @@ void UGISContainerBaseWidget::Widget_OnItemAdded(const FGISSlotUpdateData& SlotU
 		SlotInfo.SlotTabIndex = SlotUpdateInfo.TabIndex;
 		InventoryTabs[SlotUpdateInfo.TabIndex]->InventorySlots[SlotUpdateInfo.SlotIndex]->SlotInfo = SlotInfo;
 
-		UWidget* superWidget = InventoryTabs[SlotUpdateInfo.TabIndex]->InventorySlots[SlotUpdateInfo.SlotIndex]->GetWidgetFromName(TEXT("OverlaySlot"));
+		UWidget* superWidget = InventoryTabs[SlotUpdateInfo.TabIndex]->InventorySlots[SlotUpdateInfo.SlotIndex]->GetWidgetFromName(DropSlottName);
 		
 		UOverlay* overlay = Cast<UOverlay>(superWidget);
 		if (overlay)
