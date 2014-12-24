@@ -16,6 +16,8 @@ public:
 	UPROPERTY(Replicated)
 	class AGSAbility* ActiveAbility;
 
+	virtual UTexture2D* GetImage() override;
+
 	//these should be called on server.
 	virtual bool OnItemAddedToSlot() override;
 	virtual bool OnItemRemovedFromSlot() override;

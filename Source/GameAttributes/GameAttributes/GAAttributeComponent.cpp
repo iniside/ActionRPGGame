@@ -3,6 +3,8 @@
 #include "GameAttributes.h"
 #include "GAAttributesBase.h"
 
+#include "Mods/GAAttributeMod.h"
+
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
 
@@ -27,18 +29,30 @@ void UGAAttributeComponent::InitializeComponent()
 		DefaultAttributes = ConstructObject<UGAAttributesBase>(DefaultAttributesClass, this);
 		DefaultAttributes->SetNetAddressable();
 	}
+	if (AttributeMods.Num() > 0)
+	{
+		for (TSubclassOf<UGAAttributeMod> mod : AttributeMods)
+		{
+			UGAAttributeMod* modObj = ConstructObject<UGAAttributeMod>(mod, this);
+			modObj->BindDelegates(OnAttributeOutgoing, OnAttributeIncoming);
+			AttributeModsObj.Add(modObj);
+		}
+	}
 }
 
-void UGAAttributeComponent::ModifyAttributesOnSelf(const FGAAttributeModifier& AttributeIn)
+void UGAAttributeComponent::ModifyAttributesOnSelf(FGAAttributeModifier& AttributeIn)
 {
 
 	//apply final value to attribute.
 	//after we appiled
+	OnAttributeIncoming.Broadcast(AttributeIn, AttributeIn);
 	float newValue = DefaultAttributes->AttributeOperation(AttributeIn.Attribute, AttributeIn.Value, AttributeIn.Operation);
 	DefaultAttributes->SetFloatValue(AttributeIn.Attribute, newValue);
 }
-void UGAAttributeComponent::ModifyAttributesOnTarget(UGAAttributeComponent* Target, const FGAAttributeModifier& AttributeIn)
+void UGAAttributeComponent::ModifyAttributesOnTarget(UGAAttributeComponent* Target, FGAAttributeModifier& AttributeIn)
 {
+	//apply possible mods from
+	OnAttributeOutgoing.Broadcast(AttributeIn, AttributeIn);
 	Target->ModifyAttributesOnSelf(AttributeIn);
 }
 

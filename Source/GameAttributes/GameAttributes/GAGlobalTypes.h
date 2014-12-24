@@ -41,6 +41,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Mod")
 		TWeakObjectPtr<AActor> Target;
 
+	UPROPERTY(BlueprintReadWrite, Category = "Mod")
+		TWeakObjectPtr<AActor> Instigator;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
 		FGAAttribute Attribute;
 
@@ -95,3 +98,7 @@ public:
 	UPROPERTY()
 	FGameplayTagContainer Tags;
 };
+
+
+DECLARE_MULTICAST_DELEGATE_TwoParams(FGAOnAttributeOutgoing, const FGAAttributeModifier&, FGAAttributeModifier&);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FGAOnAttributeIncoming, const FGAAttributeModifier&, FGAAttributeModifier&);

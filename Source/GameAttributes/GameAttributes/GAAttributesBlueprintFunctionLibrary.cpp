@@ -8,6 +8,8 @@
 
 #include "GAAttributesBlueprintFunctionLibrary.h"
 
+
+
 UGAAttributesBlueprintFunctionLibrary::UGAAttributesBlueprintFunctionLibrary(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
@@ -71,18 +73,19 @@ void UGAAttributesBlueprintFunctionLibrary::AttributesOperation(TArray<FGAAttrib
 
 void UGAAttributesBlueprintFunctionLibrary::ModifyAttributes(TArray<FGAAttributeModifier> AttributesIn)
 {
-	for (const FGAAttributeModifier& attributeMod : AttributesIn)
+	for (FGAAttributeModifier& attributeMod : AttributesIn)
 	{
-		IIGAAttributes* attributeInt = Cast<IIGAAttributes>(attributeMod.Target.Get());
-		if (!attributeInt)
+		IIGAAttributes* instAttr = Cast<IIGAAttributes>(attributeMod.Instigator.Get());
+		IIGAAttributes* targetAttr = Cast<IIGAAttributes>(attributeMod.Target.Get());
+		if (!instAttr || !targetAttr)
 		{
 			return;
 		}
-		UGAAttributeComponent* attributes = attributeInt->GetAttributeComponent();
+		UGAAttributeComponent* attributes = instAttr->GetAttributeComponent();
 		//float newValue = attributes->AttributeOperation(attributeMod.Attribute, attributeMod.Value, attributeMod.Operation);
 		//if (bSetAttribute)
 		//{
-		attributes->ModifyAttributesOnTarget(attributes, attributeMod);
+		attributes->ModifyAttributesOnTarget(targetAttr->GetAttributeComponent(), attributeMod);
 		//}
 	}
 }

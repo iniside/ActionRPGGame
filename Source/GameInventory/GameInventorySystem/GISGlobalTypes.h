@@ -89,6 +89,8 @@ public:
 		TWeakObjectPtr<class UGISItemData> TargetSlotData;
 	UPROPERTY(BlueprintReadOnly)
 		TWeakObjectPtr<class UGISInventoryBaseComponent> TargetSlotComponent;
+	UPROPERTY()
+		bool bRemoveItemsFromInvetoryOnDrag;
 };
 
 USTRUCT(BlueprintType)
@@ -115,6 +117,11 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 		int32 TabIndex;
+	/**
+	 *	If tab is not active it will not receive any inputs.
+	 */
+	UPROPERTY()
+		bool bIsTabActive;
 
 	UPROPERTY(BlueprintReadWrite)
 		int32 NumberOfSlots;

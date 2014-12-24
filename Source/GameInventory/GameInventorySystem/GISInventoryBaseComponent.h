@@ -59,9 +59,9 @@ public:
 	UPROPERTY(EditAnywhere)
 		ESlateVisibility LootWindowVisibility;
 	/*
-	Indicates if items can be activated directly in invetory window.
-	Useful if you want to prevent player from activating items in invetory. For example
-	healing potions, or something.
+		Indicates if items can be activated directly in invetory window.
+		Useful if you want to prevent player from activating items in invetory. For example
+		healing potions, or something.
 	*/
 	UPROPERTY(EditAnywhere, Category = "Inventory Options")
 		bool bCanActivateItemInInventory;
@@ -72,6 +72,12 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory Options")
 		float MaxLootingDistance;
+	/*
+		Whether we should remove item from this inventory when we drag it to other inventory. Default true.
+		Set it to false if you want item to stay in inventory. For example ability or skill inventory.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Inventory Options")
+		bool bRemoveItemsFromInvetoryOnDrag;
 
 	/*
 		RepRetry - inventory is in general to important it must be replicated!
@@ -284,6 +290,10 @@ public:
 	void PostInventoryInitialized();
 
 	/**
+	 *	Templates are good for it, because we know that index is static here. 
+	 *	Or at least should be. If it is not, fix your serialization/deserialization while saving ;)
+	 */
+	/**
 	 *	Template helper for input press, allow easy access by index to elements in inventory
 	 */
 	template<int32 TabIndex, int32 SlotIndex>
@@ -306,7 +316,7 @@ public:
 		}
 	}
 	/*
-		Helper function is you want to copy pointer from slot, to another place.
+		Helper function if you want to copy pointer from slot, to another place.
 		Useful if you for example don't want to activate item in slot, but 
 		copy pointer to diffrent place, and activate it from here.
 	 */
@@ -319,6 +329,44 @@ public:
 		}
 		return nullptr;
 	}
+
+	template<int32 TabIndex>
+	inline void SetIsTabActive(bool bIsTabActiveIn)
+	{
+		Tabs.InventoryTabs[TabIndex].bIsTabActive = bIsTabActiveIn;
+	}
+
+	template<int32 TabIndex>
+	inline FGISTabInfo GetOneTab()
+	{
+		return Tabs.InventoryTabs[TabIndex];
+	}
+
+	//it would be best if parameter here
+	//would be dynamically generated list out of this component tabs.
+
+	/**
+	 *	Useful, when you want to create swappable hotbars (like GuildWars 2)
+	 *	Or just swappable inventory tabs.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
+		FGISTabInfo BP_GetOneTab(int32 TabIndexIn);
+	/*
+		This function will need RPC call, since swapping is pretty much client side.
+		As far as server and this component is concerned, swapping is just different way
+		of displaying data.
+		But in case of somethig like hotbar it might have gameplay implications.
+
+		Another possible solution is to make sure that component can take care of swapping what is
+		currently displayed, or at least make sure there is variable which tells how many tabs at once
+		can be displayed and being active, to prevent cheating.
+	*/
+	/**
+	*	Useful, when you want to prevent, activation of items on tab, which is not currently visible
+	*	Similiar to how GuildWars 2 hotbar works.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
+		void BP_SetTabactive(int32 TabIndexIn, bool bIsTabActiveIn);
 
 	virtual bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags) override;
 	virtual void GetSubobjectsWithStableNamesForNetworking(TArray<UObject*>& Objs) override;

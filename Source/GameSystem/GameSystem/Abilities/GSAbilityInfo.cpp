@@ -20,11 +20,21 @@ void UGSAbilityInfo::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty 
 	DOREPLIFETIME_CONDITION(UGSAbilityInfo, ActiveAbility, COND_OwnerOnly);
 }
 
+UTexture2D* UGSAbilityInfo::GetImage()
+{
+	if (AbilityType && AbilityType.GetDefaultObject())
+	{
+		return AbilityType.GetDefaultObject()->AbilityIcon;
+	}
+	return nullptr;
+}
+
 bool UGSAbilityInfo::OnItemAddedToSlot()
 {
 	if (AbilityType)
 	{
 		ActiveAbility = GetWorld()->SpawnActor<AGSAbility>(AbilityType);
+		ActiveAbility->SetOwner(CurrentOwner);
 	}
 	return false;
 }
@@ -35,14 +45,14 @@ bool UGSAbilityInfo::OnItemRemovedFromSlot()
 
 void UGSAbilityInfo::InputPressed()
 {
-	if (AbilityType)
+	if (ActiveAbility)
 	{
 		ActiveAbility->InputPressed();
 	}
 }
 void UGSAbilityInfo::InputReleased()
 {
-	if (AbilityType)
+	if (ActiveAbility)
 	{
 		ActiveAbility->InputReleased();
 	}

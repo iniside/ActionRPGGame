@@ -21,39 +21,6 @@ void UGISContainerBaseWidget::InitializeContainer()
 {
 	if (InventoryComponent)
 	{
-		//int32 IndexCounter = 0;
-
-		//for (const FGISTabInfo& Tab : InventoryComponent->Tabs.InventoryTabs)
-		//{
-		//	if (TabClass && SlotClass)
-		//	{
-		//		UGISTabBaseWidget* tabWidget = ConstructObject<UGISTabBaseWidget>(TabClass, this);
-		//		if (tabWidget)
-		//		{
-		//			ULocalPlayer* Player = InventoryComponent->GetWorld()->GetFirstLocalPlayerFromController(); //temporary
-		//			tabWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
-		//			tabWidget->Initialize();
-		//			tabWidget->TabInfo = Tab;
-
-		//			
-		//			for (const FGISSlotInfo& Slot : Tab.TabSlots)
-		//			{
-		//				UGISSlotBaseWidget* slotWidget = ConstructObject<UGISSlotBaseWidget>(SlotClass, this);
-		//				if (slotWidget)
-		//				{
-		//					ULocalPlayer* Player = InventoryComponent->GetWorld()->GetFirstLocalPlayerFromController(); //temporary
-		//					slotWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
-		//					slotWidget->Initialize();
-		//					slotWidget->SlotInfo = Slot;
-		//					slotWidget->GISItemClass = ItemClass;
-		//					tabWidget->InventorySlots.Add(slotWidget);
-		//				}
-		//			}
-
-		//			InventoryTabs.Add(tabWidget);
-		//		}
-		//	}
-		//}
 		//bind functions to delegates:
 		InventoryComponent->OnInventoryLoaded.AddDynamic(this, &UGISContainerBaseWidget::InitializeInventory);
 		InventoryComponent->OnItemAdded.AddDynamic(this, &UGISContainerBaseWidget::Widget_OnItemAdded);
@@ -153,12 +120,18 @@ void UGISContainerBaseWidget::Widget_OnItemSlotSwapped(const FGISSlotSwapInfo& S
 	//we need to handle it! but how...
 	if (SlotSwapInfo.LastSlotComponent != SlotSwapInfo.TargetSlotComponent)
 	{
-		if (SlotSwapInfo.LastSlotComponent.IsValid() && SlotSwapInfo.TargetSlotComponent.IsValid())
+		if (SlotSwapInfo.LastSlotComponent.IsValid() && SlotSwapInfo.TargetSlotComponent.IsValid()
+			&& SlotSwapInfo.LastSlotComponent->bRemoveItemsFromInvetoryOnDrag)
 		{
 			//actually, probabaly need separate functions, as there might be more
 			//complex scases like actuall swapping items, instead of puting it
 			//in empty slot in another component.
 			SlotSwapInfo.LastSlotComponent->InventoryContainer->RemoveItem(SlotSwapInfo);
+			SlotSwapInfo.TargetSlotComponent->InventoryContainer->AddItem(SlotSwapInfo);
+		}
+		else if (!SlotSwapInfo.LastSlotComponent->bRemoveItemsFromInvetoryOnDrag)
+		{
+			SlotSwapInfo.TargetSlotComponent->InventoryContainer->RemoveItem(SlotSwapInfo);
 			SlotSwapInfo.TargetSlotComponent->InventoryContainer->AddItem(SlotSwapInfo);
 		}
 	}
@@ -169,7 +142,7 @@ void UGISContainerBaseWidget::Widget_OnItemSlotSwapped(const FGISSlotSwapInfo& S
 void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 {
 	UObject* Outer = GetWorld()->GetGameInstance() ? StaticCast<UObject*>(GetWorld()->GetGameInstance()) : StaticCast<UObject*>(GetWorld());
-	if (!SlotSwapInfo.LastSlotData.IsValid())
+	if (!SlotSwapInfo.LastSlotData.IsValid() )
 	{
 		UGISItemBaseWidget* ItemWidget = ConstructObject<UGISItemBaseWidget>(ItemClass, Outer);
 		if (ItemWidget && InventoryComponent)
@@ -194,7 +167,7 @@ void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 			overlay->AddChild(ItemWidget);
 		}
 	}
-	else
+	else if (SlotSwapInfo.LastSlotComponent->bRemoveItemsFromInvetoryOnDrag)
 	{
 		//construct target and last, since this is for test one will do just as well.
 		UGISItemBaseWidget* TargetItemWidget = ConstructObject<UGISItemBaseWidget>(ItemClass, Outer);
@@ -249,7 +222,7 @@ void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 }
 void UGISContainerBaseWidget::RemoveItem(const FGISSlotSwapInfo& SlotSwapInfo)
 {
-	if (!SlotSwapInfo.LastSlotData.IsValid())
+	if (!SlotSwapInfo.LastSlotData.IsValid() && SlotSwapInfo.LastSlotComponent->bRemoveItemsFromInvetoryOnDrag)
 	{
 		UWidget* superWidget = InventoryTabs[SlotSwapInfo.LastTabIndex]->InventorySlots[SlotSwapInfo.LastSlotIndex]->GetWidgetFromName(DropSlottName);
 
@@ -265,7 +238,7 @@ void UGISContainerBaseWidget::RemoveItem(const FGISSlotSwapInfo& SlotSwapInfo)
 			}
 		}
 	}
-	else
+	else if (SlotSwapInfo.LastSlotComponent->bRemoveItemsFromInvetoryOnDrag)
 	{
 		UWidget* lastSlotWidget = InventoryTabs[SlotSwapInfo.LastTabIndex]->InventorySlots[SlotSwapInfo.LastSlotIndex]->GetWidgetFromName(DropSlottName);
 		UWidget* targetSlotWidget = InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->GetWidgetFromName(DropSlottName);
@@ -287,6 +260,22 @@ void UGISContainerBaseWidget::RemoveItem(const FGISSlotSwapInfo& SlotSwapInfo)
 			if (childCount > 1)
 			{
 				targetSlotOverlay->RemoveChildAt(childCount - 1);
+			}
+		}
+	}
+	else if (SlotSwapInfo.LastSlotData.IsValid() && !SlotSwapInfo.LastSlotComponent->bRemoveItemsFromInvetoryOnDrag)
+	{
+		UWidget* superWidget = InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->GetWidgetFromName(DropSlottName);
+
+		//this it bit fiddly since the widget which will contain our widget must be last
+		//and out item widget must be last child within this widget
+		UOverlay* overlay = Cast<UOverlay>(superWidget);
+		if (overlay)
+		{
+			int32 childCount = overlay->GetChildrenCount();
+			if (childCount > 1)
+			{
+				overlay->RemoveChildAt(childCount - 1);
 			}
 		}
 	}

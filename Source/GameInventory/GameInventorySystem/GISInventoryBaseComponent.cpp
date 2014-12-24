@@ -23,6 +23,7 @@ UGISInventoryBaseComponent::UGISInventoryBaseComponent(const FObjectInitializer&
 {
 	bWantsInitializeComponent = true;
 	bAutoRegister = true;
+	bRemoveItemsFromInvetoryOnDrag = true;
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.bAllowTickOnDedicatedServer = true;
 	PrimaryComponentTick.bRunOnAnyThread = true;
@@ -195,53 +196,93 @@ bool UGISInventoryBaseComponent::ServerAddItemToInventory_Validate(class UGISIte
 void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotType, const FGISSlotInfo& LastSlotType)
 {
 	//Before we start swapping item, let's check if tags match!
+	if (GetOwnerRole() < ROLE_Authority)
+	{
+		ServerAddItemOnSlot(TargetSlotType, LastSlotType);
+		return;
+	}
 	if (!TargetSlotType.CurrentInventoryComponent->RequiredTags.MatchesAny(LastSlotType.CurrentInventoryComponent->OwnedTags, false))
 		return;
 	
 	//next check should be against item tags, but that's later!
-
-
-	//Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotTabIndex].ItemData
-	if (TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData == nullptr)
+	if (LastSlotType.CurrentInventoryComponent->bRemoveItemsFromInvetoryOnDrag)
 	{
 
-		TWeakObjectPtr<UGISItemData> TargetItem = LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData;
-		TWeakObjectPtr<UGISItemData> LastItem = TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData; //Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData;
+		//Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotTabIndex].ItemData
+		if (TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData == nullptr)
+		{
 
-		TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData = TargetItem;
-		LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData = nullptr;
-		TargetItem->SetWorld(GetWorld());
-		TargetItem->OnItemAddedToSlot();
-		//FGISSlotSwapInfo SlotSwapInfo;
+			TWeakObjectPtr<UGISItemData> TargetItem = LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData;
+			TWeakObjectPtr<UGISItemData> LastItem = TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData; //Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData;
 
-		SlotSwapInfo.LastSlotIndex = LastSlotType.SlotIndex;
-		SlotSwapInfo.LastTabIndex = LastSlotType.SlotTabIndex;
-		SlotSwapInfo.LastSlotData = LastItem;
-		SlotSwapInfo.LastSlotComponent = LastSlotType.CurrentInventoryComponent;
-		SlotSwapInfo.TargetSlotIndex = TargetSlotType.SlotIndex;
-		SlotSwapInfo.TargetTabIndex = TargetSlotType.SlotTabIndex;
-		SlotSwapInfo.TargetSlotData = TargetItem;
-		SlotSwapInfo.TargetSlotComponent = TargetSlotType.CurrentInventoryComponent;
-		if (GetNetMode() == ENetMode::NM_Standalone)
-			OnItemSlotSwapped.Broadcast(SlotSwapInfo);
-		ClientSlotSwap(SlotSwapInfo);
+			TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData = TargetItem;
+			LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData = nullptr;
+			TargetItem->SetWorld(GetWorld());
+			TargetItem->SetCurrentOwner(GetOwner());
+			TargetItem->OnItemAddedToSlot();
+			//FGISSlotSwapInfo SlotSwapInfo;
+
+			SlotSwapInfo.LastSlotIndex = LastSlotType.SlotIndex;
+			SlotSwapInfo.LastTabIndex = LastSlotType.SlotTabIndex;
+			SlotSwapInfo.LastSlotData = LastItem;
+			SlotSwapInfo.LastSlotComponent = LastSlotType.CurrentInventoryComponent;
+			SlotSwapInfo.TargetSlotIndex = TargetSlotType.SlotIndex;
+			SlotSwapInfo.TargetTabIndex = TargetSlotType.SlotTabIndex;
+			SlotSwapInfo.TargetSlotData = TargetItem;
+			SlotSwapInfo.TargetSlotComponent = TargetSlotType.CurrentInventoryComponent;
+			if (GetNetMode() == ENetMode::NM_Standalone)
+				OnItemSlotSwapped.Broadcast(SlotSwapInfo);
+			//ClientSlotSwap(SlotSwapInfo);
+		}
+		else
+		{
+			TWeakObjectPtr<UGISItemData> TargetItem = LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData;
+			TWeakObjectPtr<UGISItemData> LastItem = TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData; //Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData;
+
+			TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData = TargetItem;
+			LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData = LastItem;
+
+			TargetItem->SetWorld(GetWorld());
+			TargetItem->SetCurrentOwner(GetOwner());
+			LastItem->SetWorld(GetWorld());
+			LastItem->SetCurrentOwner(GetOwner());
+			TargetItem->OnItemAddedToSlot();
+			LastItem->OnItemAddedToSlot();
+
+			//FGISSlotSwapInfo SlotSwapInfo;
+			SlotSwapInfo.LastSlotIndex = LastSlotType.SlotIndex;
+			SlotSwapInfo.LastTabIndex = LastSlotType.SlotTabIndex;
+			SlotSwapInfo.LastSlotData = LastItem;
+			SlotSwapInfo.LastSlotComponent = LastSlotType.CurrentInventoryComponent;
+			SlotSwapInfo.TargetSlotIndex = TargetSlotType.SlotIndex;
+			SlotSwapInfo.TargetTabIndex = TargetSlotType.SlotTabIndex;
+			SlotSwapInfo.TargetSlotData = TargetItem;
+			SlotSwapInfo.TargetSlotComponent = TargetSlotType.CurrentInventoryComponent;
+			if (GetNetMode() == ENetMode::NM_Standalone)
+				OnItemSlotSwapped.Broadcast(SlotSwapInfo);
+			//ClientSlotSwap(SlotSwapInfo);
+		}
 	}
 	else
-	{
+	{ //if there is item in target slot. Remove it. or override it.
 		TWeakObjectPtr<UGISItemData> TargetItem = LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData;
 		TWeakObjectPtr<UGISItemData> LastItem = TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData; //Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData;
-
+		TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData = nullptr;
 		TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData = TargetItem;
-		LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData = LastItem;
-		
-		TargetItem->SetWorld(GetWorld());
-		LastItem->SetWorld(GetWorld());
-		TargetItem->OnItemAddedToSlot();
-		LastItem->OnItemAddedToSlot();
+		//LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData = LastItem;
 
-		//FGISSlotSwapInfo SlotSwapInfo;
-		SlotSwapInfo.LastSlotIndex = LastSlotType.SlotIndex;
-		SlotSwapInfo.LastTabIndex = LastSlotType.SlotTabIndex;
+		TargetItem->SetWorld(GetWorld());
+		TargetItem->SetCurrentOwner(GetOwner());
+		//LastItem->SetWorld(GetWorld());
+		TargetItem->OnItemAddedToSlot();
+		//LastItem->OnItemAddedToSlot();
+
+		//since we won't be removing anything from last inventory
+		//we don't really need any information about it.
+		//all we need to know if the target slot
+		//contained any item. So we can remove widgets on client side.
+		SlotSwapInfo.LastSlotIndex = TargetSlotType.SlotIndex;
+		SlotSwapInfo.LastTabIndex = TargetSlotType.SlotTabIndex;
 		SlotSwapInfo.LastSlotData = LastItem;
 		SlotSwapInfo.LastSlotComponent = LastSlotType.CurrentInventoryComponent;
 		SlotSwapInfo.TargetSlotIndex = TargetSlotType.SlotIndex;
@@ -250,7 +291,7 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 		SlotSwapInfo.TargetSlotComponent = TargetSlotType.CurrentInventoryComponent;
 		if (GetNetMode() == ENetMode::NM_Standalone)
 			OnItemSlotSwapped.Broadcast(SlotSwapInfo);
-		ClientSlotSwap(SlotSwapInfo);
+		//ClientSlotSwap(SlotSwapInfo);
 	}
 }
 
@@ -456,7 +497,14 @@ void UGISInventoryBaseComponent::PostInventoryInitialized()
 {
 
 }
-
+FGISTabInfo UGISInventoryBaseComponent::BP_GetOneTab(int32 TabIndexIn)
+{
+	return Tabs.InventoryTabs[TabIndexIn];
+}
+void UGISInventoryBaseComponent::BP_SetTabactive(int32 TabIndexIn, bool bIsTabActiveIn)
+{
+	Tabs.InventoryTabs[TabIndexIn].bIsTabActive = bIsTabActiveIn;
+}
 void UGISInventoryBaseComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

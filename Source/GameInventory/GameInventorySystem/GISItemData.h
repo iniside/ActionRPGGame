@@ -26,7 +26,6 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, Category = "Item Properties")
 		bool bCanBedropped;
-
 	/*
 		On technical side. If you are doing some seriously big stuff, change it to int8 ;)
 		I use in32, because it doesn't have any problems with blueprint interaction.
@@ -83,6 +82,7 @@ public:
 		Get name of current item.
 	*/
 	virtual FText GetItemName() { return FText::FromString("Name None"); };
+	
 	/*
 		Get image to display. Intentionally void for now, since
 		I'm not sure if I want to return texture 2d or material.
@@ -95,7 +95,10 @@ public:
 		description to show.
 	*/
 	virtual FText GetDescription() { return FText::FromString("No Description"); };
-
+	
+	/**
+	 *	For displaying info directly in sloot. For example cooldown.
+	 */
 	virtual FText GetInslotText() { return FText::FromString("No Info"); };
 
 	/*
@@ -110,14 +113,22 @@ public:
 	*/
 	virtual bool OnItemAddedToInventory() { return false; }
 
-	/*
-		Override when you need to activate item. For example from hotbar. Or something.
-	*/
-	virtual void ActivateItem() {}
+	/**
+	 *	Override, to add any preparation steps to this item. For example when copying pointer to another place
+	 *	for activation, you might want to prepare stored object in some way.
+	 */
+	virtual void PrepareItem() {}
 
+	/**
+	 *	Override if you want, stored item to recive input presses.
+	 */
 	virtual void InputPressed() {}
 
+	/**
+	*	Override if you want, stored item to recive input releases.
+	*/
 	virtual void InputReleased() {}
+
 	/*
 		Override to perform action, when item is droped out of inventory.
 		Most likely you will want to spawn actor on level, which will represent dropped item.
@@ -125,18 +136,8 @@ public:
 	virtual void OnDropFromInventory() {};
 
 	/*
-		Don't like this crap, but it is best way to expose it to blueprint (;.
-	*/
-	/*
-		Actually it's completly useless ;)
-	*/
-	//UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Input")
-	//	bool OnKeyPressedDown();
-	//UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Input")
-	//	bool OnKeyPressedUp();
-	/*
 		Below is mainly for convinience. We could just as well use Cast<> to determine class type.
-		And at some point you will have to do Cast. To get item from inventory for example.
+		And at some point you might have to do Cast. To perform item specific actions for example.
 		But you don't need if you want to, for example just iterate over all items
 		to check what types of items are in.
 	*/
@@ -150,14 +151,21 @@ public:
 	virtual bool IsOfType(int32 ItemTypeIDIn) { return UGISItemData::ItemTypeID == ItemTypeIDIn; }
 
 	virtual UWorld* GetWorld() const override;
-private:
+protected:
+	UPROPERTY()
 	UWorld* CurrentWorld;
+	UPROPERTY()
+	AActor* CurrentOwner;
 public:
 	inline void SetWorld(UWorld* WorldIn)
 	{
 		CurrentWorld = WorldIn;
 	};
 
+	inline void SetCurrentOwner(AActor* OwnerIn)
+	{
+		CurrentOwner = OwnerIn;
+	};
 protected:
 	bool bNetAddressable;
 
