@@ -40,7 +40,7 @@ void UGAAttributeComponent::InitializeComponent()
 	}
 }
 
-void UGAAttributeComponent::ModifyAttributesOnSelf(FGAAttributeModifier& AttributeIn)
+void UGAAttributeComponent::ModifyAttributesOnSelf(UGAAttributeComponent* Causer, FGAAttributeModifier& AttributeIn)
 {
 
 	//apply final value to attribute.
@@ -48,15 +48,52 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(FGAAttributeModifier& Attribu
 	OnAttributeIncoming.Broadcast(AttributeIn, AttributeIn);
 	float newValue = DefaultAttributes->AttributeOperation(AttributeIn.Attribute, AttributeIn.Value, AttributeIn.Operation);
 	DefaultAttributes->SetFloatValue(AttributeIn.Attribute, newValue);
+
+	ModifiedAttribute.Attribute = AttributeIn.Attribute;
+	ModifiedAttribute.InstigatorLocation = AttributeIn.Instigator->GetActorLocation();
+	ModifiedAttribute.TargetLocation = AttributeIn.HitLocation; //AttributeIn.Target->GetActorLocation();
+	ModifiedAttribute.ModifiedByValue = AttributeIn.Value;
+	ModifiedAttribute.Tags = AttributeIn.Tags;
+	ModifiedAttribute.ReplicationCounter += 1;
+
+	if (GetNetMode() == ENetMode::NM_Standalone)
+	{
+		Causer->OnAttributeModifed.Broadcast(ModifiedAttribute);
+	}
 }
 void UGAAttributeComponent::ModifyAttributesOnTarget(UGAAttributeComponent* Target, FGAAttributeModifier& AttributeIn)
 {
 	//apply possible mods from
 	OnAttributeOutgoing.Broadcast(AttributeIn, AttributeIn);
-	Target->ModifyAttributesOnSelf(AttributeIn);
+	Target->ModifyAttributesOnSelf(this, AttributeIn);
+
+	//ModifiedAttribute.Attribute = AttributeIn.Attribute;
+	//ModifiedAttribute.InstigatorLocation = AttributeIn.Instigator->GetActorLocation();
+	//ModifiedAttribute.TargetLocation = AttributeIn.Target->GetActorLocation();
+	//ModifiedAttribute.ModifiedByValue = AttributeIn.Value;
+	//ModifiedAttribute.Tags = AttributeIn.Tags;
+	//ModifiedAttribute.ReplicationCounter += 1;
+
+	//if (GetNetMode() == ENetMode::NM_Standalone)
+	//{
+	//	OnAttributeModifed.Broadcast(ModifiedAttribute);
+	//}
 }
 
 
+void UGAAttributeComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	//possibly replicate it to everyone
+	//to allow prediction for UI.
+	DOREPLIFETIME_CONDITION(UGAAttributeComponent, DefaultAttributes, COND_OwnerOnly);
+	DOREPLIFETIME(UGAAttributeComponent, ModifiedAttribute);
+}
+
+void UGAAttributeComponent::OnRep_AttributeChanged()
+{
+	OnAttributeModifed.Broadcast(ModifiedAttribute);
+}
 bool UGAAttributeComponent::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
 {
 	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);

@@ -28,6 +28,8 @@ public class ActionRPGGameEditorTarget : TargetRules
 		OutExtraModuleNames.Add("GameEffectSystemEditor");
 		OutExtraModuleNames.Add("GameAbilities");
 		OutExtraModuleNames.Add("GameAbilitiesEditor");
+		OutExtraModuleNames.Add("GameFloatingCombatText");
+		OutExtraModuleNames.Add("GameFloatingCombatTextEditor");
 		OutExtraModuleNames.Add("GameSystem");
 		OutExtraModuleNames.Add("GameSystemEditor");
 		OutExtraModuleNames.Add("ActionRPGGame");

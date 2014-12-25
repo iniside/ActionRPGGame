@@ -5,6 +5,9 @@
 #include "GISInventoryBaseComponent.h" //need for template
 #include "GESEffectComponent.h"
 
+
+#include "GAGlobalTypes.h"
+
 #include "GISGlobalTypes.h"
 #include "GISItemData.h"
 
@@ -42,8 +45,9 @@ class AARCharacter : public ACharacter, public IIGAAttributes, public IIGESEffec
 	class UGESEffectComponent* GameEffects;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Effects", meta = (AllowPrivateAccess = "true"))
 	class UGESEffectManager* GameEffectManager;
-public:
 
+public:
+	inline UGAAttributeComponent* GetAttributeComponent2() { return Attributes; };
 	/** IIGAAttributes Begin */
 	
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
@@ -61,6 +65,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
 		virtual class UGESEffectManager* GetEffectManager();
 	/** IIGESEffect End */
+
+	virtual void OnRep_Controller() override;
+
+	virtual void PossessedBy(AController* NewController) override;
 public:
 	AARCharacter(const FObjectInitializer& ObjectInitializer);
 

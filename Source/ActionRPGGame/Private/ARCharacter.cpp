@@ -11,6 +11,8 @@
 //#include "Net/UnrealNetwork.h"
 //#include "Engine/ActorChannel.h"
 
+#include "GSPlayerController.h"
+
 #include "ARCharacter.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -21,7 +23,6 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-
 	// set our turn rates for input
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
@@ -68,9 +69,11 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	
 	Attributes = ObjectInitializer.CreateDefaultSubobject<UGAAttributeComponent>(this, TEXT("Attributes"));
 	
+
 	GameEffects = ObjectInitializer.CreateDefaultSubobject<UGESEffectComponent>(this, TEXT("GameEffects"));
 
 	GameEffectManager = ObjectInitializer.CreateDefaultSubobject<UGESEffectManager>(this, TEXT("GameEffectManager"));
+
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -87,26 +90,19 @@ void AARCharacter::BeginPlay()
 	Inventory->SetIsReplicated(true);
 	Inventory->SetNetAddressable();
 
-	if (Role < ROLE_Authority || GetNetMode() == ENetMode::NM_Standalone)
-	{
-		//if (MasterWidget)
-		//{
-		//	UWidget* inventoryBoxSlot = MasterWidget->GetWidgetFromName(TEXT("InventoryBox"));
-		//	UVerticalBox* inventoryBox = Cast<UVerticalBox>(inventoryBoxSlot);
-		//	if (inventoryBox)
-		//	{
-		//		inventoryBox->AddChild(Inventory->InventoryContainer);
-		//	}
-		//	UWidget* lootBoxSlot = MasterWidget->GetWidgetFromName(TEXT("LootingBox"));
-		//	UVerticalBox* lootBox = Cast<UVerticalBox>(lootBoxSlot);
-		//	if (lootBox)
-		//	{
-		//		lootBox->AddChild(Inventory->InventoryContainer);
-		//	}
-
-		//	MasterWidget->AddToViewport();
-		//}
-	}
+}
+void AARCharacter::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+}
+void AARCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	//AGSPlayerController* gspc = Cast<AGSPlayerController>(NewController);
+	//if (gspc)
+	//{
+	//	Attributes->OnAttributeModifed.AddUObject(gspc, &AGSPlayerController::OnRecivedModifiedAttribute);
+	//}
 }
 
 void AARCharacter::CheckIfStructReplicated()

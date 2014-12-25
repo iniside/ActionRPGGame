@@ -44,6 +44,16 @@
             "Type": "Editor",
             "LoadingPhase": "Default"
         },
+		        { 
+            "Name": "GameFloatingCombatText",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        },
+        {
+            "Name": "GameFloatingCombatTextEditor",
+            "Type": "Editor",
+            "LoadingPhase": "Default"
+        },
         { 
             "Name": "GameSystem",
             "Type": "Runtime",

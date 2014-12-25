@@ -4,7 +4,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGAOnAttributeChanged);
 
-
+DECLARE_MULTICAST_DELEGATE_OneParam(FGAOnAttributeModifed, const FGAModifiedAttribute&);
 
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
 class GAMEATTRIBUTES_API UGAAttributeComponent : public UActorComponent
@@ -34,8 +34,17 @@ public:
 
 		And I think that using inheritance in this case will be easier.
 	*/
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Replicated)
 		class UGAAttributesBase* DefaultAttributes;
+
+	UPROPERTY(ReplicatedUsing = OnRep_AttributeChanged)
+		FGAModifiedAttribute ModifiedAttribute;
+
+	FGAOnAttributeModifed OnAttributeModifed;
+
+	UFUNCTION()
+		void OnRep_AttributeChanged();
+
 	virtual void InitializeComponent() override;
 
 	FGAOnAttributeOutgoing OnAttributeOutgoing;
@@ -49,7 +58,7 @@ public:
 		For example there might be physical armor mod, which will apply changes only
 		to attributes tagged as Damage.Physical and only if you are reciving change, not causing it.
 	*/
-	void ModifyAttributesOnSelf(FGAAttributeModifier& AttributeIn);
+	void ModifyAttributesOnSelf(UGAAttributeComponent* Causer, FGAAttributeModifier& AttributeIn);
 	void ModifyAttributesOnTarget(UGAAttributeComponent* Target, FGAAttributeModifier& AttributeIn);
 
 

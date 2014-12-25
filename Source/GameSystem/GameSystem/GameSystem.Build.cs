@@ -18,6 +18,8 @@ namespace UnrealBuildTool.Rules
                     "GameEffectSystem/Public",
                     "GameInventorySystem",
                     "GameInventorySystem/Public",
+                    "GameFloatingCombatText",
+                    "GameFloatingCombatText/Public",
 					// ... add public include paths required here ...
 				}
 				);
@@ -29,6 +31,7 @@ namespace UnrealBuildTool.Rules
                     "GameAttributes/Private",
                     "GameEffectSystem/Private",
                     "GameInventorySystem/Private",
+                    "GameFloatingCombatText/Private",
 					// ... add other private include paths required here ...
 				}
 				);
@@ -42,7 +45,9 @@ namespace UnrealBuildTool.Rules
                     "GameAbilities",
                     "GameAttributes",
                     "GameEffectSystem",
-                    "GameInventorySystem"
+                    "GameInventorySystem",
+                    "GameFloatingCombatText",
+                    "GameplayTags"
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);

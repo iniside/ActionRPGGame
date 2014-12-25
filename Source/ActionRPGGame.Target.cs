@@ -25,6 +25,7 @@ public class ActionRPGGameTarget : TargetRules
 		OutExtraModuleNames.Add("GameEffectSystem");
 		OutExtraModuleNames.Add("GameAbilities");
 		OutExtraModuleNames.Add("GameSystem");
+		OutExtraModuleNames.Add("GameFloatingCombatText");
         OutExtraModuleNames.Add("ActionRPGGame");
         if (UEBuildConfiguration.bBuildEditor)
         {
@@ -32,6 +33,7 @@ public class ActionRPGGameTarget : TargetRules
 			OutExtraModuleNames.Add("GameAttributesEditor");
 			OutExtraModuleNames.Add("GameEffectSystemEditor");
 			OutExtraModuleNames.Add("GameAbilitiesEditor");
+			OutExtraModuleNames.Add("GameFloatingCombatTextEditor");
 			OutExtraModuleNames.Add("GameSystemEditor");
             OutExtraModuleNames.Add("ActionRPGGameEditor");
         }

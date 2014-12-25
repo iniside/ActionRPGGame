@@ -18,6 +18,8 @@ public class ActionRPGGame : ModuleRules
                     "GameEffectSystem/Public",
                     "GameInventorySystem",
                     "GameInventorySystem/Public",
+                    "GameFloatingCombatText",
+                    "GameFloatingCombatText/Public",
                     "ActionRPGGame",
                     "ActionRPGGame/Public",
 					// ... add public include paths required here ...
@@ -49,6 +51,7 @@ public class ActionRPGGame : ModuleRules
                 "GameEffectSystem",
 				"GameplayTags",
                 "GameplayAbilities",
+                "GameFloatingCombatText",
                 "GameSystem"
 				});
 		if (Target.Type == TargetRules.TargetType.Editor)

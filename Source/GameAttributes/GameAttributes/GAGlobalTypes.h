@@ -48,6 +48,9 @@ public:
 		FGAAttribute Attribute;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
+		FVector HitLocation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
 		float Value;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
@@ -96,7 +99,12 @@ public:
 	 *	Final tags appiled by this change.
 	 */
 	UPROPERTY()
-	FGameplayTagContainer Tags;
+		FGameplayTagContainer Tags;
+
+	UPROPERTY()
+		FVector TargetLocation; //change to vector, we need only position.
+	UPROPERTY()
+		FVector InstigatorLocation;
 };
 
 
