@@ -123,6 +123,11 @@ public:
 	UPROPERTY()
 		bool bIsTabActive;
 
+	UPROPERTY(BlueprintReadOnly)
+		bool bIsTabVisible;
+
+	int32 LinkedTab;
+
 	UPROPERTY(BlueprintReadWrite)
 		int32 NumberOfSlots;
 
@@ -147,6 +152,47 @@ struct FGISSlotsInTab
 {
 	GENERATED_USTRUCT_BODY()
 public:
+	UPROPERTY(EditAnywhere)
+		bool bIsTabActive;
+
+	UPROPERTY(EditAnywhere)
+		bool bIsTabVisible;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int32 NumberOfSlots;
+};
+
+USTRUCT()
+struct FGISInventoryTabConfig
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(EditAnywhere)
+		bool bIsTabActive;
+
+	UPROPERTY(EditAnywhere)
+		bool bIsTabVisible;
+
+	/*
+		To which tab this, tab is linked ? -1 to none. Otherwise specific Index of linked tab.
+		This is essentialy very simple Linked List. So you should just specify index which is next
+		to current tab. If this tab is last, just specifi index of tab which is first. Usually 0.
+
+		This linked list is used for swapping tab using hotkeys or other user defined action. It makes
+		easier to determine which tab should be displayed after current one, if you opt, to display only
+		one at time.
+	*/
+	UPROPERTY(EditAnywhere)
+		int32 LinkedToTab;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int32 NumberOfSlots;
+};
+USTRUCT()
+struct FGISInventoryConfig
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(EditAnywhere)
+		TArray<FGISInventoryTabConfig> TabConfigs;
 };

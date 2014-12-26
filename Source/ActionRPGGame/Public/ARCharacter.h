@@ -95,14 +95,28 @@ protected:
 	template<int32 TabIndex, int32 SlotIndex>
 	void InputActionBarPressed()
 	{
-		ActionBar->InputSlotPressed<TabIndex, SlotIndex>();
+		//let's say that only one tab in binding 1-7 can be active
+		//from binding 8-12 they are always active
+		//like Guild Wars 2 hotbar. Proof of concept!
+		if (ActionBar->Tabs.InventoryTabs[TabIndex].bIsTabActive)
+		{
+			ActionBar->InputSlotPressed<TabIndex, SlotIndex>();
+		}
 	}
 
 	template<int32 TabIndex, int32 SlotIndex>
 	void InputActionBarReleased()
 	{
-		ActionBar->InputSlotReleased<TabIndex, SlotIndex>();
+		if(ActionBar->Tabs.InventoryTabs[TabIndex].bIsTabActive)
+		{
+			ActionBar->InputSlotReleased<TabIndex, SlotIndex>();
+		}
 	}
+
+	/*
+		This will cycle trough action bars.
+	*/
+	void InputSwapActionBars();
 
 	/** Called for forwards/backward input */
 	void MoveForward(float Value);

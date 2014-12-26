@@ -11,10 +11,17 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGISOnInventoryLoaded);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGISOnItemAdded, const FGISSlotUpdateData&, SlotUpdateInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGISOnItemSlotSwapped, const FGISSlotSwapInfo&, SlotSwapInfo);
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGISOnTabSwapped, const FGISSlotSwapInfo&, SlotSwapInfo);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGISOnCopyItemsToTab, const FGISSlotSwapInfo&, SlotSwapInfo);
+
 /*
 	We will use it, to reconstruct widget.
 */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGISOnItemLooted);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGISOnTabVisibilityChanged, int32, SlotIndex);
 
 /**
 	Note to self. I could probabaly use GameplayTags, to determine exactly how interaction between
@@ -42,6 +49,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory Options")
 		TArray <FGISSlotsInTab> InitialTabInfo;
 
+	UPROPERTY(EditAnywhere, Category = "Inventory Options")
+		FGISInventoryConfig InventoryConfig;
+
+
+	UPROPERTY(EditAnywhere, Category = "Inventory Options")
+		int32 MaximumActiveTabs;
 	/*
 		Which item types, this component will accept.
 
@@ -58,6 +71,7 @@ public:
 
 	UPROPERTY(EditAnywhere)
 		ESlateVisibility LootWindowVisibility;
+
 	/*
 		Indicates if items can be activated directly in invetory window.
 		Useful if you want to prevent player from activating items in invetory. For example
@@ -145,6 +159,9 @@ public:
 
 	UPROPERTY()
 		FGISOnItemLooted OnItemLooted;
+
+
+	FGISOnTabVisibilityChanged OnTabVisibilityChanged;
 private:
 	/*
 		Pickup actor that this inventory is interacting with. 
@@ -267,6 +284,8 @@ public:
 		Heyyy client, would you be so nice, and update this slot with this item ? Thanks!
 
 		On more serious note, it will just call OnItemAdded delegate on client.
+
+		Actually I don't need these functions anymore.
 	*/
 	UFUNCTION(Client, Reliable)
 		void ClientUpdateInventory(const FGISSlotUpdateData& SlotUpdateInfoIn);
@@ -291,7 +310,10 @@ public:
 
 	/**
 	 *	Templates are good for it, because we know that index is static here. 
-	 *	Or at least should be. If it is not, fix your serialization/deserialization while saving ;)
+	 *	Or at least should be. If it is not, fix your serialization/deserialization while saving ;).
+
+	 As matter if fact these could be normal functions.. I just cut-pasted the from other class.
+	 Where templates where actually needed ;).
 	 */
 	/**
 	 *	Template helper for input press, allow easy access by index to elements in inventory
@@ -342,6 +364,112 @@ public:
 		return Tabs.InventoryTabs[TabIndex];
 	}
 
+	/*
+		probabaly better as not inline.
+	*/
+	void SwapTabItems(int32 OriginalTab, int32 TargetTab)
+	{
+		int32 OrignalItemCount = Tabs.InventoryTabs[OriginalTab].TabSlots.Num();
+		int32 TargetItemCount = Tabs.InventoryTabs[TargetTab].TabSlots.Num();
+		//check which item count is bigger
+		//to avoid copying into non existend array elements.
+		//we always count against smaller.
+		if (OrignalItemCount > TargetItemCount)
+		{
+			for (int32 Index = 0; Index < TargetItemCount; Index++)
+			{
+				TWeakObjectPtr<UGISItemData> tempTargetData = Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData;
+				Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData = Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData;
+				Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData = tempTargetData;
+			}
+		}
+		else
+		{
+			for (int32 Index = 0; Index < OrignalItemCount; Index++)
+			{
+				TWeakObjectPtr<UGISItemData> tempTargetData = Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData;
+				Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData = Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData;
+				Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData = tempTargetData;
+			}
+		}
+	}
+	/*
+		This will copy all item from OriginalTab, to TargetTab.
+		All items in TargetTab will be replaced!
+
+		Both target tab must have AT LEAST the same amount of slots
+		as original tab. Otherwise not all data will be copied.
+	 */
+	void CopyItemsToTab(int32 OriginalTab, int32 TargetTab)
+	{
+		int32 OrignalItemCount = Tabs.InventoryTabs[OriginalTab].TabSlots.Num();
+		int32 TargetItemCount = Tabs.InventoryTabs[TargetTab].TabSlots.Num();
+		//check which item count is bigger
+		//to avoid copying into non existend array elements.
+		//we always count against smaller.
+		if (OrignalItemCount > TargetItemCount)
+		{
+			for (int32 Index = 0; Index < TargetItemCount; Index++)
+			{
+				Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData = Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData;
+			}
+		}
+		else
+		{
+			for (int32 Index = 0; Index < OrignalItemCount; Index++)
+			{
+				Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData = Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData;
+			}
+		}
+		
+	}
+
+	void ChangeTabVisibility(int32 TabIndex)
+	{
+		if (Tabs.InventoryTabs[TabIndex].bIsTabVisible)
+			Tabs.InventoryTabs[TabIndex].bIsTabVisible = false;
+		else
+			Tabs.InventoryTabs[TabIndex].bIsTabVisible = true;
+
+		OnTabVisibilityChanged.Broadcast(TabIndex);
+	}
+
+	int32 GetNextTab(int32 CurrentTab)
+	{
+		return Tabs.InventoryTabs[CurrentTab].LinkedTab;
+	}
+
+	int32 CountActiveTabs();
+
+	void SwapTabVisibility();
+
+	void SwapTabVisibilityActivity();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSwapTabVisibilityActivity();
+	/*
+		Hotbar creation by:
+		1. Create static Hotbar (always visible).
+		2. Creating abitrary number of hidden Hotbar. They are not visible during playing game.
+		3. You can edit hidden Hotbar in menu or something.
+		4. When you swap Hotbar, pointer to contained items are copied from hidden Hotbar, to 
+		static Hotbar.
+	*/
+	/*
+		Another way.
+		1. You create Hotbar like normal tabs.
+		2. You set maximum number of tabs, which can be active at the same time.
+		3. Create enough key mapping to support maximum amount of slots from all active Hotbar.
+		4. So Hotbar which are swappable, will share exactly the same key mappings.
+		5. When button is pressed it will check if current swappable hotbar is active.
+		6. This means you can have only one active swappable hotbar at time.
+	*/
+
+	/*
+		Or you can just create any number of hotbars, and assign to each of them unique
+		key mappings if you want to the more WoW/RIFT/EQ etc like hotbars.
+	*/
+
 	//it would be best if parameter here
 	//would be dynamically generated list out of this component tabs.
 
@@ -350,7 +478,7 @@ public:
 	 *	Or just swappable inventory tabs.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
-		FGISTabInfo BP_GetOneTab(int32 TabIndexIn);
+		FGISTabInfo& BP_GetOneTab(int32 TabIndexIn);
 	/*
 		This function will need RPC call, since swapping is pretty much client side.
 		As far as server and this component is concerned, swapping is just different way
@@ -364,9 +492,29 @@ public:
 	/**
 	*	Useful, when you want to prevent, activation of items on tab, which is not currently visible
 	*	Similiar to how GuildWars 2 hotbar works.
+	*	Need editor customization to make selecting tabs easier, than typing index.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
 		void BP_SetTabactive(int32 TabIndexIn, bool bIsTabActiveIn);
+	/*
+		There are three ways to do it. Operate only on client side, and ignore what server thinks about it.
+		Since you will only be working on replicated version of inventory.
+
+		Talk to server for each tab switch, and make server check if what player do is safe.
+
+		Do it on server and client. If server result will be different from client, server will
+		just override whatever happen.
+
+		On the other hand things like bIsTabActive should be really set only on server for 
+		something like action bar. If that's important part of gameplay that is.
+	*/
+	/**
+	 *	Get current tab, hide it, and select next tab in it's place.
+	 *	Like swappable hotbars from MMO.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
+		void BP_SetNextTab(int32 TabIndexIn);
+
 
 	virtual bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags) override;
 	virtual void GetSubobjectsWithStableNamesForNetworking(TArray<UObject*>& Objs) override;

@@ -25,6 +25,7 @@ void UGISContainerBaseWidget::InitializeContainer()
 		InventoryComponent->OnInventoryLoaded.AddDynamic(this, &UGISContainerBaseWidget::InitializeInventory);
 		InventoryComponent->OnItemAdded.AddDynamic(this, &UGISContainerBaseWidget::Widget_OnItemAdded);
 		InventoryComponent->OnItemSlotSwapped.AddDynamic(this, &UGISContainerBaseWidget::Widget_OnItemSlotSwapped);
+		InventoryComponent->OnTabVisibilityChanged.AddDynamic(this, &UGISContainerBaseWidget::Widget_OnTabVisibilityChanged);
 		//InitializeInventory();
 	}
 }
@@ -47,7 +48,11 @@ void UGISContainerBaseWidget::InitializeInventory()
 					tabWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
 					tabWidget->Initialize();
 					tabWidget->TabInfo = Tab;
-
+					tabWidget->SetVisibility(ESlateVisibility::Hidden);
+					if (Tab.LinkedTab < 0)
+					{
+						tabWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+					}
 
 					for (const FGISSlotInfo& Slot : Tab.TabSlots)
 					{
@@ -278,5 +283,17 @@ void UGISContainerBaseWidget::RemoveItem(const FGISSlotSwapInfo& SlotSwapInfo)
 				overlay->RemoveChildAt(childCount - 1);
 			}
 		}
+	}
+}
+
+void UGISContainerBaseWidget::Widget_OnTabVisibilityChanged(int32 TabIndex)
+{
+	if (InventoryComponent->Tabs.InventoryTabs[TabIndex].bIsTabVisible)
+	{
+		InventoryTabs[TabIndex]->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	}
+	else
+	{
+		InventoryTabs[TabIndex]->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }

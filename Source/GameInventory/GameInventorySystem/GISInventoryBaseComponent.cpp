@@ -45,8 +45,10 @@ void UGISInventoryBaseComponent::InitializeComponent()
 
 		//PrimaryComponentTick.bStartWithTickEnabled = bTickInventory;
 		if (CurrentRole == ROLE_Authority || CurrentNetMode == ENetMode::NM_Standalone)
+		{
 			InitializeInventoryTabs();
-
+		}
+			
 		if (CurrentRole < ROLE_Authority || CurrentNetMode == ENetMode::NM_Standalone)
 		{
 			if (InventoryContainerClass)
@@ -497,13 +499,18 @@ void UGISInventoryBaseComponent::PostInventoryInitialized()
 {
 
 }
-FGISTabInfo UGISInventoryBaseComponent::BP_GetOneTab(int32 TabIndexIn)
+FGISTabInfo& UGISInventoryBaseComponent::BP_GetOneTab(int32 TabIndexIn)
 {
 	return Tabs.InventoryTabs[TabIndexIn];
 }
 void UGISInventoryBaseComponent::BP_SetTabactive(int32 TabIndexIn, bool bIsTabActiveIn)
 {
 	Tabs.InventoryTabs[TabIndexIn].bIsTabActive = bIsTabActiveIn;
+}
+
+void UGISInventoryBaseComponent::BP_SetNextTab(int32 TabIndexIn)
+{
+
 }
 void UGISInventoryBaseComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
 {
@@ -569,14 +576,16 @@ void UGISInventoryBaseComponent::GetSubobjectsWithStableNamesForNetworking(TArra
 void UGISInventoryBaseComponent::InitializeInventoryTabs()
 {
 	int8 counter = 0;
-	for (const FGISSlotsInTab& SlotInfo : InitialTabInfo)
+
+	for (const FGISInventoryTabConfig& tabConf : InventoryConfig.TabConfigs)
 	{
-
 		FGISTabInfo TabInfo;
-		TabInfo.NumberOfSlots = SlotInfo.NumberOfSlots;
+		TabInfo.NumberOfSlots = tabConf.NumberOfSlots;
 		TabInfo.TabIndex = counter;
-
-		for (int32 Index = 0; Index < SlotInfo.NumberOfSlots; Index++)
+		TabInfo.bIsTabActive = tabConf.bIsTabActive;
+		TabInfo.bIsTabVisible = tabConf.bIsTabVisible;
+		TabInfo.LinkedTab = tabConf.LinkedToTab;
+		for (int32 Index = 0; Index < tabConf.NumberOfSlots; Index++)
 		{
 			FGISSlotInfo SlotInfo;
 			SlotInfo.SlotIndex = Index;
@@ -585,8 +594,83 @@ void UGISInventoryBaseComponent::InitializeInventoryTabs()
 			SlotInfo.ItemData = nullptr;
 			TabInfo.TabSlots.Add(SlotInfo);
 		}
-
 		Tabs.InventoryTabs.Add(TabInfo);
 		counter++;
 	}
+}
+
+int32 UGISInventoryBaseComponent::CountActiveTabs()
+{
+	int32 ActiveTabsCount = 0;
+	for (const FGISTabInfo& tab : Tabs.InventoryTabs)
+	{
+		if (tab.bIsTabActive)
+			ActiveTabsCount++;
+	}
+
+	return ActiveTabsCount;
+}
+
+void UGISInventoryBaseComponent::SwapTabVisibility()
+{
+	int32 TabNum = Tabs.InventoryTabs.Num();
+	for (int32 Index = 0; Index < TabNum; Index++)
+	{
+		if (Tabs.InventoryTabs[Index].bIsTabVisible &&
+			Tabs.InventoryTabs[Index].LinkedTab >= 0)
+		{
+			int32 NextTab = Tabs.InventoryTabs[Index].LinkedTab;
+			Tabs.InventoryTabs[Index].bIsTabVisible = false;
+			OnTabVisibilityChanged.Broadcast(Index);
+			Tabs.InventoryTabs[NextTab].bIsTabVisible = true;
+			OnTabVisibilityChanged.Broadcast(NextTab);
+			return;
+		}
+	}
+}
+void UGISInventoryBaseComponent::SwapTabVisibilityActivity()
+{
+	/*
+		If we are on client, we ask server to also change visbilit/activity on it's side.
+		In theory we could just do it on server and then OnRep_, to make change visible on client.
+
+		But right now we do it separatetly on client on server. There is possibility to get out of sync
+		though, so it need to be managed.
+	*/
+	if (GetOwnerRole() < ROLE_Authority)
+	{
+		ServerSwapTabVisibilityActivity();
+	}
+	int32 TabNum = Tabs.InventoryTabs.Num();
+	int32 activeTabCount = CountActiveTabs();
+
+	//allow only for certain number of active tabs.
+	//if there are more, it means someone tried to cheat..
+	if (activeTabCount > MaximumActiveTabs)
+		return;
+
+	for (int32 Index = 0; Index < TabNum; Index++)
+	{
+		if (Tabs.InventoryTabs[Index].bIsTabVisible &&
+			Tabs.InventoryTabs[Index].LinkedTab >= 0)
+		{
+			int32 NextTab = Tabs.InventoryTabs[Index].LinkedTab;
+			Tabs.InventoryTabs[Index].bIsTabVisible = false;
+			Tabs.InventoryTabs[Index].bIsTabActive = false;
+			OnTabVisibilityChanged.Broadcast(Index);
+			Tabs.InventoryTabs[NextTab].bIsTabVisible = true;
+			Tabs.InventoryTabs[NextTab].bIsTabActive = true;
+			OnTabVisibilityChanged.Broadcast(NextTab);
+			return;
+		}
+	}
+}
+
+void UGISInventoryBaseComponent::ServerSwapTabVisibilityActivity_Implementation()
+{
+	SwapTabVisibilityActivity();
+}
+bool UGISInventoryBaseComponent::ServerSwapTabVisibilityActivity_Validate()
+{
+	return true;
 }

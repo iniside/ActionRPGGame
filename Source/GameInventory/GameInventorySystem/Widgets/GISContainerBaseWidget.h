@@ -67,10 +67,16 @@ public:
 		void Widget_OnItemAdded(const FGISSlotUpdateData& SlotUpdateInfo);
 	
 	UFUNCTION()
-	void Widget_OnItemSlotSwapped(const FGISSlotSwapInfo& SlotSwapInfo);
+		void Widget_OnItemSlotSwapped(const FGISSlotSwapInfo& SlotSwapInfo);
 
 	void AddItem(const FGISSlotSwapInfo& SlotSwapInfo);
 	void RemoveItem(const FGISSlotSwapInfo& SlotSwapInfo);
+
+	UFUNCTION()
+		void Widget_OnTabVisibilityChanged(int32 TabIndex);
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnTabChangedVisibility(int32 TabIndex);
 
 	UFUNCTION()
 	void InitializeInventory();
