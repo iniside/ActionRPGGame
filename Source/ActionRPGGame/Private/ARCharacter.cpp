@@ -170,23 +170,23 @@ void AARCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 	InputComponent->BindAction("ActionButtonTab0Slot4", IE_Released, this, &AARCharacter::InputActionBarReleased<0, 4>);
 	InputComponent->BindAction("ActionButtonTab0Slot5", IE_Released, this, &AARCharacter::InputActionBarReleased<0, 5>);
 
-	InputComponent->BindAction("ActionButtonTab0Slot0", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 0>);
-	InputComponent->BindAction("ActionButtonTab0Slot1", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 1>);
-	InputComponent->BindAction("ActionButtonTab0Slot2", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 2>);
-	InputComponent->BindAction("ActionButtonTab0Slot3", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 3>);
-	InputComponent->BindAction("ActionButtonTab0Slot4", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 4>);
-	InputComponent->BindAction("ActionButtonTab0Slot5", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 5>);
+	//InputComponent->BindAction("ActionButtonTab0Slot0", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 0>);
+	//InputComponent->BindAction("ActionButtonTab0Slot1", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 1>);
+	//InputComponent->BindAction("ActionButtonTab0Slot2", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 2>);
+	//InputComponent->BindAction("ActionButtonTab0Slot3", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 3>);
+	//InputComponent->BindAction("ActionButtonTab0Slot4", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 4>);
+	//InputComponent->BindAction("ActionButtonTab0Slot5", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 5>);
 
-	InputComponent->BindAction("ActionButtonTab0Slot0", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 0>);
-	InputComponent->BindAction("ActionButtonTab0Slot1", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 1>);
-	InputComponent->BindAction("ActionButtonTab0Slot2", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 2>);
-	InputComponent->BindAction("ActionButtonTab0Slot3", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 3>);
-	InputComponent->BindAction("ActionButtonTab0Slot4", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 4>);
-	InputComponent->BindAction("ActionButtonTab0Slot5", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 5>);
+	//InputComponent->BindAction("ActionButtonTab0Slot0", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 0>);
+	//InputComponent->BindAction("ActionButtonTab0Slot1", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 1>);
+	//InputComponent->BindAction("ActionButtonTab0Slot2", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 2>);
+	//InputComponent->BindAction("ActionButtonTab0Slot3", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 3>);
+	//InputComponent->BindAction("ActionButtonTab0Slot4", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 4>);
+	//InputComponent->BindAction("ActionButtonTab0Slot5", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 5>);
 
 
 	InputComponent->BindAction("SwapActionBars", IE_Pressed, this, &AARCharacter::InputSwapActionBars);
-
+	InputComponent->BindAction("ShowHideEditableActionBars", IE_Pressed, this, &AARCharacter::ShowHideEditableHotbars);
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
 	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
@@ -202,12 +202,19 @@ void AARCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 
 	//InputComponent->BindAction("ActionButton1", IE_Pressed, this, &AARCharacter::InputActionBar<0>);
 }
+void AARCharacter::ActivateAbility()
+{
 
+}
 void AARCharacter::InputSwapActionBars()
 {
-	ActionBar->SwapTabVisibilityActivity();
+	ActionBar->CopyItemsBetweenTargetTabs();
 }
-
+void AARCharacter::ShowHideEditableHotbars()
+{
+	ActionBar->ChangeTabVisibility(1);
+	ActionBar->ChangeTabVisibility(2);
+}
 void AARCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
 {
 	// jump, but only on the first touch

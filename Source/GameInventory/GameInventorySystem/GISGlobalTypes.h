@@ -126,7 +126,12 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 		bool bIsTabVisible;
 
-	int32 LinkedTab;
+	UPROPERTY(BlueprintReadOnly)
+		bool bAcceptItemsFromDragDrop;
+
+	int32 LinkedTab; //multi linked, array ? cuurent link, list of possible links ?
+
+	int32 TargetTab; //you will copy items from this tab to this target tab.
 
 	UPROPERTY(BlueprintReadWrite)
 		int32 NumberOfSlots;
@@ -185,6 +190,12 @@ public:
 	UPROPERTY(EditAnywhere)
 		int32 LinkedToTab;
 
+	/*
+		This is where items from this tab will be copied, unless specified otherwise.
+	*/
+	UPROPERTY(EditAnywhere)
+		int32 TargetTab;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int32 NumberOfSlots;
 };
@@ -195,4 +206,18 @@ struct FGISInventoryConfig
 public:
 	UPROPERTY(EditAnywhere)
 		TArray<FGISInventoryTabConfig> TabConfigs;
+};
+
+
+USTRUCT()
+struct FGISTabUpdateInfo
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY()
+		int8 ReplicationCounter; //make syre that we replicate new data.
+	UPROPERTY()
+		int8 TargetTabIndex;
+	UPROPERTY()
+		int8 OriginTabIndex;
 };

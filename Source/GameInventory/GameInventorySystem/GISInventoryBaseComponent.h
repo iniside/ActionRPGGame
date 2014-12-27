@@ -7,6 +7,9 @@
 /*
 	Simple event to force client, to redraw inventory after first load data has been repliated to client.
 */
+/*
+	Refactor delegates to be simple single cast delegates. We don't need them in blueprints.
+*/
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGISOnInventoryLoaded);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGISOnItemAdded, const FGISSlotUpdateData&, SlotUpdateInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGISOnItemSlotSwapped, const FGISSlotSwapInfo&, SlotSwapInfo);
@@ -21,8 +24,10 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGISOnCopyItemsToTab, const FGISSlot
 */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGISOnItemLooted);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGISOnTabVisibilityChanged, int32, SlotIndex);
+DECLARE_DELEGATE_OneParam(FGISOnTabVisibilityChanged, int32);
 
+
+DECLARE_DELEGATE_OneParam(FGISOnTabChanged, int32);
 /**
 	Note to self. I could probabaly use GameplayTags, to determine exactly how interaction between
 	various items, and components should interact.
@@ -46,15 +51,17 @@ class GAMEINVENTORYSYSTEM_API UGISInventoryBaseComponent : public UActorComponen
 {
 	GENERATED_UCLASS_BODY()
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory Options")
-		TArray <FGISSlotsInTab> InitialTabInfo;
-
 	UPROPERTY(EditAnywhere, Category = "Inventory Options")
 		FGISInventoryConfig InventoryConfig;
 
 
 	UPROPERTY(EditAnywhere, Category = "Inventory Options")
 		int32 MaximumActiveTabs;
+	/*
+		How much time must pass before tabs can be swapped again. Default 0.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Inventory Options")
+		float TimeBetweenTabSwaps;
 	/*
 		Which item types, this component will accept.
 
@@ -162,6 +169,8 @@ public:
 
 
 	FGISOnTabVisibilityChanged OnTabVisibilityChanged;
+
+	FGISOnTabChanged OnTabChanged;
 private:
 	/*
 		Pickup actor that this inventory is interacting with. 
@@ -189,6 +198,11 @@ private:
 	FGISSlotSwapInfo SlotSwapInfo;
 	UFUNCTION()
 		void OnRep_SlotSwap();
+
+	UPROPERTY(ReplicatedUsing = OnRep_TabUpdated)
+		FGISTabUpdateInfo TabUpdateInfo;
+	UFUNCTION()
+		void OnRep_TabUpdated();
 public:
 
 	virtual void InitializeComponent() override;
@@ -318,6 +332,8 @@ public:
 	/**
 	 *	Template helper for input press, allow easy access by index to elements in inventory
 	 */
+
+
 	template<int32 TabIndex, int32 SlotIndex>
 	inline void InputSlotPressed()
 	{
@@ -342,8 +358,7 @@ public:
 		Useful if you for example don't want to activate item in slot, but 
 		copy pointer to diffrent place, and activate it from here.
 	 */
-	template<int32 TabIndex, int32 SlotIndex>
-	inline UGISItemData* GetSlot()
+	inline UGISItemData* GetItemFromSlot(int32 TabIndex, int32 SlotIndex)
 	{
 		if (Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData.IsValid())
 		{
@@ -352,77 +367,38 @@ public:
 		return nullptr;
 	}
 
-	template<int32 TabIndex>
-	inline void SetIsTabActive(bool bIsTabActiveIn)
+	inline void SetIsTabActive(int32 TabIndex, bool bIsTabActiveIn)
 	{
 		Tabs.InventoryTabs[TabIndex].bIsTabActive = bIsTabActiveIn;
 	}
 
-	template<int32 TabIndex>
-	inline FGISTabInfo GetOneTab()
+	inline FGISTabInfo& GetOneTab(int32 TabIndex)
 	{
 		return Tabs.InventoryTabs[TabIndex];
 	}
 
 	/*
-		probabaly better as not inline.
+		Swap item between tab. Make sure that tabs are of identical size.
+		Otherwise you loose items from bigger tab!
 	*/
-	void SwapTabItems(int32 OriginalTab, int32 TargetTab)
-	{
-		int32 OrignalItemCount = Tabs.InventoryTabs[OriginalTab].TabSlots.Num();
-		int32 TargetItemCount = Tabs.InventoryTabs[TargetTab].TabSlots.Num();
-		//check which item count is bigger
-		//to avoid copying into non existend array elements.
-		//we always count against smaller.
-		if (OrignalItemCount > TargetItemCount)
-		{
-			for (int32 Index = 0; Index < TargetItemCount; Index++)
-			{
-				TWeakObjectPtr<UGISItemData> tempTargetData = Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData;
-				Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData = Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData;
-				Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData = tempTargetData;
-			}
-		}
-		else
-		{
-			for (int32 Index = 0; Index < OrignalItemCount; Index++)
-			{
-				TWeakObjectPtr<UGISItemData> tempTargetData = Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData;
-				Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData = Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData;
-				Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData = tempTargetData;
-			}
-		}
-	}
+	void SwapTabItems(int32 OriginalTab, int32 TargetTab);
 	/*
 		This will copy all item from OriginalTab, to TargetTab.
 		All items in TargetTab will be replaced!
 
-		Both target tab must have AT LEAST the same amount of slots
+		Target tab must have AT LEAST the same amount of slots
 		as original tab. Otherwise not all data will be copied.
 	 */
-	void CopyItemsToTab(int32 OriginalTab, int32 TargetTab)
-	{
-		int32 OrignalItemCount = Tabs.InventoryTabs[OriginalTab].TabSlots.Num();
-		int32 TargetItemCount = Tabs.InventoryTabs[TargetTab].TabSlots.Num();
-		//check which item count is bigger
-		//to avoid copying into non existend array elements.
-		//we always count against smaller.
-		if (OrignalItemCount > TargetItemCount)
-		{
-			for (int32 Index = 0; Index < TargetItemCount; Index++)
-			{
-				Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData = Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData;
-			}
-		}
-		else
-		{
-			for (int32 Index = 0; Index < OrignalItemCount; Index++)
-			{
-				Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData = Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData;
-			}
-		}
-		
-	}
+	void CopyItemsToTab(int32 OriginalTab, int32 TargetTab);
+
+	/*
+		Takes tab, which have LinkedTab > -1
+		and TargetTab > -1
+		And then copy items from Current Linked Tab to specified TargetTab.
+
+		Prolly want to do it only on server.
+	*/
+	void CopyItemsBetweenTargetTabs();
 
 	void ChangeTabVisibility(int32 TabIndex)
 	{
@@ -431,7 +407,7 @@ public:
 		else
 			Tabs.InventoryTabs[TabIndex].bIsTabVisible = true;
 
-		OnTabVisibilityChanged.Broadcast(TabIndex);
+		OnTabVisibilityChanged.ExecuteIfBound(TabIndex);
 	}
 
 	int32 GetNextTab(int32 CurrentTab)
@@ -446,8 +422,9 @@ public:
 	void SwapTabVisibilityActivity();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSwapTabVisibilityActivity();
-	/*
+		void ServerSwapTabVisibilityActivity();
+
+	/*1.
 		Hotbar creation by:
 		1. Create static Hotbar (always visible).
 		2. Creating abitrary number of hidden Hotbar. They are not visible during playing game.
@@ -455,7 +432,7 @@ public:
 		4. When you swap Hotbar, pointer to contained items are copied from hidden Hotbar, to 
 		static Hotbar.
 	*/
-	/*
+	/*2.
 		Another way.
 		1. You create Hotbar like normal tabs.
 		2. You set maximum number of tabs, which can be active at the same time.
@@ -465,11 +442,13 @@ public:
 		6. This means you can have only one active swappable hotbar at time.
 	*/
 
-	/*
+	/*3.
 		Or you can just create any number of hotbars, and assign to each of them unique
 		key mappings if you want to the more WoW/RIFT/EQ etc like hotbars.
 	*/
-
+	/*
+		2 and 3 are supported. The third.. Well, I'm still thinking about it.
+	*/
 	//it would be best if parameter here
 	//would be dynamically generated list out of this component tabs.
 
@@ -525,6 +504,8 @@ public:
 	*/
 private:
 	void InitializeInventoryTabs();
+
+	int32 LastOriginTab; //last tab from which we copied items, to this tab.
 };
 
 

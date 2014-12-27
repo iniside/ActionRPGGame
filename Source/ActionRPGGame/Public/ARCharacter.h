@@ -92,6 +92,7 @@ protected:
 		How to make it work in case where I would need to copy these pointer to other input buttons ?
 		let's think...
 	*/
+	void ActivateAbility();
 	template<int32 TabIndex, int32 SlotIndex>
 	void InputActionBarPressed()
 	{
@@ -112,6 +113,8 @@ protected:
 			ActionBar->InputSlotReleased<TabIndex, SlotIndex>();
 		}
 	}
+
+	void ShowHideEditableHotbars();
 
 	/*
 		This will cycle trough action bars.

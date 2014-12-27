@@ -32,6 +32,8 @@ UGISInventoryBaseComponent::UGISInventoryBaseComponent(const FObjectInitializer&
 	OnItemLooted.AddDynamic(this, &UGISInventoryBaseComponent::ConstructLootPickingWidget);
 	InventoryVisibility = ESlateVisibility::Hidden;
 	LootWindowVisibility = ESlateVisibility::Hidden;
+
+	LastOriginTab = INDEX_NONE;
 }
 
 
@@ -512,6 +514,11 @@ void UGISInventoryBaseComponent::BP_SetNextTab(int32 TabIndexIn)
 {
 
 }
+
+void UGISInventoryBaseComponent::OnRep_TabUpdated()
+{
+	OnTabChanged.ExecuteIfBound(TabUpdateInfo.TargetTabIndex);
+}
 void UGISInventoryBaseComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -521,11 +528,18 @@ void UGISInventoryBaseComponent::GetLifetimeReplicatedProps(TArray< class FLifet
 	DOREPLIFETIME_CONDITION(UGISInventoryBaseComponent, SlotSwapInfo, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UGISInventoryBaseComponent, CurrentPickupActor, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UGISInventoryBaseComponent, LootedItems, COND_OwnerOnly);
+
+	DOREPLIFETIME_CONDITION(UGISInventoryBaseComponent, TabUpdateInfo, COND_OwnerOnly);
 }
 
 bool UGISInventoryBaseComponent::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
 {
 	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+
+	/*
+		Should optimize it to replicate only items in array which changed.
+		Don't know how though. Yet.
+	*/
 
 	for (const FGISTabInfo& TabInfo : Tabs.InventoryTabs)
 	{
@@ -585,6 +599,7 @@ void UGISInventoryBaseComponent::InitializeInventoryTabs()
 		TabInfo.bIsTabActive = tabConf.bIsTabActive;
 		TabInfo.bIsTabVisible = tabConf.bIsTabVisible;
 		TabInfo.LinkedTab = tabConf.LinkedToTab;
+		TabInfo.TargetTab = tabConf.TargetTab;
 		for (int32 Index = 0; Index < tabConf.NumberOfSlots; Index++)
 		{
 			FGISSlotInfo SlotInfo;
@@ -596,6 +611,96 @@ void UGISInventoryBaseComponent::InitializeInventoryTabs()
 		}
 		Tabs.InventoryTabs.Add(TabInfo);
 		counter++;
+	}
+}
+
+void UGISInventoryBaseComponent::SwapTabItems(int32 OriginalTab, int32 TargetTab)
+{
+	int32 OrignalItemCount = Tabs.InventoryTabs[OriginalTab].TabSlots.Num();
+	int32 TargetItemCount = Tabs.InventoryTabs[TargetTab].TabSlots.Num();
+	//check which item count is bigger
+	//to avoid copying into non existend array elements.
+	//we always count against smaller.
+	if (OrignalItemCount > TargetItemCount)
+	{
+		for (int32 Index = 0; Index < TargetItemCount; Index++)
+		{
+			TWeakObjectPtr<UGISItemData> tempTargetData = Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData;
+			Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData = Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData;
+			Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData = tempTargetData;
+		}
+	}
+	else
+	{
+		for (int32 Index = 0; Index < OrignalItemCount; Index++)
+		{
+			TWeakObjectPtr<UGISItemData> tempTargetData = Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData;
+			Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData = Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData;
+			Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData = tempTargetData;
+		}
+	}
+	/*
+		OnRep_ReconstructTabs ? For UI.
+		We don't need or want to reconstruct everything excepy updated tabs, or maybe even just slots
+		on these tabs.
+
+		Eiteher way I have to send index of tab to update.
+	*/
+}
+
+void UGISInventoryBaseComponent::CopyItemsToTab(int32 OriginalTab, int32 TargetTab)
+{
+	int32 OrignalItemCount = Tabs.InventoryTabs[OriginalTab].TabSlots.Num();
+	int32 TargetItemCount = Tabs.InventoryTabs[TargetTab].TabSlots.Num();
+	//check which item count is bigger
+	//to avoid copying into non existend array elements.
+	//we always count against smaller.
+
+	if (OrignalItemCount > TargetItemCount)
+	{
+		for (int32 Index = 0; Index < TargetItemCount; Index++)
+		{
+			Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData = Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData;
+		}
+	}
+	else
+	{
+		for (int32 Index = 0; Index < OrignalItemCount; Index++)
+		{
+			Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData = Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData;
+		}
+	}
+	TabUpdateInfo.ReplicationCounter++;
+	TabUpdateInfo.TargetTabIndex = TargetTab;
+	//I will need to call it on client. But how do I determine
+	//changed tab index on client after tab is replicated ?
+	//replicate index separatetly ?
+	if (GetNetMode() == ENetMode::NM_Standalone)
+		OnTabChanged.ExecuteIfBound(TabUpdateInfo.TargetTabIndex);
+
+}
+
+void UGISInventoryBaseComponent::CopyItemsBetweenTargetTabs()
+{
+	int32 TabNum = Tabs.InventoryTabs.Num();
+	//int32 activeTabCount = CountActiveTabs();
+
+	//allow only for certain number of active tabs.
+	//if there are more, it means someone tried to cheat..
+//	if (activeTabCount > MaximumActiveTabs)
+	//	return;
+
+	for (int32 Index = 0; Index < TabNum; Index++)
+	{
+		if ((Tabs.InventoryTabs[Index].LinkedTab >= 0)
+			&& LastOriginTab != Index)
+		{
+			int32 NextTab = Tabs.InventoryTabs[Index].LinkedTab;
+			int32 TargetTab = Tabs.InventoryTabs[Index].TargetTab;
+			LastOriginTab = Index;
+			CopyItemsToTab(Index, TargetTab);
+			return;
+		}
 	}
 }
 
@@ -621,9 +726,9 @@ void UGISInventoryBaseComponent::SwapTabVisibility()
 		{
 			int32 NextTab = Tabs.InventoryTabs[Index].LinkedTab;
 			Tabs.InventoryTabs[Index].bIsTabVisible = false;
-			OnTabVisibilityChanged.Broadcast(Index);
+			OnTabVisibilityChanged.ExecuteIfBound(Index);
 			Tabs.InventoryTabs[NextTab].bIsTabVisible = true;
-			OnTabVisibilityChanged.Broadcast(NextTab);
+			OnTabVisibilityChanged.ExecuteIfBound(NextTab);
 			return;
 		}
 	}
@@ -657,10 +762,10 @@ void UGISInventoryBaseComponent::SwapTabVisibilityActivity()
 			int32 NextTab = Tabs.InventoryTabs[Index].LinkedTab;
 			Tabs.InventoryTabs[Index].bIsTabVisible = false;
 			Tabs.InventoryTabs[Index].bIsTabActive = false;
-			OnTabVisibilityChanged.Broadcast(Index);
+			OnTabVisibilityChanged.ExecuteIfBound(Index);
 			Tabs.InventoryTabs[NextTab].bIsTabVisible = true;
 			Tabs.InventoryTabs[NextTab].bIsTabActive = true;
-			OnTabVisibilityChanged.Broadcast(NextTab);
+			OnTabVisibilityChanged.ExecuteIfBound(NextTab);
 			return;
 		}
 	}

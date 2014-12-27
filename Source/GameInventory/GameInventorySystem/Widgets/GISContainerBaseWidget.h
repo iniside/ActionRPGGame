@@ -80,4 +80,10 @@ public:
 
 	UFUNCTION()
 	void InitializeInventory();
+
+	/*
+		Redraw tab, when it changed.
+	*/
+	UFUNCTION()
+		void Widget_OnTabChanged(int32 TabIndexIn);
 };
