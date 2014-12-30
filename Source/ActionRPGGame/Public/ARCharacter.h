@@ -16,11 +16,12 @@
 #include "IGAAttributes.h"
 #include "IGESEffect.h"
 #include "IGESEffectManager.h"
+#include "IGASAbilities.h"
 
 #include "ARCharacter.generated.h"
 
 UCLASS(config=Game)
-class AARCharacter : public ACharacter, public IIGAAttributes, public IIGESEffect, public IIGESEffectManager
+class AARCharacter : public ACharacter, public IIGAAttributes, public IIGESEffect, public IIGESEffectManager, public IIGASAbilities
 {
 	GENERATED_BODY()
 
@@ -66,6 +67,10 @@ public:
 		virtual class UGESEffectManager* GetEffectManager();
 	/** IIGESEffect End */
 
+	/** IIGASAbilities Begin */
+	virtual FVector GetSocketLocation(FName SocketNameIn) override;
+	/** IIGASAbilities End */
+
 	virtual void OnRep_Controller() override;
 
 	virtual void PossessedBy(AController* NewController) override;
@@ -101,7 +106,7 @@ protected:
 		//like Guild Wars 2 hotbar. Proof of concept!
 		if (ActionBar->Tabs.InventoryTabs[TabIndex].bIsTabActive)
 		{
-			ActionBar->InputSlotPressed<TabIndex, SlotIndex>();
+			ActionBar->InputSlotPressed(TabIndex, SlotIndex);
 		}
 	}
 
@@ -110,7 +115,7 @@ protected:
 	{
 		if(ActionBar->Tabs.InventoryTabs[TabIndex].bIsTabActive)
 		{
-			ActionBar->InputSlotReleased<TabIndex, SlotIndex>();
+			ActionBar->InputSlotReleased(TabIndex, SlotIndex);
 		}
 	}
 

@@ -613,7 +613,20 @@ void UGISInventoryBaseComponent::InitializeInventoryTabs()
 		counter++;
 	}
 }
-
+void  UGISInventoryBaseComponent::InputSlotPressed(int32 TabIndex, int32 SlotIndex)
+{
+	if (Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData.IsValid())
+	{
+		Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData->InputPressed();
+	}
+}
+void UGISInventoryBaseComponent::InputSlotReleased(int32 TabIndex, int32 SlotIndex)
+{
+	if (Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData.IsValid())
+	{
+		Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData->InputReleased();
+	}
+}
 void UGISInventoryBaseComponent::SwapTabItems(int32 OriginalTab, int32 TargetTab)
 {
 	int32 OrignalItemCount = Tabs.InventoryTabs[OriginalTab].TabSlots.Num();
@@ -680,7 +693,7 @@ void UGISInventoryBaseComponent::CopyItemsToTab(int32 OriginalTab, int32 TargetT
 
 }
 
-void UGISInventoryBaseComponent::CopyItemsBetweenTargetTabs()
+void UGISInventoryBaseComponent::CopyItemsToTargetTabFromLinkedTabs()
 {
 	int32 TabNum = Tabs.InventoryTabs.Num();
 	//int32 activeTabCount = CountActiveTabs();
@@ -716,7 +729,7 @@ int32 UGISInventoryBaseComponent::CountActiveTabs()
 	return ActiveTabsCount;
 }
 
-void UGISInventoryBaseComponent::SwapTabVisibility()
+void UGISInventoryBaseComponent::CycleTroughLinkedTabsChangeVisible()
 {
 	int32 TabNum = Tabs.InventoryTabs.Num();
 	for (int32 Index = 0; Index < TabNum; Index++)
@@ -733,7 +746,7 @@ void UGISInventoryBaseComponent::SwapTabVisibility()
 		}
 	}
 }
-void UGISInventoryBaseComponent::SwapTabVisibilityActivity()
+void UGISInventoryBaseComponent::CycleTroughLinkedTabsChangeActiveVisible()
 {
 	/*
 		If we are on client, we ask server to also change visbilit/activity on it's side.
@@ -744,7 +757,7 @@ void UGISInventoryBaseComponent::SwapTabVisibilityActivity()
 	*/
 	if (GetOwnerRole() < ROLE_Authority)
 	{
-		ServerSwapTabVisibilityActivity();
+		ServerSCycleTroughLinkedTabsChangeActiveVisible();
 	}
 	int32 TabNum = Tabs.InventoryTabs.Num();
 	int32 activeTabCount = CountActiveTabs();
@@ -771,11 +784,11 @@ void UGISInventoryBaseComponent::SwapTabVisibilityActivity()
 	}
 }
 
-void UGISInventoryBaseComponent::ServerSwapTabVisibilityActivity_Implementation()
+void UGISInventoryBaseComponent::ServerSCycleTroughLinkedTabsChangeActiveVisible_Implementation()
 {
-	SwapTabVisibilityActivity();
+	CycleTroughLinkedTabsChangeActiveVisible();
 }
-bool UGISInventoryBaseComponent::ServerSwapTabVisibilityActivity_Validate()
+bool UGISInventoryBaseComponent::ServerSCycleTroughLinkedTabsChangeActiveVisible_Validate()
 {
 	return true;
 }

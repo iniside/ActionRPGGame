@@ -35,6 +35,8 @@ bool UGSAbilityInfo::OnItemAddedToSlot()
 	{
 		ActiveAbility = GetWorld()->SpawnActor<AGSAbility>(AbilityType);
 		ActiveAbility->SetOwner(CurrentOwner);
+		ActiveAbility->SetPawnOwner(OwningPawn);
+		ActiveAbility->SetPlayerController(OwiningPlayerController);
 	}
 	return false;
 }

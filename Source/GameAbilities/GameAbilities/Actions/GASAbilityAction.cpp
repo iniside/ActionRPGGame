@@ -13,3 +13,22 @@ UWorld* UGASAbilityAction::GetWorld() const
 {
 	return GetOuterAGASAbility()->GetWorld();
 }
+
+
+void UGASAbilityAction::Tick(float DeltaSecondsIn)
+{
+
+}
+void UGASAbilityAction::PreExecute()
+{
+
+}
+void UGASAbilityAction::Execute()
+{
+
+}
+
+void UGASAbilityAction::PostExecute()
+{
+
+}

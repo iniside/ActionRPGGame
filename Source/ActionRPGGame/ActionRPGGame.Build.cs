@@ -52,6 +52,7 @@ public class ActionRPGGame : ModuleRules
 				"GameplayTags",
                 "GameplayAbilities",
                 "GameFloatingCombatText",
+                "GameAbilities",
                 "GameSystem"
 				});
 		if (Target.Type == TargetRules.TargetType.Editor)

@@ -19,7 +19,7 @@ void UGASAbilityStateActive::EndState()
 }
 void UGASAbilityStateActive::BeginActionSequence()
 {
-	GetOuterAGASAbility()->GotoState(GetOuterAGASAbility()->ActivationState);
+	GetOuterAGASAbility()->GotoState(GetOuterAGASAbility()->PreparationState);
 }
 void UGASAbilityStateActive::EndActionSequence()
 {

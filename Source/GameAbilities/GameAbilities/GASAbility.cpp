@@ -2,6 +2,13 @@
 
 #include "GameAbilities.h"
 #include "States/GASAbilityState.h"
+#include "States/GASAbilityStatePreparation.h"
+
+#include "Actions/GASAbilityAction.h"
+#include "Actions/GASAbilityActionTrace.h"
+
+#include "IGASAbilities.h"
+
 #include "GASAbility.h"
 
 AGASAbility::AGASAbility(const FObjectInitializer& ObjectInitializer)
@@ -9,6 +16,8 @@ AGASAbility::AGASAbility(const FObjectInitializer& ObjectInitializer)
 {
 	bReplicates = true;
 	SetReplicates(true);
+
+	PreparationState = ObjectInitializer.CreateDefaultSubobject<UGASAbilityStatePreparation>(this, TEXT("PreparationState"));
 
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
@@ -18,7 +27,19 @@ AGASAbility::AGASAbility(const FObjectInitializer& ObjectInitializer)
 void AGASAbility::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	CurrentState->Tick(DeltaSeconds);
+	if (CurrentState)
+		CurrentState->Tick(DeltaSeconds);
+	/*
+		Tick current targeting action. For most abilities it won't do anything, for most part.
+	*/
+	if (TargetingAction)
+		TargetingAction->Tick(DeltaSeconds);
+}
+
+void AGASAbility::BeginPlay()
+{
+	Super::BeginPlay();
+	CurrentState = ActiveState;
 }
 
 void AGASAbility::GotoState(class UGASAbilityState* NextState)
@@ -44,13 +65,12 @@ void AGASAbility::GotoState(class UGASAbilityState* NextState)
 
 void AGASAbility::InputPressed()
 {
-	ActivateAbility(); //temporary this never should be called directly.
-	//will change one state machine and replication is fully operational.
+	ActivateAbility();
 }
 
 void AGASAbility::InputReleased()
 {
-	DeactivateAbility(); //temporary his never should call it directly.
+	DeactivateAbility();
 }
 
 void AGASAbility::ActivateAbility()
@@ -61,8 +81,14 @@ void AGASAbility::ActivateAbility()
 	}
 	else
 	{
-		OnAbilityActivated();
+		CurrentState->BeginActionSequence();
 	}
+}
+
+void AGASAbility::ExecuteAbility()
+{
+	TargetingAction->Execute();
+	OnAbilityActivated();
 }
 void AGASAbility::ServerActivateAbility_Implementation()
 {
@@ -91,4 +117,22 @@ void AGASAbility::ServerDeactivateAbility_Implementation()
 bool AGASAbility::ServerDeactivateAbility_Validate()
 {
 	return true;
+}
+
+void AGASAbility::RunPreparationActions()
+{
+	if (TargetingAction)
+		TargetingAction->PreExecute();
+}
+
+
+FVector AGASAbility::GetSocketLocation(FName SocketNameIn)
+{
+	FVector SocketLocation = FVector::ZeroVector;
+	IIGASAbilities* abilityInt = Cast<IIGASAbilities>(PawnOwner);
+	if (abilityInt)
+	{
+		SocketLocation = abilityInt->GetSocketLocation(SocketNameIn);
+	}
+	return SocketLocation;
 }

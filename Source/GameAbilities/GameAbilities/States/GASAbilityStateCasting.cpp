@@ -18,13 +18,14 @@ void UGASAbilityStateCasting::Tick(float DeltaSeconds)
 	//if (GetOuterAGASAbility()->CurrentCastTime >= GetOuterAARAbility()->MaxCastTime)
 	//{
 	//	GetOuterAGASAbility()->CurrentCastTime = 0;
-		CastAbility();
+	ExecuteAbility();
 	//}
 }
 
-void UGASAbilityStateCasting::CastAbility()
+void UGASAbilityStateCasting::ExecuteAbility()
 {
-	GetOuterAGASAbility()->ActivateAbility();
+	GetOuterAGASAbility()->ExecuteAbility();
+	//GetOuterAGASAbility()->OnAbilityActivated();
 	//GetOuterAARAbility()->bIsCasting = false;
 	//GetOuterAARAbility()->bIsCastingFinished = true;
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
@@ -33,6 +34,7 @@ void UGASAbilityStateCasting::CastAbility()
 
 void UGASAbilityStateCasting::BeginState(UGASAbilityState* PrevState)
 {
+	//GetOuterAGASAbility()->OnAbilityActivated();
 	//GetOuterAARAbility()->bIsCasting = true;
 	//GetOuterAARAbility()->bIsCastingFinished = false;
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(true);

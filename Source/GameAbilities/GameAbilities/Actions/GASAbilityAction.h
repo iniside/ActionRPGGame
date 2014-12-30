@@ -16,4 +16,22 @@ class GAMEABILITIES_API UGASAbilityAction : public UObject
 	GENERATED_UCLASS_BODY()
 public:
 	virtual UWorld* GetWorld() const override;
+
+	virtual void Tick(float DeltaSecondsIn);
+	/*
+		Called before Exectute.
+		Wheen exactly will you call it is up to you. I assume it might be usefull to display
+		cosmetic helpers first, and then to execute action (for example to gather
+		data, which is under cosmetic helper).
+	*/
+	virtual void PreExecute();
+	/*
+		Called to execute current action.
+	*/
+	virtual void Execute();
+	/*
+		Executed after action has been exectued.
+		Can be used for cleanup.
+	*/
+	virtual void PostExecute();
 };

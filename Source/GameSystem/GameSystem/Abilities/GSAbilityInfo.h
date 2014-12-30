@@ -12,6 +12,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, meta=(ExposeOnSpawn), Replicated)
 		TSubclassOf<class AGSAbility> AbilityType;
 
+	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn))
+		APawn* OwningPawn;
+
+	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn))
+		APlayerController* OwiningPlayerController;
+
 	//needed ?
 	UPROPERTY(Replicated)
 	class AGSAbility* ActiveAbility;

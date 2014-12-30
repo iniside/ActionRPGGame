@@ -321,38 +321,15 @@ public:
 		void ClientHideLootingWidget();
 
 	void PostInventoryInitialized();
-
-	/**
-	 *	Templates are good for it, because we know that index is static here. 
-	 *	Or at least should be. If it is not, fix your serialization/deserialization while saving ;).
-
-	 As matter if fact these could be normal functions.. I just cut-pasted the from other class.
-	 Where templates where actually needed ;).
-	 */
-	/**
-	 *	Template helper for input press, allow easy access by index to elements in inventory
-	 */
-
-
-	template<int32 TabIndex, int32 SlotIndex>
-	inline void InputSlotPressed()
-	{
-		if (Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData.IsValid())
-		{
-			Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData->InputPressed();
-		}
-	}
-	/**
-	*	Template helper for input release, allow easy access by index to elements in inventory
+	
+	/*
+		Helper for item activation initem inventory if button has been pressed.
 	*/
-	template<int32 TabIndex, int32 SlotIndex>
-	inline void InputSlotReleased()
-	{
-		if (Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData.IsValid())
-		{
-			Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData->InputReleased();
-		}
-	}
+	void InputSlotPressed(int32 TabIndex, int32 SlotIndex);
+	/*
+		Helper for item activation initem inventory if button has been released.
+	*/
+	void InputSlotReleased(int32 TabIndex, int32 SlotIndex);
 	/*
 		Helper function if you want to copy pointer from slot, to another place.
 		Useful if you for example don't want to activate item in slot, but 
@@ -398,7 +375,7 @@ public:
 
 		Prolly want to do it only on server.
 	*/
-	void CopyItemsBetweenTargetTabs();
+	void CopyItemsToTargetTabFromLinkedTabs();
 
 	void ChangeTabVisibility(int32 TabIndex)
 	{
@@ -417,12 +394,12 @@ public:
 
 	int32 CountActiveTabs();
 
-	void SwapTabVisibility();
+	void CycleTroughLinkedTabsChangeVisible();
 
-	void SwapTabVisibilityActivity();
+	void CycleTroughLinkedTabsChangeActiveVisible();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerSwapTabVisibilityActivity();
+		void ServerSCycleTroughLinkedTabsChangeActiveVisible();
 
 	/*1.
 		Hotbar creation by:

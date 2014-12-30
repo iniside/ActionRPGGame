@@ -140,6 +140,16 @@ class UGESEffectManager* AARCharacter::GetEffectManager()
 }
 /** IIGESEffect End */
 
+/** IIGASAbilities Begin */
+FVector AARCharacter::GetSocketLocation(FName SocketNameIn)
+{
+	FVector SocketLocation = FVector::ZeroVector;
+	if (GetMesh())
+		SocketLocation = GetMesh()->GetSocketLocation(SocketNameIn);
+	return SocketLocation;
+}
+/** IIGASAbilities End */
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -208,7 +218,7 @@ void AARCharacter::ActivateAbility()
 }
 void AARCharacter::InputSwapActionBars()
 {
-	ActionBar->CopyItemsBetweenTargetTabs();
+	ActionBar->CopyItemsToTargetTabFromLinkedTabs();
 }
 void AARCharacter::ShowHideEditableHotbars()
 {

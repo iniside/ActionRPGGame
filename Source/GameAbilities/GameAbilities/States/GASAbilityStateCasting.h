@@ -14,6 +14,6 @@ public:
 	virtual void BeginActionSequence() override;
 	virtual void EndActionSequence() override;
 
-	void CastAbility();
+	void ExecuteAbility();
 
 };
