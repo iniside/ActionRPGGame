@@ -1,6 +1,16 @@
 #pragma once
 #include "IGTTrace.h"
 #include "GASAbility.generated.h"
+
+UENUM(BlueprintType)
+enum class EGASTraceAbility : uint8
+{
+	Pawn,
+	Avatar,
+
+	Invalid,
+};
+
 /*
 	Could be UObject, replicated trough component.
 	But is it worth fuss ?
@@ -13,6 +23,8 @@ class GAMEABILITIES_API AGASAbility : public AActor, public IIGTTrace
 public:
 	virtual void Tick(float DeltaSeconds) override;
 
+
+	virtual void BeginDestroy() override;
 	/*
 		Property here or in states ?
 		CastTime, ChannelTime, period time (Ability pulse, every X seconds while active or while
@@ -30,6 +42,15 @@ private:
 	float CurrentCastTime;
 public:
 	inline float GetCooldownTime() { return CurrentCooldownTime; };
+
+	UPROPERTY(EditAnywhere, Category = "Configuration")
+		EGASTraceAbility TraceFrom;
+
+	/**
+	 *	Do we require avatar to be present for this ability to work ?
+	 */
+	UPROPERTY(EditAnywhere, Category = "Configuration")
+		bool bRequireAvatar;
 
 	/*
 		Maximum range of ability.
@@ -109,6 +130,10 @@ public:
 
 	UPROPERTY()
 	class UGASAbilityState* CurrentState;
+	
+	/**
+	 *	State Machine Properties End
+	 */
 
 	/**
 	 *	Default Targeting action for this ability. Targeting action will gather information about target, 
@@ -126,8 +151,6 @@ public:
 	 *	Also while useful it is certainly not critical enough to waste bandwith and CPU on replicating 
 	 *	this object to clients.
 	 */
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "Default Actions")
-	//class UGASAbilityActionTrace* TargetingAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "Targeting")
 	class UGTTraceBase* Targeting;
@@ -144,10 +167,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Defaul Mods Classes")
 		TArray<TSubclassOf<class UGASAbilityMods> > AbilityModsClasses;
 
-
-	/**
-	 *	State Machine Properties End
-	 */
 
 	/**
 	 *	Temporary. Will probabaly need custom struct for it.
@@ -174,14 +193,28 @@ protected:
 
 	UPROPERTY()
 		APawn* PawnOwner;
+	/*
+		Actor which is directly required, for this ability to work.
+		It might be a weapon, player controller or character.
 
-	//FVector GetSocketLocation(FName SocketNameIn);
+		I assume for most cases it will be weapon or something similiar since character is
+		covered by PawnOwner, and PlayerController by PCOwner.
+
+		It might be useful for retriving socket location to start tracing from.
+		Mainly for cosmetic purposes. For example to spawn particle effects
+		at location.
+	*/
+	UPROPERTY()
+		AActor* AvatarActor;
+
+	class IIGTSocket* iSocket;
 
 	void ExecuteAbility();
 
 public:
 	inline void SetPlayerController(APlayerController* PCOwnerIn){ PCOwner = PCOwnerIn; }
-	inline void SetPawnOwner(APawn* PawnOwnerIn){ PawnOwner = PawnOwnerIn; }
+	void SetPawnOwner(APawn* PawnOwnerIn);
+	inline void SetAvatarActor(AActor* ActorIn) { AvatarActor = ActorIn; };
 public:
 
 	/** IIGTTrace Begin */
@@ -195,6 +228,8 @@ public:
 
 	virtual void SetTargetData(const TArray<FHitResult>& DataIn);
 	virtual TArray<FHitResult>& GetTargetData() override { return TargetData; };
+
+
 	/** IIGTTrace End */
 
 	/**

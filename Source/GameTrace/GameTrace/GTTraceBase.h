@@ -84,6 +84,8 @@ public:
 
 	void SingleLineTrace();
 
+	FVector GetSingHitLocation();
+
 	virtual void Initialize();
 
 	/**
@@ -153,6 +155,4 @@ protected:
 	*	Base single line trace.
 	*/
 	FHitResult SingleLineRangedTrace(const FVector& StartTrace, const FVector& EndTrace);
-
-	FVector GetSingHitLocation();
 };

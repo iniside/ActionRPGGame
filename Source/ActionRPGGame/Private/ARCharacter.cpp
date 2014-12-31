@@ -140,7 +140,7 @@ class UGESEffectManager* AARCharacter::GetEffectManager()
 }
 /** IIGESEffect End */
 
-/** IIGASAbilities Begin */
+/** IIGTSocket Begin */
 FVector AARCharacter::GetSocketLocation(FName SocketNameIn)
 {
 	FVector SocketLocation = FVector::ZeroVector;
@@ -148,8 +148,7 @@ FVector AARCharacter::GetSocketLocation(FName SocketNameIn)
 		SocketLocation = GetMesh()->GetSocketLocation(SocketNameIn);
 	return SocketLocation;
 }
-/** IIGASAbilities End */
-
+/** IIGTSocket End */
 //////////////////////////////////////////////////////////////////////////
 // Input
 

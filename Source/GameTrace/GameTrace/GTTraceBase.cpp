@@ -51,7 +51,6 @@ void UGTTraceBase::SingleLineTrace()
 FVector UGTTraceBase::GetSingHitLocation()
 {
 	FHitResult Impact;
-	TraceInterface->GetTargetData().Empty();
 	const FVector ShootDir = GetPawnCameraAim();
 	//
 	if (bTraceFromSocket)

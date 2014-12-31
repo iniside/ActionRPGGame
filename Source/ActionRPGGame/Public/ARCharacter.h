@@ -16,12 +16,13 @@
 #include "IGAAttributes.h"
 #include "IGESEffect.h"
 #include "IGESEffectManager.h"
-#include "IGASAbilities.h"
+#include "IGTSocket.h"
 
 #include "ARCharacter.generated.h"
 
 UCLASS(config=Game)
-class AARCharacter : public ACharacter, public IIGAAttributes, public IIGESEffect, public IIGESEffectManager, public IIGASAbilities
+class AARCharacter : public ACharacter, public IIGAAttributes, public IIGESEffect, public IIGESEffectManager
+	, public IIGTSocket
 {
 	GENERATED_BODY()
 
@@ -67,9 +68,9 @@ public:
 		virtual class UGESEffectManager* GetEffectManager();
 	/** IIGESEffect End */
 
-	/** IIGASAbilities Begin */
+	/** IGTSocket Begin */
 	virtual FVector GetSocketLocation(FName SocketNameIn) override;
-	/** IIGASAbilities End */
+	/** IGTSocket End */
 
 	virtual void OnRep_Controller() override;
 

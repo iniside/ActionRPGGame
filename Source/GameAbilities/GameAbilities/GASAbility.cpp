@@ -9,6 +9,7 @@
 #include "GTTraceBase.h"
 
 #include "IGASAbilities.h"
+#include "IGTSocket.h"
 
 #include "GASAbility.h"
 
@@ -17,7 +18,7 @@ AGASAbility::AGASAbility(const FObjectInitializer& ObjectInitializer)
 {
 	bReplicates = true;
 	SetReplicates(true);
-
+	iSocket = nullptr;
 	PreparationState = ObjectInitializer.CreateDefaultSubobject<UGASAbilityStatePreparation>(this, TEXT("PreparationState"));
 
 	PrimaryActorTick.bCanEverTick = true;
@@ -36,7 +37,11 @@ void AGASAbility::Tick(float DeltaSeconds)
 	if (Targeting)
 		Targeting->Tick(DeltaSeconds);
 }
-
+void AGASAbility::BeginDestroy()
+{
+	iSocket = nullptr;
+	Super::BeginDestroy();
+}
 void AGASAbility::BeginPlay()
 {
 	Super::BeginPlay();
@@ -46,7 +51,22 @@ void AGASAbility::BeginPlay()
 	if (Targeting)
 		Targeting->Initialize();
 }
-
+void AGASAbility::SetPawnOwner(APawn* PawnOwnerIn)
+{
+	PawnOwner = PawnOwnerIn;
+	switch (TraceFrom)
+	{
+		case EGASTraceAbility::Pawn:
+			iSocket = Cast<IIGTSocket>(PawnOwner);;
+		case EGASTraceAbility::Avatar:
+			iSocket = Cast<IIGTSocket>(AvatarActor);;
+		case EGASTraceAbility::Invalid:
+			break;
+		default:
+			break;
+	}
+	
+}
 void AGASAbility::GotoState(class UGASAbilityState* NextState)
 {
 	if (NextState == NULL || !NextState->IsIn(this))
@@ -135,10 +155,9 @@ void AGASAbility::RunPreparationActions()
 FVector AGASAbility::GetSocketLocation(FName SocketNameIn)
 {
 	FVector SocketLocation = FVector::ZeroVector;
-	IIGASAbilities* abilityInt = Cast<IIGASAbilities>(PawnOwner);
-	if (abilityInt)
+	if (iSocket)
 	{
-		SocketLocation = abilityInt->GetSocketLocation(SocketNameIn);
+		SocketLocation = iSocket->GetSocketLocation(SocketNameIn);
 	}
 	return SocketLocation;
 }

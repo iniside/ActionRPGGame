@@ -20,6 +20,8 @@ namespace UnrealBuildTool.Rules
                     "GameInventorySystem/Public",
                     "GameFloatingCombatText",
                     "GameFloatingCombatText/Public",
+                    "GameTrace",
+                    "GameTrace/Public"
 					// ... add public include paths required here ...
 				}
 				);
@@ -32,6 +34,7 @@ namespace UnrealBuildTool.Rules
                     "GameEffectSystem/Private",
                     "GameInventorySystem/Private",
                     "GameFloatingCombatText/Private",
+                    "GameTrace/Private"
 					// ... add other private include paths required here ...
 				}
 				);
@@ -42,6 +45,7 @@ namespace UnrealBuildTool.Rules
 				    "Core",
 				    "CoreUObject",
 				    "Engine",
+                    "GameTrace",
                     "GameAbilities",
                     "GameAttributes",
                     "GameEffectSystem",

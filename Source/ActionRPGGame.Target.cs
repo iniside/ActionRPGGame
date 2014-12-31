@@ -19,7 +19,8 @@ public class ActionRPGGameTarget : TargetRules
 		ref List<UEBuildBinaryConfiguration> OutBuildBinaryConfigurations,
 		ref List<string> OutExtraModuleNames
 		)
-	{
+    {
+        OutExtraModuleNames.Add("GameTrace");
 		OutExtraModuleNames.Add("GameInventorySystem");
 		OutExtraModuleNames.Add("GameAttributes");
 		OutExtraModuleNames.Add("GameEffectSystem");
@@ -29,6 +30,7 @@ public class ActionRPGGameTarget : TargetRules
         OutExtraModuleNames.Add("ActionRPGGame");
         if (UEBuildConfiguration.bBuildEditor)
         {
+            OutExtraModuleNames.Add("GameTraceEditor");
 			OutExtraModuleNames.Add("GameInventorySystemEditor");
 			OutExtraModuleNames.Add("GameAttributesEditor");
 			OutExtraModuleNames.Add("GameEffectSystemEditor");
