@@ -1,12 +1,12 @@
 #pragma once
-#include "GASAbilityAction.h"
-#include "GASAbilityActionTrace.h"
-#include "GASAbilityActionTrace_GroundSphere.generated.h"
+#include "GameTrace.h"
+#include "GTTraceBase.h"
+#include "GTTrace_GroundBox.generated.h"
 /*
 	Base class for trace actions.
 */
-UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GASAbility)
-class GAMEABILITIES_API UGASAbilityActionTrace_GroundSphere : public UGASAbilityActionTrace
+UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew)
+class GAMETRACE_API UGTTrace_GroundBox : public UGTTraceBase
 {
 	GENERATED_UCLASS_BODY()
 public:
@@ -14,10 +14,15 @@ public:
 		TSubclassOf<AActor> DisplayHelperActor;
 
 	UPROPERTY(EditAnywhere, Category = "Configuration")
-		float Radius;
+		FVector BoxSize;
+
+	UPROPERTY(EditAnywhere, Category = "Configuration")
+		TArray<TEnumAsByte<ECollisionChannel> > BoxObjectsToTrace;
 
 	/**/
 	virtual void Tick(float DeltaSecondsIn) override;
+
+	virtual void Initialize() override;
 
 	/**
 	*	Call it to display cosmetic helpers.
@@ -30,9 +35,11 @@ public:
 	virtual void Execute() override;
 
 	virtual void PostExecute() override;
-
 protected:
 	UPROPERTY()
 		AActor* DisplayHelper;
 
+	FCollisionObjectQueryParams BoxObjectParams;
+
+	void TraceBox();
 };

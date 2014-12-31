@@ -1,0 +1,5 @@
+Module, supporting weapons.
+It does not define any particular weapons types, but
+provide basic expected functionality which can be added to weapon
+in modular way.
+Support mele, ranged.

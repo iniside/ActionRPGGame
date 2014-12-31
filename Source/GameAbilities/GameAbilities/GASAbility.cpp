@@ -5,7 +5,8 @@
 #include "States/GASAbilityStatePreparation.h"
 
 #include "Actions/GASAbilityAction.h"
-#include "Actions/GASAbilityActionTrace.h"
+
+#include "GTTraceBase.h"
 
 #include "IGASAbilities.h"
 
@@ -32,14 +33,18 @@ void AGASAbility::Tick(float DeltaSeconds)
 	/*
 		Tick current targeting action. For most abilities it won't do anything, for most part.
 	*/
-	if (TargetingAction)
-		TargetingAction->Tick(DeltaSeconds);
+	if (Targeting)
+		Targeting->Tick(DeltaSeconds);
 }
 
 void AGASAbility::BeginPlay()
 {
 	Super::BeginPlay();
 	CurrentState = ActiveState;
+	//if (TargetingAction)
+	//	TargetingAction->Initialize();
+	if (Targeting)
+		Targeting->Initialize();
 }
 
 void AGASAbility::GotoState(class UGASAbilityState* NextState)
@@ -87,7 +92,8 @@ void AGASAbility::ActivateAbility()
 
 void AGASAbility::ExecuteAbility()
 {
-	TargetingAction->Execute();
+	//TargetingAction->Execute();
+	Targeting->Execute();
 	OnAbilityActivated();
 }
 void AGASAbility::ServerActivateAbility_Implementation()
@@ -121,8 +127,8 @@ bool AGASAbility::ServerDeactivateAbility_Validate()
 
 void AGASAbility::RunPreparationActions()
 {
-	if (TargetingAction)
-		TargetingAction->PreExecute();
+	if (Targeting)
+		Targeting->PreExecute();
 }
 
 
@@ -136,3 +142,7 @@ FVector AGASAbility::GetSocketLocation(FName SocketNameIn)
 	}
 	return SocketLocation;
 }
+void AGASAbility::SetTargetData(const TArray<FHitResult>& DataIn)
+{ 
+	TargetData = DataIn; 
+};

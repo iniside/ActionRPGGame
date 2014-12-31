@@ -1,0 +1,3 @@
+this, module will contain basic tracing object, which can be attached to other objects
+and provide default tracing functionality, which can be exectued, without
+calling any functions in blueprint.

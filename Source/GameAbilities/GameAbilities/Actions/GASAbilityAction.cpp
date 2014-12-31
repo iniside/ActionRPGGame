@@ -19,6 +19,11 @@ void UGASAbilityAction::Tick(float DeltaSecondsIn)
 {
 
 }
+void UGASAbilityAction::Initialize()
+{
+
+}
+
 void UGASAbilityAction::PreExecute()
 {
 

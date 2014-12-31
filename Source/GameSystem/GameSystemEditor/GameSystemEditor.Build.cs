@@ -67,6 +67,8 @@ namespace UnrealBuildTool.Rules
                     "MainFrame",
                     "InputCore",
                     "GameSystem",
+                    "GameTrace",
+                    "GameTraceEditor",
                     "GameAbilities",
                     "GameAttributes",
                     "GameEffectSystem",

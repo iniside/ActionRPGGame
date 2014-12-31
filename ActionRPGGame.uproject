@@ -4,17 +4,27 @@
     "Category": "",
     "Description": "",
     "Modules": [
-         { 
-			"Name": "GameAbilities",
+        { 
+			"Name": "GameTrace",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		},
 		{
-			"Name": "GameAbilitiesEditor",
+			"Name": "GameTraceEditor",
 			"Type": "Editor",
 			"LoadingPhase": "Default"
 		},
-        { 
+        {
+            "Name": "GameAbilities",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        },
+        {
+            "Name": "GameAbilitiesEditor",
+            "Type": "Editor",
+            "LoadingPhase": "Default"
+        },
+        {
             "Name": "GameEffectSystem",
             "Type": "Runtime",
             "LoadingPhase": "Default"
@@ -24,7 +34,7 @@
             "Type": "Editor",
             "LoadingPhase": "Default"
         },
-        { 
+        {
             "Name": "GameAttributes",
             "Type": "Runtime",
             "LoadingPhase": "Default"
@@ -34,7 +44,7 @@
             "Type": "Editor",
             "LoadingPhase": "Default"
         },
-        { 
+        {
             "Name": "GameInventorySystem",
             "Type": "Runtime",
             "LoadingPhase": "Default"
@@ -44,7 +54,7 @@
             "Type": "Editor",
             "LoadingPhase": "Default"
         },
-		        { 
+        {
             "Name": "GameFloatingCombatText",
             "Type": "Runtime",
             "LoadingPhase": "Default"
@@ -54,7 +64,7 @@
             "Type": "Editor",
             "LoadingPhase": "Default"
         },
-        { 
+        {
             "Name": "GameSystem",
             "Type": "Runtime",
             "LoadingPhase": "Default"
@@ -64,7 +74,7 @@
             "Type": "Editor",
             "LoadingPhase": "Default"
         },
-        { 
+        {
             "Name": "ActionRPGGame",
             "Type": "Runtime",
             "LoadingPhase": "Default"

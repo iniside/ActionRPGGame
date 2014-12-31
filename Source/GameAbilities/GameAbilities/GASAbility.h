@@ -1,14 +1,14 @@
 #pragma once
+#include "IGTTrace.h"
 #include "GASAbility.generated.h"
 /*
 	Could be UObject, replicated trough component.
 	But is it worth fuss ?
 */
 UCLASS(BlueprintType, Blueprintable, DefaultToInstanced)
-class GAMEABILITIES_API AGASAbility : public AActor
+class GAMEABILITIES_API AGASAbility : public AActor, public IIGTTrace
 {
 	GENERATED_UCLASS_BODY()
-	friend class UGASAbilityActionTrace;
 	friend class UGASAbilityStateCasting;
 public:
 	virtual void Tick(float DeltaSeconds) override;
@@ -126,8 +126,25 @@ public:
 	 *	Also while useful it is certainly not critical enough to waste bandwith and CPU on replicating 
 	 *	this object to clients.
 	 */
-	UPROPERTY(EditAnywhere, Instanced, Category = "Default Actions")
-	class UGASAbilityAction* TargetingAction;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "Default Actions")
+	//class UGASAbilityActionTrace* TargetingAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "Targeting")
+	class UGTTraceBase* Targeting;
+	/**
+	 *	Add here any ability mods, which should alwyas be precent on this ability.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "Default Mods")
+		TArray<class UGASAbilityMods*> AbilityMods;
+	
+	/**
+	 *	These mods can be added on runtime. You can also create predefined list of mods
+	 *	which can be activated (constructed) or deactivated (destroyed).
+	 */
+	UPROPERTY(EditAnywhere, Category = "Defaul Mods Classes")
+		TArray<TSubclassOf<class UGASAbilityMods> > AbilityModsClasses;
+
+
 	/**
 	 *	State Machine Properties End
 	 */
@@ -158,7 +175,7 @@ protected:
 	UPROPERTY()
 		APawn* PawnOwner;
 
-	FVector GetSocketLocation(FName SocketNameIn);
+	//FVector GetSocketLocation(FName SocketNameIn);
 
 	void ExecuteAbility();
 
@@ -166,6 +183,20 @@ public:
 	inline void SetPlayerController(APlayerController* PCOwnerIn){ PCOwner = PCOwnerIn; }
 	inline void SetPawnOwner(APawn* PawnOwnerIn){ PawnOwner = PawnOwnerIn; }
 public:
+
+	/** IIGTTrace Begin */
+	virtual FVector GetSocketLocation(FName SocketNameIn);// { return FVector::ZeroVector; };
+
+	virtual APawn* GetPawn() override { return PawnOwner; };
+
+	virtual APlayerController* GetPC() override { return PCOwner; };
+
+	virtual FVector GetLocation() override { return PawnOwner->GetActorLocation(); };
+
+	virtual void SetTargetData(const TArray<FHitResult>& DataIn);
+	virtual TArray<FHitResult>& GetTargetData() override { return TargetData; };
+	/** IIGTTrace End */
+
 	/**
 	 *	State Machine Function Begin
 	 */

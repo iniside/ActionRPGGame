@@ -18,6 +18,9 @@ public:
 	virtual UWorld* GetWorld() const override;
 
 	virtual void Tick(float DeltaSecondsIn);
+
+	virtual void Initialize();
+
 	/*
 		Called before Exectute.
 		Wheen exactly will you call it is up to you. I assume it might be usefull to display

@@ -2,14 +2,12 @@
 
 namespace UnrealBuildTool.Rules
 {
-	public class GameAbilities: ModuleRules
+	public class GameTrace: ModuleRules
 	{
-		public GameAbilities(TargetInfo Target)
+		public GameTrace(TargetInfo Target)
 		{
 			PublicIncludePaths.AddRange(
 				new string[] {
-                    "GameAbilities",
-                    "GameAbilities/Public",
                     "GameTrace",
                     "GameTrace/Public"
 					// ... add public include paths required here ...
@@ -18,7 +16,7 @@ namespace UnrealBuildTool.Rules
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
-					"GameAbilities/Private",
+					"GameTrace/Private"
 					// ... add other private include paths required here ...
 				}
 				);
@@ -29,7 +27,7 @@ namespace UnrealBuildTool.Rules
 				    "Core",
 				    "CoreUObject",
 				    "Engine",
-                    "GameTrace"
+                    "GameplayTags"
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);
