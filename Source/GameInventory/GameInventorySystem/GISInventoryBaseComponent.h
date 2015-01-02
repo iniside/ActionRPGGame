@@ -79,6 +79,9 @@ public:
 	UPROPERTY(EditAnywhere)
 		ESlateVisibility LootWindowVisibility;
 
+	UPROPERTY(EditAnywhere, Category = "Inventory Options")
+		bool bReplicateTabsToOwnerOnly;
+
 	/*
 		Indicates if items can be activated directly in invetory window.
 		Useful if you want to prevent player from activating items in invetory. For example
@@ -337,9 +340,9 @@ public:
 	 */
 	inline UGISItemData* GetItemFromSlot(int32 TabIndex, int32 SlotIndex)
 	{
-		if (Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData.IsValid())
+		if (Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData)
 		{
-			return Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData.Get();
+			return Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData;
 		}
 		return nullptr;
 	}
@@ -376,6 +379,9 @@ public:
 		Prolly want to do it only on server.
 	*/
 	void CopyItemsToTargetTabFromLinkedTabs();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerCopyItemsToTargetTabFromLinkedTabs();
 
 	void ChangeTabVisibility(int32 TabIndex)
 	{

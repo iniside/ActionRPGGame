@@ -15,13 +15,13 @@ UGISLootSlotBaseWidget::UGISLootSlotBaseWidget(const FObjectInitializer& ObjectI
 
 UGISLootSlotBaseWidget::~UGISLootSlotBaseWidget()
 {
-	LootSlotInfo.SlotData.Reset();
+	LootSlotInfo.SlotData = nullptr;
 	LootSlotInfo.SlotComponent.Reset();
 	LootSlotInfo.OwningPickupActor = nullptr;
 }
 UTexture2D* UGISLootSlotBaseWidget::GetIcon() const
 {
-	if (LootSlotInfo.SlotData.IsValid())
+	if (LootSlotInfo.SlotData)
 	{
 		return LootSlotInfo.SlotData->GetImage();
 	}

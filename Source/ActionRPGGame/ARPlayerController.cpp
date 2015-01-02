@@ -10,22 +10,37 @@ AARPlayerController::AARPlayerController(const FObjectInitializer& ObjectInitial
 {
 	
 }
-void AARPlayerController::PreInitializeComponents()
+//void AARPlayerController::PreInitializeComponents()
+//{
+//	Super::PreInitializeComponents();
+//}
+//void AARPlayerController::BeginPlay()
+//{
+//	Super::BeginPlay();
+//	//FCTIndicator->PCOwner = this;
+//	AARCharacter* MyChar = Cast<AARCharacter>(GetPawn());
+//	if (Role = ROLE_Authority)
+//	{
+//		if (MyChar && !MyChar->GetAttributeComponent()->OnAttributeModifed.IsBound())
+//		{
+//			MyChar->GetAttributeComponent()->OnAttributeModifed.AddDynamic(this, &AARPlayerController::OnRecivedModifiedAttribute);
+//		}
+//	}
+//}
+//
+void AARPlayerController::OnRep_Pawn()
 {
-	Super::PreInitializeComponents();
-	FCTIndicator->PCOwner = this;
-}
-void AARPlayerController::BeginPlay()
-{
-	Super::BeginPlay();
-	//FCTIndicator->PCOwner = this;
-	AARCharacter* MyChar = Cast<AARCharacter>(GetPawn());
-	if (MyChar)
+	Super::OnRep_Pawn();
+	if (Role < ROLE_Authority)
 	{
-		MyChar->GetAttributeComponent2()->OnAttributeModifed.AddUObject(this, &AARPlayerController::OnRecivedModifiedAttribute);
+		AARCharacter* MyChar = Cast<AARCharacter>(GetPawn());
+		if (MyChar && !MyChar->GetAttributeComponent()->OnAttributeModifed.IsBound())
+		{
+			MyChar->GetAttributeComponent()->OnAttributeModifed.AddDynamic(this, &AARPlayerController::OnRecivedModifiedAttribute);
+		}
 	}
 }
-
+//
 void AARPlayerController::OnRecivedModifiedAttribute(const FGAModifiedAttribute& AttributeModIn)
 {
 	FFCTDisplayData DisplayData;

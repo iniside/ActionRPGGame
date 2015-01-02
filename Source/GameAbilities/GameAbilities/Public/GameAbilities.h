@@ -2,3 +2,4 @@
 
 #pragma once
 #include "Engine.h"
+#include "GameTrace.h"

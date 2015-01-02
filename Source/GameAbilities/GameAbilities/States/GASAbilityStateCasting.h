@@ -15,5 +15,6 @@ public:
 	virtual void EndActionSequence() override;
 
 	void ExecuteAbility();
-
+private:
+	float CurrentCastTime;
 };

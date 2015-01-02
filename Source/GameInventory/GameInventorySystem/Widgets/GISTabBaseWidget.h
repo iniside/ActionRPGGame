@@ -16,4 +16,6 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 		FGISTabInfo TabInfo;
+
+	int32 ItemCount;
 };

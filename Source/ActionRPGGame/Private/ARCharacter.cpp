@@ -68,7 +68,8 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	ActionBar->SetNetAddressable();
 	
 	Attributes = ObjectInitializer.CreateDefaultSubobject<UGAAttributeComponent>(this, TEXT("Attributes"));
-	
+	Attributes->SetIsReplicated(true);
+	Attributes->SetNetAddressable();
 
 	GameEffects = ObjectInitializer.CreateDefaultSubobject<UGESEffectComponent>(this, TEXT("GameEffects"));
 
@@ -90,19 +91,9 @@ void AARCharacter::BeginPlay()
 	Inventory->SetIsReplicated(true);
 	Inventory->SetNetAddressable();
 
-}
-void AARCharacter::OnRep_Controller()
-{
-	Super::OnRep_Controller();
-}
-void AARCharacter::PossessedBy(AController* NewController)
-{
-	Super::PossessedBy(NewController);
-	//AGSPlayerController* gspc = Cast<AGSPlayerController>(NewController);
-	//if (gspc)
-	//{
-	//	Attributes->OnAttributeModifed.AddUObject(gspc, &AGSPlayerController::OnRecivedModifiedAttribute);
-	//}
+	Attributes->SetIsReplicated(true);
+	Attributes->SetNetAddressable();
+
 }
 
 void AARCharacter::CheckIfStructReplicated()
@@ -290,14 +281,15 @@ void AARCharacter::ShowHideInventory()
 {
 	if (Inventory && Inventory->InventoryContainer)
 	{
-		if (Inventory->InventoryContainer->GetVisibility() == ESlateVisibility::Hidden)
-		{
-			Inventory->InventoryContainer->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		}
-		else if (Inventory->InventoryContainer->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
-		{
-			Inventory->InventoryContainer->SetVisibility(ESlateVisibility::Hidden);
-		}
+		//Inventory->ChangeTabVisibility(0);
+		//if (Inventory->InventoryContainer->GetVisibility() == ESlateVisibility::Hidden)
+		//{
+		//	Inventory->InventoryContainer->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		//}
+		//else if (Inventory->InventoryContainer->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
+		//{
+		//	Inventory->InventoryContainer->SetVisibility(ESlateVisibility::Hidden);
+		//}
 	}
 }
 
@@ -305,13 +297,14 @@ void AARCharacter::ShowHideAbilityBook()
 {
 	if (AbilityBook && AbilityBook->InventoryContainer)
 	{
-		if (AbilityBook->InventoryContainer->GetVisibility() == ESlateVisibility::Hidden)
-		{
-			AbilityBook->InventoryContainer->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		}
-		else if (AbilityBook->InventoryContainer->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
-		{
-			AbilityBook->InventoryContainer->SetVisibility(ESlateVisibility::Hidden);
-		}
+		//AbilityBook->ChangeTabVisibility(0);
+		//if (AbilityBook->InventoryContainer->GetVisibility() == ESlateVisibility::Hidden)
+		//{
+		//	AbilityBook->InventoryContainer->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		//}
+		//else if (AbilityBook->InventoryContainer->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
+		//{
+		//	AbilityBook->InventoryContainer->SetVisibility(ESlateVisibility::Hidden);
+		//}
 	}
 }

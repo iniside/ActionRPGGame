@@ -1,5 +1,6 @@
 #pragma once
 #include "IGTTrace.h"
+#include "GTTraceBase.h"
 #include "GASAbility.generated.h"
 
 UENUM(BlueprintType)
@@ -10,7 +11,65 @@ enum class EGASTraceAbility : uint8
 
 	Invalid,
 };
+/*
+	Minimum info about target of this ability, to which attach effect.
+*/
+USTRUCT()
+struct FGASCueTargetActorInfo
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY()
+		AActor* TargetActor;
+};
 
+/*
+	Quick prototype!
+*/
+USTRUCT()
+struct FGASCueReplication
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY()
+		int8 Counter;
+
+	UPROPERTY()
+		TArray<AActor*> Targets;
+};
+/*
+	Visual effects, basics:
+	1. Visual effects are only specific to ability.
+	2. Which means they should be connected to the states of ability.
+	3. We can safely assume, that visual effect == particle effect.
+	4. If ability spawn for example some kind of actor, this actor can take care of it's own visual effects.
+	5. We can also assume that people might want to spawn more complicated effects, which
+	would consist of several different componenets (like mesh, particles, decals), What do ?
+	Best solution is to spawn actor, which will contain those effects.
+	
+	So, each state could spawn visual effect actor. This actor would have effects to play, durning this particular 
+	state. If state end, this actor is being destroyed.
+	Effect actor is replicated, so it will display effect for all relevelant players.
+
+	The hard part is to keep this actor in sync, so effect transforms will be updated on each client.
+	If effect is attached to particular location on one player, and that player moves, so should effect.
+	For obvious reasons, it would be best to be updated locally. Once actor is replicated,
+	each client should take care of transforms.
+
+	In practice we need only effects for three states. Preparation, Casting and Executed (when ability casting is
+	finished).
+
+	Note, that final state, where ability is casted (Executed) is bit differentt than previous states,
+	because ability can affect other actors in world (targets), and spawned effect must take care of it.
+
+	It might be simple from spawning explosion, to more complicated like beam connected from
+	causer to target.
+
+	If ability creates presistent effect (or something like Rain of fire) it is responsibity of this effect 
+	to provide visual cues.
+
+	Otherwise there is nothing special in particular regarding this.
+*/
 /*
 	Could be UObject, replicated trough component.
 	But is it worth fuss ?
@@ -30,16 +89,93 @@ public:
 		CastTime, ChannelTime, period time (Ability pulse, every X seconds while active or while
 		pressed)
 	*/
+
+	UPROPERTY(EditAnywhere, Category = "Using")
+		float CastTime;
+
 	UPROPERTY()
 		float MaxCastTime;
 
 	UPROPERTY()
 		float CooldownTime;
 
+	UPROPERTY(EditAnywhere, Category = "Animation")
+		UAnimMontage* CastingMontage; //anim montage or raw animation ?
+
+
+	/*
+		Quick prototype for effect replication - Begin;
+	*/
+	UPROPERTY(ReplicatedUsing=OnRep_CueRep, RepRetry)
+		FGASCueReplication CueReplication;
+	UFUNCTION()
+		void OnRep_CueRep();
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual Cues")
+		UParticleSystem* ParticleEffect;
+	/*
+		Quick prototype for effect replication - End;
+	*/
 	virtual void BeginPlay() override;
 private:
 	float CurrentCooldownTime;
 	float CurrentCastTime;
+
+	/*
+		These are small helpers, which will help with spawning cosmetics effects (and ending them).
+		technically i would need them for all relevelant states..
+		fortunetly it's not that much of data, simple int8 (byte).
+		technically even 16 bits would be enough as long as I can increcement it beyond 2 ;).
+
+		Also it could be done usig NetMulticast.
+	*/
+protected:
+	UPROPERTY(ReplicatedUsing=OnRep_CastStarted)
+		int8 AbilityCastStarted;
+	UFUNCTION()
+		void OnRep_CastStarted();
+
+	UPROPERTY(ReplicatedUsing = OnRep_CastEnded)
+		int8 AbilityCastEnded;
+	UFUNCTION()
+		void OnRep_CastEnded();
+
+	UPROPERTY(ReplicatedUsing = OnRep_PreparationStarted)
+		int8 PreparationStarted;
+	UFUNCTION()
+		void OnRep_PreparationStarted();
+
+	UPROPERTY(ReplicatedUsing = OnRep_PreparationEnded)
+		int8 PreparationEnd;
+	UFUNCTION()
+		void OnRep_PreparationEnded();
+
+public:
+	void AbilityCastStart();
+	void AbilityCastEnd();
+	void AbilityPreparationStart();
+	void AbilityPreparationEnd();
+
+	/**
+	 *	Override to control visual effects when ability casting start.
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "Visual Cues")
+		bool OnAbilityCastStarted();
+	/**
+	 *	Override to controll visual effects when ability casting is finished.
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "Visual Cues")
+		bool OnAbilityCastEnd();
+	/**
+	 *	Override to controll visual effects when ability is in preparation state.
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "Visual Cues")
+		bool OnAbilityPreperationStarted();
+	/**
+	 *	Override to controll visual effects when ability preparation state end.
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "Visual Cues")
+		bool OnAbilityPreperationEnd();
 public:
 	inline float GetCooldownTime() { return CurrentCooldownTime; };
 
@@ -152,7 +288,7 @@ public:
 	 *	this object to clients.
 	 */
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "Targeting")
+	UPROPERTY(EditAnywhere, Instanced, Category = "Targeting")
 	class UGTTraceBase* Targeting;
 	/**
 	 *	Add here any ability mods, which should alwyas be precent on this ability.
@@ -191,8 +327,14 @@ protected:
 	UPROPERTY()
 		APlayerController* PCOwner;
 
-	UPROPERTY()
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Actors")
 		APawn* PawnOwner;
+
+	/*
+		So we have access to skeletal mesh.
+	*/
+	UPROPERTY()
+		ACharacter* CharOwner;
 	/*
 		Actor which is directly required, for this ability to work.
 		It might be a weapon, player controller or character.
@@ -210,6 +352,8 @@ protected:
 	class IIGTSocket* iSocket;
 
 	void ExecuteAbility();
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerExecuteAbility();
 
 public:
 	inline void SetPlayerController(APlayerController* PCOwnerIn){ PCOwner = PCOwnerIn; }

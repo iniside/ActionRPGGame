@@ -23,7 +23,6 @@ UFCTHudWidget::UFCTHudWidget(const FObjectInitializer& ObjectInitializer)
 void UFCTHudWidget::PawnDamaged(const FFCTDisplayData& UIDamage)
 {
 	// Calculate the rotation 	
-	//AUTCharacter* UTC = UTPlayerOwner->GetUTCharacter();
 	if (HUDPawn)	// If have a pawn and it's alive...
 	{
 		FVector CharacterLocation;

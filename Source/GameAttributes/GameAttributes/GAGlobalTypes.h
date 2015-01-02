@@ -105,6 +105,9 @@ public:
 		FVector TargetLocation; //change to vector, we need only position.
 	UPROPERTY()
 		FVector InstigatorLocation;
+
+	UPROPERTY()
+		TWeakObjectPtr<class UGAAttributeComponent> Causer;
 };
 
 

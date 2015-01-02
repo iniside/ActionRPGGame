@@ -4,7 +4,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGAOnAttributeChanged);
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FGAOnAttributeModifed, const FGAModifiedAttribute&);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGAOnAttributeModifed, const FGAModifiedAttribute&, attr);
 
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
 class GAMEATTRIBUTES_API UGAAttributeComponent : public UActorComponent
@@ -37,13 +37,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Replicated)
 		class UGAAttributesBase* DefaultAttributes;
 
-	UPROPERTY(ReplicatedUsing = OnRep_AttributeChanged)
+	UPROPERTY(ReplicatedUsing = OnRep_AttributeChanged, RepRetry)
 		FGAModifiedAttribute ModifiedAttribute;
-
-	FGAOnAttributeModifed OnAttributeModifed;
+	UPROPERTY()
+		FGAOnAttributeModifed OnAttributeModifed;
 
 	UFUNCTION()
 		void OnRep_AttributeChanged();
+
+	UFUNCTION(NetMulticast, Unreliable)
+		void MulticastAttributeChanged();
 
 	virtual void InitializeComponent() override;
 

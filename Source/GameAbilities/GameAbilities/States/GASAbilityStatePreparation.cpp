@@ -23,6 +23,9 @@ void UGASAbilityStatePreparation::BeginState(UGASAbilityState* PrevState)
 
 	//we will run any preparation actions, which should be executed at this stage, to
 	//to provide ability with any base data, it needs to run.
+
+	GetOuterAGASAbility()->AbilityPreparationStart();
+
 	GetOuterAGASAbility()->SetActorTickEnabled(true);
 	GetOuterAGASAbility()->RunPreparationActions();
 	//BeginActionSequence();
@@ -35,6 +38,7 @@ void UGASAbilityStatePreparation::BeginState(UGASAbilityState* PrevState)
 void UGASAbilityStatePreparation::EndState()
 {
 	//clean up.
+	GetOuterAGASAbility()->AbilityPreparationEnd();
 	GetOuterAGASAbility()->SetActorTickEnabled(false);
 }
 void UGASAbilityStatePreparation::BeginActionSequence()

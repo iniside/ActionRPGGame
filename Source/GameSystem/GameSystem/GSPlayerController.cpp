@@ -7,15 +7,7 @@
 AGSPlayerController::AGSPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	FCTIndicator = ObjectInitializer.CreateDefaultSubobject<UFCTFloatingTextComponent>(this, TEXT("FCTIndicator"));
-}
 
-void AGSPlayerController::BeginPlay()
-{
-	Super::BeginPlay();
-	FCTIndicator->Activate();
-	FCTIndicator->RegisterComponent();
-	FCTIndicator->PCOwner = this;
 }
 
 //

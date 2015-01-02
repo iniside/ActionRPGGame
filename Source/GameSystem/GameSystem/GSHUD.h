@@ -59,4 +59,7 @@ protected:
 		ACharacter* OwnChar;
 
 	class IIGTSocket* iSocket;
+
+
+	bool bInitialized;
 };

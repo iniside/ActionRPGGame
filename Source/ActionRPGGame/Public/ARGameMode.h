@@ -12,12 +12,6 @@ public:
 	AARGameMode(const FObjectInitializer& ObjectInitializer);
 
 	void BeginPlay() override;
-protected:
-	UPROPERTY()
-		UDataTable* TagTable;
-
-	UPROPERTY()
-		UDataTable* DamageTable;
 };
 
 

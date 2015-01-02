@@ -21,7 +21,7 @@ FEventReply UGISSlotBaseWidget::OnMouseButtonDown_Implementation(FGeometry MyGeo
 	if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
 		//no item no mouse interaction for dragging and dropping.
-		if (!SlotInfo.ItemData.IsValid())
+		if (!SlotInfo.ItemData)
 			return Reply;
 
 		TSharedPtr<SWidget> DetectingDrag = this->GetCachedWidget();

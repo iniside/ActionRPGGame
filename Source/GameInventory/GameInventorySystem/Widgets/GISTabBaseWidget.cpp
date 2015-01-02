@@ -6,5 +6,5 @@
 UGISTabBaseWidget::UGISTabBaseWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-
+	ItemCount = 0;
 }

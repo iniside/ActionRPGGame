@@ -46,7 +46,7 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 		int32 SlotIndex;
 	UPROPERTY(BlueprintReadOnly)
-		TWeakObjectPtr<class UGISItemData> SlotData;
+		class UGISItemData* SlotData;
 	UPROPERTY(BlueprintReadOnly)
 		TWeakObjectPtr<class UGISInventoryBaseComponent> SlotComponent;
 	UPROPERTY(BlueprintReadOnly)
@@ -63,7 +63,7 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 		int32 SlotIndex;
 	UPROPERTY(BlueprintReadOnly)
-		TWeakObjectPtr<class UGISItemData> SlotData;
+		class UGISItemData* SlotData;
 	UPROPERTY(BlueprintReadOnly)
 		TWeakObjectPtr<class UGISInventoryBaseComponent> SlotComponent;
 };
@@ -78,7 +78,7 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 		int32 LastSlotIndex;
 	UPROPERTY(BlueprintReadOnly)
-		TWeakObjectPtr<class UGISItemData> LastSlotData;
+		class UGISItemData* LastSlotData;
 	UPROPERTY(BlueprintReadOnly)
 		TWeakObjectPtr<class UGISInventoryBaseComponent> LastSlotComponent;
 	UPROPERTY(BlueprintReadOnly)
@@ -86,7 +86,7 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 		int32 TargetSlotIndex;
 	UPROPERTY(BlueprintReadOnly)
-		TWeakObjectPtr<class UGISItemData> TargetSlotData;
+		class UGISItemData* TargetSlotData;
 	UPROPERTY(BlueprintReadOnly)
 		TWeakObjectPtr<class UGISInventoryBaseComponent> TargetSlotComponent;
 	UPROPERTY()
@@ -103,7 +103,7 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 		int32 SlotTabIndex;
 	UPROPERTY(BlueprintReadWrite)
-		TWeakObjectPtr<class UGISItemData> ItemData;
+		class UGISItemData* ItemData;
 
 	UPROPERTY(BlueprintReadWrite)
 		TWeakObjectPtr<class UGISInventoryBaseComponent> CurrentInventoryComponent;
@@ -128,6 +128,12 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 		bool bAcceptItemsFromDragDrop;
+
+	/*
+		Count of actual items in this tab.
+	*/
+	UPROPERTY()
+		int32 ItemCount;
 
 	int32 LinkedTab; //multi linked, array ? cuurent link, list of possible links ?
 

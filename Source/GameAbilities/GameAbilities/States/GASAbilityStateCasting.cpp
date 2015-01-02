@@ -9,17 +9,17 @@
 UGASAbilityStateCasting::UGASAbilityStateCasting(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-
+	CurrentCastTime = 0;
 }
 
 void UGASAbilityStateCasting::Tick(float DeltaSeconds)
 {
-	//GetOuterAGASAbility()->CurrentCastTime += DeltaSeconds;
-	//if (GetOuterAGASAbility()->CurrentCastTime >= GetOuterAARAbility()->MaxCastTime)
-	//{
-	//	GetOuterAGASAbility()->CurrentCastTime = 0;
-	ExecuteAbility();
-	//}
+	CurrentCastTime += DeltaSeconds;
+	if (CurrentCastTime >= GetOuterAGASAbility()->CastTime)
+	{
+		CurrentCastTime = 0;
+		ExecuteAbility();
+	}
 }
 
 void UGASAbilityStateCasting::ExecuteAbility()
@@ -37,10 +37,13 @@ void UGASAbilityStateCasting::BeginState(UGASAbilityState* PrevState)
 	//GetOuterAGASAbility()->OnAbilityActivated();
 	//GetOuterAARAbility()->bIsCasting = true;
 	//GetOuterAARAbility()->bIsCastingFinished = false;
+	GetOuterAGASAbility()->AbilityCastStart();
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(true);
 }
 void UGASAbilityStateCasting::EndState()
-{}
+{
+	GetOuterAGASAbility()->AbilityCastEnd();
+}
 void UGASAbilityStateCasting::BeginActionSequence()
 {}
 void UGASAbilityStateCasting::EndActionSequence()

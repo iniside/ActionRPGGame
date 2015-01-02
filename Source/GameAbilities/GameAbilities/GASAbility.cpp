@@ -6,6 +6,9 @@
 
 #include "Actions/GASAbilityAction.h"
 
+#include "Net/UnrealNetwork.h"
+#include "Engine/ActorChannel.h"
+
 #include "GTTraceBase.h"
 
 #include "IGASAbilities.h"
@@ -20,6 +23,8 @@ AGASAbility::AGASAbility(const FObjectInitializer& ObjectInitializer)
 	SetReplicates(true);
 	iSocket = nullptr;
 	PreparationState = ObjectInitializer.CreateDefaultSubobject<UGASAbilityStatePreparation>(this, TEXT("PreparationState"));
+
+	//Targeting = ObjectInitializer.CreateDefaultSubobject<UGTTraceBase>(this, TEXT("TraceBase"));
 
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
@@ -57,9 +62,11 @@ void AGASAbility::SetPawnOwner(APawn* PawnOwnerIn)
 	switch (TraceFrom)
 	{
 		case EGASTraceAbility::Pawn:
-			iSocket = Cast<IIGTSocket>(PawnOwner);;
+			iSocket = Cast<IIGTSocket>(PawnOwner);
+			break;
 		case EGASTraceAbility::Avatar:
-			iSocket = Cast<IIGTSocket>(AvatarActor);;
+			iSocket = Cast<IIGTSocket>(AvatarActor);
+			break;
 		case EGASTraceAbility::Invalid:
 			break;
 		default:
@@ -113,8 +120,23 @@ void AGASAbility::ActivateAbility()
 void AGASAbility::ExecuteAbility()
 {
 	//TargetingAction->Execute();
-	Targeting->Execute();
-	OnAbilityActivated();
+	if (Role < ROLE_Authority)
+	{
+		ServerExecuteAbility();
+	}
+	else
+	{
+		Targeting->Execute();
+		OnAbilityActivated();
+	}
+}
+void AGASAbility::ServerExecuteAbility_Implementation()
+{
+	ExecuteAbility();
+}
+bool AGASAbility::ServerExecuteAbility_Validate()
+{
+	return true;
 }
 void AGASAbility::ServerActivateAbility_Implementation()
 {
@@ -163,5 +185,89 @@ FVector AGASAbility::GetSocketLocation(FName SocketNameIn)
 }
 void AGASAbility::SetTargetData(const TArray<FHitResult>& DataIn)
 { 
-	TargetData = DataIn; 
+	TargetData = DataIn;
+	CueReplication.Targets.Empty();
+	for (const FHitResult& hit : TargetData)
+	{
+		CueReplication.Targets.Add(hit.Actor.Get());
+	}
 };
+void AGASAbility::OnRep_CueRep()
+{
+	for (AActor* actor : CueReplication.Targets)
+	{
+		//spawn effects.
+		//it might be problematic for abilities which are channeled
+		//means they happen over time, since well, we don't have any indicator
+		//if ability casting is finished or just started kewl.
+	}
+}
+
+void AGASAbility::AbilityCastStart()
+{
+	AbilityCastStarted++;
+}
+void AGASAbility::AbilityCastEnd()
+{
+	AbilityCastEnded++;
+}
+void AGASAbility::AbilityPreparationStart()
+{
+	PreparationStarted++;
+}
+void AGASAbility::AbilityPreparationEnd()
+{
+	PreparationEnd++;
+}
+
+
+bool AGASAbility::OnAbilityCastStarted_Implementation()
+{
+	return false;
+}
+bool AGASAbility::OnAbilityCastEnd_Implementation()
+{
+	return false;
+}
+
+bool AGASAbility::OnAbilityPreperationStarted_Implementation()
+{
+	return false;
+}
+bool AGASAbility::OnAbilityPreperationEnd_Implementation()
+{
+	return false;
+}
+
+void AGASAbility::OnRep_CastStarted()
+{
+	OnAbilityCastStarted();
+}
+void AGASAbility::OnRep_CastEnded()
+{
+	OnAbilityCastEnd();
+}
+
+void AGASAbility::OnRep_PreparationStarted()
+{
+	OnAbilityPreperationStarted();
+}
+void AGASAbility::OnRep_PreparationEnded()
+{
+	OnAbilityPreperationEnd();
+}
+
+void AGASAbility::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(AGASAbility, CueReplication, COND_SkipOwner);
+	DOREPLIFETIME(AGASAbility, PawnOwner);
+	//locally we will play those effects immidietly on client.
+	//regradless if there is confirmd success from server or not.
+	//if there is no success on server, we will just override them.
+	DOREPLIFETIME(AGASAbility, AbilityCastStarted);
+	DOREPLIFETIME_CONDITION(AGASAbility, AbilityCastEnded, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(AGASAbility, PreparationStarted, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(AGASAbility, PreparationEnd, COND_SkipOwner);
+}

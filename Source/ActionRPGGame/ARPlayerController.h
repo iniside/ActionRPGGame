@@ -12,12 +12,13 @@ class ACTIONRPGGAME_API AARPlayerController : public AGSPlayerController
 {
 	GENERATED_UCLASS_BODY()
 public:
-	void BeginPlay() override;
+//	virtual void BeginPlay() override;
+	virtual void OnRep_Pawn() override;
 
 	UFUNCTION()
 		void OnRecivedModifiedAttribute(const FGAModifiedAttribute& AttributeModIn);
 
-	virtual void PreInitializeComponents() override;
+	//virtual void PreInitializeComponents() override;
 };
 
 

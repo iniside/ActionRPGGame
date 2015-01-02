@@ -1,8 +1,7 @@
 #pragma once
 #include "GASAbilityState.generated.h"
 /*
-	Could be UObject, replicated trough component.
-	But is it worth fuss ?
+	I could, probabaly remake it with interface instead of within.
 */
 UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GASAbility)
 class GAMEABILITIES_API UGASAbilityState : public UObject

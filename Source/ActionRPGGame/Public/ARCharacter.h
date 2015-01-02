@@ -49,15 +49,12 @@ class AARCharacter : public ACharacter, public IIGAAttributes, public IIGESEffec
 	class UGESEffectManager* GameEffectManager;
 
 public:
-	inline UGAAttributeComponent* GetAttributeComponent2() { return Attributes; };
 	/** IIGAAttributes Begin */
-	
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 		virtual class UGAAttributesBase* GetAttributes() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 		virtual class UGAAttributeComponent* GetAttributeComponent() override;
-
 	/** IIGAAttributes End */
 
 	/** IIGESEffect Begin */
@@ -72,9 +69,6 @@ public:
 	virtual FVector GetSocketLocation(FName SocketNameIn) override;
 	/** IGTSocket End */
 
-	virtual void OnRep_Controller() override;
-
-	virtual void PossessedBy(AController* NewController) override;
 public:
 	AARCharacter(const FObjectInitializer& ObjectInitializer);
 

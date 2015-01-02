@@ -27,7 +27,7 @@ void UGAAttributeComponent::InitializeComponent()
 	if (DefaultAttributesClass)
 	{
 		DefaultAttributes = ConstructObject<UGAAttributesBase>(DefaultAttributesClass, this);
-		DefaultAttributes->SetNetAddressable();
+		//DefaultAttributes->SetNetAddressable();
 	}
 	if (AttributeMods.Num() > 0)
 	{
@@ -45,6 +45,9 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(UGAAttributeComponent* Causer
 
 	//apply final value to attribute.
 	//after we appiled
+
+	ENetRole role = GetOwnerRole();
+
 	OnAttributeIncoming.Broadcast(AttributeIn, AttributeIn);
 	float newValue = DefaultAttributes->AttributeOperation(AttributeIn.Attribute, AttributeIn.Value, AttributeIn.Operation);
 	DefaultAttributes->SetFloatValue(AttributeIn.Attribute, newValue);
@@ -55,11 +58,12 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(UGAAttributeComponent* Causer
 	ModifiedAttribute.ModifiedByValue = AttributeIn.Value;
 	ModifiedAttribute.Tags = AttributeIn.Tags;
 	ModifiedAttribute.ReplicationCounter += 1;
-
+	ModifiedAttribute.Causer = Causer;
 	if (GetNetMode() == ENetMode::NM_Standalone)
 	{
 		Causer->OnAttributeModifed.Broadcast(ModifiedAttribute);
 	}
+	MulticastAttributeChanged();
 }
 void UGAAttributeComponent::ModifyAttributesOnTarget(UGAAttributeComponent* Target, FGAAttributeModifier& AttributeIn)
 {
@@ -86,13 +90,20 @@ void UGAAttributeComponent::GetLifetimeReplicatedProps(TArray< class FLifetimePr
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	//possibly replicate it to everyone
 	//to allow prediction for UI.
-	DOREPLIFETIME_CONDITION(UGAAttributeComponent, DefaultAttributes, COND_OwnerOnly);
+	DOREPLIFETIME(UGAAttributeComponent, DefaultAttributes);
 	DOREPLIFETIME(UGAAttributeComponent, ModifiedAttribute);
 }
-
+void UGAAttributeComponent::MulticastAttributeChanged_Implementation()
+{
+//	if (ModifiedAttribute.Causer->OnAttributeModifed.IsBound())
+//	{
+	//	ModifiedAttribute.Causer->OnAttributeModifed.Broadcast(ModifiedAttribute);
+	//}
+	//OnAttributeModifed.Broadcast(ModifiedAttribute);
+}
 void UGAAttributeComponent::OnRep_AttributeChanged()
 {
-	OnAttributeModifed.Broadcast(ModifiedAttribute);
+	ModifiedAttribute.Causer->OnAttributeModifed.Broadcast(ModifiedAttribute);
 }
 bool UGAAttributeComponent::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
 {

@@ -9,6 +9,7 @@ AGSHUD::AGSHUD(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	FCTWidget = ObjectInitializer.CreateDefaultSubobject<UFCTHudWidget>(this, TEXT("FCTWidget"));
+	bInitialized = false;
 }
 
 void AGSHUD::BeginPlay()
@@ -18,6 +19,8 @@ void AGSHUD::BeginPlay()
 		CrossHairTrace->Initialize();
 	if (BulletHitTrace)
 		BulletHitTrace->Initialize();
+
+	bInitialized = true;
 }
 void AGSHUD::BeginDestroy()
 {
@@ -27,6 +30,9 @@ void AGSHUD::BeginDestroy()
 void AGSHUD::DrawHUD()
 {
 	Super::DrawHUD();
+
+	if (!bInitialized)
+		return;
 
 	if (!OwnChar)
 	{
