@@ -58,14 +58,16 @@ FVector UGTTraceBase::GetSingHitLocation()
 		const FVector StartTrace = GetStartLocationFromSocket();
 		const FVector EndTrace = (GetStartLocationFromSocket() + ShootDir * Range);
 		Impact = SingleLineRangedTrace(StartTrace, EndTrace);
+		//TraceInterface->SetHitLocation(StartTrace, EndTrace, Impact.Actor.Get());
 	}
 	else
 	{
 		const FVector StartTrace = GetPawnCameraDamageStartLocation(ShootDir);
 		const FVector EndTrace = (StartTrace + ShootDir * Range);
 		Impact = SingleLineRangedTrace(StartTrace, EndTrace);
+		//TraceInterface->SetHitLocation(StartTrace, EndTrace, Impact.Actor.Get());
 	}
-
+	
 	return Impact.Location;
 }
 void UGTTraceBase::Initialize()

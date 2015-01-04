@@ -28,6 +28,8 @@ public:
 		
 		return ret;
 	};
+
+	virtual void SetHitLocation(const FVector& Origin, const FVector& HitLocation, AActor* HitActor){};
 private:
 	//because I need something for GetTargetData().
 	TArray<FHitResult> ret;

@@ -20,7 +20,6 @@ void UGTTrace_GroundBox::Tick(float DeltaSecondsIn)
 	//		DisplayHelper->SetActorLocation(GetSingHitLocation());
 	//}
 	FRotator aimRot = TraceInterface->GetPawn()->GetActorRotation();
-	FVector box = FVector(60, 300, 100);
 	FVector Location = GetSingHitLocation();
 	Location.X += BoxSize.X;
 	Location.Z += BoxSize.Z;
@@ -80,7 +79,7 @@ void UGTTrace_GroundBox::TraceBox()
 	FVector EndLocation = StartLocation + .1;
 	TArray<FOverlapResult> Overlaps;
 	bool bHit;
-
+	TraceInterface->SetHitLocation(FVector::ZeroVector, StartLocation, nullptr);
 	//don't like it. But sweep is just useless in this scenario.
 	bHit = GetWorld()->OverlapMulti(Overlaps, StartLocation, FQuat(aimRot), FCollisionShape::MakeBox(BoxSize), Params, BoxObjectParams);
 

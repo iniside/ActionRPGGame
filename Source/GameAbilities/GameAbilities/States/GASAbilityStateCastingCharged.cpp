@@ -4,15 +4,15 @@
 
 #include "../GASAbility.h"
 
-#include "GASAbilityStateCasting.h"
+#include "GASAbilityStateCastingCharged.h"
 
-UGASAbilityStateCasting::UGASAbilityStateCasting(const FObjectInitializer& ObjectInitializer)
+UGASAbilityStateCastingCharged::UGASAbilityStateCastingCharged(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	CurrentCastTime = 0;
 }
 
-void UGASAbilityStateCasting::Tick(float DeltaSeconds)
+void UGASAbilityStateCastingCharged::Tick(float DeltaSeconds)
 {
 	CurrentCastTime += DeltaSeconds;
 	if (CurrentCastTime >= GetOuterAGASAbility()->CastTime)
@@ -22,7 +22,7 @@ void UGASAbilityStateCasting::Tick(float DeltaSeconds)
 	}
 }
 
-void UGASAbilityStateCasting::ExecuteAbility()
+void UGASAbilityStateCastingCharged::ExecuteAbility()
 {
 	GetOuterAGASAbility()->ExecuteAbility();
 	//GetOuterAGASAbility()->OnAbilityActivated();
@@ -30,17 +30,23 @@ void UGASAbilityStateCasting::ExecuteAbility()
 	GetOuterAGASAbility()->GotoState(GetOuterAGASAbility()->CooldownState);
 }
 
-void UGASAbilityStateCasting::BeginState(UGASAbilityState* PrevState)
+void UGASAbilityStateCastingCharged::BeginState(UGASAbilityState* PrevState)
 {
 	//GetOuterAGASAbility()->OnAbilityActivated();
 	GetOuterAGASAbility()->AbilityCastStart();
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(true);
 }
-void UGASAbilityStateCasting::EndState()
+void UGASAbilityStateCastingCharged::EndState()
 {
 	GetOuterAGASAbility()->AbilityCastEnd();
 }
-void UGASAbilityStateCasting::BeginActionSequence()
+void UGASAbilityStateCastingCharged::BeginActionSequence()
 {}
-void UGASAbilityStateCasting::EndActionSequence()
-{}
+void UGASAbilityStateCastingCharged::EndActionSequence()
+{
+	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
+	CurrentCastTime = 0;
+	//do not go to next state.
+	//allthough we could go to cooldown state if we did not finished charging
+	//and add grace period in which cooldown will be shorter.
+}

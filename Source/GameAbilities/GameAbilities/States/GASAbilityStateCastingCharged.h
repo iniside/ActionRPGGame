@@ -2,10 +2,10 @@
 #pragma once
 #include "GASAbilityState.h"
 #include "GASAbilityStateCastingBase.h"
-#include "GASAbilityStateCasting.generated.h"
+#include "GASAbilityStateCastingCharged.generated.h"
 
-UCLASS(DefaultToInstanced, EditInLineNew, Within = GASAbility, meta = (DisplayName = "Casting - Casting"))
-class UGASAbilityStateCasting : public UGASAbilityStateCastingBase
+UCLASS(DefaultToInstanced, EditInLineNew, Within = GASAbility, meta = (DisplayName = "Casting - Casting Charged"))
+class UGASAbilityStateCastingCharged : public UGASAbilityStateCastingBase
 {
 	GENERATED_UCLASS_BODY()
 public:

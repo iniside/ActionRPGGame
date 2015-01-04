@@ -2,10 +2,10 @@
 #pragma once
 #include "GASAbilityState.h"
 #include "GASAbilityStateCastingBase.h"
-#include "GASAbilityStateCasting.generated.h"
+#include "GASAbilityStateChanneled.generated.h"
 
-UCLASS(DefaultToInstanced, EditInLineNew, Within = GASAbility, meta = (DisplayName = "Casting - Casting"))
-class UGASAbilityStateCasting : public UGASAbilityStateCastingBase
+UCLASS(DefaultToInstanced, EditInLineNew, Within = GASAbility, meta = (DisplayName = "Casting - Channeled"))
+class UGASAbilityStateChanneled : public UGASAbilityStateCastingBase
 {
 	GENERATED_UCLASS_BODY()
 public:
@@ -16,6 +16,9 @@ public:
 	virtual void EndActionSequence() override;
 
 	virtual void ExecuteAbility() override;
+
+	void ChannelFinished();
 private:
 	float CurrentCastTime;
+	float CurrentPeriodCount;
 };

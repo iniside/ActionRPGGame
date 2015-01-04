@@ -1,9 +1,10 @@
 #pragma once
 #include "GASAbilityState.h"
-#include "GASAbilityStatePreparation.generated.h"
+#include "GASAbilityStatePreparation.h"
+#include "GASAbilityStatePreparationWaitForInput.generated.h"
 
-UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GASAbility, meta = (DisplayName = "Prepare - Prepare base - Dont Use!"))
-class GAMEABILITIES_API UGASAbilityStatePreparation : public UGASAbilityState
+UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GASAbility, meta = (DisplayName = "Prepare - Wait For Input"))
+class GAMEABILITIES_API UGASAbilityStatePreparationWaitForInput : public UGASAbilityStatePreparation
 {
 	GENERATED_UCLASS_BODY()
 public:

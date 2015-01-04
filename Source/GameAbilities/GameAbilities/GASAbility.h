@@ -37,6 +37,28 @@ public:
 	UPROPERTY()
 		TArray<AActor*> Targets;
 };
+
+/*
+	This will cover only single hit of ability.
+
+	For AoE effects, spawning actuall effect in center of hit location of
+	AoE, would be probabaly be better solution.
+*/
+USTRUCT(BlueprintType)
+struct FGASAbilityHitInfo
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	//force replication, if oany of other properties don't change
+	int8 Counter;
+
+	UPROPERTY(BlueprintReadOnly)
+		FVector Origin;
+	UPROPERTY(BlueprintReadOnly)
+		FVector HitLocation;
+	UPROPERTY(BlueprintReadOnly)
+		AActor* HitActor; //need ?
+};
 /*
 	Visual effects, basics:
 	1. Visual effects are only specific to ability.
@@ -78,7 +100,15 @@ UCLASS(BlueprintType, Blueprintable, DefaultToInstanced)
 class GAMEABILITIES_API AGASAbility : public AActor, public IIGTTrace
 {
 	GENERATED_UCLASS_BODY()
+	friend class UGASAbilityStateCastingBase;
 	friend class UGASAbilityStateCasting;
+	friend class UGASAbilityStateCastingCharged;
+	friend class UGASAbilityStateChanneled;
+	friend class UGASAbilityStateChanneledCharged;
+	friend class UGASAbilityStateCooldown;
+	friend class UGASAbilityStatePreparation;
+	friend class UGASAbilityStatePreparationNoPrep;
+	friend class UGASAbilityStatePreparationWaitForInput;
 public:
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -89,15 +119,36 @@ public:
 		CastTime, ChannelTime, period time (Ability pulse, every X seconds while active or while
 		pressed)
 	*/
-
+protected:
+	/**
+	 *	Cast time for this ability. How long it will take after pressing input
+	 *	to execute ability.
+	 *	Set 0 for instant cast.
+	 */
 	UPROPERTY(EditAnywhere, Category = "Using")
 		float CastTime;
 
-	UPROPERTY()
-		float MaxCastTime;
+	/**
+	 *	Used only with channeled state.
+	 *	Indicates how often channeled ability will be triggered.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Using")
+		float PeriodLenght;
+	/**
+	 *	Used only with channeled state.
+	 *	Indicates how many time ability will be triggered.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Using")
+		float PeriodCount;
+
+	/**
+	 *	Ability cooldown.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Using")
+		float CooldownTime;
 
 	UPROPERTY()
-		float CooldownTime;
+		float CastTimeModifier;
 
 	UPROPERTY(EditAnywhere, Category = "Animation")
 		UAnimMontage* CastingMontage; //anim montage or raw animation ?
@@ -150,11 +201,18 @@ protected:
 	UFUNCTION()
 		void OnRep_PreparationEnded();
 
+	UPROPERTY(ReplicatedUsing = OnRep_AbilityHitInfo, BlueprintReadOnly, Category ="Hit Info")
+		FGASAbilityHitInfo AbilityHitInfo;
+	UFUNCTION()
+		void OnRep_AbilityHitInfo();
+
 public:
 	void AbilityCastStart();
 	void AbilityCastEnd();
 	void AbilityPreparationStart();
 	void AbilityPreparationEnd();
+
+	void SetAbilityHitInfo(const FVector& Origin, const FVector& HitLocation, AActor* HitTarget);
 
 	/**
 	 *	Override to control visual effects when ability casting start.
@@ -176,6 +234,15 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "Visual Cues")
 		bool OnAbilityPreperationEnd();
+
+	/**
+	 *	Override to controll visual effects, when ability hits something.
+	 *	For example with channeled ability it might be used to controll ray origin/hit location.
+	 *	Or for AoE ability it might controll location or AoE visual effect Actor (or whatever
+	 *	ability will spawn to indicate current action).
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "Visual Cues")
+		bool OnAbilityHit();
 public:
 	inline float GetCooldownTime() { return CurrentCooldownTime; };
 
@@ -243,6 +310,24 @@ public:
 	/**
 	 *	State Machine Properties Begin
 	 */
+	/*
+		Add missing states:
+		1. Channeled - channeled ability. Have period lenght and max periods = max
+		channel time.
+		2. Charged - you charge ability two variations:
+		2a). Just like casted but you must keep pressing button to fully charge ability.
+		2b). with thresholds, at each charge threshold, ability can become stronge
+		or do something differently.
+		3b) channeled charged. Exactly the same as channeled, except you have to keep
+		pressing button.
+		4. Instant cast = casted with 0 cast time. Though separate state is more
+		self explaning.
+
+		Two Preparation states NoPreparation and WaitforInput.
+	 */
+	/*
+		Add  ability to modify timers by outside objects (cast time, period time, etc).
+	 */
 	/**
 	*	State used when this ability is active
 	*/
@@ -251,17 +336,17 @@ public:
 	/**
 	*	State used when this ability has recived input.
 	*/
-	UPROPERTY(EditAnywhere, Instanced, meta = (MetaClass = "GASAbilityStatePreparation"), Category = "Ability State")
+	UPROPERTY(EditAnywhere, Instanced, meta = (MetaClass = "UGASAbilityStatePreparation"), Category = "Ability State")
 	class UGASAbilityState* PreparationState;
 	/**
 	*	State used when ability is on cooldown.
 	*/
-	UPROPERTY(EditAnywhere, Instanced, Category = "Ability State")
+	UPROPERTY(EditAnywhere, Instanced, meta = (MetaClass = "UGASAbilityStateCooldown"), Category = "Ability State")
 	class UGASAbilityState* CooldownState;
 	/**
 	 *	State used when ability is activated. After preperation state.
 	 */
-	UPROPERTY(EditAnywhere, Instanced, Category = "Ability State")
+	UPROPERTY(EditAnywhere, Instanced, meta = (AllowedClasses = "GASAbilityStateCastingBase"), Category = "Ability State")
 	class UGASAbilityState* ActivationState;
 
 	UPROPERTY()
@@ -309,8 +394,10 @@ public:
 	 *
 	 *	Contains list of current targets for this ability. If there is one, there can be more ;).
 	 *	the list will be prefiltered, by filters specified by designer upon selection proper TargetingAction.
+	 *	Replicated because we will need information about target(s) on client, in order
+	 *  to properly handle visual effects.
 	 */
-	UPROPERTY(BlueprintReadOnly, Category = "Target Data")
+	UPROPERTY(BlueprintReadOnly, Replicated, RepRetry, Category = "Target Data")
 		TArray<FHitResult> TargetData;
 
 	/*
@@ -373,7 +460,7 @@ public:
 	virtual void SetTargetData(const TArray<FHitResult>& DataIn);
 	virtual TArray<FHitResult>& GetTargetData() override { return TargetData; };
 
-
+	virtual void SetHitLocation(const FVector& Origin, const FVector& HitLocation, AActor* HitActor) override;
 	/** IIGTTrace End */
 
 	/**

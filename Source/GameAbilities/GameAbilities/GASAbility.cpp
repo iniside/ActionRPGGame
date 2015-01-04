@@ -155,6 +155,7 @@ void AGASAbility::DeactivateAbility()
 	}
 	else
 	{
+		CurrentState->EndActionSequence();
 		OnAbilityDeactivated();
 	}
 }
@@ -211,6 +212,7 @@ void AGASAbility::AbilityCastEnd()
 {
 	AbilityCastEnded++;
 }
+
 void AGASAbility::AbilityPreparationStart()
 {
 	PreparationStarted++;
@@ -220,6 +222,18 @@ void AGASAbility::AbilityPreparationEnd()
 	PreparationEnd++;
 }
 
+void AGASAbility::SetHitLocation(const FVector& Origin, const FVector& HitLocation, AActor* HitActor)
+{
+	SetAbilityHitInfo(Origin, HitLocation, HitActor);
+}
+
+void AGASAbility::SetAbilityHitInfo(const FVector& Origin, const FVector& HitLocation, AActor* HitTarget)
+{
+	AbilityHitInfo.Counter++;
+	AbilityHitInfo.Origin = Origin;
+	AbilityHitInfo.HitLocation = HitLocation;
+	AbilityHitInfo.HitActor = HitTarget;
+}
 
 bool AGASAbility::OnAbilityCastStarted_Implementation()
 {
@@ -235,6 +249,11 @@ bool AGASAbility::OnAbilityPreperationStarted_Implementation()
 	return false;
 }
 bool AGASAbility::OnAbilityPreperationEnd_Implementation()
+{
+	return false;
+}
+
+bool AGASAbility::OnAbilityHit_Implementation()
 {
 	return false;
 }
@@ -257,12 +276,19 @@ void AGASAbility::OnRep_PreparationEnded()
 	OnAbilityPreperationEnd();
 }
 
+void AGASAbility::OnRep_AbilityHitInfo()
+{
+	OnAbilityHit();
+}
+
 void AGASAbility::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(AGASAbility, CueReplication, COND_SkipOwner);
 	DOREPLIFETIME(AGASAbility, PawnOwner);
+
+	DOREPLIFETIME(AGASAbility, TargetData);
 	//locally we will play those effects immidietly on client.
 	//regradless if there is confirmd success from server or not.
 	//if there is no success on server, we will just override them.
@@ -270,4 +296,6 @@ void AGASAbility::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > &
 	DOREPLIFETIME_CONDITION(AGASAbility, AbilityCastEnded, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(AGASAbility, PreparationStarted, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(AGASAbility, PreparationEnd, COND_SkipOwner);
+
+	DOREPLIFETIME(AGASAbility, AbilityHitInfo);
 }

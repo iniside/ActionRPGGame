@@ -3,7 +3,7 @@
 #include "GASAbilityState.h"
 #include "GASAbilityStateCooldown.generated.h"
 
-UCLASS(DefaultToInstanced, EditInLineNew, Within = GASAbility)
+UCLASS(DefaultToInstanced, EditInLineNew, Within = GASAbility, meta = (DisplayName = "Cooldown State"))
 class UGASAbilityStateCooldown : public UGASAbilityState
 {
 	GENERATED_UCLASS_BODY()
