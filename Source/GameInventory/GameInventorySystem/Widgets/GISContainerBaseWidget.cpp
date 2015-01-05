@@ -100,6 +100,8 @@ void UGISContainerBaseWidget::Widget_OnItemAdded(const FGISSlotUpdateData& SlotU
 			ItemWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
 			ItemWidget->Initialize();
 			ItemWidget->ItemData = SlotUpdateInfo.SlotData;
+			ItemWidget->InventoryComponent = InventoryComponent;
+			ItemWidget->InitializeItem();
 			//ItemWidget->LastSlotInfo = SlotInfo;
 		}
 		
@@ -170,6 +172,8 @@ void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 			ItemWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
 			ItemWidget->Initialize();
 			ItemWidget->ItemData = SlotSwapInfo.TargetSlotData;
+			ItemWidget->InventoryComponent = InventoryComponent;
+			ItemWidget->InitializeItem();
 			//ItemWidget->LastSlotInfo = SlotInfo;
 		}
 		FGISSlotInfo TargetSlotInfo;
@@ -196,6 +200,8 @@ void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 			TargetItemWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
 			TargetItemWidget->Initialize();
 			TargetItemWidget->ItemData = SlotSwapInfo.TargetSlotData;
+			TargetItemWidget->InventoryComponent = InventoryComponent;
+			TargetItemWidget->InitializeItem();
 			//ItemWidget->LastSlotInfo = SlotInfo;
 		}
 
@@ -206,6 +212,8 @@ void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 			LastItemWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
 			LastItemWidget->Initialize();
 			LastItemWidget->ItemData = SlotSwapInfo.LastSlotData;
+			LastItemWidget->InventoryComponent = InventoryComponent;
+			LastItemWidget->InitializeItem();
 			//ItemWidget->LastSlotInfo = SlotInfo;
 		}
 		FGISSlotInfo TargetSlotInfo;
@@ -344,6 +352,8 @@ void UGISContainerBaseWidget::Widget_OnTabChanged(int32 TabIndexIn)
 				ItemWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
 				ItemWidget->Initialize();
 				ItemWidget->ItemData = slot.ItemData;
+				ItemWidget->InventoryComponent = InventoryComponent;
+				ItemWidget->InitializeItem();
 				//ItemWidget->LastSlotInfo = SlotInfo;
 			}
 

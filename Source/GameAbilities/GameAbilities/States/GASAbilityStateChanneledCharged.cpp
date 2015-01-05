@@ -38,7 +38,7 @@ void UGASAbilityStateChanneledCharged::ChannelFinished()
 {
 	CurrentCastTime = 0;
 	CurrentPeriodCount = 0;
-	GetOuterAGASAbility()->bIsCurrentlyInUse = false;
+	GetOuterAGASAbility()->bIsBeingCast = false;
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
 	GetOuterAGASAbility()->SetActorTickEnabled(false);
 	GetOuterAGASAbility()->GotoState(GetOuterAGASAbility()->CooldownState);
@@ -46,7 +46,7 @@ void UGASAbilityStateChanneledCharged::ChannelFinished()
 
 void UGASAbilityStateChanneledCharged::BeginState(UGASAbilityState* PrevState)
 {
-	GetOuterAGASAbility()->bIsCurrentlyInUse = true;
+	GetOuterAGASAbility()->bIsBeingCast = true;
 	GetOuterAGASAbility()->AbilityCastStart();
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(true);
 }

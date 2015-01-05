@@ -12,7 +12,10 @@ UGISItemBaseWidget::UGISItemBaseWidget(const FObjectInitializer& ObjectInitializ
 	ItemData = nullptr;
 }
 
+void UGISItemBaseWidget::InitializeItem()
+{
 
+}
 FText UGISItemBaseWidget::GetItemName() const
 {
 	if (ItemData)

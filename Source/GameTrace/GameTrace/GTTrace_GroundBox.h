@@ -11,13 +11,15 @@ class GAMETRACE_API UGTTrace_GroundBox : public UGTTraceBase
 	GENERATED_UCLASS_BODY()
 public:
 	UPROPERTY(EditAnywhere, Category = "Configuration")
-		TSubclassOf<AActor> DisplayHelperActor;
+		TSubclassOf<class AGTTraceDisplayHelper> DisplayHelperActor;
 
-	UPROPERTY(EditAnywhere, Category = "Configuration")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Configuration")
 		FVector BoxSize;
 
 	UPROPERTY(EditAnywhere, Category = "Configuration")
 		TArray<TEnumAsByte<ECollisionChannel> > BoxObjectsToTrace;
+
+	virtual FVector GetHelperScale() override;
 
 	/**/
 	virtual void Tick(float DeltaSecondsIn) override;
@@ -37,7 +39,7 @@ public:
 	virtual void PostExecute() override;
 protected:
 	UPROPERTY()
-		AActor* DisplayHelper;
+	class AGTTraceDisplayHelper* DisplayHelper;
 
 	FCollisionObjectQueryParams BoxObjectParams;
 

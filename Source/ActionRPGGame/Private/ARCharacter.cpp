@@ -59,11 +59,11 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	Inventory->SetNetAddressable();
 	//testing out multi commponent interaction.
 	
-	AbilityBook = ObjectInitializer.CreateDefaultSubobject<UGISInventoryBaseComponent>(this, TEXT("AbilityBook"));
+	AbilityBook = ObjectInitializer.CreateDefaultSubobject<UGSAbilitiesComponent>(this, TEXT("AbilityBook"));
 	AbilityBook->SetIsReplicated(true);
 	AbilityBook->SetNetAddressable();
 
-	ActionBar = ObjectInitializer.CreateDefaultSubobject<UGISInventoryBaseComponent>(this, TEXT("ActionBar"));
+	ActionBar = ObjectInitializer.CreateDefaultSubobject<UGSAbilitiesComponent>(this, TEXT("ActionBar"));
 	ActionBar->SetIsReplicated(true);
 	ActionBar->SetNetAddressable();
 	

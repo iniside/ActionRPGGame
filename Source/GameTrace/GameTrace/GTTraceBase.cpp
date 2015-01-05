@@ -196,3 +196,9 @@ FHitResult UGTTraceBase::SingleLineRangedTrace(const FVector& StartTrace, const 
 	}
 	return Hit;
 }
+
+
+FVector UGTTraceBase::GetHelperScale()
+{
+	return FVector::ZeroVector;
+}

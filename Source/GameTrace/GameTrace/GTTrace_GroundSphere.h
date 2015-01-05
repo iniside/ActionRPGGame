@@ -11,7 +11,7 @@ class GAMETRACE_API UGTTrace_GroundSphere : public UGTTraceBase
 	GENERATED_UCLASS_BODY()
 public:
 	UPROPERTY(EditAnywhere, Category = "Configuration")
-		TSubclassOf<AActor> DisplayHelperActor;
+		TSubclassOf<class AGTTraceDisplayHelper> DisplayHelperActor;
 
 	UPROPERTY(EditAnywhere, Category = "Configuration")
 		float Radius;
@@ -38,7 +38,7 @@ public:
 
 protected:
 	UPROPERTY()
-		AActor* DisplayHelper;
+	class AGTTraceDisplayHelper* DisplayHelper;
 
 	FCollisionObjectQueryParams SphereObjectParams;
 

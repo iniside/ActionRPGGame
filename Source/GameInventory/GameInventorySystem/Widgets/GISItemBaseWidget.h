@@ -28,6 +28,11 @@ public:
 	UPROPERTY()
 		class UGISItemData* ItemData;
 
+	UPROPERTY()
+		class UGISInventoryBaseComponent* InventoryComponent;
+	
+	virtual void InitializeItem();
+
 	/*
 		Probabaly can change them to pure.	
 	*/

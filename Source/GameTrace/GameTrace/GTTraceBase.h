@@ -114,6 +114,9 @@ public:
 	virtual void ModifyRangeByPrecentage(float PrcentageIn);
 
 	virtual void SetTraceRange(float PrcentageIn);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Trace")
+		virtual FVector GetHelperScale();
 private:
 	/*
 		Cached Skeletal mesh component from which we will get Start socket location if needed.

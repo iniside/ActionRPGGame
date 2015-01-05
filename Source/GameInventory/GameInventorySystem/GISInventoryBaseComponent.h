@@ -328,11 +328,11 @@ public:
 	/*
 		Helper for item activation initem inventory if button has been pressed.
 	*/
-	void InputSlotPressed(int32 TabIndex, int32 SlotIndex);
+	virtual void InputSlotPressed(int32 TabIndex, int32 SlotIndex);
 	/*
 		Helper for item activation initem inventory if button has been released.
 	*/
-	void InputSlotReleased(int32 TabIndex, int32 SlotIndex);
+	virtual void InputSlotReleased(int32 TabIndex, int32 SlotIndex);
 	/*
 		Helper function if you want to copy pointer from slot, to another place.
 		Useful if you for example don't want to activate item in slot, but 

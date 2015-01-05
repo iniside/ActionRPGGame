@@ -166,13 +166,36 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Animation")
 		UAnimMontage* CastingMontage; //anim montage or raw animation ?
 
+	float CurrentCastTime;
+
+	float CurrentCooldownTime;
+public:
+	inline const float GetCurrentCastTime() const { return CurrentCastTime; };
+
+	inline const float GetMaxCastTime() const
+	{
+		if (CastTime > 0)
+		{
+			return CastTime;
+		}
+		else
+		{
+			return PeriodLenght * PeriodCount;
+		}
+	};
+	inline const float GetCooldownTime() const { return CooldownTime; };
+	inline const float GetCurrentCooldownTime() const { return CurrentCooldownTime; };
+protected:
 	/**
 	 *	This will be using to prevent, using other abilities
 	 *	while this ability is currently being used.
 	 *	Unless someone want to launch second ability "pararel" to this one.
 	 */
 	UPROPERTY()
-		bool bIsCurrentlyInUse;
+		bool bIsBeingCast;
+
+	UPROPERTY()
+		bool bIsOnCooldown;
 	/*
 		Quick prototype for effect replication - Begin;
 	*/
@@ -187,9 +210,6 @@ protected:
 		Quick prototype for effect replication - End;
 	*/
 	virtual void BeginPlay() override;
-private:
-	float CurrentCooldownTime;
-	float CurrentCastTime;
 
 	/*
 		These are small helpers, which will help with spawning cosmetics effects (and ending them).
@@ -548,6 +568,11 @@ public:
 
 	void RunPreparationActions();
 
+	/*
+		Override to implement custom check code, which will check if ability can be executed
+		or not.
+	*/
+	virtual bool CheckIfCanUseAbility();
 	/**
 	 *	Blueprint Events
 	 */

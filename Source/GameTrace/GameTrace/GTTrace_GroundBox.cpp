@@ -2,6 +2,9 @@
 
 #include "GameTrace.h"
 #include "DrawDebugHelpers.h"
+
+#include "GTTraceDisplayHelper.h"
+
 #include "IGTTrace.h"
 #include "GTTrace_GroundBox.h"
 
@@ -13,27 +16,26 @@ UGTTrace_GroundBox::UGTTrace_GroundBox(const FObjectInitializer& ObjectInitializ
 
 void UGTTrace_GroundBox::Tick(float DeltaSecondsIn)
 {
-	//if (DisplayHelper)
-	//{
-	//	if (GetOuterAGASAbility()->GetNetMode() == ENetMode::NM_Standalone
-	//		|| GetOuterAGASAbility()->GetNetMode() == ENetMode::NM_Client)
-	//		DisplayHelper->SetActorLocation(GetSingHitLocation());
-	//}
-	if (bDrawDebug)
+	if (DisplayHelper)
 	{
-		if ((TraceInterface && TraceInterface->GetPawn())
-			&& (TraceInterface->GetPawn()->Role < ROLE_Authority
-			|| TraceInterface->GetPawn()->GetNetMode() == ENetMode::NM_Standalone))
-		{
-			FRotator aimRot = TraceInterface->GetPawn()->GetActorRotation();
-			FVector Location = GetSingHitLocation();
-			Location.X += BoxSize.X;
-			Location.Z += BoxSize.Z;
-			//aimRot.Roll = 0;
-			aimRot.Pitch = 0;
-			DrawDebugBox(GetWorld(), Location, BoxSize, FQuat(aimRot), FColor::Red, true, 0.1f, 0);
-		}
+		DisplayHelper->SetActorLocation(GetSingHitLocation());
+		FRotator aimRot = TraceInterface->GetPawn()->GetActorRotation();
+		aimRot.Pitch = 0;
+		DisplayHelper->SetActorRotation(aimRot);
 	}
+	//if (bDrawDebug)
+	//{
+	//	if ((TraceInterface && TraceInterface->GetPawn())
+	//		&& (TraceInterface->GetPawn()->Role < ROLE_Authority
+	//		|| TraceInterface->GetPawn()->GetNetMode() == ENetMode::NM_Standalone))
+	//	{
+	//		FRotator aimRot = TraceInterface->GetPawn()->GetActorRotation();
+	//		FVector Location = GetSingHitLocation();
+	//		Location.Z += BoxSize.Z;
+	//		aimRot.Pitch = 0;
+	//		DrawDebugBox(GetWorld(), Location, BoxSize, FQuat(aimRot), FColor::Red, true, 0.1f, 0);
+	//	}
+	//}
 }
 
 void UGTTrace_GroundBox::Initialize()
@@ -51,9 +53,19 @@ void UGTTrace_GroundBox::Initialize()
 }
 void UGTTrace_GroundBox::PreExecute()
 {
-	if (DisplayHelperActor)
+	//spawn only on client
+	//we could also add replicated helper which would
+	//replicate to all clients and indicate where ability will hit
+	if ((TraceInterface && TraceInterface->GetPawn())
+		&& (TraceInterface->GetPawn()->Role < ROLE_Authority
+		|| TraceInterface->GetPawn()->GetNetMode() == ENetMode::NM_Standalone))
 	{
-		DisplayHelper = GetWorld()->SpawnActor<AActor>(DisplayHelperActor);
+		if (DisplayHelperActor)
+		{
+			DisplayHelper = GetWorld()->SpawnActor<AGTTraceDisplayHelper>(DisplayHelperActor);
+			DisplayHelper->TraceAction = this;
+			DisplayHelper->OnPostInitialize();
+		}
 	}
 }
 void UGTTrace_GroundBox::Execute()
@@ -64,7 +76,10 @@ void UGTTrace_GroundBox::Execute()
 
 void UGTTrace_GroundBox::PostExecute()
 {
-
+	if (DisplayHelper)
+	{
+		DisplayHelper->Destroy();
+	}
 }
 
 void UGTTrace_GroundBox::TraceBox()
@@ -79,13 +94,12 @@ void UGTTrace_GroundBox::TraceBox()
 
 	Params.AddIgnoredActor(TraceInterface->GetPawn());
 	FRotator aimRot = TraceInterface->GetPawn()->GetBaseAimRotation();
-	aimRot.Roll = 0;
 	aimRot.Pitch = 0;
 	FVector StartLocation = GetSingHitLocation();
+	
 	FVector HitLocation = StartLocation;
-	StartLocation.X += BoxSize.X;
 	StartLocation.Z += BoxSize.Z;
-	FVector EndLocation = StartLocation + .1;
+	
 	TArray<FOverlapResult> Overlaps;
 	bool bHit;
 	FVector Origin = FVector::ZeroVector;
@@ -133,4 +147,9 @@ void UGTTrace_GroundBox::TraceBox()
 			::DrawDebugPoint(GetWorld(), Hit.ImpactPoint, 30, (Hit.bBlockingHit ? FColor::Red : FColor::Green), false, 3, 0);
 		}
 	}
+}
+
+FVector UGTTrace_GroundBox::GetHelperScale()
+{
+	return BoxSize * 2.0f;
 }

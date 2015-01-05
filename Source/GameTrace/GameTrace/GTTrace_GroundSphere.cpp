@@ -2,6 +2,9 @@
 
 #include "GameTrace.h"
 #include "DrawDebugHelpers.h"
+
+#include "GTTraceDisplayHelper.h"
+
 #include "IGTTrace.h"
 #include "GTTrace_GroundSphere.h"
 
@@ -45,7 +48,8 @@ void UGTTrace_GroundSphere::PreExecute()
 {
 	if (DisplayHelperActor)
 	{
-		DisplayHelper = GetWorld()->SpawnActor<AActor>(DisplayHelperActor);
+		DisplayHelper = GetWorld()->SpawnActor<AGTTraceDisplayHelper>(DisplayHelperActor);
+		DisplayHelper->TraceAction = this;
 	}
 }
 void UGTTrace_GroundSphere::Execute()

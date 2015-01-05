@@ -22,6 +22,10 @@ AGASAbility::AGASAbility(const FObjectInitializer& ObjectInitializer)
 	bReplicates = true;
 	SetReplicates(true);
 	iSocket = nullptr;
+	CurrentCastTime = 0;
+	CurrentCooldownTime = 0;
+	CastTimeModifier = 1;
+
 	PreparationState = ObjectInitializer.CreateDefaultSubobject<UGASAbilityStatePreparation>(this, TEXT("PreparationState"));
 
 	//Targeting = ObjectInitializer.CreateDefaultSubobject<UGTTraceBase>(this, TEXT("TraceBase"));
@@ -125,14 +129,20 @@ void AGASAbility::ActivateAbility()
 {
 	if (Role < ROLE_Authority)
 	{
-		ServerActivateAbility();
-		//simulate on client.
-		//so we can predictivly start spawning effect cues.
-		CurrentState->BeginActionSequence();
+		if (CheckIfCanUseAbility())
+		{
+			ServerActivateAbility();
+			//simulate on client.
+			//so we can predictivly start spawning effect cues.
+			CurrentState->BeginActionSequence();
+		}
 	}
 	else
 	{
-		CurrentState->BeginActionSequence();
+		if (CheckIfCanUseAbility()) //double check in case client is cheating..
+		{
+			CurrentState->BeginActionSequence();
+		}
 	}
 }
 
@@ -304,6 +314,11 @@ void AGASAbility::AbilityPreparationEnd()
 		OnAbilityPreparationEnd.Broadcast();
 		OnAbilityPreperationEnded();
 	}
+}
+
+bool AGASAbility::CheckIfCanUseAbility()
+{
+	return true;
 }
 
 void AGASAbility::SetHitLocation(const FVector& Origin, const FVector& HitLocation, AActor* HitActor)

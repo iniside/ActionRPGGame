@@ -5,6 +5,7 @@
 #include "GISInventoryBaseComponent.h" //need for template
 #include "GESEffectComponent.h"
 
+#include "Abilities/GSAbilitiesComponent.h"
 
 #include "GAGlobalTypes.h"
 
@@ -37,9 +38,9 @@ class AARCharacter : public ACharacter, public IIGAAttributes, public IIGESEffec
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	class UGISInventoryBaseComponent* Inventory;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
-	class UGISInventoryBaseComponent* ActionBar;
+	class UGSAbilitiesComponent* ActionBar;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
-	class UGISInventoryBaseComponent* AbilityBook;
+	class UGSAbilitiesComponent* AbilityBook;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes", meta = (AllowPrivateAccess = "true"))
 	class UGAAttributeComponent* Attributes;

@@ -12,21 +12,22 @@ UGASAbilityStateCooldown::UGASAbilityStateCooldown(const FObjectInitializer& Obj
 
 void UGASAbilityStateCooldown::Tick(float DeltaSeconds)
 {
-	//GetOuterAARAbility()->CurrentCooldownTime += DeltaSeconds;
-	//if (GetOuterAARAbility()->CurrentCooldownTime >= GetOuterAARAbility()->MaxRecastTime)
-	//{
-	//	GetOuterAARAbility()->CurrentCooldownTime = 0;
+	GetOuterAGASAbility()->CurrentCooldownTime += DeltaSeconds;
+	if (GetOuterAGASAbility()->CurrentCooldownTime >= GetOuterAGASAbility()->CooldownTime)
+	{
+		GetOuterAGASAbility()->CurrentCooldownTime = 0;
 		FinishCooldown();
-	//}
+	}
 }
 void UGASAbilityStateCooldown::FinishCooldown()
 {
+	GetOuterAGASAbility()->bIsOnCooldown = false;
 	//GetOuterAARAbility()->LeaveCooldown();
 	GetOuterAGASAbility()->GotoState(GetOuterAGASAbility()->ActiveState);
 }
 void UGASAbilityStateCooldown::BeginState(UGASAbilityState* PrevState)
 {
-	//GetOuterAARAbility()->bIsCooldownFinished = false;
+	GetOuterAGASAbility()->bIsOnCooldown = true;
 	//GetOuterAARAbility()->EnterCooldown();
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(true);
 }

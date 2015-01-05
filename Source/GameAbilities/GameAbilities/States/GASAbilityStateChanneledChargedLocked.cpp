@@ -14,6 +14,7 @@ UGASAbilityStateChanneledChargedLocked::UGASAbilityStateChanneledChargedLocked(c
 
 void UGASAbilityStateChanneledChargedLocked::Tick(float DeltaSeconds)
 {
+	GetOuterAGASAbility()->CurrentCastTime += DeltaSeconds;
 	CurrentCastTime += DeltaSeconds;
 	if (CurrentCastTime >= GetOuterAGASAbility()->PeriodLenght
 		&& GetOuterAGASAbility()->PeriodCount > CurrentPeriodCount)
@@ -25,6 +26,7 @@ void UGASAbilityStateChanneledChargedLocked::Tick(float DeltaSeconds)
 	else if (CurrentPeriodCount >= GetOuterAGASAbility()->PeriodCount)
 	{
 		CurrentPeriodCount = 0;
+		GetOuterAGASAbility()->CurrentCastTime = 0;
 		ChannelFinished();
 	}
 }
@@ -35,13 +37,14 @@ void UGASAbilityStateChanneledChargedLocked::ExecuteAbility()
 }
 void UGASAbilityStateChanneledChargedLocked::ChannelStarted()
 {
-	GetOuterAGASAbility()->ExecuteTargeting();
+	GetOuterAGASAbility()->ExecuteAbility();
 }
 void UGASAbilityStateChanneledChargedLocked::ChannelFinished()
 {
+	GetOuterAGASAbility()->CurrentCastTime = 0;
 	CurrentCastTime = 0;
 	CurrentPeriodCount = 0;
-	GetOuterAGASAbility()->bIsCurrentlyInUse = false;
+	GetOuterAGASAbility()->bIsBeingCast = false;
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
 	GetOuterAGASAbility()->SetActorTickEnabled(false);
 	GetOuterAGASAbility()->GotoState(GetOuterAGASAbility()->CooldownState);
@@ -49,13 +52,14 @@ void UGASAbilityStateChanneledChargedLocked::ChannelFinished()
 
 void UGASAbilityStateChanneledChargedLocked::BeginState(UGASAbilityState* PrevState)
 {
-	GetOuterAGASAbility()->bIsCurrentlyInUse = true;
+	GetOuterAGASAbility()->bIsBeingCast = true;
 	ChannelStarted();
 	GetOuterAGASAbility()->AbilityCastStart();
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(true);
 }
 void UGASAbilityStateChanneledChargedLocked::EndState()
 {
+	GetOuterAGASAbility()->CurrentCastTime = 0;
 	CurrentCastTime = 0;
 	CurrentPeriodCount = 0;
 	GetOuterAGASAbility()->AbilityCastEnd();
@@ -64,6 +68,7 @@ void UGASAbilityStateChanneledChargedLocked::BeginActionSequence()
 {}
 void UGASAbilityStateChanneledChargedLocked::EndActionSequence()
 {
+	GetOuterAGASAbility()->CurrentCastTime = 0;
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
 	GetOuterAGASAbility()->SetActorTickEnabled(false);
 	CurrentCastTime = 0;

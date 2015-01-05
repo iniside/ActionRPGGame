@@ -38,14 +38,14 @@ void UGASAbilityStateChanneled::ExecuteAbility()
 
 void UGASAbilityStateChanneled::ChannelFinished()
 {
-	GetOuterAGASAbility()->bIsCurrentlyInUse = false;
+	GetOuterAGASAbility()->bIsBeingCast = false;
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
 	GetOuterAGASAbility()->GotoState(GetOuterAGASAbility()->CooldownState);
 }
 
 void UGASAbilityStateChanneled::BeginState(UGASAbilityState* PrevState)
 {
-	GetOuterAGASAbility()->bIsCurrentlyInUse = true;
+	GetOuterAGASAbility()->bIsBeingCast = true;
 	GetOuterAGASAbility()->AbilityCastStart();
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(true);
 }

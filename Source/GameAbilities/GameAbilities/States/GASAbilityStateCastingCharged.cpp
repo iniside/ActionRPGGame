@@ -25,7 +25,7 @@ void UGASAbilityStateCastingCharged::Tick(float DeltaSeconds)
 void UGASAbilityStateCastingCharged::ExecuteAbility()
 {
 	CurrentCastTime = 0;
-	GetOuterAGASAbility()->bIsCurrentlyInUse = false;
+	GetOuterAGASAbility()->bIsBeingCast = false;
 	GetOuterAGASAbility()->ExecuteAbility();
 	
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
@@ -35,7 +35,7 @@ void UGASAbilityStateCastingCharged::ExecuteAbility()
 void UGASAbilityStateCastingCharged::BeginState(UGASAbilityState* PrevState)
 {
 	//GetOuterAGASAbility()->OnAbilityActivated();
-	GetOuterAGASAbility()->bIsCurrentlyInUse = true;
+	GetOuterAGASAbility()->bIsBeingCast = true;
 	GetOuterAGASAbility()->AbilityCastStart();
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(true);
 }
