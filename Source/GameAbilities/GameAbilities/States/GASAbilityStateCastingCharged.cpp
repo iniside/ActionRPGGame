@@ -24,8 +24,10 @@ void UGASAbilityStateCastingCharged::Tick(float DeltaSeconds)
 
 void UGASAbilityStateCastingCharged::ExecuteAbility()
 {
+	CurrentCastTime = 0;
+	GetOuterAGASAbility()->bIsCurrentlyInUse = false;
 	GetOuterAGASAbility()->ExecuteAbility();
-	//GetOuterAGASAbility()->OnAbilityActivated();
+	
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
 	GetOuterAGASAbility()->GotoState(GetOuterAGASAbility()->CooldownState);
 }
@@ -33,11 +35,13 @@ void UGASAbilityStateCastingCharged::ExecuteAbility()
 void UGASAbilityStateCastingCharged::BeginState(UGASAbilityState* PrevState)
 {
 	//GetOuterAGASAbility()->OnAbilityActivated();
+	GetOuterAGASAbility()->bIsCurrentlyInUse = true;
 	GetOuterAGASAbility()->AbilityCastStart();
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(true);
 }
 void UGASAbilityStateCastingCharged::EndState()
 {
+	CurrentCastTime = 0;
 	GetOuterAGASAbility()->AbilityCastEnd();
 }
 void UGASAbilityStateCastingCharged::BeginActionSequence()
@@ -46,7 +50,5 @@ void UGASAbilityStateCastingCharged::EndActionSequence()
 {
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
 	CurrentCastTime = 0;
-	//do not go to next state.
-	//allthough we could go to cooldown state if we did not finished charging
-	//and add grace period in which cooldown will be shorter.
+	GetOuterAGASAbility()->GotoActiveState();
 }

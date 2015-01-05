@@ -3,6 +3,12 @@
 #include "GTTraceBase.h"
 #include "GASAbility.generated.h"
 
+
+DECLARE_MULTICAST_DELEGATE(FGASOnAbilityCastStart);
+DECLARE_MULTICAST_DELEGATE(FGASOnAbilityCastEnd);
+
+DECLARE_MULTICAST_DELEGATE(FGASOnAbilityPreparationStart);
+DECLARE_MULTICAST_DELEGATE(FGASOnAbilityPreparationEnd);
 UENUM(BlueprintType)
 enum class EGASTraceAbility : uint8
 {
@@ -50,8 +56,8 @@ struct FGASAbilityHitInfo
 	GENERATED_USTRUCT_BODY()
 public:
 	//force replication, if oany of other properties don't change
-	int8 Counter;
-
+	UPROPERTY()
+		int8 Counter;
 	UPROPERTY(BlueprintReadOnly)
 		FVector Origin;
 	UPROPERTY(BlueprintReadOnly)
@@ -105,6 +111,8 @@ class GAMEABILITIES_API AGASAbility : public AActor, public IIGTTrace
 	friend class UGASAbilityStateCastingCharged;
 	friend class UGASAbilityStateChanneled;
 	friend class UGASAbilityStateChanneledCharged;
+	friend class UGASAbilityStateChanneledLocked;
+	friend class UGASAbilityStateChanneledChargedLocked;
 	friend class UGASAbilityStateCooldown;
 	friend class UGASAbilityStatePreparation;
 	friend class UGASAbilityStatePreparationNoPrep;
@@ -147,13 +155,24 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Using")
 		float CooldownTime;
 
+	/*
+		1 - don't change anything
+		1> - abilities will channel/cast faster
+		<1 - abilities will channel/cast slower
+	*/
 	UPROPERTY()
 		float CastTimeModifier;
 
 	UPROPERTY(EditAnywhere, Category = "Animation")
 		UAnimMontage* CastingMontage; //anim montage or raw animation ?
 
-
+	/**
+	 *	This will be using to prevent, using other abilities
+	 *	while this ability is currently being used.
+	 *	Unless someone want to launch second ability "pararel" to this one.
+	 */
+	UPROPERTY()
+		bool bIsCurrentlyInUse;
 	/*
 		Quick prototype for effect replication - Begin;
 	*/
@@ -201,11 +220,19 @@ protected:
 	UFUNCTION()
 		void OnRep_PreparationEnded();
 
-	UPROPERTY(ReplicatedUsing = OnRep_AbilityHitInfo, BlueprintReadOnly, Category ="Hit Info")
+	UPROPERTY(ReplicatedUsing = OnRep_AbilityHitInfo, RepRetry, BlueprintReadOnly, Category ="Hit Info")
 		FGASAbilityHitInfo AbilityHitInfo;
 	UFUNCTION()
 		void OnRep_AbilityHitInfo();
 
+
+//delegates:
+public:
+	FGASOnAbilityCastStart OnAbilityCastStart;
+	FGASOnAbilityCastEnd OnAbilityCastEnd;
+
+	FGASOnAbilityPreparationStart OnAbilityPreparationStart;
+	FGASOnAbilityPreparationEnd OnAbilityPreparationEnd;
 public:
 	void AbilityCastStart();
 	void AbilityCastEnd();
@@ -213,36 +240,61 @@ public:
 	void AbilityPreparationEnd();
 
 	void SetAbilityHitInfo(const FVector& Origin, const FVector& HitLocation, AActor* HitTarget);
+	/*
+		we need to enforce End states on client, RPC or RepNotify ?
+		Because right now, initiating client, and server, essentialy run two unsynchornized versions
+		of the same ability, if we consider the visual effect part.
+
+		It should work for most part if client doesn't trying to cheat
+		or there is no siginificant network lag.
+
+		Worst that can happen is visual effect playing even if ability have not been properly
+		executed, and will do nothoing (it. won't deal any damage).
+
+		So while we probabaly don't need any kind of notification that ability have been 
+		executed properly, we most likely need confirmation,
+		that ability changed state. 
+		Client will change state predictively, and if the result is the same as server
+		nothing will happen.
+
+		If server state is different, it will override current ability state.
+		Or at least it will tell client to stop
+		executing current visual cues ;).
+	*/
+	UFUNCTION(Client, Unreliable)
+		void ClientAbilityCastingEnd();
+	UFUNCTION(Client, Unreliable)
+		void ClientAbilityPreparationEnd();
 
 	/**
-	 *	Override to control visual effects when ability casting start.
+	 *	Control visual effects when ability casting start.
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "Visual Cues")
-		bool OnAbilityCastStarted();
+		void OnAbilityCastStarted();
 	/**
-	 *	Override to controll visual effects when ability casting is finished.
+	 *	Controll visual effects when ability casting is finished.
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "Visual Cues")
-		bool OnAbilityCastEnd();
+		void OnAbilityCastEnded();
 	/**
-	 *	Override to controll visual effects when ability is in preparation state.
+	 *	Controll visual effects when ability is in preparation state.
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "Visual Cues")
-		bool OnAbilityPreperationStarted();
+		void OnAbilityPreperationStarted();
 	/**
-	 *	Override to controll visual effects when ability preparation state end.
+	 *	Controll visual effects when ability preparation state end.
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "Visual Cues")
-		bool OnAbilityPreperationEnd();
+		void OnAbilityPreperationEnded();
 
 	/**
-	 *	Override to controll visual effects, when ability hits something.
+	 *	Controll visual effects, when ability hits something.
 	 *	For example with channeled ability it might be used to controll ray origin/hit location.
 	 *	Or for AoE ability it might controll location or AoE visual effect Actor (or whatever
 	 *	ability will spawn to indicate current action).
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "Visual Cues")
-		bool OnAbilityHit();
+		void OnAbilityHit(const FVector& Origin, const FVector& HitLocation, AActor* TargetActor);
 public:
 	inline float GetCooldownTime() { return CurrentCooldownTime; };
 
@@ -311,22 +363,13 @@ public:
 	 *	State Machine Properties Begin
 	 */
 	/*
-		Add missing states:
-		1. Channeled - channeled ability. Have period lenght and max periods = max
-		channel time.
-		2. Charged - you charge ability two variations:
-		2a). Just like casted but you must keep pressing button to fully charge ability.
-		2b). with thresholds, at each charge threshold, ability can become stronge
-		or do something differently.
-		3b) channeled charged. Exactly the same as channeled, except you have to keep
-		pressing button.
-		4. Instant cast = casted with 0 cast time. Though separate state is more
-		self explaning.
-
-		Two Preparation states NoPreparation and WaitforInput.
-	 */
-	/*
 		Add  ability to modify timers by outside objects (cast time, period time, etc).
+
+
+
+		1. Add states:
+		a) Channeled Charged and Channeled, which only makes intial trace.
+		Current states will trace new hit location on each period.
 	 */
 	/**
 	*	State used when this ability is active
@@ -349,6 +392,10 @@ public:
 	UPROPERTY(EditAnywhere, Instanced, meta = (AllowedClasses = "GASAbilityStateCastingBase"), Category = "Ability State")
 	class UGASAbilityState* ActivationState;
 
+	/*
+		Make It replicated?
+	*/
+	/**/
 	UPROPERTY()
 	class UGASAbilityState* CurrentState;
 	
@@ -414,8 +461,10 @@ protected:
 	UPROPERTY()
 		APlayerController* PCOwner;
 
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Actors")
+	UPROPERTY(ReplicatedUsing = OnRep_PawnOwner, BlueprintReadOnly, Category = "Actors")
 		APawn* PawnOwner;
+	UFUNCTION()
+		void OnRep_PawnOwner();
 
 	/*
 		So we have access to skeletal mesh.
@@ -439,6 +488,12 @@ protected:
 	class IIGTSocket* iSocket;
 
 	void ExecuteAbility();
+
+	void ExecuteAbilityPeriod();
+	UFUNCTION(Server, Reliable, WithValidation)	
+		void ServerExecuteAbilityPeriod();
+	
+	void ExecuteTargeting();
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerExecuteAbility();
 

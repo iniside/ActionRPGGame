@@ -19,13 +19,21 @@ void UGTTrace_GroundBox::Tick(float DeltaSecondsIn)
 	//		|| GetOuterAGASAbility()->GetNetMode() == ENetMode::NM_Client)
 	//		DisplayHelper->SetActorLocation(GetSingHitLocation());
 	//}
-	FRotator aimRot = TraceInterface->GetPawn()->GetActorRotation();
-	FVector Location = GetSingHitLocation();
-	Location.X += BoxSize.X;
-	Location.Z += BoxSize.Z;
-	//aimRot.Roll = 0;
-	aimRot.Pitch = 0;
-	DrawDebugBox(GetWorld(), Location, BoxSize, FQuat(aimRot), FColor::Red, true, 0.1f, 0);
+	if (bDrawDebug)
+	{
+		if ((TraceInterface && TraceInterface->GetPawn())
+			&& (TraceInterface->GetPawn()->Role < ROLE_Authority
+			|| TraceInterface->GetPawn()->GetNetMode() == ENetMode::NM_Standalone))
+		{
+			FRotator aimRot = TraceInterface->GetPawn()->GetActorRotation();
+			FVector Location = GetSingHitLocation();
+			Location.X += BoxSize.X;
+			Location.Z += BoxSize.Z;
+			//aimRot.Roll = 0;
+			aimRot.Pitch = 0;
+			DrawDebugBox(GetWorld(), Location, BoxSize, FQuat(aimRot), FColor::Red, true, 0.1f, 0);
+		}
+	}
 }
 
 void UGTTrace_GroundBox::Initialize()
@@ -74,12 +82,23 @@ void UGTTrace_GroundBox::TraceBox()
 	aimRot.Roll = 0;
 	aimRot.Pitch = 0;
 	FVector StartLocation = GetSingHitLocation();
+	FVector HitLocation = StartLocation;
 	StartLocation.X += BoxSize.X;
 	StartLocation.Z += BoxSize.Z;
 	FVector EndLocation = StartLocation + .1;
 	TArray<FOverlapResult> Overlaps;
 	bool bHit;
-	TraceInterface->SetHitLocation(FVector::ZeroVector, StartLocation, nullptr);
+	FVector Origin = FVector::ZeroVector;
+	if (bTraceFromSocket)
+	{
+		Origin = GetStartLocationFromSocket();
+	}
+	else
+	{
+		Origin = GetPawnCameraDamageStartLocation(GetPawnCameraAim());
+	}
+
+	TraceInterface->SetHitLocation(Origin, HitLocation, nullptr);
 	//don't like it. But sweep is just useless in this scenario.
 	bHit = GetWorld()->OverlapMulti(Overlaps, StartLocation, FQuat(aimRot), FCollisionShape::MakeBox(BoxSize), Params, BoxObjectParams);
 

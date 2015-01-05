@@ -26,6 +26,7 @@ AGASAbility::AGASAbility(const FObjectInitializer& ObjectInitializer)
 
 	//Targeting = ObjectInitializer.CreateDefaultSubobject<UGTTraceBase>(this, TEXT("TraceBase"));
 
+
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
 	PrimaryActorTick.bAllowTickOnDedicatedServer = true;
@@ -50,9 +51,8 @@ void AGASAbility::BeginDestroy()
 void AGASAbility::BeginPlay()
 {
 	Super::BeginPlay();
+	PrimaryActorTick.RegisterTickFunction(GetLevel());
 	CurrentState = ActiveState;
-	//if (TargetingAction)
-	//	TargetingAction->Initialize();
 	if (Targeting)
 		Targeting->Initialize();
 }
@@ -72,7 +72,23 @@ void AGASAbility::SetPawnOwner(APawn* PawnOwnerIn)
 		default:
 			break;
 	}
-	
+}
+
+void AGASAbility::OnRep_PawnOwner()
+{
+	switch (TraceFrom)
+	{
+		case EGASTraceAbility::Pawn:
+			iSocket = Cast<IIGTSocket>(PawnOwner);
+			break;
+		case EGASTraceAbility::Avatar:
+			iSocket = Cast<IIGTSocket>(AvatarActor);
+			break;
+		case EGASTraceAbility::Invalid:
+			break;
+		default:
+			break;
+	}
 }
 void AGASAbility::GotoState(class UGASAbilityState* NextState)
 {
@@ -110,6 +126,9 @@ void AGASAbility::ActivateAbility()
 	if (Role < ROLE_Authority)
 	{
 		ServerActivateAbility();
+		//simulate on client.
+		//so we can predictivly start spawning effect cues.
+		CurrentState->BeginActionSequence();
 	}
 	else
 	{
@@ -122,13 +141,46 @@ void AGASAbility::ExecuteAbility()
 	//TargetingAction->Execute();
 	if (Role < ROLE_Authority)
 	{
+		//simulate on client
+		//so we can get targeting data on client, and start spawning cue effects predictively.
+		Targeting->Execute();
 		ServerExecuteAbility();
 	}
 	else
 	{
 		Targeting->Execute();
+		//actuall ability logic triggered by this event, run only on server.
 		OnAbilityActivated();
 	}
+}
+
+void AGASAbility::ExecuteAbilityPeriod()
+{
+	if (Role < ROLE_Authority)
+	{
+		OnAbilityHit(AbilityHitInfo.Origin, AbilityHitInfo.HitLocation, AbilityHitInfo.HitActor);
+		ServerExecuteAbilityPeriod();
+	}
+	else
+	{
+		//update hitinfo, even though we don't get any new location information ?
+		//probabaly could add bool to controll it, 
+		AbilityHitInfo.Counter++;
+		OnAbilityActivated();
+	}
+}
+void AGASAbility::ServerExecuteAbilityPeriod_Implementation()
+{
+	ExecuteAbilityPeriod();
+}
+bool AGASAbility::ServerExecuteAbilityPeriod_Validate()
+{
+	return true;
+}
+
+void AGASAbility::ExecuteTargeting()
+{
+	Targeting->Execute();
 }
 void AGASAbility::ServerExecuteAbility_Implementation()
 {
@@ -138,6 +190,7 @@ bool AGASAbility::ServerExecuteAbility_Validate()
 {
 	return true;
 }
+
 void AGASAbility::ServerActivateAbility_Implementation()
 {
 	ActivateAbility();
@@ -151,6 +204,7 @@ void AGASAbility::DeactivateAbility()
 {
 	if (Role < ROLE_Authority)
 	{
+		CurrentState->EndActionSequence();
 		ServerDeactivateAbility();
 	}
 	else
@@ -170,6 +224,8 @@ bool AGASAbility::ServerDeactivateAbility_Validate()
 
 void AGASAbility::RunPreparationActions()
 {
+	//should run on client as well.
+	//for debug drawing and possibly simulate hit indicators etc.
 	if (Targeting)
 		Targeting->PreExecute();
 }
@@ -207,19 +263,47 @@ void AGASAbility::OnRep_CueRep()
 void AGASAbility::AbilityCastStart()
 {
 	AbilityCastStarted++;
+	if (Role < ROLE_Authority || GetNetMode() == ENetMode::NM_Standalone)
+	{
+		OnAbilityCastStart.Broadcast();
+		OnAbilityCastStarted();
+	}
 }
 void AGASAbility::AbilityCastEnd()
 {
 	AbilityCastEnded++;
+	//if (GetNetMode() == ENetMode::NM_DedicatedServer)
+	//	ClientAbilityCastingEnd();
+
+	if (Role < ROLE_Authority || GetNetMode() == ENetMode::NM_Standalone)
+	{
+		OnAbilityCastEnd.Broadcast();
+		OnAbilityCastEnded();
+	}
 }
 
 void AGASAbility::AbilityPreparationStart()
 {
 	PreparationStarted++;
+	if (Role < ROLE_Authority || GetNetMode() == ENetMode::NM_Standalone)
+	{
+		OnAbilityPreparationStart.Broadcast();
+		OnAbilityPreperationStarted();
+	}
 }
 void AGASAbility::AbilityPreparationEnd()
 {
 	PreparationEnd++;
+	//make sure that client owning this ability
+	//will properly end current state.
+	//if (GetNetMode() == ENetMode::NM_DedicatedServer)
+	//	OnAbilityPreperationEnd();
+
+	if (Role < ROLE_Authority || GetNetMode() == ENetMode::NM_Standalone)
+	{
+		OnAbilityPreparationEnd.Broadcast();
+		OnAbilityPreperationEnded();
+	}
 }
 
 void AGASAbility::SetHitLocation(const FVector& Origin, const FVector& HitLocation, AActor* HitActor)
@@ -233,52 +317,60 @@ void AGASAbility::SetAbilityHitInfo(const FVector& Origin, const FVector& HitLoc
 	AbilityHitInfo.Origin = Origin;
 	AbilityHitInfo.HitLocation = HitLocation;
 	AbilityHitInfo.HitActor = HitTarget;
+	if (Role < ROLE_Authority || GetNetMode() == ENetMode::NM_Standalone)
+		OnAbilityHit(AbilityHitInfo.Origin, AbilityHitInfo.HitLocation, AbilityHitInfo.HitActor);
+}
+void AGASAbility::ClientAbilityCastingEnd_Implementation()
+{
+	OnAbilityCastEnded();
+}
+void AGASAbility::ClientAbilityPreparationEnd_Implementation()
+{
+	OnAbilityPreperationEnded();
+}
+void AGASAbility::OnAbilityCastStarted_Implementation()
+{
+}
+void AGASAbility::OnAbilityCastEnded_Implementation()
+{
 }
 
-bool AGASAbility::OnAbilityCastStarted_Implementation()
+void AGASAbility::OnAbilityPreperationStarted_Implementation()
 {
-	return false;
 }
-bool AGASAbility::OnAbilityCastEnd_Implementation()
+void AGASAbility::OnAbilityPreperationEnded_Implementation()
 {
-	return false;
 }
 
-bool AGASAbility::OnAbilityPreperationStarted_Implementation()
+void AGASAbility::OnAbilityHit_Implementation(const FVector& Origin, const FVector& HitLocation, AActor* TargetActor)
 {
-	return false;
-}
-bool AGASAbility::OnAbilityPreperationEnd_Implementation()
-{
-	return false;
-}
-
-bool AGASAbility::OnAbilityHit_Implementation()
-{
-	return false;
 }
 
 void AGASAbility::OnRep_CastStarted()
 {
+	OnAbilityCastStart.Broadcast();
 	OnAbilityCastStarted();
 }
 void AGASAbility::OnRep_CastEnded()
 {
-	OnAbilityCastEnd();
+	OnAbilityCastEnd.Broadcast();
+	OnAbilityCastEnded();
 }
 
 void AGASAbility::OnRep_PreparationStarted()
 {
+	OnAbilityPreparationStart.Broadcast();
 	OnAbilityPreperationStarted();
 }
 void AGASAbility::OnRep_PreparationEnded()
 {
-	OnAbilityPreperationEnd();
+	OnAbilityPreparationEnd.Broadcast();
+	OnAbilityPreperationEnded();
 }
 
 void AGASAbility::OnRep_AbilityHitInfo()
 {
-	OnAbilityHit();
+	OnAbilityHit(AbilityHitInfo.Origin, AbilityHitInfo.HitLocation, AbilityHitInfo.HitActor);
 }
 
 void AGASAbility::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
@@ -292,10 +384,10 @@ void AGASAbility::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > &
 	//locally we will play those effects immidietly on client.
 	//regradless if there is confirmd success from server or not.
 	//if there is no success on server, we will just override them.
-	DOREPLIFETIME(AGASAbility, AbilityCastStarted);
+	DOREPLIFETIME_CONDITION(AGASAbility, AbilityCastStarted, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(AGASAbility, AbilityCastEnded, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(AGASAbility, PreparationStarted, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(AGASAbility, PreparationEnd, COND_SkipOwner);
 
-	DOREPLIFETIME(AGASAbility, AbilityHitInfo);
+	DOREPLIFETIME_CONDITION(AGASAbility, AbilityHitInfo, COND_SkipOwner);
 }

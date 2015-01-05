@@ -4,16 +4,16 @@
 
 #include "../GASAbility.h"
 
-#include "GASAbilityStateChanneled.h"
+#include "GASAbilityStateChanneledLocked.h"
 
-UGASAbilityStateChanneled::UGASAbilityStateChanneled(const FObjectInitializer& ObjectInitializer)
+UGASAbilityStateChanneledLocked::UGASAbilityStateChanneledLocked(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	CurrentCastTime = 0;
 	CurrentPeriodCount = 0;
 }
 
-void UGASAbilityStateChanneled::Tick(float DeltaSeconds)
+void UGASAbilityStateChanneledLocked::Tick(float DeltaSeconds)
 {
 	CurrentCastTime += DeltaSeconds;
 	if (CurrentCastTime >= GetOuterAGASAbility()->PeriodLenght
@@ -29,31 +29,34 @@ void UGASAbilityStateChanneled::Tick(float DeltaSeconds)
 		ChannelFinished();
 	}
 }
+void UGASAbilityStateChanneledLocked::ChannelStarted()
+{
 
-void UGASAbilityStateChanneled::ExecuteAbility()
+}
+void UGASAbilityStateChanneledLocked::ExecuteAbility()
 {
 	GetOuterAGASAbility()->ExecuteAbility();
 
 }
 
-void UGASAbilityStateChanneled::ChannelFinished()
+void UGASAbilityStateChanneledLocked::ChannelFinished()
 {
 	GetOuterAGASAbility()->bIsCurrentlyInUse = false;
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
 	GetOuterAGASAbility()->GotoState(GetOuterAGASAbility()->CooldownState);
 }
 
-void UGASAbilityStateChanneled::BeginState(UGASAbilityState* PrevState)
+void UGASAbilityStateChanneledLocked::BeginState(UGASAbilityState* PrevState)
 {
 	GetOuterAGASAbility()->bIsCurrentlyInUse = true;
 	GetOuterAGASAbility()->AbilityCastStart();
 	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(true);
 }
-void UGASAbilityStateChanneled::EndState()
+void UGASAbilityStateChanneledLocked::EndState()
 {
 	GetOuterAGASAbility()->AbilityCastEnd();
 }
-void UGASAbilityStateChanneled::BeginActionSequence()
+void UGASAbilityStateChanneledLocked::BeginActionSequence()
 {}
-void UGASAbilityStateChanneled::EndActionSequence()
+void UGASAbilityStateChanneledLocked::EndActionSequence()
 {}
