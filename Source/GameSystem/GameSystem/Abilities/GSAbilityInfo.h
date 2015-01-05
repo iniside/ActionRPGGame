@@ -28,6 +28,24 @@ public:
 	virtual bool OnItemAddedToSlot() override;
 	virtual bool OnItemRemovedFromSlot() override;
 
+	inline const float GetCurrentCooldownTime() const
+	{
+		if (ActiveAbility)
+		{
+			return ActiveAbility->GetCurrentCooldownTime();
+		}
+		return 0;
+	}
+
+	inline const float GetCooldownTime() const
+	{
+		if (ActiveAbility)
+		{
+			return ActiveAbility->GetCooldownTime();
+		}
+		return 0;
+	}
+
 	virtual void InputPressed() override;
 	virtual void InputReleased() override;
 

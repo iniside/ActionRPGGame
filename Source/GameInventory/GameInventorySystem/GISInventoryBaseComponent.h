@@ -54,6 +54,22 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Inventory Options")
 		FGISInventoryConfig InventoryConfig;
 
+	/**
+	 *	Should this inventory execute On Item Added To Slot function ?
+	 */
+	UPROPERTY(EditAnywhere, Category = "Inventory Options")
+		bool bExecuteOnItemAddedToSlot;
+	/**
+	 *	Should this inventory execute On Item Removed From Slot function ?
+	 */
+	UPROPERTY(EditAnywhere, Category = "Inventory Options")
+		bool bExecuteOnItemRemovedFromSlot;
+
+	/**
+	 *	Should this inventory execute On Item Added To Inventory function ?
+	 */
+	UPROPERTY(EditAnywhere, Category = "Inventory Options")
+		bool bExecuteOnItemAddedToInventory;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory Options")
 		int32 MaximumActiveTabs;
@@ -378,34 +394,14 @@ public:
 
 		Prolly want to do it only on server.
 	*/
-	void CopyItemsToTargetTabFromLinkedTabs();
+
+	void CopyItemsFromOtherInventoryTab(class UGISInventoryBaseComponent* OtherIn, int32 TargetTabIndex);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerCopyItemsToTargetTabFromLinkedTabs();
+		void ServerCopyItemsFromOtherInventoryTab(class UGISInventoryBaseComponent* OtherIn, int32 TargetTabIndex);
 
-	void ChangeTabVisibility(int32 TabIndex)
-	{
-		if (Tabs.InventoryTabs[TabIndex].bIsTabVisible)
-			Tabs.InventoryTabs[TabIndex].bIsTabVisible = false;
-		else
-			Tabs.InventoryTabs[TabIndex].bIsTabVisible = true;
-
-		OnTabVisibilityChanged.ExecuteIfBound(TabIndex);
-	}
-
-	int32 GetNextTab(int32 CurrentTab)
-	{
-		return Tabs.InventoryTabs[CurrentTab].LinkedTab;
-	}
 
 	int32 CountActiveTabs();
-
-	void CycleTroughLinkedTabsChangeVisible();
-
-	void CycleTroughLinkedTabsChangeActiveVisible();
-
-	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerSCycleTroughLinkedTabsChangeActiveVisible();
 
 	/*1.
 		Hotbar creation by:
@@ -489,6 +485,7 @@ private:
 	void InitializeInventoryTabs();
 
 	int32 LastOriginTab; //last tab from which we copied items, to this tab.
+	int32 LastOtherOriginTab; //last tab from OTHER component, from which we copied items, to this component tab.
 };
 
 

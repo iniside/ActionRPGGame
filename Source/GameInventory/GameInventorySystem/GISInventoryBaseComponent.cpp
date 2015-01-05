@@ -35,6 +35,7 @@ UGISInventoryBaseComponent::UGISInventoryBaseComponent(const FObjectInitializer&
 	LootWindowVisibility = ESlateVisibility::Hidden;
 
 	LastOriginTab = INDEX_NONE;
+	LastOtherOriginTab = INDEX_NONE;
 }
 
 
@@ -611,10 +612,7 @@ void UGISInventoryBaseComponent::InitializeInventoryTabs()
 		TabInfo.NumberOfSlots = tabConf.NumberOfSlots;
 		TabInfo.TabIndex = counter;
 		TabInfo.bIsTabActive = tabConf.bIsTabActive;
-		TabInfo.bIsTabVisible = tabConf.bIsTabVisible;
 		TabInfo.ItemCount = 0;
-		TabInfo.LinkedTab = tabConf.LinkedToTab;
-		TabInfo.TargetTab = tabConf.TargetTab;
 		for (int32 Index = 0; Index < tabConf.NumberOfSlots; Index++)
 		{
 			FGISSlotInfo SlotInfo;
@@ -708,44 +706,63 @@ void UGISInventoryBaseComponent::CopyItemsToTab(int32 OriginalTab, int32 TargetT
 
 }
 
-void UGISInventoryBaseComponent::CopyItemsToTargetTabFromLinkedTabs()
+void UGISInventoryBaseComponent::CopyItemsFromOtherInventoryTab(class UGISInventoryBaseComponent* OtherIn, int32 TargetTabIndex)
 {
 	if (GetOwnerRole() < ROLE_Authority)
 	{
-		ServerCopyItemsToTargetTabFromLinkedTabs();
+		ServerCopyItemsFromOtherInventoryTab(OtherIn, TargetTabIndex);
 	}
 	else
 	{
-		int32 TabNum = Tabs.InventoryTabs.Num();
-		//int32 activeTabCount = CountActiveTabs();
-
-		//allow only for certain number of active tabs.
-		//if there are more, it means someone tried to cheat..
-		//	if (activeTabCount > MaximumActiveTabs)
-		//	return;
-
-		for (int32 Index = 0; Index < TabNum; Index++)
+		if (OtherIn)
 		{
-			if ((Tabs.InventoryTabs[Index].LinkedTab >= 0)
-				&& LastOriginTab != Index)
+			int32 OtherTabCount = OtherIn->Tabs.InventoryTabs.Num();
+
+			for (int32 TabIndex = 0; TabIndex < OtherTabCount; TabIndex++)
 			{
-				int32 NextTab = Tabs.InventoryTabs[Index].LinkedTab;
-				int32 TargetTab = Tabs.InventoryTabs[Index].TargetTab;
-				LastOriginTab = Index;
-				CopyItemsToTab(Index, TargetTab);
-				return;
+				if (LastOtherOriginTab != TabIndex)
+				{
+					LastOtherOriginTab = TabIndex;
+					int32 TargetItemCount = Tabs.InventoryTabs[TargetTabIndex].TabSlots.Num();
+					//check which item count is bigger
+					//to avoid copying into non existend array elements.
+					//we always count against smaller.
+
+					if (OtherTabCount > TargetItemCount)
+					{
+						for (int32 Index = 0; Index < TargetItemCount; Index++)
+						{
+							Tabs.InventoryTabs[TargetTabIndex].TabSlots[Index].ItemData = OtherIn->Tabs.InventoryTabs[TabIndex].TabSlots[Index].ItemData;
+						}
+					}
+					else
+					{
+						for (int32 Index = 0; Index < OtherTabCount; Index++)
+						{
+							Tabs.InventoryTabs[TargetTabIndex].TabSlots[Index].ItemData = OtherIn->Tabs.InventoryTabs[TabIndex].TabSlots[Index].ItemData;
+						}
+					}
+					TabUpdateInfo.ReplicationCounter++;
+					TabUpdateInfo.TargetTabIndex = TargetTabIndex;
+					if (GetNetMode() == ENetMode::NM_Standalone)
+						OnTabChanged.ExecuteIfBound(TabUpdateInfo.TargetTabIndex);
+					return;
+				}
 			}
 		}
 	}
 }
-void UGISInventoryBaseComponent::ServerCopyItemsToTargetTabFromLinkedTabs_Implementation()
+
+void UGISInventoryBaseComponent::ServerCopyItemsFromOtherInventoryTab_Implementation(class UGISInventoryBaseComponent* OtherIn, int32 TargetTabIndex)
 {
-	CopyItemsToTargetTabFromLinkedTabs();
+	CopyItemsFromOtherInventoryTab(OtherIn, TargetTabIndex);
 }
-bool UGISInventoryBaseComponent::ServerCopyItemsToTargetTabFromLinkedTabs_Validate()
+
+bool UGISInventoryBaseComponent::ServerCopyItemsFromOtherInventoryTab_Validate(class UGISInventoryBaseComponent* OtherIn, int32 TargetTabIndex)
 {
 	return true;
 }
+
 int32 UGISInventoryBaseComponent::CountActiveTabs()
 {
 	int32 ActiveTabsCount = 0;
@@ -756,68 +773,4 @@ int32 UGISInventoryBaseComponent::CountActiveTabs()
 	}
 
 	return ActiveTabsCount;
-}
-
-void UGISInventoryBaseComponent::CycleTroughLinkedTabsChangeVisible()
-{
-	int32 TabNum = Tabs.InventoryTabs.Num();
-	for (int32 Index = 0; Index < TabNum; Index++)
-	{
-		if (Tabs.InventoryTabs[Index].bIsTabVisible &&
-			Tabs.InventoryTabs[Index].LinkedTab >= 0)
-		{
-			int32 NextTab = Tabs.InventoryTabs[Index].LinkedTab;
-			Tabs.InventoryTabs[Index].bIsTabVisible = false;
-			OnTabVisibilityChanged.ExecuteIfBound(Index);
-			Tabs.InventoryTabs[NextTab].bIsTabVisible = true;
-			OnTabVisibilityChanged.ExecuteIfBound(NextTab);
-			return;
-		}
-	}
-}
-void UGISInventoryBaseComponent::CycleTroughLinkedTabsChangeActiveVisible()
-{
-	/*
-		If we are on client, we ask server to also change visbilit/activity on it's side.
-		In theory we could just do it on server and then OnRep_, to make change visible on client.
-
-		But right now we do it separatetly on client on server. There is possibility to get out of sync
-		though, so it need to be managed.
-	*/
-	if (GetOwnerRole() < ROLE_Authority)
-	{
-		ServerSCycleTroughLinkedTabsChangeActiveVisible();
-	}
-	int32 TabNum = Tabs.InventoryTabs.Num();
-	int32 activeTabCount = CountActiveTabs();
-
-	//allow only for certain number of active tabs.
-	//if there are more, it means someone tried to cheat..
-	if (activeTabCount > MaximumActiveTabs)
-		return;
-
-	for (int32 Index = 0; Index < TabNum; Index++)
-	{
-		if (Tabs.InventoryTabs[Index].bIsTabVisible &&
-			Tabs.InventoryTabs[Index].LinkedTab >= 0)
-		{
-			int32 NextTab = Tabs.InventoryTabs[Index].LinkedTab;
-			Tabs.InventoryTabs[Index].bIsTabVisible = false;
-			Tabs.InventoryTabs[Index].bIsTabActive = false;
-			OnTabVisibilityChanged.ExecuteIfBound(Index);
-			Tabs.InventoryTabs[NextTab].bIsTabVisible = true;
-			Tabs.InventoryTabs[NextTab].bIsTabActive = true;
-			OnTabVisibilityChanged.ExecuteIfBound(NextTab);
-			return;
-		}
-	}
-}
-
-void UGISInventoryBaseComponent::ServerSCycleTroughLinkedTabsChangeActiveVisible_Implementation()
-{
-	CycleTroughLinkedTabsChangeActiveVisible();
-}
-bool UGISInventoryBaseComponent::ServerSCycleTroughLinkedTabsChangeActiveVisible_Validate()
-{
-	return true;
 }

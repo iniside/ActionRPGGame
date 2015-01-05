@@ -6,6 +6,7 @@
 #include "GISGlobalTypes.h"
 
 #include "../GSAbility.h"
+#include "../GSAbilityInfo.h"
 #include "../GSAbilitiesComponent.h"
 
 #include "GSAbilityItemWidget.h"
@@ -18,23 +19,24 @@ UGSAbilityItemWidget::UGSAbilityItemWidget(const FObjectInitializer& ObjectIniti
 void UGSAbilityItemWidget::InitializeItem()
 {
 	AbilityComponent = Cast<UGSAbilitiesComponent>(InventoryComponent);
+	AbilityInfo = Cast<UGSAbilityInfo>(ItemData);
 }
 
 
 float const UGSAbilityItemWidget::GetCurrentCooldownTime() const
 {
-	if (AbilityComponent && AbilityComponent->ActiveAbility)
+	if (AbilityInfo)
 	{
-		return AbilityComponent->ActiveAbility->GetCurrentCooldownTime();
+		return AbilityInfo->GetCurrentCooldownTime();
 	}
 	return 0;
 }
 
 float const UGSAbilityItemWidget::GetMaxCooldownTime() const
 {
-	if (AbilityComponent && AbilityComponent->ActiveAbility)
+	if (AbilityInfo)
 	{
-		return AbilityComponent->ActiveAbility->GetCooldownTime();
+		return AbilityInfo->GetCooldownTime();
 	}
 	return 0;
 }

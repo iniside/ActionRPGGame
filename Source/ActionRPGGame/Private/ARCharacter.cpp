@@ -67,6 +67,10 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	ActionBar->SetIsReplicated(true);
 	ActionBar->SetNetAddressable();
 	
+	StaticActionBar = ObjectInitializer.CreateDefaultSubobject<UGSAbilitiesComponent>(this, TEXT("StaticActionBar"));
+	StaticActionBar->SetIsReplicated(true);
+	StaticActionBar->SetNetAddressable();
+
 	Attributes = ObjectInitializer.CreateDefaultSubobject<UGAAttributeComponent>(this, TEXT("Attributes"));
 	Attributes->SetIsReplicated(true);
 	Attributes->SetNetAddressable();
@@ -96,18 +100,6 @@ void AARCharacter::BeginPlay()
 
 }
 
-void AARCharacter::CheckIfStructReplicated()
-{
-	//if (ItemDataTest)
-	//{
-	//	UGISItemData* testData = ConstructObject<UGISItemData>(ItemDataTest, this);
-	//	UGISItemData* lololoTest = ItemDataTestPtr;
-
-	//	UARItemInfo* testItemInfo = Cast<UARItemInfo>(testData);
-
-	//	float lollo = 0;
-	//}
-}
 /** IIGAAttributes Begin */
 class UGAAttributesBase* AARCharacter::GetAttributes()
 {
@@ -208,12 +200,11 @@ void AARCharacter::ActivateAbility()
 }
 void AARCharacter::InputSwapActionBars()
 {
-	ActionBar->CopyItemsToTargetTabFromLinkedTabs();
+	ActionBar->CopyItemsFromOtherInventoryTab(StaticActionBar, 0);
+	//ActionBar->CopyItemsToTargetTabFromLinkedTabs();
 }
 void AARCharacter::ShowHideEditableHotbars()
 {
-	ActionBar->ChangeTabVisibility(1);
-	ActionBar->ChangeTabVisibility(2);
 }
 void AARCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
 {

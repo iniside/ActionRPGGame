@@ -39,6 +39,10 @@ class AARCharacter : public ACharacter, public IIGAAttributes, public IIGESEffec
 	class UGISInventoryBaseComponent* Inventory;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	class UGSAbilitiesComponent* ActionBar;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	class UGSAbilitiesComponent* StaticActionBar;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	class UGSAbilitiesComponent* AbilityBook;
 
@@ -82,9 +86,6 @@ public:
 	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
-
-	UFUNCTION(BlueprintCallable, Category = "Replication Test")
-		void CheckIfStructReplicated();
 protected:
 	/*
 		Template. Becuase creating something like 60 functions would be sooo cool!

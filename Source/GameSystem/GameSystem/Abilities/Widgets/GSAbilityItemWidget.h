@@ -13,6 +13,9 @@ public:
 	UPROPERTY()
 	class UGSAbilitiesComponent* AbilityComponent;
 
+	UPROPERTY()
+	class UGSAbilityInfo* AbilityInfo;
+
 	virtual void InitializeItem() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Ability Info")

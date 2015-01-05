@@ -50,11 +50,6 @@ void UGISContainerBaseWidget::InitializeInventory()
 					tabWidget->Initialize();
 					tabWidget->TabInfo = Tab;
 					//tabWidget->SetVisibility(ESlateVisibility::Hidden);
-					if (Tab.LinkedTab < 0)
-					{
-						tabWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-					}
-
 					for (const FGISSlotInfo& Slot : Tab.TabSlots)
 					{
 						UGISSlotBaseWidget* slotWidget = ConstructObject<UGISSlotBaseWidget>(SlotClass, this);
@@ -156,12 +151,14 @@ void UGISContainerBaseWidget::Widget_OnItemSlotSwapped(const FGISSlotSwapInfo& S
 			SlotSwapInfo.TargetSlotComponent->InventoryContainer->AddItem(SlotSwapInfo);
 		}
 	}
-	UGISContainerBaseWidget* awesomeTest = this;
-	float lolo = 10;
 }
 
 void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 {
+	//this function:
+	//1. Clearly needs to be bigger!
+	//2. Have even more if's!
+
 	UObject* Outer = GetWorld()->GetGameInstance() ? StaticCast<UObject*>(GetWorld()->GetGameInstance()) : StaticCast<UObject*>(GetWorld());
 	if (!SlotSwapInfo.LastSlotData)
 	{
@@ -246,6 +243,35 @@ void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 			targetSlotOverlay->AddChild(TargetItemWidget);
 		}
 	}
+	else
+	{
+		//construct target and last, since this is for test one will do just as well.
+		UGISItemBaseWidget* TargetItemWidget = ConstructObject<UGISItemBaseWidget>(ItemClass, Outer);
+		if (TargetItemWidget && InventoryComponent)
+		{
+			ULocalPlayer* Player = InventoryComponent->GetWorld()->GetFirstLocalPlayerFromController(); //temporary
+			TargetItemWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
+			TargetItemWidget->Initialize();
+			TargetItemWidget->ItemData = SlotSwapInfo.TargetSlotData;
+			TargetItemWidget->InventoryComponent = InventoryComponent;
+			TargetItemWidget->InitializeItem();
+			//ItemWidget->LastSlotInfo = SlotInfo;
+		}
+		FGISSlotInfo TargetSlotInfo;
+		TargetSlotInfo.CurrentInventoryComponent = SlotSwapInfo.TargetSlotComponent;
+		TargetSlotInfo.ItemData = SlotSwapInfo.TargetSlotData;
+		TargetSlotInfo.SlotIndex = SlotSwapInfo.TargetSlotIndex;
+		TargetSlotInfo.SlotTabIndex = SlotSwapInfo.TargetTabIndex;
+		InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->SlotInfo = TargetSlotInfo;
+
+		UWidget* targetSlotWidget = InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->GetWidgetFromName(DropSlottName);
+
+		UOverlay* targetSlotOverlay = Cast<UOverlay>(targetSlotWidget);
+		if (targetSlotOverlay)
+		{
+			targetSlotOverlay->AddChild(TargetItemWidget);
+		}
+	}
 }
 void UGISContainerBaseWidget::RemoveItem(const FGISSlotSwapInfo& SlotSwapInfo)
 {
@@ -310,14 +336,6 @@ void UGISContainerBaseWidget::RemoveItem(const FGISSlotSwapInfo& SlotSwapInfo)
 
 void UGISContainerBaseWidget::Widget_OnTabVisibilityChanged(int32 TabIndex)
 {
-	if (InventoryComponent->Tabs.InventoryTabs[TabIndex].bIsTabVisible)
-	{
-		InventoryTabs[TabIndex]->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	}
-	else
-	{
-		InventoryTabs[TabIndex]->SetVisibility(ESlateVisibility::Collapsed);
-	}
 }
 
 void UGISContainerBaseWidget::Widget_OnTabChanged(int32 TabIndexIn)
@@ -369,7 +387,7 @@ void UGISContainerBaseWidget::Widget_OnTabChanged(int32 TabIndexIn)
 			UOverlay* overlay = Cast<UOverlay>(superWidget);
 			if (overlay)
 			{
-				overlay->AddChild(ItemWidget);
+				overlay->AddChildToOverlay(ItemWidget);
 			}
 		}
 	}

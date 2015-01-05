@@ -124,9 +124,6 @@ public:
 		bool bIsTabActive;
 
 	UPROPERTY(BlueprintReadOnly)
-		bool bIsTabVisible;
-
-	UPROPERTY(BlueprintReadOnly)
 		bool bAcceptItemsFromDragDrop;
 
 	/*
@@ -134,10 +131,6 @@ public:
 	*/
 	UPROPERTY()
 		int32 ItemCount;
-
-	int32 LinkedTab; //multi linked, array ? cuurent link, list of possible links ?
-
-	int32 TargetTab; //you will copy items from this tab to this target tab.
 
 	UPROPERTY(BlueprintReadWrite)
 		int32 NumberOfSlots;
@@ -166,9 +159,6 @@ public:
 	UPROPERTY(EditAnywhere)
 		bool bIsTabActive;
 
-	UPROPERTY(EditAnywhere)
-		bool bIsTabVisible;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int32 NumberOfSlots;
 };
@@ -180,10 +170,6 @@ struct FGISInventoryTabConfig
 public:
 	UPROPERTY(EditAnywhere)
 		bool bIsTabActive;
-
-	UPROPERTY(EditAnywhere)
-		bool bIsTabVisible;
-
 	/*
 		To which tab this, tab is linked ? -1 to none. Otherwise specific Index of linked tab.
 		This is essentialy very simple Linked List. So you should just specify index which is next
@@ -193,14 +179,6 @@ public:
 		easier to determine which tab should be displayed after current one, if you opt, to display only
 		one at time.
 	*/
-	UPROPERTY(EditAnywhere)
-		int32 LinkedToTab;
-
-	/*
-		This is where items from this tab will be copied, unless specified otherwise.
-	*/
-	UPROPERTY(EditAnywhere)
-		int32 TargetTab;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int32 NumberOfSlots;

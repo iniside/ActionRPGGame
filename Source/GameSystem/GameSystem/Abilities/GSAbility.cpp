@@ -14,3 +14,13 @@ UGESEffect* AGSAbility::GetCachedEffect()
 {
 	return CachedEffect;
 }
+
+bool AGSAbility::CheckIfCanUseAbility()
+{
+	return true; //implement checking for attribute.
+}
+
+void AGSAbility::SubtractAttributeCost()
+{
+
+}
