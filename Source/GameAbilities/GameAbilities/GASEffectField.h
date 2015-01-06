@@ -22,7 +22,7 @@
 
 	Fields are only created on server, and then replicated back to clients.
 
-	Need custom K2 Node to properly spawn this ability!. Default SpawnActorFromClass is
+	Need custom K2 Node to properly spawn this actor!. Default SpawnActorFromClass is
 	not sufficient.
 */
 
@@ -31,6 +31,20 @@ class GAMEABILITIES_API AGASEffectField : public AActor
 {
 	GENERATED_UCLASS_BODY()
 public:
+	/**
+	 *	If false, field will exist only as long as ability is channeled.
+	 *	Otherwise specific life time.
+	 */
+	UPROPERTY(BlueprintReadOnly, meta=(ExposeOnSpawn), Category = "Config")
+		bool bIsFieldPersistent;
+	
+	/**
+	 *	How long this field will live in world ?
+	 *	Only applicable if bIsFieldPersistent = true;
+	 */
+	UPROPERTY(BlueprintReadOnly, meta = (ExposeOnSpawn), Category = "Config")
+		float Lifetime;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Owner")
 	class AGASAbility* AbilityInstigator;
 
@@ -40,4 +54,7 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Ability Field")
 		void OnAbilityExecuted();
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Ability Field")
+		void OnOtherFieldOverlap();
 };

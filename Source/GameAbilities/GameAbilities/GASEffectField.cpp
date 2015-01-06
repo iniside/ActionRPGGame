@@ -9,14 +9,21 @@
 AGASEffectField::AGASEffectField(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
-	//replicate ?
-	//or just spawn independently on each client ? and then trough delegate/RepNotify tell to destroy ?
-	//bReplicates = true; 
-	//SetReplicates(true);
+	bReplicates = true; 
+	SetReplicates(true);
 }
 
 void AGASEffectField::InitializeField()
 {
+	if (bIsFieldPersistent && AbilityInstigator)
+	{
+
+	}
+	else if (!bIsFieldPersistent && AbilityInstigator)
+	{
+		AbilityInstigator->OnAbilityCastEnd.AddUObject(this, &AGASEffectField::DestroyField);
+	}
+
 	//1. Automaticallt gather all collision componenets from blueprinted version.
 	// don't want to hardcode any kind of collision inside base class
 	// let designer decide what exactly he wants to do with it.

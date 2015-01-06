@@ -285,6 +285,13 @@ void AGASAbility::AbilityCastEnd()
 	//if (GetNetMode() == ENetMode::NM_DedicatedServer)
 	//	ClientAbilityCastingEnd();
 
+	//call only on server so, we can begin cleanup for server side spawned objects
+	//which are bound to this delegate.
+	if (Role == ROLE_Authority || GetNetMode() == ENetMode::NM_DedicatedServer)
+	{
+		OnAbilityCastEnd.Broadcast();
+	}
+
 	if (Role < ROLE_Authority || GetNetMode() == ENetMode::NM_Standalone)
 	{
 		OnAbilityCastEnd.Broadcast();
