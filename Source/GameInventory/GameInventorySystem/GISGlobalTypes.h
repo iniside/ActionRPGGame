@@ -1,5 +1,5 @@
 #pragma once
-
+#include "GameplayTagContainer.h"
 #include "GISGlobalTypes.generated.h"
 
 USTRUCT(BlueprintType)
@@ -126,6 +126,10 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 		bool bAcceptItemsFromDragDrop;
 
+	UPROPERTY()
+		FName TabName;
+
+	FGameplayTagContainer Tags;
 	/*
 		Count of actual items in this tab.
 	*/
@@ -170,15 +174,12 @@ struct FGISInventoryTabConfig
 public:
 	UPROPERTY(EditAnywhere)
 		bool bIsTabActive;
-	/*
-		To which tab this, tab is linked ? -1 to none. Otherwise specific Index of linked tab.
-		This is essentialy very simple Linked List. So you should just specify index which is next
-		to current tab. If this tab is last, just specifi index of tab which is first. Usually 0.
 
-		This linked list is used for swapping tab using hotkeys or other user defined action. It makes
-		easier to determine which tab should be displayed after current one, if you opt, to display only
-		one at time.
-	*/
+	UPROPERTY(EditAnywhere)
+		FName TabName;
+
+	UPROPERTY(EditAnywhere)
+		FGameplayTagContainer Tags;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int32 NumberOfSlots;

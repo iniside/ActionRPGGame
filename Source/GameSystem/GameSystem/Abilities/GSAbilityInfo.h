@@ -49,6 +49,8 @@ public:
 	virtual void InputPressed() override;
 	virtual void InputReleased() override;
 
+	virtual bool CanItemBeSwapped() override;
+
 	static const int32 ItemTypeID = 10;
 
 	virtual int32 GetItemTypeID() const { return UGSAbilityInfo::ItemTypeID; }

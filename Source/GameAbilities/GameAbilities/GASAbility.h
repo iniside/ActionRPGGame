@@ -169,7 +169,14 @@ protected:
 	float CurrentCastTime;
 
 	float CurrentCooldownTime;
+
+	bool bIsBeingCast;
+
+	bool bIsOnCooldown;
 public:
+
+	inline const bool GetIsBeingCast() const { return bIsBeingCast; };
+	inline const bool GetIsOnCooldown() const { return bIsOnCooldown; };
 	inline const float GetCurrentCastTime() const { return CurrentCastTime; };
 
 	inline const float GetMaxCastTime() const
@@ -191,11 +198,7 @@ protected:
 	 *	while this ability is currently being used.
 	 *	Unless someone want to launch second ability "pararel" to this one.
 	 */
-	UPROPERTY()
-		bool bIsBeingCast;
 
-	UPROPERTY()
-		bool bIsOnCooldown;
 	/*
 		Quick prototype for effect replication - Begin;
 	*/

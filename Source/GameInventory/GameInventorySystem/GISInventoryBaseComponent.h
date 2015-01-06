@@ -256,13 +256,8 @@ public:
 		void ServerPickItem(AActor* PickupItemIn);
 		
 
-	/* some changes for git.
-	Testing Function1
-	Technically you never should call this function from client, in client-server environment. NEVER
-	EVER.
-
-	It's here now just for testing. Once invetory plugin is fully operational, I will remove it.
-	and make it authority callable only.
+	/* 
+		Adds item to inventory. In Multiplayer, never call it on client.
 	*/
 	UFUNCTION(BlueprintCallable, Category="Game Inventory System")
 		virtual void AddItemToInventory(class UGISItemData* ItemIn);
@@ -313,15 +308,7 @@ public:
 		void DropItemFromInventory(const FGISItemDropInfo& DropItemInfoIn);
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerDropItemFromInventory(const FGISItemDropInfo& DropItemInfoIn);
-	/*
-		Heyyy client, would you be so nice, and update this slot with this item ? Thanks!
 
-		On more serious note, it will just call OnItemAdded delegate on client.
-
-		Actually I don't need these functions anymore.
-	*/
-	UFUNCTION(Client, Reliable)
-		void ClientUpdateInventory(const FGISSlotUpdateData& SlotUpdateInfoIn);
 
 
 	UFUNCTION(Client, Reliable)
@@ -329,9 +316,6 @@ public:
 
 	UFUNCTION(Client, Reliable)
 		void ClientLoadInventory();
-
-	UFUNCTION(Client, Reliable)
-		void ClientReconstructLootWidget();
 
 	UFUNCTION(Client, Reliable)
 		void ClientConstructWidget();
@@ -387,19 +371,26 @@ public:
 	 */
 	void CopyItemsToTab(int32 OriginalTab, int32 TargetTab);
 
-	/*
-		Takes tab, which have LinkedTab > -1
-		and TargetTab > -1
-		And then copy items from Current Linked Tab to specified TargetTab.
-
-		Prolly want to do it only on server.
-	*/
-
+	/**
+	 *	Copy items from other Inventory Tab, to this inventory tab.
+	 *	By default it will try to copy items only from single tab.
+	 *	If items from this tab were copied before, it will try to 
+	 *	copy items from next tab and so forth.
+	 *
+	 *	@param OtherIn - Other Inventory to copy from
+	 *	@param TargetTabIndex - Index of tab in this inventory to copy to.
+	 *
+	 */
 	void CopyItemsFromOtherInventoryTab(class UGISInventoryBaseComponent* OtherIn, int32 TargetTabIndex);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerCopyItemsFromOtherInventoryTab(class UGISInventoryBaseComponent* OtherIn, int32 TargetTabIndex);
 
+
+	void CopyItemsToOtherInventoryTab(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex);
+
+
+	void CopyItemsFromOtherInventoryTab(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex);
 
 	int32 CountActiveTabs();
 
@@ -484,8 +475,18 @@ public:
 private:
 	void InitializeInventoryTabs();
 
-	int32 LastOriginTab; //last tab from which we copied items, to this tab.
+	int32 LastTargetTab; //last tab from which we copied items, to this tab.
 	int32 LastOtherOriginTab; //last tab from OTHER component, from which we copied items, to this component tab.
+	UPROPERTY()
+	class UGISInventoryBaseComponent* LastOtherOriginInventory;
+public:
+	inline int32 GetLastTargetTab() { return LastTargetTab; }
+	inline int32 GetLastOtherOriginTab() { return LastOtherOriginTab; }
+	inline UGISInventoryBaseComponent* GetLastOtherOriginInventory() { return LastOtherOriginInventory; }
+
+	inline void SetLastTargetTab(int32 LastTargetTabIn) { LastTargetTab = LastTargetTabIn; }
+	inline void SetLastOtherOriginTab(int32 LastOtherOriginTabIn) { LastOtherOriginTab = LastOtherOriginTabIn; }
+	inline void SetLastOtherOriginInventory(UGISInventoryBaseComponent* LastOtherOriginInventoryIn) { LastOtherOriginInventory = LastOtherOriginInventoryIn; }
 };
 
 

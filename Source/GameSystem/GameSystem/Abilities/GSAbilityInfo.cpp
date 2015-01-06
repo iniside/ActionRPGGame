@@ -59,3 +59,15 @@ void UGSAbilityInfo::InputReleased()
 		ActiveAbility->InputReleased();
 	}
 }
+
+bool UGSAbilityInfo::CanItemBeSwapped()
+{
+	if (ActiveAbility)
+	{
+		if (ActiveAbility->GetIsBeingCast() || ActiveAbility->GetIsOnCooldown())
+		{
+			return false;
+		}
+	}
+	return true;
+}

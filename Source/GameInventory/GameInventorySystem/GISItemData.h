@@ -141,6 +141,8 @@ public:
 		But you don't need if you want to, for example just iterate over all items
 		to check what types of items are in.
 	*/
+
+	virtual bool CanItemBeSwapped() { return true; }
 	/*
 		Unique! Id of item container. 
 	*/
