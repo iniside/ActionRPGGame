@@ -2,11 +2,11 @@
 #include "SlateBasics.h"
 #include "EditorStyle.h"
 #include "K2Node.h"
-#include "K2Node_SpawnActorFromClassBase.h"
+#include "K2Node_SpawnActorFromClass.h"
 #include "BPNode_CreateEffectField.generated.h"
 
 UCLASS()
-class GAMEABILITIESEDITOR_API UBPNode_CreateEffectField : public UK2Node_SpawnActorFromClassBase
+class GAMEABILITIESEDITOR_API UBPNode_CreateEffectField : public UK2Node_SpawnActorFromClass
 {
 	GENERATED_UCLASS_BODY()
 
@@ -29,19 +29,21 @@ class GAMEABILITIESEDITOR_API UBPNode_CreateEffectField : public UK2Node_SpawnAc
 	virtual void GetMenuEntries(FGraphContextMenuBuilder& ContextMenuBuilder) const override;
 	// End UK2Node interface
 
+	UClass* GetClassToSpawn(const TArray<UEdGraphPin*>* InPinsToSearch = NULL) const;
+
 	/** See if this is a spawn variable pin, or a 'default' pin */
-	virtual bool IsSpawnVarPin(UEdGraphPin* Pin) override;
+	bool IsSpawnVarPin(UEdGraphPin* Pin);
 
 	/** Get the then output pin */
-	virtual UEdGraphPin* GetThenPin() const override;
+	UEdGraphPin* GetThenPin() const;
 	/** Get the blueprint input pin */
-	virtual UEdGraphPin* GetClassPin(const TArray<UEdGraphPin*>* InPinsToSearch = NULL) const override;
+	UEdGraphPin* GetClassPin(const TArray<UEdGraphPin*>* InPinsToSearch = NULL) const;;
 
-	virtual UEdGraphPin* GetResultPin() const override;
+	UEdGraphPin* GetResultPin() const;
 	/** Get the spawn transform input pin */
 	UEdGraphPin* GetLocationPin() const;
 
 	UEdGraphPin* GetInstigatorPin() const;
 protected:
-	virtual void OnClassPinChanged() override;
+	void OnClassPinChanged();
 };

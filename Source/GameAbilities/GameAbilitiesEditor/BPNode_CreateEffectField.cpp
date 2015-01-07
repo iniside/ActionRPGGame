@@ -14,7 +14,7 @@
 #include "BlueprintNodeSpawner.h"
 #include "EditorCategoryUtils.h"
 #include "K2ActionMenuBuilder.h"
-
+#include "BlueprintEditorUtils.h"
 #include "BPNode_CreateEffectField.h"
 
 #define LOCTEXT_NAMESPACE "GameAbilitiesEditor"
@@ -41,8 +41,11 @@ UBPNode_CreateEffectField::UBPNode_CreateEffectField(const FObjectInitializer& O
 void UBPNode_CreateEffectField::AllocateDefaultPins()
 {
 	UK2Node::AllocateDefaultPins();
+
 	const UEdGraphSchema_K2* K2Schema = GetDefault<UEdGraphSchema_K2>();
 	// Add execution pins
+	CreatePin(EGPD_Input, K2Schema->PC_Exec, TEXT(""), NULL, false, false, K2Schema->PN_Execute);
+	CreatePin(EGPD_Output, K2Schema->PC_Exec, TEXT(""), NULL, false, false, K2Schema->PN_Then);
 
 	UEdGraphPin* EffectClassPin = CreatePin(EGPD_Input, K2Schema->PC_Class, TEXT(""), AGASEffectField::StaticClass(), false, false, FUBPNode_CreateEffectFieldHelper::EffectClassPinName);
 	K2Schema->ConstructBasicPinTooltip(*EffectClassPin, LOCTEXT("EffectClassPinTooltip", "Class of Effect field to spawn"), EffectClassPin->PinToolTip);
@@ -80,16 +83,68 @@ void UBPNode_CreateEffectField::PinDefaultValueChanged(UEdGraphPin* Pin)
 		OnClassPinChanged();
 	}
 }
-void UBPNode_CreateEffectField::OnClassPinChanged()
-{
-	Super::OnClassPinChanged();
-}
 void UBPNode_CreateEffectField::PinConnectionListChanged(UEdGraphPin* Pin)
 {
 	if (Pin && (Pin->PinName == FUBPNode_CreateEffectFieldHelper::EffectClassPinName))
 	{
 		OnClassPinChanged();
 	}
+}
+
+UClass* UBPNode_CreateEffectField::GetClassToSpawn(const TArray<UEdGraphPin*>* InPinsToSearch /*=NULL*/) const
+{
+	UClass* UseSpawnClass = NULL;
+	const TArray<UEdGraphPin*>* PinsToSearch = InPinsToSearch ? InPinsToSearch : &Pins;
+
+	UEdGraphPin* ClassPin = GetClassPin(PinsToSearch);
+	if (ClassPin && ClassPin->DefaultObject != NULL && ClassPin->LinkedTo.Num() == 0)
+	{
+		UseSpawnClass = CastChecked<UClass>(ClassPin->DefaultObject);
+	}
+	else if (ClassPin && (1 == ClassPin->LinkedTo.Num()))
+	{
+		auto SourcePin = ClassPin->LinkedTo[0];
+		UseSpawnClass = SourcePin ? Cast<UClass>(SourcePin->PinType.PinSubCategoryObject.Get()) : NULL;
+	}
+
+	return UseSpawnClass;
+}
+
+void UBPNode_CreateEffectField::OnClassPinChanged()
+{
+	const UEdGraphSchema_K2* K2Schema = GetDefault<UEdGraphSchema_K2>();
+
+	// Because the archetype has changed, we break the output link as the output pin type will change
+	UEdGraphPin* ResultPin = GetResultPin();
+	ResultPin->BreakAllPinLinks();
+
+	// Remove all pins related to archetype variables
+	TArray<UEdGraphPin*> OldPins = Pins;
+	for (int32 i = 0; i < OldPins.Num(); i++)
+	{
+		UEdGraphPin* OldPin = OldPins[i];
+		if (IsSpawnVarPin(OldPin))
+		{
+			OldPin->BreakAllPinLinks();
+			Pins.Remove(OldPin);
+		}
+	}
+
+	CachedNodeTitle.MarkDirty();
+
+	UClass* UseSpawnClass = GetClassToSpawn();
+	if (UseSpawnClass != NULL)
+	{
+		CreatePinsForClass(UseSpawnClass);
+	}
+	K2Schema->ConstructBasicPinTooltip(*ResultPin, LOCTEXT("ResultPinDescription", "The spawned Actor"), ResultPin->PinToolTip);
+
+	// Refresh the UI for the graph so the pin changes show up
+	UEdGraph* Graph = GetGraph();
+	Graph->NotifyGraphChanged();
+
+	// Mark dirty
+	FBlueprintEditorUtils::MarkBlueprintAsModified(GetBlueprint());
 }
 
 FLinearColor UBPNode_CreateEffectField::GetNodeTitleColor() const
