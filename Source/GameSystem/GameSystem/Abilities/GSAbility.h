@@ -1,16 +1,16 @@
 #pragma once
 #include "GASAbility.h"
 
+#include "../Cues/GSCueTypes.h"
+#include "../Cues/IGSCue.h"
+
 #include "GAGlobalTypes.h"
 
 #include "IGESEffectManager.h"
 #include "GSAbility.generated.h"
-/*
-	Could be UObject, replicated trough component.
-	But is it worth fuss ?
-*/
-UCLASS(BlueprintType, Blueprintable, DefaultToInstanced)
-class GAMESYSTEM_API AGSAbility : public AGASAbility, public IIGESEffectManager
+
+UCLASS(BlueprintType, Blueprintable)
+class GAMESYSTEM_API AGSAbility : public AGASAbility, public IIGESEffectManager, public IIGSCue
 {
 	GENERATED_UCLASS_BODY()
 public:
@@ -27,6 +27,19 @@ private:
 
 public:
 	virtual bool CheckIfCanUseAbility() override;
+
+	FGSOnCueActionStarted OnCueActionStarted;
+	FGSOnCueActionEnded OnCueActionEnded;
+
+	/** IIGSCue overrides */
+	virtual FGSOnCueActionStarted& GetOnCueActionStarted() override { return OnCueActionStarted; };
+	virtual FGSOnCueActionEnded& GetOnCueActionEnded() override { return OnCueActionEnded; };
+	/** IIGSCue overrides */
+
+	/** AGASAbility overrides */
+	virtual void OnRep_CastEnded() override;
+	virtual void OnRep_CastStarted() override;
+	/** AGASAbility overrides */
 
 protected:
 	/**

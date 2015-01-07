@@ -24,3 +24,14 @@ void AGSAbility::SubtractAttributeCost()
 {
 
 }
+void AGSAbility::OnRep_CastStarted()
+{
+	Super::OnRep_CastStarted();
+	OnCueActionStarted.Broadcast();
+}
+void AGSAbility::OnRep_CastEnded()
+{
+	Super::OnRep_CastEnded();
+	OnCueActionEnded.Broadcast();
+}
+

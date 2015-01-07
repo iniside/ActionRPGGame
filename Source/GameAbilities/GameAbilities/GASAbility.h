@@ -202,10 +202,6 @@ protected:
 	/*
 		Quick prototype for effect replication - Begin;
 	*/
-	UPROPERTY(ReplicatedUsing=OnRep_CueRep, RepRetry)
-		FGASCueReplication CueReplication;
-	UFUNCTION()
-		void OnRep_CueRep();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual Cues")
 		UParticleSystem* ParticleEffect;
@@ -226,29 +222,30 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_CastStarted)
 		int8 AbilityCastStarted;
 	UFUNCTION()
-		void OnRep_CastStarted();
+		virtual void OnRep_CastStarted();
 
 	UPROPERTY(ReplicatedUsing = OnRep_CastEnded)
 		int8 AbilityCastEnded;
 	UFUNCTION()
-		void OnRep_CastEnded();
+		virtual void OnRep_CastEnded();
 
 	UPROPERTY(ReplicatedUsing = OnRep_PreparationStarted)
 		int8 PreparationStarted;
 	UFUNCTION()
-		void OnRep_PreparationStarted();
+		virtual void OnRep_PreparationStarted();
 
 	UPROPERTY(ReplicatedUsing = OnRep_PreparationEnded)
 		int8 PreparationEnd;
 	UFUNCTION()
-		void OnRep_PreparationEnded();
+		virtual void OnRep_PreparationEnded();
 
 	UPROPERTY(ReplicatedUsing = OnRep_AbilityHitInfo, RepRetry, BlueprintReadOnly, Category ="Hit Info")
 		FGASAbilityHitInfo AbilityHitInfo;
 	UFUNCTION()
-		void OnRep_AbilityHitInfo();
+		virtual void OnRep_AbilityHitInfo();
 
-
+	UPROPERTY(BlueprintReadOnly, Category = "Hit Info")
+		FVector OriginLocation;
 //delegates:
 public:
 	FGASOnAbilityCastStart OnAbilityCastStart;

@@ -5,6 +5,11 @@
 #include "K2Node_ConstructObjectFromClass.h"
 #include "BPNode_CreateEffect.generated.h"
 
+
+/*
+	Update node to also apply effect.
+*/
+
 UCLASS()
 class GAMEEFFECTSYSTEMEDITOR_API UBPNode_CreateEffect : public UK2Node_ConstructObjectFromClass
 {

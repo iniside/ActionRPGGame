@@ -42,7 +42,7 @@ void AGASPersistentEffectCue::BindPreparationDelegates()
 
 void AGASPersistentEffectCue::ExecuteEffect()
 {
-
+	OnEffectExecuted();
 }
 
 void AGASPersistentEffectCue::DestroyEffectCue()

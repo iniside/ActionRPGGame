@@ -23,19 +23,6 @@ void UGTTrace_GroundBox::Tick(float DeltaSecondsIn)
 		aimRot.Pitch = 0;
 		DisplayHelper->SetActorRotation(aimRot);
 	}
-	//if (bDrawDebug)
-	//{
-	//	if ((TraceInterface && TraceInterface->GetPawn())
-	//		&& (TraceInterface->GetPawn()->Role < ROLE_Authority
-	//		|| TraceInterface->GetPawn()->GetNetMode() == ENetMode::NM_Standalone))
-	//	{
-	//		FRotator aimRot = TraceInterface->GetPawn()->GetActorRotation();
-	//		FVector Location = GetSingHitLocation();
-	//		Location.Z += BoxSize.Z;
-	//		aimRot.Pitch = 0;
-	//		DrawDebugBox(GetWorld(), Location, BoxSize, FQuat(aimRot), FColor::Red, true, 0.1f, 0);
-	//	}
-	//}
 }
 
 void UGTTrace_GroundBox::Initialize()
