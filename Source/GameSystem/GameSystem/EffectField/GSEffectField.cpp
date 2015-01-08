@@ -36,7 +36,7 @@ void AGSEffectField::Tick(float DeltaSeconds)
 	//live until manually removed from world.
 	if ((LifeTime > 0) && (CurrentLifetime > LifeTime))
 	{
-		//destroy
+		DestroyField();
 	}
 	for (auto It = OverlapingActors.CreateIterator(); It; ++It)
 	{
@@ -50,36 +50,46 @@ void AGSEffectField::PreInitializeComponents()
 	if (!RootComponent)
 		return;
 
-	UBoxComponent* BoxComp = Cast<UBoxComponent>(RootComponent);
-	if (BoxComp)
+	if (!FieldSize.IsZero())
 	{
-		//BoxComp->InitBoxExtent(FieldSize);
-		BoxComp->SetBoxExtent(FieldSize);
+		UBoxComponent* BoxComp = Cast<UBoxComponent>(RootComponent);
+		if (BoxComp)
+		{
+			//BoxComp->InitBoxExtent(FieldSize);
+			BoxComp->SetBoxExtent(FieldSize);
 
-	}
-	else if (USphereComponent* SphereComp = Cast<USphereComponent>(RootComponent))
-	{
-		if (FieldSize.X > 0)
-		{
-			SphereComp->SetSphereRadius(FieldSize.X);
 		}
-		else if (FieldSize.Y > 0)
+		else if (USphereComponent* SphereComp = Cast<USphereComponent>(RootComponent))
 		{
-			SphereComp->SetSphereRadius(FieldSize.X);
+			if (FieldSize.X > 0)
+			{
+				SphereComp->SetSphereRadius(FieldSize.X);
+			}
+			else if (FieldSize.Y > 0)
+			{
+				SphereComp->SetSphereRadius(FieldSize.X);
+			}
+			else if (FieldSize.Z > 0)
+			{
+				SphereComp->SetSphereRadius(FieldSize.X);
+			}
 		}
-		else if (FieldSize.Z > 0)
+		else if (UCapsuleComponent* CapsuleComp = Cast<UCapsuleComponent>(RootComponent))
 		{
-			SphereComp->SetSphereRadius(FieldSize.X);
+			CapsuleComp->SetCapsuleSize(FieldSize.X, FieldSize.Y);
 		}
-	}
-	else if (UCapsuleComponent* CapsuleComp = Cast<UCapsuleComponent>(RootComponent))
-	{
-		CapsuleComp->SetCapsuleSize(FieldSize.X, FieldSize.Y);
 	}
 	FVector ActorLocation = GetActorLocation();
 	ActorLocation.Z += FieldSize.Z;
 	RootComponent->SetRelativeLocation(ActorLocation);
 }
+
+void AGSEffectField::BeginDestroy()
+{
+	FieldInt = nullptr;
+	Super::BeginDestroy();
+}
+
 void AGSEffectField::InitializeEffectField()
 {		
 	OverlapingActors.Empty();
@@ -101,6 +111,16 @@ void AGSEffectField::InitializeEffectField()
 
 		//permament fields probabaly don't need to tick, if they do, enable it explictly.
 	}
+}
+
+void AGSEffectField::DestroyField()
+{
+
+}
+
+void AGSEffectField::BP_DestroyField()
+{
+	DestroyField();
 }
 
 void AGSEffectField::OnFieldHit(class AActor* OtherActor, class UPrimitiveComponent* HitComponent, class UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -153,6 +173,11 @@ class UGAAttributesBase* AGSEffectField::GetAttributes()
 class UGAAttributeComponent* AGSEffectField::GetAttributeComponent()
 {
 	return Attributes;
+}
+
+void AGSEffectField::Died()
+{
+	DestroyField();
 }
 
 void AGSEffectField::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const

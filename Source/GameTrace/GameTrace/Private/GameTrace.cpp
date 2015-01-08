@@ -16,7 +16,7 @@ IMPLEMENT_MODULE( FGameTrace, GameTrace )
 
 
 void FGameTrace::StartupModule()
-{
+{	
 	// This code will execute after your module is loaded into memory (but after global variables are initialized, of course.)
 }
 

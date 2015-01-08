@@ -16,4 +16,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System", meta = (UnsafeDuringActorConstruction = "true", BlueprintInternalUseOnly = "true"))
 		static class AGSEffectField* FinishCreateEffectField(class AGSEffectField* EffectField);
+
+
+	UFUNCTION(BlueprintCallable, Category = "Game Ability System", meta = (UnsafeDuringActorConstruction = "true", BlueprintInternalUseOnly = "true"))
+		static class AGSPersistentCue* BeginSpawnCueActor(TSubclassOf<class AGSPersistentCue> CueActorClass
+		, const FVector& Location
+		, class AActor* CueInstigator);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Ability System", meta = (UnsafeDuringActorConstruction = "true", BlueprintInternalUseOnly = "true"))
+		static class AGSPersistentCue* FinishSpawnCueActor(class AGSPersistentCue* EffectField);
 };

@@ -3,16 +3,13 @@
 #include "GameplayTagsModule.h"
 #include "IGameEffectSystemEditor.h"
 #include "IGameAttributesEditor.h"
-
+//#include "ISocketNameCustomization.h"
 class FActionRPGGameEditor : public IModuleInterface
 {
 	virtual void StartupModule() override
 	{
+		//ISocketNameCustomization::Get();
 		//because for some reason this module refuses to load automatically 0o.
-		IGameAttributesEditor::Get();
-		//and this too.
-		IGameEffectSystemEditor::Get();
-		IGameplayTagsModule::Get();
 	}
 
 	virtual void ShutdownModule() override

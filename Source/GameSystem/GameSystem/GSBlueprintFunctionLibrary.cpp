@@ -28,7 +28,7 @@ class AGSEffectField* UGSBlueprintFunctionLibrary::BeginCreateEffectField(TSubcl
 		Rotation = FieldInstigator->GetActorRotation();
 		Rotation.Pitch = 0;
 		effectField = FieldInstigator->GetWorld()->SpawnActorDeferred<AGSEffectField>(EffectFieldClass,
-			Location, Rotation, FieldInstigator, nullptr, true); //change to get pawn
+			Location, Rotation, FieldInstigator, FieldInstigator->Instigator, true); //change to get pawn
 		if (effectField)
 		{
 			effectField->EffectFieldInstigator = FieldInstigator;
@@ -46,6 +46,41 @@ class AGSEffectField* UGSBlueprintFunctionLibrary::FinishCreateEffectField(class
 		FTransform Trans;
 		EffectField->FinishSpawning(Trans);
 		EffectField->InitializeEffectField();
+	}
+	return EffectField;
+}
+
+
+class AGSPersistentCue* UGSBlueprintFunctionLibrary::BeginSpawnCueActor(TSubclassOf<class AGSPersistentCue> CueActorClass
+	, const FVector& Location
+	, class AActor* CueInstigator)
+{
+	AGSPersistentCue* effectField = nullptr;
+
+	if (CueInstigator)
+	{
+		FRotator Rotation = FRotator::ZeroRotator;
+		Rotation = CueInstigator->GetActorRotation();
+		Rotation.Pitch = 0;
+		effectField = CueInstigator->GetWorld()->SpawnActorDeferred<AGSPersistentCue>(CueActorClass,
+			Location, Rotation, CueInstigator, CueInstigator->Instigator, true); //change to get pawn
+		if (effectField)
+		{
+			effectField->CueInstigator = CueInstigator;
+		}
+	}
+
+	return effectField;
+}
+
+
+class AGSPersistentCue* UGSBlueprintFunctionLibrary::FinishSpawnCueActor(class AGSPersistentCue* EffectField)
+{
+	if (EffectField)
+	{
+		FTransform Trans;
+		EffectField->FinishSpawning(Trans);
+		EffectField->InitializeCue();
 	}
 	return EffectField;
 }

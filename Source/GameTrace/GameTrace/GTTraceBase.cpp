@@ -50,6 +50,26 @@ void UGTTraceBase::SingleLineTrace()
 	TraceInterface->SetTargetData(TargetData);
 	//GetOuterAGASAbility()->TargetData.Add(Impact);
 }
+
+void UGTTraceBase::SingleLineTraceSetHitLocation()
+{
+	const FVector ShootDir = GetPawnCameraAim();
+	if (bTraceFromSocket)
+	{
+		const FVector StartTrace = GetStartLocationFromSocket();
+		const FVector EndTrace = (GetStartLocationFromSocket() + ShootDir * Range);
+		const FHitResult Impact = SingleLineRangedTrace(StartTrace, EndTrace);
+		TraceInterface->SetHitLocation(StartTrace, Impact.Location, Impact.Actor.Get());
+	}
+	else
+	{
+		const FVector StartTrace = GetPawnCameraDamageStartLocation(ShootDir);
+		const FVector EndTrace = (StartTrace + ShootDir * Range);
+		const FHitResult Impact = SingleLineRangedTrace(StartTrace, EndTrace);
+		TraceInterface->SetHitLocation(StartTrace, Impact.Location, Impact.Actor.Get());
+	}
+}
+
 FVector UGTTraceBase::GetSingHitLocation()
 {
 	FHitResult Impact;

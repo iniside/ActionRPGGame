@@ -20,6 +20,7 @@ AGASAbility::AGASAbility(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
 	bReplicates = true;
+	bUpdateHitLocationEveryFrame = false;
 	SetReplicates(true);
 	iSocket = nullptr;
 	CurrentCastTime = 0;
@@ -46,6 +47,11 @@ void AGASAbility::Tick(float DeltaSeconds)
 	*/
 	if (Targeting)
 		Targeting->Tick(DeltaSeconds);
+
+	if (bUpdateHitLocationEveryFrame)
+	{
+		Targeting->SingleLineTraceSetHitLocation();
+	}
 }
 void AGASAbility::BeginDestroy()
 {
@@ -57,6 +63,7 @@ void AGASAbility::BeginPlay()
 	Super::BeginPlay();
 	PrimaryActorTick.RegisterTickFunction(GetLevel());
 	CurrentState = ActiveState;
+
 	if (Targeting)
 		Targeting->Initialize();
 }
@@ -290,7 +297,7 @@ void AGASAbility::AbilityCastEnd()
 	{
 		OnRep_CastEnded();
 		//OnAbilityCastEnd.Broadcast();
-		OnAbilityCastEnded();
+		//OnAbilityCastEnded();
 	}
 }
 
@@ -331,8 +338,8 @@ void AGASAbility::SetAbilityHitInfo(const FVector& Origin, const FVector& HitLoc
 	AbilityHitInfo.Origin = Origin;
 	AbilityHitInfo.HitLocation = HitLocation;
 	AbilityHitInfo.HitActor = HitTarget;
-	//if (Role < ROLE_Authority || GetNetMode() == ENetMode::NM_Standalone)
-	//	OnAbilityHit(AbilityHitInfo.Origin, AbilityHitInfo.HitLocation, AbilityHitInfo.HitActor);
+	if (Role < ROLE_Authority || GetNetMode() == ENetMode::NM_Standalone)
+		OnAbilityHit(AbilityHitInfo.Origin, AbilityHitInfo.HitLocation, AbilityHitInfo.HitActor);
 }
 void AGASAbility::ClientAbilityCastingEnd_Implementation()
 {

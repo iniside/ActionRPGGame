@@ -26,16 +26,19 @@ public class ActionRPGGameEditor : ModuleRules
             "GameInventorySystem",
             "GameInventorySystemEditor",
             "GameAttributes",
-          //"GameAttributesEditor",
+            "GameAttributesEditor",
             "GameEffectSystem",
             "GameEffectSystemEditor",
             "GameplayTags",
             "GameplayAbilitiesEditor",
+            "GameTrace",
+            "GameTraceEditor",
             "AssetTools",
             "GameplayTags",
             "GameplayTagsEditor",
             "GameplayTags",
-            "AssetTools"
+            "AssetTools",
+            
 		});
         PrivateDependencyModuleNames.AddRange(new string[] 
 		{

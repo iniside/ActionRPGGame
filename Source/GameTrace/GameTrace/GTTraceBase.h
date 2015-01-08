@@ -1,6 +1,6 @@
 #pragma once
 #include "GameTrace.h"
-
+#include "GTGlobalTypes.h"
 #include "GTTraceBase.generated.h"
 /*
 	This actually could be moved into separate module ? I know i might need something
@@ -35,7 +35,6 @@ public:
 
 		Otherwise not really useful.
 	*/
-
 	/*
 		I have yet to determine best way of aquiring skeletal mesh, from which I want to get socket
 		location.
@@ -83,6 +82,8 @@ public:
 	virtual void Tick(float DeltaSecondsIn);
 
 	void SingleLineTrace();
+
+	void SingleLineTraceSetHitLocation();
 
 	FVector GetSingHitLocation();
 

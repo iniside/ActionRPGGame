@@ -1,5 +1,6 @@
 #pragma once
 #include "IGTTrace.h"
+#include "GTGlobalTypes.h"
 #include "GTTraceBase.h"
 #include "GASAbility.generated.h"
 
@@ -128,6 +129,15 @@ public:
 		pressed)
 	*/
 protected:
+	/**
+	 *	If true, AbilityHitInfo will be updated every frame.
+	 *
+	 *	Useful for effects, which needs to update position as often as possible,
+	 *	like beam.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Config")
+		bool bUpdateHitLocationEveryFrame;
+
 	/**
 	 *	Cast time for this ability. How long it will take after pressing input
 	 *	to execute ability.

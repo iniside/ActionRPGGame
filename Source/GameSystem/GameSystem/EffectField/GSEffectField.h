@@ -29,6 +29,8 @@ class GAMESYSTEM_API AGSEffectField : public AActor, public IGameplayTagAssetInt
 
 	virtual void PreInitializeComponents() override;
 
+	virtual void BeginDestroy() override;
+
 	/*
 		Needs way to dynamically update life time, when CueInstigator life time changes.
 		For example channeled ability has extended duration during casting,
@@ -58,6 +60,7 @@ class GAMESYSTEM_API AGSEffectField : public AActor, public IGameplayTagAssetInt
 	 *	1. Box - normal rules applu.
 	 *	2. Sphere - first non-zero value is considered radius (best to put it in X);
 	 *	3. Cylinder - X Radius, Y - Height.
+	 *	4. If nothing specified, it will use default size defined in blueprint.
 	 */
 	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn), Category = "Info")
 		FVector FieldSize;
@@ -92,6 +95,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game System|Effect Field") //temporary for testing.
 		virtual void InitializeEffectField();
 
+	virtual void DestroyField();
+
+	/*
+		Destroys this field. Call it if you expclitly need to destroy field.
+	*/
+	UFUNCTION(BlueprintCallable, meta=(FriendlyName="Destroy Field"), Category = "Game System|Effect Field")
+		void BP_DestroyField();
+
 	UFUNCTION()
 		void OnFieldHit(class AActor* OtherActor, class UPrimitiveComponent* HitComponent, class UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
@@ -107,7 +118,11 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnActorHit(AActor* HitActor);
 
-	void OnOtherFieldOverlap(AGSEffectField* OtherField);
+	/*
+		If override this don't forget to call Super::OnOtherFieldOverlap
+		at the END of function, or manually call BP_OnOtherFieldOverlap
+	*/
+	virtual void OnOtherFieldOverlap(AGSEffectField* OtherField);
 
 	UFUNCTION(BlueprintImplementableEvent, meta = (FriendlyName="OnOtherFieldOverlap"))
 	void BP_OnOtherFieldOverlap(AGSEffectField* OtherField);
@@ -115,6 +130,7 @@ public:
 	/** IIIGAAttributes overrides */
 	virtual class UGAAttributesBase* GetAttributes() override;
 	virtual class UGAAttributeComponent* GetAttributeComponent() override;
+	virtual void Died() override;
 	/* IIIGAAttributes overrides **/
 
 	/** IGameplayTagAssetInterface overrides */

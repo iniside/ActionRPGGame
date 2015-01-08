@@ -29,7 +29,6 @@ namespace UnrealBuildTool.Rules
 					"Core",
                     "Engine",
                     "CoreUObject",
-                    "GameAbilities",
                     "UnrealEd",
                     "BlueprintGraph",
                     "GraphEditor",
@@ -41,7 +40,10 @@ namespace UnrealBuildTool.Rules
                     "KismetCompiler",
                     "AssetTools",
                     "MainFrame",
-                    "InputCore"
+                    "InputCore",
+                    "GameAbilities",
+                    "GameTrace",
+                    "GameTraceEditor"
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);
