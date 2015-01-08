@@ -1,8 +1,14 @@
 #pragma once
 #include "GameplayTagContainer.h"
 #include "GameplayTagAssetInterface.h"
-#include "GSEffectField.generated.h"
 
+#include "IGAAttributes.h"
+
+#include "GSEffectField.generated.h"
+/*
+	Need to add attribute component for this actor. We want it to
+	have attributes like Health, so we can destroy this actor.
+*/
 /*
 	Very similiar to effect cue, with main difference, that this actor can live indepndetly of
 	it's instigator. Instigator just spawn field in world, and from that point on it will
@@ -12,10 +18,12 @@
 */
 
 UCLASS(BlueprintType, Blueprintable)
-class GAMESYSTEM_API AGSEffectField : public AActor, public IGameplayTagAssetInterface
+class GAMESYSTEM_API AGSEffectField : public AActor, public IGameplayTagAssetInterface, public IIGAAttributes
 {
 	GENERATED_UCLASS_BODY()
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes")
+	class UGAAttributeComponent* Attributes;
 
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -33,6 +41,11 @@ class GAMESYSTEM_API AGSEffectField : public AActor, public IGameplayTagAssetInt
 	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn), Category = "Info")
 		float LifeTime;
 
+	/**
+	 *	Is this field going to live infinite amount of time ?
+	 */
+	UPROPERTY(BlueprintReadOnly, meta = (ExposeOnSpawn), Category = "Info")
+		bool bIsInfinite;
 	/**
 	 *	Maximum amount of actors this field can affect at the same time.
 	 *	First come, first serve.
@@ -99,15 +112,17 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, meta = (FriendlyName="OnOtherFieldOverlap"))
 	void BP_OnOtherFieldOverlap(AGSEffectField* OtherField);
 
+	/** IIIGAAttributes overrides */
+	virtual class UGAAttributesBase* GetAttributes() override;
+	virtual class UGAAttributeComponent* GetAttributeComponent() override;
+	/* IIIGAAttributes overrides **/
+
 	/** IGameplayTagAssetInterface overrides */
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
-	
 	virtual bool HasMatchingGameplayTag(FGameplayTag TagToCheck) const override;
-
 	virtual bool HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer, bool bCountEmptyAsMatch = true) const override;
-	
 	virtual bool HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer, bool bCountEmptyAsMatch = true) const override;
-	/** IGameplayTagAssetInterface overrides */
+	/* IGameplayTagAssetInterface overrides **/
 private:
 	class IIGSEffectField* FieldInt;
 	int32 OverlapingActorCount;

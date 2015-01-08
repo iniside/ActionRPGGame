@@ -12,6 +12,13 @@ class GAMEATTRIBUTES_API UGAAttributeComponent : public UActorComponent
 	GENERATED_UCLASS_BODY()
 public:
 	/*
+		Set attribute which will be considered for indicating whether or not actor is dead.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Config")
+		FGAAttribute DeathAttribute;
+
+
+	/*
 		Temprorary hack. Direct inline spawning of object on ActorComponents doesn't work!
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, meta=(ExposedOnSpawn))
@@ -70,6 +77,8 @@ public:
 	*/
 	virtual bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags) override;
 	virtual void GetSubobjectsWithStableNamesForNetworking(TArray<UObject*>& Objs) override;
+private:
+	class IIGAAttributes* AttributeInterface;
 };
 
 

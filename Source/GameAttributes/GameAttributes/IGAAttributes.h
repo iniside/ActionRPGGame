@@ -18,4 +18,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 		virtual class UGAAttributeComponent* GetAttributeComponent() = 0;
+
+
+	virtual void Died() {};
 };

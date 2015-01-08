@@ -5,6 +5,8 @@
 #include "IGAAttributes.h"
 #include "IGSEffectField.h"
 
+#include "GAAttributeComponent.h"
+
 #include "GSEffectField.h"
 
 AGSEffectField::AGSEffectField(const FObjectInitializer& ObjectInitializer)
@@ -15,6 +17,8 @@ AGSEffectField::AGSEffectField(const FObjectInitializer& ObjectInitializer)
 
 	//since there is possibility that there are quite a few of these actors at once in world
 	//I probabaly should tick them by default..
+
+	Attributes = ObjectInitializer.CreateDefaultSubobject<UGAAttributeComponent>(this, TEXT("Attributes"));
 
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
@@ -94,6 +98,8 @@ void AGSEffectField::InitializeEffectField()
 	if (LifeTime > 0)
 	{
 		SetActorTickEnabled(true); //effect life is above 0 so we probabaly want to tick it anyway.
+
+		//permament fields probabaly don't need to tick, if they do, enable it explictly.
 	}
 }
 
@@ -139,6 +145,15 @@ void AGSEffectField::OnOtherFieldOverlap(AGSEffectField* OtherField)
 	BP_OnOtherFieldOverlap(OtherField);
 }
 
+class UGAAttributesBase* AGSEffectField::GetAttributes()
+{
+	return Attributes->DefaultAttributes;
+}
+
+class UGAAttributeComponent* AGSEffectField::GetAttributeComponent()
+{
+	return Attributes;
+}
 
 void AGSEffectField::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {

@@ -14,19 +14,21 @@ AARPlayerController::AARPlayerController(const FObjectInitializer& ObjectInitial
 //{
 //	Super::PreInitializeComponents();
 //}
-//void AARPlayerController::BeginPlay()
-//{
-//	Super::BeginPlay();
-//	//FCTIndicator->PCOwner = this;
-//	AARCharacter* MyChar = Cast<AARCharacter>(GetPawn());
-//	if (Role = ROLE_Authority)
-//	{
-//		if (MyChar && !MyChar->GetAttributeComponent()->OnAttributeModifed.IsBound())
-//		{
-//			MyChar->GetAttributeComponent()->OnAttributeModifed.AddDynamic(this, &AARPlayerController::OnRecivedModifiedAttribute);
-//		}
-//	}
-//}
+void AARPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+	if (GetNetMode() == ENetMode::NM_Standalone)
+	{
+		AARCharacter* MyChar = Cast<AARCharacter>(GetPawn());
+		if (Role = ROLE_Authority)
+		{
+			if (MyChar && !MyChar->GetAttributeComponent()->OnAttributeModifed.IsBound())
+			{
+				MyChar->GetAttributeComponent()->OnAttributeModifed.AddDynamic(this, &AARPlayerController::OnRecivedModifiedAttribute);
+			}
+		}
+	}
+}
 //
 void AARPlayerController::OnRep_Pawn()
 {

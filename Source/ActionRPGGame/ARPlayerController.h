@@ -12,7 +12,7 @@ class ACTIONRPGGAME_API AARPlayerController : public AGSPlayerController
 {
 	GENERATED_UCLASS_BODY()
 public:
-//	virtual void BeginPlay() override;
+	virtual void BeginPlay() override;
 	virtual void OnRep_Pawn() override;
 
 	UFUNCTION()

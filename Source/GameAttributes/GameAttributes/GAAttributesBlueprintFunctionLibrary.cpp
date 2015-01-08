@@ -76,7 +76,7 @@ void UGAAttributesBlueprintFunctionLibrary::ModifyAttributes(TArray<FGAAttribute
 	for (FGAAttributeModifier& attributeMod : AttributesIn)
 	{
 		IIGAAttributes* instAttr = Cast<IIGAAttributes>(attributeMod.Instigator.Get());
-		IIGAAttributes* targetAttr = Cast<IIGAAttributes>(attributeMod.Target.Get());
+		IIGAAttributes* targetAttr = Cast<IIGAAttributes>(attributeMod.HitTarget.Actor.Get());
 		if (!instAttr || !targetAttr)
 		{
 			return;

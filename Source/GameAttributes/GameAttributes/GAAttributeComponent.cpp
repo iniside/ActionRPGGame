@@ -3,6 +3,8 @@
 #include "GameAttributes.h"
 #include "GAAttributesBase.h"
 
+#include "IGAAttributes.h"
+
 #include "Mods/GAAttributeMod.h"
 
 #include "Net/UnrealNetwork.h"
@@ -23,7 +25,7 @@ UGAAttributeComponent::UGAAttributeComponent(const FObjectInitializer& ObjectIni
 void UGAAttributeComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
-
+	AttributeInterface = Cast<IIGAAttributes>(GetOwner());
 	if (DefaultAttributesClass)
 	{
 		DefaultAttributes = ConstructObject<UGAAttributesBase>(DefaultAttributesClass, this);
@@ -45,16 +47,24 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(UGAAttributeComponent* Causer
 
 	//apply final value to attribute.
 	//after we appiled
-
 	ENetRole role = GetOwnerRole();
 
 	OnAttributeIncoming.Broadcast(AttributeIn, AttributeIn);
 	float newValue = DefaultAttributes->AttributeOperation(AttributeIn.Attribute, AttributeIn.Value, AttributeIn.Operation);
 	DefaultAttributes->SetFloatValue(AttributeIn.Attribute, newValue);
 
+	//check if if this actor is dead.
+	if (DefaultAttributes->GetFloatValue(DeathAttribute) <= 0)
+	{
+		if (AttributeInterface)
+		{
+			AttributeInterface->Died();
+		}
+	}
+
 	ModifiedAttribute.Attribute = AttributeIn.Attribute;
 	ModifiedAttribute.InstigatorLocation = AttributeIn.Instigator->GetActorLocation();
-	ModifiedAttribute.TargetLocation = AttributeIn.HitLocation; //AttributeIn.Target->GetActorLocation();
+	ModifiedAttribute.TargetLocation = AttributeIn.HitTarget.Location; //AttributeIn.Target->GetActorLocation();
 	ModifiedAttribute.ModifiedByValue = AttributeIn.Value;
 	ModifiedAttribute.Tags = AttributeIn.Tags;
 	ModifiedAttribute.ReplicationCounter += 1;

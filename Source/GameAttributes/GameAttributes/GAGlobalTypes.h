@@ -39,16 +39,13 @@ struct GAMEATTRIBUTES_API FGAAttributeModifier
 	GENERATED_USTRUCT_BODY()
 public:
 	UPROPERTY(BlueprintReadWrite, Category = "Mod")
-		TWeakObjectPtr<AActor> Target;
+		FHitResult HitTarget;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Mod")
 		TWeakObjectPtr<AActor> Instigator;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
 		FGAAttribute Attribute;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
-		FVector HitLocation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
 		float Value;
