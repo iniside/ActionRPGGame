@@ -44,7 +44,7 @@ public:
 	*	@param Attributes - Attributes to change.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
-		static void AttributesOperation(TArray<FGAAttributeModifier> AttributesIn);
+		static void AttributesOperation(TArray<FGAAttributeModSelf> AttributesIn);
 
 	/**
 	*	Takes array attributes, change them;

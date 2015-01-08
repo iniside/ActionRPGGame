@@ -53,9 +53,9 @@ float UGAAttributesBlueprintFunctionLibrary::ChangeAttribute(AActor* Target, FGA
 	return newValue;
 }
 
-void UGAAttributesBlueprintFunctionLibrary::AttributesOperation(TArray<FGAAttributeModifier> AttributesIn)
+void UGAAttributesBlueprintFunctionLibrary::AttributesOperation(TArray<FGAAttributeModSelf> AttributesIn)
 {
-	for (const FGAAttributeModifier& attributeMod : AttributesIn)
+	for (const FGAAttributeModSelf& attributeMod : AttributesIn)
 	{
 		IIGAAttributes* attributeInt = Cast<IIGAAttributes>(attributeMod.Target.Get());
 		if (!attributeInt)

@@ -65,6 +65,35 @@ public:
 		Operation = EGAAttributeOp::Add;
 	};
 };
+USTRUCT(BlueprintType)
+struct GAMEATTRIBUTES_API FGAAttributeModSelf
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(BlueprintReadWrite, Category = "Mod")
+		TWeakObjectPtr<AActor> Target;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
+		FGAAttribute Attribute;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
+		float Value;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
+		EGAAttributeOp Operation;
+
+	/**
+	*	Tags for this modifier.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
+		FGameplayTagContainer Tags;
+
+	FGAAttributeModSelf()
+	{
+		Value = 0;
+		Operation = EGAAttributeOp::Add;
+	};
+};
 /*
 	It's going to be helper replication struct
 	mainly used to communicate changes to UI, so you can decide to what do with them.
