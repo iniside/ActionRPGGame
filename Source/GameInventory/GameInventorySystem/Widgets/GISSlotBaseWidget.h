@@ -11,6 +11,9 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 		FGISSlotInfo SlotInfo;
 
+	UPROPERTY(BlueprintReadOnly)
+		FGISTabInfo TabInfo;
+
 	UPROPERTY()
 		TSubclassOf<class UGISItemBaseWidget> GISItemClass;
 

@@ -14,9 +14,11 @@ UGASAbilityStateCastingCharged::UGASAbilityStateCastingCharged(const FObjectInit
 
 void UGASAbilityStateCastingCharged::Tick(float DeltaSeconds)
 {
+	GetOuterAGASAbility()->CurrentCastTime += DeltaSeconds;
 	CurrentCastTime += DeltaSeconds;
 	if (CurrentCastTime >= GetOuterAGASAbility()->CastTime)
 	{
+		GetOuterAGASAbility()->CurrentCastTime = 0;
 		CurrentCastTime = 0;
 		ExecuteAbility();
 	}

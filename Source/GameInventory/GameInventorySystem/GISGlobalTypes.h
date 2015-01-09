@@ -125,10 +125,16 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 		bool bAcceptItemsFromDragDrop;
-
-	UPROPERTY()
+	/**
+	 *	Name of Tab.
+	 */
+	UPROPERTY(BlueprintReadOnly)
 		FName TabName;
 
+	/**
+	 *	These tags must be present in Item OwnedTags container.
+	 *	Otherwise item will not be accepted into this tab.
+	 */
 	FGameplayTagContainer Tags;
 	/*
 		Count of actual items in this tab.
@@ -139,6 +145,9 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 		int32 NumberOfSlots;
 
+	/**
+	 *	Slots contained within this tab.
+	 */
 	UPROPERTY(BlueprintReadOnly)
 		TArray<FGISSlotInfo> TabSlots;
 };
@@ -175,12 +184,20 @@ public:
 	UPROPERTY(EditAnywhere)
 		bool bIsTabActive;
 
+	/**
+	 *	Name of Tab.
+	 */
 	UPROPERTY(EditAnywhere)
 		FName TabName;
-
+	/**
+	 *	These tags must be present in Item OwnedTags container.
+	 *	Otherwise item will not be accepted into this tab.
+	 */
 	UPROPERTY(EditAnywhere)
 		FGameplayTagContainer Tags;
-
+	/**
+	 *	Number of slots, that this tab contain.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int32 NumberOfSlots;
 };

@@ -86,4 +86,7 @@ public:
 	*/
 	UFUNCTION()
 		void Widget_OnTabChanged(int32 TabIndexIn);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
+		UGISTabBaseWidget* GetTabByName(FName TabNameIn);
 };

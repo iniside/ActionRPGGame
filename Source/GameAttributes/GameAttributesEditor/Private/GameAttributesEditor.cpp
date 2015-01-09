@@ -3,8 +3,9 @@
 #include "../Public/GameAttributesEditor.h"
 #include "GAAttributePin.h"
 #include "GAGlobalTypes.h"
-#include "GAAttributePanelGraphPinFactory.h"
 
+#include "GAAttributePanelGraphPinFactory.h"
+#include "GAAttributeDetailCustomization.h"
 
 #include "GameAttributesEditorPrivatePCH.h"
 
@@ -14,8 +15,10 @@ class FGameAttributesEditor : public IGameAttributesEditor
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override
 	{
-		TSharedPtr<FGAAttributePanelGraphPinFactory> GAAttributePanelGraphPinFactory = MakeShareable(new FGAAttributePanelGraphPinFactory());
+		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		PropertyModule.RegisterCustomPropertyTypeLayout("GAAttribute", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGAAttributeDetailCustomization::MakeInstance));
 
+		TSharedPtr<FGAAttributePanelGraphPinFactory> GAAttributePanelGraphPinFactory = MakeShareable(new FGAAttributePanelGraphPinFactory());
 		FEdGraphUtilities::RegisterVisualPinFactory(GAAttributePanelGraphPinFactory);
 	}
 	virtual void ShutdownModule() override

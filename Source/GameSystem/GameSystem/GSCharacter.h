@@ -4,10 +4,17 @@
 #include "GSCharacter.generated.h"
 
 UCLASS(config=Game)
-class AGSCharacter : public ACharacter
+class GAMESYSTEM_API AGSCharacter : public ACharacter
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	class UGSEquipmentComponent* Equipment;
+public:
 	AGSCharacter(const FObjectInitializer& ObjectInitializer);
+
+	void BeginPlay() override;
+
+	void SwapSkeletalMesh(USkeletalMesh* SkeletalMesh);
 };
 

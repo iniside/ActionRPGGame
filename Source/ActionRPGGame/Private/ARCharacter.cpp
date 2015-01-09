@@ -5,7 +5,7 @@
 //#include "GAAttributeComponent.h"
 #include "../Items/ARItemInfo.h"
 #include "Widgets/GISContainerBaseWidget.h"
-
+#include "Items/GSEquipmentComponent.h"
 #include "GAAttributesBase.h"
 
 //#include "Net/UnrealNetwork.h"
@@ -83,6 +83,7 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
+
 void AARCharacter::BeginPlay()
 {
 	Super::BeginPlay();

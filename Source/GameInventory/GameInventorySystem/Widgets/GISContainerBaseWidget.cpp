@@ -59,6 +59,7 @@ void UGISContainerBaseWidget::InitializeInventory()
 							slotWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
 							slotWidget->Initialize();
 							slotWidget->SlotInfo = Slot;
+							slotWidget->TabInfo = Tab;
 							slotWidget->GISItemClass = ItemClass;
 							tabWidget->InventorySlots.Add(slotWidget);
 						}
@@ -391,7 +392,16 @@ void UGISContainerBaseWidget::Widget_OnTabChanged(int32 TabIndexIn)
 			}
 		}
 	}
+}
 
-	//haha let's hope it will work.
-
+UGISTabBaseWidget* UGISContainerBaseWidget::GetTabByName(FName TabNameIn)
+{
+	for (UGISTabBaseWidget* tabIt : InventoryTabs)
+	{
+		if (tabIt->TabInfo.TabName == TabNameIn)
+		{
+			return tabIt;
+		}
+	}
+	return nullptr;
 }

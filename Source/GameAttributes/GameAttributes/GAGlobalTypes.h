@@ -21,7 +21,7 @@ struct GAMEATTRIBUTES_API FGAAttribute
 {
 	GENERATED_USTRUCT_BODY()
 public:
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		FName AttributeName;
 
 	FGAAttribute()

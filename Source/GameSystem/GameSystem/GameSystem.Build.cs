@@ -43,6 +43,7 @@ namespace UnrealBuildTool.Rules
 				new string[]
 				{
 				    "Core",
+                    "InputCore",
 				    "CoreUObject",
 				    "Engine",
                     "UMG",

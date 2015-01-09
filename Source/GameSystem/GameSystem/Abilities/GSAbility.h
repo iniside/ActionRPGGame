@@ -9,6 +9,17 @@
 #include "IGESEffectManager.h"
 #include "GSAbility.generated.h"
 
+USTRUCT(BlueprintType)
+struct FGSAbilityCost
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(EditAnywhere)
+		FGAAttribute Attribute;
+	UPROPERTY(EditAnywhere)
+		float Cost;
+};
+
 UCLASS(BlueprintType, Blueprintable)
 class GAMESYSTEM_API AGSAbility : public AGASAbility, public IIGESEffectManager, public IIGSCue
 {
@@ -17,7 +28,7 @@ public:
 	float deleteMe;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Info")
-		TArray<FGAAttribute> AttributeCost;
+		TArray<FGSAbilityCost> AttributeCost;
 
 	class UGESEffect* GetCachedEffect();
 private:

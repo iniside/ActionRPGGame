@@ -26,3 +26,21 @@ UWorld* UGISItemData::GetWorld() const
 		return CurrentWorld;
 	return nullptr;
 }
+
+void UGISItemData::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	TagContainer = OwnedTags;
+}
+
+bool UGISItemData::HasMatchingGameplayTag(FGameplayTag TagToCheck) const
+{
+	return OwnedTags.HasTag(TagToCheck, EGameplayTagMatchType::Explicit, EGameplayTagMatchType::Explicit);
+}
+bool UGISItemData::HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer, bool bCountEmptyAsMatch) const
+{
+	return OwnedTags.MatchesAll(TagContainer, bCountEmptyAsMatch);
+}
+bool UGISItemData::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer, bool bCountEmptyAsMatch) const
+{
+	return OwnedTags.MatchesAny(TagContainer, bCountEmptyAsMatch);
+}

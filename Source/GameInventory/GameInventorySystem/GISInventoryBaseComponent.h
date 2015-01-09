@@ -463,6 +463,21 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
 		void BP_SetNextTab(int32 TabIndexIn);
+	/**
+	 *	Get single tab, from this inventory.
+	 *	@param TabNameIn - name of tab to get;
+	 *
+	 *	@return Single tab from current inventory.
+	 */
+	FGISTabInfo& GetTabByName(FName TabNameIn);
+	/**
+	 *	Get single tab, from this inventory.
+	 *	@param TabNameIn - name of tab to get;
+	 *
+	 *	@return Single tab from current inventory.
+	 */
+	UFUNCTION(BlueprintCallable, meta=(FriendlyName = "Get Tab By Name"), Category = "Game Inventory System")
+		FGISTabInfo& BP_GetTabByName(FName TabNameIn);
 
 
 	virtual bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags) override;

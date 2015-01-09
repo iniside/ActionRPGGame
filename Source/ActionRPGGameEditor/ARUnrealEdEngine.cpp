@@ -18,10 +18,11 @@ void UARUnrealEdEngine::Init(IEngineLoop* InEngineLoop)
 	IGameplayTagsModule& GameplayTagsModule = IGameplayTagsModule::Get();
 	FString Tags = "/Game/Blueprints/SampleTags.SampleTags";
 	FString DamageTags = "/Game/Blueprints/DamageTags.DamageTags";
-
+	FString ItemTags = "/Game/Blueprints/DataTables/InventoryTags.InventoryTags";
 	TArray<FString> TagsList;
 	TagsList.Add(Tags);
 	TagsList.Add(DamageTags);
+	TagsList.Add(ItemTags);
 	GameplayTagsModule.GetGameplayTagsManager().LoadGameplayTagTables(TagsList);
 	GameplayTagsModule.GetGameplayTagsManager().ConstructGameplayTagTree();
 }

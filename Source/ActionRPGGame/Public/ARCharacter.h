@@ -1,6 +1,9 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 #pragma once
 #include "GameFramework/Character.h"
+
+#include "GSCharacter.h"
+
 #include "GAAttributeComponent.h"
 #include "GISInventoryBaseComponent.h" //need for template
 #include "GESEffectComponent.h"
@@ -22,7 +25,7 @@
 #include "ARCharacter.generated.h"
 
 UCLASS(config=Game)
-class AARCharacter : public ACharacter, public IIGAAttributes, public IIGESEffect, public IIGESEffectManager
+class AARCharacter : public AGSCharacter, public IIGAAttributes, public IIGESEffect, public IIGESEffectManager
 	, public IIGTSocket
 {
 	GENERATED_BODY()

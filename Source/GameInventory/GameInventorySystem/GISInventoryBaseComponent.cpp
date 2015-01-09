@@ -170,6 +170,7 @@ void UGISInventoryBaseComponent::AddItemToInventory(class UGISItemData* ItemIn)
 				if (Slot.ItemData == nullptr)
 				{
 					Slot.ItemData = ItemIn;
+					ItemIn->CurrentInventory = this;
 					TabInfo.ItemCount++;
 					//Slot.ItemData->OnItemRemovedFromSlot();
 					SlotUpdateInfo.TabIndex = TabInfo.TabIndex;
@@ -208,7 +209,6 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 	//next check should be against item tags, but that's later!
 	if (LastSlotType.CurrentInventoryComponent->bRemoveItemsFromInvetoryOnDrag)
 	{
-
 		//Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotTabIndex].ItemData
 		if (TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData == nullptr)
 		{
@@ -216,12 +216,17 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 			UGISItemData* TargetItem = LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData;
 			UGISItemData* LastItem = TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData; //Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData;
 
+			if (!TargetItem->HasAnyMatchingGameplayTags(TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].Tags))
+				return;
+
 			if (TargetItem)
 				if (!TargetItem->CanItemBeSwapped())
 					return;
 			if (LastItem)
 				if (!LastItem->CanItemBeSwapped())
 					return;
+
+			TargetItem->CurrentInventory = TargetSlotType.CurrentInventoryComponent.Get(); //seems approperties instead of this ?
 
 			LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].ItemCount--;
 			TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].ItemCount++;
@@ -256,12 +261,23 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 		{
 			UGISItemData* TargetItem = LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData;
 			UGISItemData* LastItem = TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData; //Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData;
+			
+			if (!TargetItem->HasAnyMatchingGameplayTags(TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].Tags))
+				return;
+			
+			if (!LastItem->HasAnyMatchingGameplayTags(LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].Tags))
+				return;
+
 			if (TargetItem)
 				if (!TargetItem->CanItemBeSwapped())
 					return;
 			if (LastItem)
 				if (!LastItem->CanItemBeSwapped())
 					return;
+
+			TargetItem->CurrentInventory = TargetSlotType.CurrentInventoryComponent.Get(); //seems approperties instead of this ?
+			LastItem->CurrentInventory = LastSlotType.CurrentInventoryComponent.Get();
+
 			LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].ItemCount--;
 			TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].ItemCount++;
 
@@ -309,6 +325,8 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 		TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData = nullptr;
 		TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData = TargetItem;
 		//LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData = LastItem;
+
+		TargetItem->CurrentInventory = TargetSlotType.CurrentInventoryComponent.Get();
 
 		if ((LastTargetTab != INDEX_NONE) && (LastOtherOriginTab != INDEX_NONE)
 			&& LastOtherOriginInventory)
@@ -528,19 +546,6 @@ void UGISInventoryBaseComponent::ClientHideLootingWidget_Implementation()
 		LootWidget->SetVisibility(ESlateVisibility::Hidden);
 }
 void UGISInventoryBaseComponent::PostInventoryInitialized()
-{
-
-}
-FGISTabInfo& UGISInventoryBaseComponent::BP_GetOneTab(int32 TabIndexIn)
-{
-	return Tabs.InventoryTabs[TabIndexIn];
-}
-void UGISInventoryBaseComponent::BP_SetTabactive(int32 TabIndexIn, bool bIsTabActiveIn)
-{
-	Tabs.InventoryTabs[TabIndexIn].bIsTabActive = bIsTabActiveIn;
-}
-
-void UGISInventoryBaseComponent::BP_SetNextTab(int32 TabIndexIn)
 {
 
 }
@@ -856,4 +861,35 @@ int32 UGISInventoryBaseComponent::CountActiveTabs()
 	}
 
 	return ActiveTabsCount;
+}
+
+FGISTabInfo& UGISInventoryBaseComponent::BP_GetOneTab(int32 TabIndexIn)
+{
+	return Tabs.InventoryTabs[TabIndexIn];
+}
+void UGISInventoryBaseComponent::BP_SetTabactive(int32 TabIndexIn, bool bIsTabActiveIn)
+{
+	Tabs.InventoryTabs[TabIndexIn].bIsTabActive = bIsTabActiveIn;
+}
+
+void UGISInventoryBaseComponent::BP_SetNextTab(int32 TabIndexIn)
+{
+
+}
+
+FGISTabInfo& UGISInventoryBaseComponent::GetTabByName(FName TabNameIn)
+{
+	for (FGISTabInfo& tab : Tabs.InventoryTabs)
+	{
+		if (tab.TabName == TabNameIn)
+		{
+			return tab;
+		}
+	}
+	return Tabs.InventoryTabs[0];
+}
+
+FGISTabInfo& UGISInventoryBaseComponent::BP_GetTabByName(FName TabNameIn)
+{
+	return GetTabByName(TabNameIn);
 }

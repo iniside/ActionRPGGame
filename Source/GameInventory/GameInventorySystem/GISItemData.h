@@ -1,5 +1,6 @@
 #pragma once
 #include "GameplayTags.h"
+#include "GameplayTagAssetInterface.h"
 #include "GISItemData.generated.h"
 /*
 	This is base class for item container used in InventoryComponent, to store items.
@@ -12,7 +13,7 @@
 	If you so desire, you can of course just extend any item from this class but I do not recommend it.
 */
 UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInlineNew) // proly don't need that.
-class GAMEINVENTORYSYSTEM_API UGISItemData : public UObject
+class GAMEINVENTORYSYSTEM_API UGISItemData : public UObject, public IGameplayTagAssetInterface
 {
 	GENERATED_UCLASS_BODY()
 public:
@@ -63,6 +64,12 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Tags")
 		FGameplayTagContainer RequeredTags;
+
+	/**
+	 *	Inventory which currently posses this item data.
+	 */
+	UPROPERTY(BlueprintReadOnly)
+	class UGISInventoryBaseComponent* CurrentInventory;
 
 	bool IsNameStableForNetworking() const override;
 
@@ -153,6 +160,12 @@ public:
 	virtual bool IsOfType(int32 ItemTypeIDIn) { return UGISItemData::ItemTypeID == ItemTypeIDIn; }
 
 	virtual UWorld* GetWorld() const override;
+	/** IGameplayTagAssetInterface overrides */
+	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
+	virtual bool HasMatchingGameplayTag(FGameplayTag TagToCheck) const override;
+	virtual bool HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer, bool bCountEmptyAsMatch = true) const override;
+	virtual bool HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer, bool bCountEmptyAsMatch = true) const override;
+	/* IGameplayTagAssetInterface overrides **/
 protected:
 	UPROPERTY()
 	UWorld* CurrentWorld;

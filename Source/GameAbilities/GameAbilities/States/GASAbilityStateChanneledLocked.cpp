@@ -15,6 +15,7 @@ UGASAbilityStateChanneledLocked::UGASAbilityStateChanneledLocked(const FObjectIn
 
 void UGASAbilityStateChanneledLocked::Tick(float DeltaSeconds)
 {
+	GetOuterAGASAbility()->CurrentCastTime += DeltaSeconds;
 	CurrentCastTime += DeltaSeconds;
 	if (CurrentCastTime >= GetOuterAGASAbility()->PeriodLenght
 		&& GetOuterAGASAbility()->PeriodCount > CurrentPeriodCount)
@@ -23,8 +24,9 @@ void UGASAbilityStateChanneledLocked::Tick(float DeltaSeconds)
 		CurrentPeriodCount += 1;
 		ExecuteAbility();
 	}
-	else
+	else if(CurrentPeriodCount >= GetOuterAGASAbility()->PeriodCount)
 	{
+		GetOuterAGASAbility()->CurrentCastTime = 0;
 		CurrentPeriodCount = 0;
 		ChannelFinished();
 	}
