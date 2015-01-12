@@ -12,6 +12,8 @@ namespace UnrealBuildTool.Rules
                     "GameSystem/Public",
                     "GameAbilities",
                     "GameAbilities/Public",
+                    "GameWeapons",
+                    "GameWeapons/Public",
                     "GameAttributes",
                     "GameAttributes/Public",
                     "GameEffectSystem",
@@ -29,6 +31,7 @@ namespace UnrealBuildTool.Rules
 			PrivateIncludePaths.AddRange(
 				new string[] {
 					"GameSystem/Private",
+                    "GameWeapons/Private",
                     "GameAbilities/Private",
                     "GameAttributes/Private",
                     "GameEffectSystem/Private",
@@ -51,6 +54,7 @@ namespace UnrealBuildTool.Rules
                     "SlateCore",
                     "GameTrace",
                     "GameAbilities",
+                    "GameWeapons",
                     "GameAttributes",
                     "GameEffectSystem",
                     "GameInventorySystem",

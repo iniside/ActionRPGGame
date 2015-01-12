@@ -12,4 +12,12 @@ class GAMESYSTEM_API UIGSEquipment : public UInterface
 class IIGSEquipment
 {
 	GENERATED_IINTERFACE_BODY()
+public:
+	virtual void SetSkeletalMesh(USkeletalMesh* MeshIn, FName ComponentNameIn){};
+
+	virtual void RemoveSkeletalMesh(FName ComponentNameIn) {};
+
+	virtual void AttachActor(AActor* ActorIn, FName SocketNameIn = NAME_None){};
+
+	virtual USkeletalMeshComponent* GetSkeletalMeshComponentByName(FName NameIn) { return nullptr; };
 };

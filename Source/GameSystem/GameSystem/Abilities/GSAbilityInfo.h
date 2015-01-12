@@ -46,8 +46,8 @@ public:
 		return 0;
 	}
 
-	virtual void InputPressed() override;
-	virtual void InputReleased() override;
+	virtual bool InputPressed_Implementation() override;
+	virtual bool InputReleased_Implementation() override;
 
 	virtual bool CanItemBeSwapped() override;
 

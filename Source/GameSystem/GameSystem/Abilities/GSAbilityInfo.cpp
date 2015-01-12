@@ -45,19 +45,23 @@ bool UGSAbilityInfo::OnItemRemovedFromSlot()
 	return false;
 }
 
-void UGSAbilityInfo::InputPressed()
+bool UGSAbilityInfo::InputPressed_Implementation()
 {
 	if (ActiveAbility)
 	{
 		ActiveAbility->InputPressed();
+		return true;
 	}
+	return false;
 }
-void UGSAbilityInfo::InputReleased()
+bool UGSAbilityInfo::InputReleased_Implementation()
 {
 	if (ActiveAbility)
 	{
 		ActiveAbility->InputReleased();
+		return true;
 	}
+	return false;
 }
 
 bool UGSAbilityInfo::CanItemBeSwapped()

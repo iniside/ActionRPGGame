@@ -43,6 +43,10 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, Category = "Item Properties")
 		TSubclassOf<class AGISPickupActor> ItemLootActorClass;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Tags")
+		FGameplayTag MyTag;
 	/*
 		There are item behind specific items. It's another layer of checking to make setup even 
 		more flexible. Since you might want certain components to acceept items from two different
@@ -70,6 +74,11 @@ public:
 	 */
 	UPROPERTY(BlueprintReadOnly)
 	class UGISInventoryBaseComponent* CurrentInventory;
+	/**
+	 *	Last Inventory which contained this item data.
+	 */
+	UPROPERTY(BlueprintReadOnly)
+	class UGISInventoryBaseComponent* LastInventory;
 
 	bool IsNameStableForNetworking() const override;
 
@@ -124,18 +133,20 @@ public:
 	 *	Override, to add any preparation steps to this item. For example when copying pointer to another place
 	 *	for activation, you might want to prepare stored object in some way.
 	 */
+	
 	virtual void PrepareItem() {}
 
 	/**
 	 *	Override if you want, stored item to recive input presses.
 	 */
-	virtual void InputPressed() {}
+	UFUNCTION(BlueprintNativeEvent)
+		bool InputPressed();
 
 	/**
-	*	Override if you want, stored item to recive input releases.
-	*/
-	virtual void InputReleased() {}
-
+	 *	Override if you want, stored item to recive input releases.
+	 */
+	UFUNCTION(BlueprintNativeEvent)
+		bool InputReleased();
 	/*
 		Override to perform action, when item is droped out of inventory.
 		Most likely you will want to spawn actor on level, which will represent dropped item.

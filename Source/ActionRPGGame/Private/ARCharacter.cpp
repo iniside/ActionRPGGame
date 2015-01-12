@@ -8,6 +8,10 @@
 #include "Items/GSEquipmentComponent.h"
 #include "GAAttributesBase.h"
 
+#include "Items/GSEquipmentComponent.h"
+#include "Weapons/GSWeaponEquipmentComponent.h"
+#include "Components/GSActiveActionsComponent.h"
+
 //#include "Net/UnrealNetwork.h"
 //#include "Engine/ActorChannel.h"
 
@@ -122,7 +126,7 @@ class UGESEffectManager* AARCharacter::GetEffectManager()
 {
 	return GameEffectManager;
 }
-/** IIGESEffect End */
+/* IIGESEffect End **/
 
 /** IIGTSocket Begin */
 FVector AARCharacter::GetSocketLocation(FName SocketNameIn)
@@ -132,10 +136,32 @@ FVector AARCharacter::GetSocketLocation(FName SocketNameIn)
 		SocketLocation = GetMesh()->GetSocketLocation(SocketNameIn);
 	return SocketLocation;
 }
-/** IIGTSocket End */
+/* IIGTSocket End **/
 //////////////////////////////////////////////////////////////////////////
 // Input
+void AARCharacter::InputGetNextLeftWeapon()
+{
+	ActiveActions->CopyNextItemFromOtherInventoryTab(WeaponsEquipment, 0, 1, 0);
+}
+void AARCharacter::InputGetNextRightWeapon()
+{
+	ActiveActions->CopyNextItemFromOtherInventoryTab(WeaponsEquipment, 1, 2, 0);
+}
 
+void AARCharacter::InputUseLeftWeaponPressed()
+{
+	if (ActiveActions)
+	{
+		ActiveActions->InputSlotPressed(1, 0);
+	}
+}
+void AARCharacter::InputUseLeftWeaponReleased()
+{
+	if (ActiveActions)
+	{
+		ActiveActions->InputSlotReleased(1, 0);
+	}
+}
 void AARCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 {
 	// Set up gameplay key bindings
@@ -162,6 +188,12 @@ void AARCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 	InputComponent->BindAction("ActionButtonTab0Slot3", IE_Released, this, &AARCharacter::InputActionBarReleased<0, 3>);
 	InputComponent->BindAction("ActionButtonTab0Slot4", IE_Released, this, &AARCharacter::InputActionBarReleased<0, 4>);
 	InputComponent->BindAction("ActionButtonTab0Slot5", IE_Released, this, &AARCharacter::InputActionBarReleased<0, 5>);
+
+	InputComponent->BindAction("InputGetNextLeftWeapon", IE_Pressed, this, &AARCharacter::InputGetNextLeftWeapon);
+	InputComponent->BindAction("InputGetNextRightWeapon", IE_Pressed, this, &AARCharacter::InputGetNextRightWeapon);
+
+	InputComponent->BindAction("InputUseLeftWeapon", IE_Pressed, this, &AARCharacter::InputUseLeftWeaponPressed);
+	InputComponent->BindAction("InputUseLeftWeapon", IE_Released, this, &AARCharacter::InputUseLeftWeaponReleased);
 
 	//InputComponent->BindAction("ActionButtonTab0Slot0", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 0>);
 	//InputComponent->BindAction("ActionButtonTab0Slot1", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 1>);

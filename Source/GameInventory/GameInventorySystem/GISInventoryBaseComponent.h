@@ -65,6 +65,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Inventory Options")
 		bool bExecuteOnItemRemovedFromSlot;
 
+	UPROPERTY(EditAnywhere, Category = "Inventory Options")
+		bool bCanDragItemsFromInventory;
+
 	/**
 	 *	Should this inventory execute On Item Added To Inventory function ?
 	 */
@@ -158,8 +161,29 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 		FGameplayTagContainer RequiredTags;
 
-	UPROPERTY(EditAnywhere, Instanced)
+	UPROPERTY(Editanywhere, Category = "Inventory")
+		FName DropSlottName;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
 		TSubclassOf<class UGISContainerBaseWidget> InventoryContainerClass;
+
+	/*
+		Type of tab used in this container. meta = (ExposeOnSpawn)
+	*/
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+		TSubclassOf<class UGISTabBaseWidget> TabClass;
+
+	/*
+		Type of slot used in this container.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+		TSubclassOf<class UGISSlotBaseWidget> SlotClass;
+
+	/*
+		Type if item widget, which can be contained in slot.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+		TSubclassOf<class UGISItemBaseWidget> ItemClass;
 
 	/*
 		This is very bad pack. When componeents will work with normal objects (pointers)
@@ -167,6 +191,13 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, Instanced)
 		TSubclassOf<class UGISLootContainerBaseWidget> LootWidgetClass;
+
+	/*
+		Add one full screen widget, which will act as drop area. 
+		it should be added under all other widgets, so it will accept input as last.
+		this should allow for dropping items out of inventory is
+		straightforwad way, not some right clicking menus or other crap.
+	*/
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		class UGISLootContainerBaseWidget* LootWidget;
@@ -207,7 +238,7 @@ private:
 	UFUNCTION()
 	void ConstructLootPickingWidget();
 
-private:
+protected:
 	UPROPERTY(ReplicatedUsing = OnRep_SlotUpdate, RepRetry)
 	FGISSlotUpdateData SlotUpdateInfo;
 	UFUNCTION()
@@ -273,6 +304,12 @@ public:
 		virtual void ServerAddItemOnSlot(const FGISSlotInfo& TargetSlotType, const FGISSlotInfo& LastSlotType);
 	
 	/*
+		Override if you want constroll which functions from UGISItemInfo, are called
+		when item is added to slot.
+	 */
+	virtual void OnItemAddedToSlot(class UGISItemData* AddedItemIn);
+
+	/*
 		Remove item from slot.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
@@ -300,9 +337,9 @@ public:
 		virtual void ServerGetLootContainer(class AGISPickupActor* LootContainer);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
-	void LootOneItem(int32 ItemIndex);
+		void LootOneItem(int32 ItemIndex);
 	UFUNCTION(Server, Reliable, WithValidation)
-	void SeverLootOneItem(int32 ItemIndex);
+		void SeverLootOneItem(int32 ItemIndex);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
 		void DropItemFromInventory(const FGISItemDropInfo& DropItemInfoIn);
@@ -386,9 +423,16 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerCopyItemsFromOtherInventoryTab(class UGISInventoryBaseComponent* OtherIn, int32 TargetTabIndex);
 
+	/**
+	 *	Override if you want to perform on items any action, when they are copied from other inventory.
+	 */
+	virtual void OnCopyItemsFromOtherInventoryTab(class UGISItemData* DataIn);
 
 	void CopyItemsToOtherInventoryTab(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex);
-
+	/**
+	 *	Override if you want to perform on items any action, when they are copied  to other inventory.
+	 */
+	virtual void OnCopyItemsToOtherInventoryTab(class UGISItemData* DataIn);
 
 	void CopyItemsFromOtherInventoryTab(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex);
 

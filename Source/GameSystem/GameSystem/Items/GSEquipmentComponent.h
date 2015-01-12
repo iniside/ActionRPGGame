@@ -10,11 +10,40 @@ class GAMESYSTEM_API UGSEquipmentComponent : public UGISInventoryBaseComponent
 	GENERATED_UCLASS_BODY()
 public:
 	/*
+		List of currently equiped items.
+	*/
+	UPROPERTY()
+		TArray<class UGSItem*> EquipedItems;
+protected:
+	UPROPERTY(EditAnywhere, Category = "Attachment Sockets")
+		FName  LeftBackSocketName;
+public:
+	virtual void InitializeComponent() override;
+
+
+	void EqiupItem(class UGSItem* ItemIn);
+
+	void UnEqiupItem(class UGSItem* ItemIn);
+	/*
 		Equips item. Which means it will be attached/replcaed on owner of this component.
 
-		Probabaly need some fancy interface actually..
+		@param MeshIn - mesh to attach to/set on skeletal mesh component.
+		@param ComponentNameIn - name of component to which we will attach/Set
+
+		It's temporary function used to figure out basic interface
+		setting skeltal mesh, is probabaly last step we want to make.
 	*/
-	void EquiptItem(USkeletalMesh* MeshIn);
+	UFUNCTION(NetMulticast, Reliable)
+		void SetSkeletalMesh(USkeletalMesh* MeshIn, FName ComponentNameIn);
+
+	UFUNCTION(NetMulticast, Reliable)
+		void RemoveSkeletalMesh(FName ComponentNameIn);
+
+	UFUNCTION()
+		void AttachActorTo(AActor* ActorIn);
+
+private:
+	class IIGSEquipment* EquipInt;
 };
 
 

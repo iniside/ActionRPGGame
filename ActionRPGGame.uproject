@@ -4,16 +4,21 @@
     "Category": "",
     "Description": "",
     "Modules": [
-        { 
-			"Name": "GameTrace",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
-		},
-		{
-			"Name": "GameTraceEditor",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
-		},
+        {
+            "Name": "GameInterfaces",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        },
+        {
+            "Name": "GameTrace",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        },
+        {
+            "Name": "GameTraceEditor",
+            "Type": "Editor",
+            "LoadingPhase": "Default"
+        },
         {
             "Name": "GameAbilities",
             "Type": "Runtime",
@@ -21,6 +26,16 @@
         },
         {
             "Name": "GameAbilitiesEditor",
+            "Type": "Editor",
+            "LoadingPhase": "Default"
+        },
+        {
+            "Name": "GameWeapons",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        },
+        {
+            "Name": "GameWeaponsEditor",
             "Type": "Editor",
             "LoadingPhase": "Default"
         },

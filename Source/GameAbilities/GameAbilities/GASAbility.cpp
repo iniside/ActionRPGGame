@@ -31,7 +31,6 @@ AGASAbility::AGASAbility(const FObjectInitializer& ObjectInitializer)
 
 	//Targeting = ObjectInitializer.CreateDefaultSubobject<UGTTraceBase>(this, TEXT("TraceBase"));
 
-
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
 	PrimaryActorTick.bAllowTickOnDedicatedServer = true;

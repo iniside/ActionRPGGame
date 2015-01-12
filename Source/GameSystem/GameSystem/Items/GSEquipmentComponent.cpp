@@ -4,6 +4,9 @@
 
 #include "GISGlobalTypes.h"
 #include "GISItemData.h"
+#include "GSItem.h"
+
+#include "IGSEquipment.h"
 
 #include "../GSCharacter.h"
 
@@ -14,12 +17,45 @@ UGSEquipmentComponent::UGSEquipmentComponent(const FObjectInitializer& ObjectIni
 {
 	bWantsInitializeComponent = true;
 }
+void UGSEquipmentComponent::InitializeComponent()
+{
+	EquipInt = Cast<IIGSEquipment>(GetOwner());
+	Super::InitializeComponent();
+}
 
-void UGSEquipmentComponent::EquiptItem(USkeletalMesh* MeshIn)
+void UGSEquipmentComponent::EqiupItem(class UGSItem* ItemIn)
+{
+	EquipedItems.Add(ItemIn);
+}
+
+void UGSEquipmentComponent::UnEqiupItem(class UGSItem* ItemIn)
+{
+	EquipedItems.Remove(ItemIn);
+}
+
+void UGSEquipmentComponent::SetSkeletalMesh_Implementation(USkeletalMesh* MeshIn, FName ComponentNameIn)
 {
 	//temporary for proofing concept.
-	if (AGSCharacter* MyChar = Cast<AGSCharacter>(GetOwner()))
+	if (EquipInt)
 	{
-		MyChar->SwapSkeletalMesh(MeshIn);
+		EquipInt->SetSkeletalMesh(MeshIn, ComponentNameIn);
+		//MyChar->SwapSkeletalMesh(MeshIn);
+	}
+}
+
+void UGSEquipmentComponent::RemoveSkeletalMesh_Implementation(FName ComponentNameIn)
+{
+	if (EquipInt)
+	{
+		EquipInt->RemoveSkeletalMesh(ComponentNameIn);
+		//MyChar->SwapSkeletalMesh(MeshIn);
+	}
+}
+
+void UGSEquipmentComponent::AttachActorTo(AActor* ActorIn)
+{
+	if (EquipInt)
+	{
+		EquipInt->AttachActor(ActorIn, LeftBackSocketName);
 	}
 }

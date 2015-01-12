@@ -93,6 +93,12 @@ protected:
 	/*
 		Template. Becuase creating something like 60 functions would be sooo cool!
 	*/
+
+	void InputGetNextLeftWeapon();
+	void InputGetNextRightWeapon();
+
+	void InputUseLeftWeaponPressed();
+	void InputUseLeftWeaponReleased();
 	/*
 		How to make it work in case where I would need to copy these pointer to other input buttons ?
 		let's think...

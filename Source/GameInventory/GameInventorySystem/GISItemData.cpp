@@ -1,6 +1,9 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
 #include "GameInventorySystem.h"
+
+#include "Net/UnrealNetwork.h"
+
 #include "GISItemData.h"
 
 UGISItemData::UGISItemData(const FObjectInitializer& ObjectInitializer)
@@ -11,6 +14,14 @@ UGISItemData::UGISItemData(const FObjectInitializer& ObjectInitializer)
 	bCanBedropped = false;
 	StackCounter = 0;
 }
+
+//void UGISItemData::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
+//{
+//	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+//
+//	DOREPLIFETIME(UGISItemData, CurrentInventory);
+//	DOREPLIFETIME(UGISItemData, LastInventory);
+//}
 bool UGISItemData::IsNameStableForNetworking() const
 {
 	return bNetAddressable;
@@ -25,6 +36,15 @@ UWorld* UGISItemData::GetWorld() const
 	if (CurrentWorld)
 		return CurrentWorld;
 	return nullptr;
+}
+
+bool UGISItemData::InputPressed_Implementation()
+{
+	return false;
+}
+bool UGISItemData::InputReleased_Implementation()
+{
+	return false;
 }
 
 void UGISItemData::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
