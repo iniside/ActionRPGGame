@@ -21,6 +21,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
 	class UGSWeaponEquipmentComponent* WeaponsEquipment;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	class UGSWeaponEquipmentComponent* RightWeaponsEquipment;
+
 	/*
 		This component will store current active actions, similiar to Dark Souls
 		1. One ability.

@@ -11,7 +11,12 @@ UGISItemBaseWidget::UGISItemBaseWidget(const FObjectInitializer& ObjectInitializ
 {
 	ItemData = nullptr;
 }
-
+void UGISItemBaseWidget::BeginDestroy()
+{
+	ItemData = nullptr;
+	InventoryComponent = nullptr;
+	Super::BeginDestroy();
+}
 void UGISItemBaseWidget::InitializeItem()
 {
 

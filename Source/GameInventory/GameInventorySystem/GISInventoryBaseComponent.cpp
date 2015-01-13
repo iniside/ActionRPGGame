@@ -232,8 +232,11 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 			UGISItemData* TargetItem = LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData;
 			UGISItemData* LastItem = TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData; //Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData;
 
-			if (!TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].Tags.HasTag(TargetItem->MyTag, EGameplayTagMatchType::Explicit, EGameplayTagMatchType::Explicit))
+			if (!TargetItem->HasAnyMatchingGameplayTags(TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].Tags))
 				return;
+
+			//if (!TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].Tags.HasTag(TargetItem->MyTag, EGameplayTagMatchType::Explicit, EGameplayTagMatchType::Explicit))
+			//	return;
 
 			if (TargetItem)
 				if (!TargetItem->CanItemBeSwapped())

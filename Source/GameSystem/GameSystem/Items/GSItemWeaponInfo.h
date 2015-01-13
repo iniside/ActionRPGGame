@@ -2,6 +2,7 @@
 #include "GISItemData.h"
 #include "GSItemTypes.h"
 #include "GSItemInfo.h"
+#include "../GSGlobalTypes.h"
 
 #include "GSItemWeaponInfo.generated.h"
 /*
@@ -21,6 +22,9 @@ class GAMESYSTEM_API UGSItemWeaponInfo : public UGSItemInfo
 {
 	GENERATED_UCLASS_BODY()
 public:
+	
+	UPROPERTY(EditAnywhere, Category = "Item")
+		EGSWeaponWield WeaponWieldType;
 	/*
 		Weapon Class.
 	*/

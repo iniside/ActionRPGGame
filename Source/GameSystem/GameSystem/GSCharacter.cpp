@@ -26,6 +26,10 @@ AGSCharacter::AGSCharacter(const FObjectInitializer& ObjectInitializer)
 	WeaponsEquipment->SetIsReplicated(true);
 	WeaponsEquipment->SetNetAddressable();
 
+	RightWeaponsEquipment = ObjectInitializer.CreateDefaultSubobject<UGSWeaponEquipmentComponent>(this, TEXT("RightWeaponsEquipment"));
+	RightWeaponsEquipment->SetIsReplicated(true);
+	RightWeaponsEquipment->SetNetAddressable();
+
 	ActiveActions = ObjectInitializer.CreateDefaultSubobject<UGSActiveActionsComponent>(this, TEXT("ActiveActions"));
 	ActiveActions->SetIsReplicated(true);
 	ActiveActions->SetNetAddressable();
@@ -60,6 +64,9 @@ void AGSCharacter::BeginPlay()
 
 	WeaponsEquipment->SetIsReplicated(true);
 	WeaponsEquipment->SetNetAddressable();
+
+	RightWeaponsEquipment->SetIsReplicated(true);
+	RightWeaponsEquipment->SetNetAddressable();
 
 	ActiveActions->SetIsReplicated(true);
 	ActiveActions->SetNetAddressable();

@@ -60,7 +60,21 @@ void UGISContainerBaseWidget::InitializeInventory()
 							slotWidget->Initialize();
 							slotWidget->SlotInfo = Slot;
 							slotWidget->TabInfo = Tab;
+							slotWidget->DropSlottName = DropSlottName;
 							slotWidget->GISItemClass = ItemClass;
+
+							UGISItemBaseWidget* ItemWidget = ConstructObject<UGISItemBaseWidget>(ItemClass);
+							ItemWidget->Initialize();
+							ItemWidget->ItemData = nullptr;
+							ItemWidget->InventoryComponent = InventoryComponent;
+							ItemWidget->InitializeItem();
+							ItemWidget->SetVisibility(ESlateVisibility::Collapsed);
+							UWidget* superWidget = slotWidget->GetWidgetFromName(DropSlottName);
+							UOverlay* overlay = Cast<UOverlay>(superWidget);
+							overlay->AddChild(ItemWidget);
+
+							slotWidget->ItemInSlot = ItemWidget;
+
 							tabWidget->InventorySlots.Add(slotWidget);
 						}
 					}
@@ -88,19 +102,8 @@ void UGISContainerBaseWidget::Widget_OnItemAdded(const FGISSlotUpdateData& SlotU
 
 //	UGISItemData* itemData = SlotUpdateInfo.SlotComponent->Tabs.InventoryTabs[SlotUpdateInfo.TabIndex].TabSlots[SlotUpdateInfo.SlotIndex].ItemData;
 	if (SlotUpdateInfo.SlotData && ItemClass)
-	{//check against replicated component and struct in tabs in it.
-		UGISItemBaseWidget* ItemWidget = ConstructObject<UGISItemBaseWidget>(ItemClass, Outer);
-		if (ItemWidget && InventoryComponent)
-		{
-			ULocalPlayer* Player = InventoryComponent->GetWorld()->GetFirstLocalPlayerFromController(); //temporary
-			ItemWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
-			ItemWidget->Initialize();
-			ItemWidget->ItemData = SlotUpdateInfo.SlotData;
-			ItemWidget->InventoryComponent = InventoryComponent;
-			ItemWidget->InitializeItem();
-			//ItemWidget->LastSlotInfo = SlotInfo;
-		}
-		
+	{
+
 		FGISSlotInfo SlotInfo;
 		SlotInfo.CurrentInventoryComponent = SlotUpdateInfo.SlotComponent;
 		SlotInfo.ItemData = SlotUpdateInfo.SlotData;
@@ -109,17 +112,23 @@ void UGISContainerBaseWidget::Widget_OnItemAdded(const FGISSlotUpdateData& SlotU
 		InventoryTabs[SlotUpdateInfo.TabIndex]->ItemCount++;
 		InventoryTabs[SlotUpdateInfo.TabIndex]->InventorySlots[SlotUpdateInfo.SlotIndex]->SlotInfo = SlotInfo;
 
-		UWidget* superWidget = InventoryTabs[SlotUpdateInfo.TabIndex]->InventorySlots[SlotUpdateInfo.SlotIndex]->GetWidgetFromName(DropSlottName);
-		
-		UOverlay* overlay = Cast<UOverlay>(superWidget);
-		if (overlay)
+		//check against replicated component and struct in tabs in it.
+		//UWidget* superWidget = InventoryTabs[SlotUpdateInfo.TabIndex]->InventorySlots[SlotUpdateInfo.SlotIndex]->GetWidgetFromName(DropSlottName);
+		//UOverlay* overlay = Cast<UOverlay>(superWidget);
+		//UGISItemBaseWidget* ItemWidget = Cast<UGISItemBaseWidget>(overlay->GetChildAt(0));
+
+		UGISItemBaseWidget* ItemWidget = InventoryTabs[SlotUpdateInfo.TabIndex]->InventorySlots[SlotUpdateInfo.SlotIndex]->ItemInSlot;
+		if (InventoryComponent)
 		{
-			int32 childCount = overlay->GetChildrenCount();
-			if (childCount > 1)
+			if (!ItemWidget)
 			{
-				overlay->RemoveChildAt(childCount - 1);
+				ItemWidget = ConstructObject<UGISItemBaseWidget>(ItemClass);
 			}
-			overlay->AddChild(ItemWidget);
+			ItemWidget->Initialize();
+			ItemWidget->ItemData = SlotUpdateInfo.SlotData;
+			ItemWidget->InventoryComponent = InventoryComponent;
+			ItemWidget->InitializeItem();
+			ItemWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		}
 	}
 }
@@ -163,16 +172,88 @@ void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 	UObject* Outer = GetWorld()->GetGameInstance() ? StaticCast<UObject*>(GetWorld()->GetGameInstance()) : StaticCast<UObject*>(GetWorld());
 	if (!SlotSwapInfo.LastSlotData)
 	{
-		UGISItemBaseWidget* ItemWidget = ConstructObject<UGISItemBaseWidget>(ItemClass, Outer);
-		if (ItemWidget && InventoryComponent)
+		FGISSlotInfo TargetSlotInfo;
+		TargetSlotInfo.CurrentInventoryComponent = SlotSwapInfo.TargetSlotComponent;
+		TargetSlotInfo.ItemData = SlotSwapInfo.TargetSlotData;
+		TargetSlotInfo.SlotIndex = SlotSwapInfo.TargetSlotIndex;
+		TargetSlotInfo.SlotTabIndex = SlotSwapInfo.TargetTabIndex;
+		InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->SlotInfo = TargetSlotInfo;
+
+		UGISItemBaseWidget* ItemWidget = InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->ItemInSlot;
+		if (InventoryComponent)
 		{
-			ULocalPlayer* Player = InventoryComponent->GetWorld()->GetFirstLocalPlayerFromController(); //temporary
-			ItemWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
+			if (!ItemWidget)
+			{
+				ItemWidget = ConstructObject<UGISItemBaseWidget>(ItemClass);
+			}
 			ItemWidget->Initialize();
-			ItemWidget->ItemData = SlotSwapInfo.TargetSlotData;
+			ItemWidget->ItemData = TargetSlotInfo.ItemData;
 			ItemWidget->InventoryComponent = InventoryComponent;
 			ItemWidget->InitializeItem();
-			//ItemWidget->LastSlotInfo = SlotInfo;
+			ItemWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		}
+	}
+	else if (SlotSwapInfo.LastSlotComponent->bRemoveItemsFromInvetoryOnDrag)
+	{
+
+		
+		FGISSlotInfo TargetSlotInfo;
+		TargetSlotInfo.CurrentInventoryComponent = SlotSwapInfo.TargetSlotComponent;
+		TargetSlotInfo.ItemData = SlotSwapInfo.TargetSlotData;
+		TargetSlotInfo.SlotIndex = SlotSwapInfo.TargetSlotIndex;
+		TargetSlotInfo.SlotTabIndex = SlotSwapInfo.TargetTabIndex;
+		InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->SlotInfo.ItemData = SlotSwapInfo.TargetSlotData;
+
+		FGISSlotInfo LastSlotInfo;
+		LastSlotInfo.CurrentInventoryComponent = SlotSwapInfo.LastSlotComponent;
+		LastSlotInfo.ItemData = SlotSwapInfo.LastSlotData;
+		LastSlotInfo.SlotIndex = SlotSwapInfo.LastSlotIndex;
+		LastSlotInfo.SlotTabIndex = SlotSwapInfo.LastTabIndex;
+		InventoryTabs[SlotSwapInfo.LastTabIndex]->InventorySlots[SlotSwapInfo.LastSlotIndex]->SlotInfo.ItemData = SlotSwapInfo.LastSlotData;
+		
+		UGISItemBaseWidget* TargetItemWidget = InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->ItemInSlot;
+		if (InventoryComponent)
+		{
+			if (!TargetItemWidget)
+			{
+				TargetItemWidget = ConstructObject<UGISItemBaseWidget>(ItemClass);
+			}
+			TargetItemWidget->Initialize();
+			TargetItemWidget->ItemData = SlotSwapInfo.TargetSlotData;
+			TargetItemWidget->InventoryComponent = InventoryComponent;
+			TargetItemWidget->InitializeItem();
+			TargetItemWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		}
+
+		UGISItemBaseWidget* LastItemWidget = InventoryTabs[SlotSwapInfo.LastTabIndex]->InventorySlots[SlotSwapInfo.LastSlotIndex]->ItemInSlot;
+		if (InventoryComponent)
+		{
+			if (!LastItemWidget)
+			{
+				LastItemWidget = ConstructObject<UGISItemBaseWidget>(ItemClass);
+			}
+			LastItemWidget->Initialize();
+			LastItemWidget->ItemData = SlotSwapInfo.LastSlotData;
+			LastItemWidget->InventoryComponent = InventoryComponent;
+			LastItemWidget->InitializeItem();
+			LastItemWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		}
+	}
+	else
+	{
+		//construct target and last, since this is for test one will do just as well.
+		UGISItemBaseWidget* TargetItemWidget = InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->ItemInSlot;
+		if (InventoryComponent)
+		{
+			if (!TargetItemWidget)
+			{
+				TargetItemWidget = ConstructObject<UGISItemBaseWidget>(ItemClass);
+			}
+			TargetItemWidget->Initialize();
+			TargetItemWidget->ItemData = SlotSwapInfo.TargetSlotData;
+			TargetItemWidget->InventoryComponent = InventoryComponent;
+			TargetItemWidget->InitializeItem();
+			TargetItemWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		}
 		FGISSlotInfo TargetSlotInfo;
 		TargetSlotInfo.CurrentInventoryComponent = SlotSwapInfo.TargetSlotComponent;
@@ -180,40 +261,34 @@ void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 		TargetSlotInfo.SlotIndex = SlotSwapInfo.TargetSlotIndex;
 		TargetSlotInfo.SlotTabIndex = SlotSwapInfo.TargetTabIndex;
 		InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->SlotInfo = TargetSlotInfo;
-		UWidget* superWidget = InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->GetWidgetFromName(DropSlottName);
+	}
+}
+void UGISContainerBaseWidget::RemoveItem(const FGISSlotSwapInfo& SlotSwapInfo)
+{
+	if (!SlotSwapInfo.LastSlotData && SlotSwapInfo.LastSlotComponent->bRemoveItemsFromInvetoryOnDrag)
+	{
+		//InventoryTabs[SlotSwapInfo.LastTabIndex]->InventorySlots[SlotSwapInfo.LastSlotIndex]->bIsEnabled = false;
+		//this it bit fiddly since the widget which will contain our widget must be last
+		//and out item widget must be last child within this widget
+		FGISSlotInfo LastSlotInfo;
+		LastSlotInfo.CurrentInventoryComponent = SlotSwapInfo.LastSlotComponent;
+		LastSlotInfo.ItemData = SlotSwapInfo.LastSlotData;
+		LastSlotInfo.SlotIndex = SlotSwapInfo.LastSlotIndex;
+		LastSlotInfo.SlotTabIndex = SlotSwapInfo.LastTabIndex;
 
-		UOverlay* overlay = Cast<UOverlay>(superWidget);
-		if (overlay)
-		{
-			overlay->AddChild(ItemWidget);
-		}
+		InventoryTabs[SlotSwapInfo.LastTabIndex]->InventorySlots[SlotSwapInfo.LastSlotIndex]->SlotInfo = LastSlotInfo;
+		
+		UGISItemBaseWidget* itemTemp = InventoryTabs[SlotSwapInfo.LastTabIndex]->InventorySlots[SlotSwapInfo.LastSlotIndex]->ItemInSlot;
+		itemTemp->SetVisibility(ESlateVisibility::Collapsed);
 	}
 	else if (SlotSwapInfo.LastSlotComponent->bRemoveItemsFromInvetoryOnDrag)
 	{
-		//construct target and last, since this is for test one will do just as well.
-		UGISItemBaseWidget* TargetItemWidget = ConstructObject<UGISItemBaseWidget>(ItemClass, Outer);
-		if (TargetItemWidget && InventoryComponent)
-		{
-			ULocalPlayer* Player = InventoryComponent->GetWorld()->GetFirstLocalPlayerFromController(); //temporary
-			TargetItemWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
-			TargetItemWidget->Initialize();
-			TargetItemWidget->ItemData = SlotSwapInfo.TargetSlotData;
-			TargetItemWidget->InventoryComponent = InventoryComponent;
-			TargetItemWidget->InitializeItem();
-			//ItemWidget->LastSlotInfo = SlotInfo;
-		}
+		UGISItemBaseWidget* LastItem = InventoryTabs[SlotSwapInfo.LastTabIndex]->InventorySlots[SlotSwapInfo.LastSlotIndex]->ItemInSlot;
+		LastItem->SetVisibility(ESlateVisibility::Collapsed);
 
-		UGISItemBaseWidget* LastItemWidget = ConstructObject<UGISItemBaseWidget>(ItemClass, Outer);
-		if (TargetItemWidget && InventoryComponent)
-		{
-			ULocalPlayer* Player = InventoryComponent->GetWorld()->GetFirstLocalPlayerFromController(); //temporary
-			LastItemWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
-			LastItemWidget->Initialize();
-			LastItemWidget->ItemData = SlotSwapInfo.LastSlotData;
-			LastItemWidget->InventoryComponent = InventoryComponent;
-			LastItemWidget->InitializeItem();
-			//ItemWidget->LastSlotInfo = SlotInfo;
-		}
+		UGISItemBaseWidget* TargetITem = InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->ItemInSlot;
+		TargetITem->SetVisibility(ESlateVisibility::Collapsed);
+
 		FGISSlotInfo TargetSlotInfo;
 		TargetSlotInfo.CurrentInventoryComponent = SlotSwapInfo.TargetSlotComponent;
 		TargetSlotInfo.ItemData = SlotSwapInfo.TargetSlotData;
@@ -226,112 +301,12 @@ void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 		LastSlotInfo.ItemData = SlotSwapInfo.LastSlotData;
 		LastSlotInfo.SlotIndex = SlotSwapInfo.LastSlotIndex;
 		LastSlotInfo.SlotTabIndex = SlotSwapInfo.LastTabIndex;
-
 		InventoryTabs[SlotSwapInfo.LastTabIndex]->InventorySlots[SlotSwapInfo.LastSlotIndex]->SlotInfo = LastSlotInfo;
-
-		UWidget* lastSlotWidget = InventoryTabs[SlotSwapInfo.LastTabIndex]->InventorySlots[SlotSwapInfo.LastSlotIndex]->GetWidgetFromName(DropSlottName);
-		UWidget* targetSlotWidget = InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->GetWidgetFromName(DropSlottName);
-		
-		UOverlay* lastSlotOverlay = Cast<UOverlay>(lastSlotWidget);
-		if (lastSlotOverlay)
-		{
-			lastSlotOverlay->AddChild(LastItemWidget);
-		}
-
-		UOverlay* targetSlotOverlay = Cast<UOverlay>(targetSlotWidget);
-		if (targetSlotOverlay)
-		{
-			targetSlotOverlay->AddChild(TargetItemWidget);
-		}
-	}
-	else
-	{
-		//construct target and last, since this is for test one will do just as well.
-		UGISItemBaseWidget* TargetItemWidget = ConstructObject<UGISItemBaseWidget>(ItemClass, Outer);
-		if (TargetItemWidget && InventoryComponent)
-		{
-			ULocalPlayer* Player = InventoryComponent->GetWorld()->GetFirstLocalPlayerFromController(); //temporary
-			TargetItemWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
-			TargetItemWidget->Initialize();
-			TargetItemWidget->ItemData = SlotSwapInfo.TargetSlotData;
-			TargetItemWidget->InventoryComponent = InventoryComponent;
-			TargetItemWidget->InitializeItem();
-			//ItemWidget->LastSlotInfo = SlotInfo;
-		}
-		FGISSlotInfo TargetSlotInfo;
-		TargetSlotInfo.CurrentInventoryComponent = SlotSwapInfo.TargetSlotComponent;
-		TargetSlotInfo.ItemData = SlotSwapInfo.TargetSlotData;
-		TargetSlotInfo.SlotIndex = SlotSwapInfo.TargetSlotIndex;
-		TargetSlotInfo.SlotTabIndex = SlotSwapInfo.TargetTabIndex;
-		InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->SlotInfo = TargetSlotInfo;
-
-		UWidget* targetSlotWidget = InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->GetWidgetFromName(DropSlottName);
-
-		UOverlay* targetSlotOverlay = Cast<UOverlay>(targetSlotWidget);
-		if (targetSlotOverlay)
-		{
-			targetSlotOverlay->AddChild(TargetItemWidget);
-		}
-	}
-}
-void UGISContainerBaseWidget::RemoveItem(const FGISSlotSwapInfo& SlotSwapInfo)
-{
-	if (!SlotSwapInfo.LastSlotData && SlotSwapInfo.LastSlotComponent->bRemoveItemsFromInvetoryOnDrag)
-	{
-		UWidget* superWidget = InventoryTabs[SlotSwapInfo.LastTabIndex]->InventorySlots[SlotSwapInfo.LastSlotIndex]->GetWidgetFromName(DropSlottName);
-
-		//this it bit fiddly since the widget which will contain our widget must be last
-		//and out item widget must be last child within this widget
-		UOverlay* overlay = Cast<UOverlay>(superWidget);
-		if (overlay)
-		{
-			int32 childCount = overlay->GetChildrenCount();
-			if (childCount > 1)
-			{
-				overlay->RemoveChildAt(childCount - 1);
-			}
-		}
-	}
-	else if (SlotSwapInfo.LastSlotComponent->bRemoveItemsFromInvetoryOnDrag)
-	{
-		UWidget* lastSlotWidget = InventoryTabs[SlotSwapInfo.LastTabIndex]->InventorySlots[SlotSwapInfo.LastSlotIndex]->GetWidgetFromName(DropSlottName);
-		UWidget* targetSlotWidget = InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->GetWidgetFromName(DropSlottName);
-		//this it bit fiddly since the widget which will contain our widget must be last
-		//and out item widget must be last child within this widget
-		UOverlay* lastSlotOverlay = Cast<UOverlay>(lastSlotWidget);
-		if (lastSlotOverlay)
-		{
-			int32 childCount = lastSlotOverlay->GetChildrenCount();
-			if (childCount > 1)
-			{
-				lastSlotOverlay->RemoveChildAt(childCount - 1);
-			}
-		}
-		UOverlay* targetSlotOverlay = Cast<UOverlay>(targetSlotWidget);
-		if (lastSlotOverlay)
-		{
-			int32 childCount = targetSlotOverlay->GetChildrenCount();
-			if (childCount > 1)
-			{
-				targetSlotOverlay->RemoveChildAt(childCount - 1);
-			}
-		}
 	}
 	else if (SlotSwapInfo.LastSlotData && !SlotSwapInfo.LastSlotComponent->bRemoveItemsFromInvetoryOnDrag)
 	{
-		UWidget* superWidget = InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->GetWidgetFromName(DropSlottName);
-
-		//this it bit fiddly since the widget which will contain our widget must be last
-		//and out item widget must be last child within this widget
-		UOverlay* overlay = Cast<UOverlay>(superWidget);
-		if (overlay)
-		{
-			int32 childCount = overlay->GetChildrenCount();
-			if (childCount > 1)
-			{
-				overlay->RemoveChildAt(childCount - 1);
-			}
-		}
+		UGISItemBaseWidget* itemTemp = InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->ItemInSlot;
+		itemTemp->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 
@@ -341,22 +316,11 @@ void UGISContainerBaseWidget::Widget_OnTabVisibilityChanged(int32 TabIndex)
 
 void UGISContainerBaseWidget::Widget_OnTabChanged(int32 TabIndexIn)
 {
-	UObject* Outer = GetWorld()->GetGameInstance() ? StaticCast<UObject*>(GetWorld()->GetGameInstance()) : StaticCast<UObject*>(GetWorld());
-	//	UGISItemData* itemData = SlotUpdateInfo.SlotComponent->Tabs.InventoryTabs[SlotUpdateInfo.TabIndex].TabSlots[SlotUpdateInfo.SlotIndex].ItemData;
 	// 1. Remove all item child widgets in slots.
 	for (UGISSlotBaseWidget* slot : InventoryTabs[TabIndexIn]->InventorySlots)
 	{
-		UWidget* superWidget = slot->GetWidgetFromName(DropSlottName);
-
-		UOverlay* overlay = Cast<UOverlay>(superWidget);
-		if (overlay)
-		{
-			int32 childCount = overlay->GetChildrenCount();
-			if (childCount > 1)
-			{
-				overlay->RemoveChildAt(childCount - 1);
-			}
-		}
+		UGISItemBaseWidget* itemTemp = slot->ItemInSlot;
+		itemTemp->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
 	//2. now, we will simply reconstruct all items, from new data in inventory.
@@ -364,17 +328,7 @@ void UGISContainerBaseWidget::Widget_OnTabChanged(int32 TabIndexIn)
 	{
 		if (slot.ItemData && ItemClass)
 		{
-			UGISItemBaseWidget* ItemWidget = ConstructObject<UGISItemBaseWidget>(ItemClass, Outer);
-			if (ItemWidget && InventoryComponent)
-			{
-				ULocalPlayer* Player = InventoryComponent->GetWorld()->GetFirstLocalPlayerFromController(); //temporary
-				ItemWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
-				ItemWidget->Initialize();
-				ItemWidget->ItemData = slot.ItemData;
-				ItemWidget->InventoryComponent = InventoryComponent;
-				ItemWidget->InitializeItem();
-				//ItemWidget->LastSlotInfo = SlotInfo;
-			}
+			UGISItemBaseWidget* ItemWidget = InventoryTabs[TabIndexIn]->InventorySlots[slot.SlotIndex]->ItemInSlot;
 
 			FGISSlotInfo SlotInfo;
 			SlotInfo.CurrentInventoryComponent = slot.CurrentInventoryComponent;
@@ -383,12 +337,14 @@ void UGISContainerBaseWidget::Widget_OnTabChanged(int32 TabIndexIn)
 			SlotInfo.SlotTabIndex = slot.SlotTabIndex;
 			InventoryTabs[TabIndexIn]->InventorySlots[slot.SlotIndex]->SlotInfo = SlotInfo;
 
-			UWidget* superWidget = InventoryTabs[TabIndexIn]->InventorySlots[slot.SlotIndex]->GetWidgetFromName(DropSlottName);
-
-			UOverlay* overlay = Cast<UOverlay>(superWidget);
-			if (overlay)
+			if (InventoryComponent)
 			{
-				overlay->AddChildToOverlay(ItemWidget);
+				ItemWidget->Initialize();
+				ItemWidget->ItemData = slot.ItemData;
+				ItemWidget->InventoryComponent = InventoryComponent;
+				ItemWidget->InitializeItem();
+				ItemWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+				//ItemWidget->LastSlotInfo = SlotInfo;
 			}
 		}
 	}

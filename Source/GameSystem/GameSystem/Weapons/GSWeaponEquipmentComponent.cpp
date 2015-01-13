@@ -36,6 +36,8 @@ void UGSWeaponEquipmentComponent::AttachActorTo(AActor* ActorIn, FName& Attached
 						AttachedSocketNameOut = weapSocket.SocketName;
 						pawnSocket.bIsSocketAvailable = false;
 						EquipInt->AttachActor(ActorIn, weapSocket.SocketName);
+
+						return;
 					}
 				}
 			}

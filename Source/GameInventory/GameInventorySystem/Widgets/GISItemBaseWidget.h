@@ -26,12 +26,17 @@ public:
 		FGISSlotInfo TargetSlotInfo;
 
 	UPROPERTY()
+		TWeakObjectPtr<class UGISSlotBaseWidget> LastSlot;
+
+	//UPROPERTY()
 		class UGISItemData* ItemData;
 
-	UPROPERTY()
+	//UPROPERTY()
 		class UGISInventoryBaseComponent* InventoryComponent;
 	
 	virtual void InitializeItem();
+
+	virtual void BeginDestroy() override;
 
 	/*
 		Probabaly can change them to pure.	

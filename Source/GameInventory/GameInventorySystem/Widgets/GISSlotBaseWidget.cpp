@@ -6,6 +6,7 @@
 #include "../GISInventoryBaseComponent.h"
 #include "GISItemBaseWidget.h"
 #include "../GISGlobalTypes.h"
+#include "GISSlotBaseWidget.h"
 
 #include "GISSlotBaseWidget.h"
 
@@ -39,17 +40,22 @@ void UGISSlotBaseWidget::OnDragDetected_Implementation(FGeometry MyGeometry, con
 {
 	if (GISItemClass)
 	{
-		UGISItemBaseWidget* ItemWidget = ConstructObject<UGISItemBaseWidget>(GISItemClass, this);
+		UWidget* superWidget = GetWidgetFromName(DropSlottName);
+		UOverlay* overlay = Cast<UOverlay>(superWidget);
+		//UGISItemBaseWidget* itemTemp = 
+		UGISItemBaseWidget* ItemWidget = Cast<UGISItemBaseWidget>(overlay->GetChildAt(0)); //ConstructObject<UGISItemBaseWidget>(GISItemClass);
 		if (ItemWidget && SlotInfo.CurrentInventoryComponent.IsValid())
 		{
 			ULocalPlayer* Player = SlotInfo.CurrentInventoryComponent->GetWorld()->GetFirstLocalPlayerFromController(); //temporary
 			ItemWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
 			ItemWidget->Initialize();
 			ItemWidget->LastSlotInfo = SlotInfo;
+			ItemWidget->LastSlotInfo.ItemData = nullptr;
 			ItemWidget->ItemData = SlotInfo.ItemData;
+			ItemWidget->LastSlot = this;
 		}
 
-		UDragDropOperation* DragDropOp = ConstructObject<UDragDropOperation>(UDragDropOperation::StaticClass(), this);
+		UDragDropOperation* DragDropOp = ConstructObject<UDragDropOperation>(UDragDropOperation::StaticClass());
 		if (DragDropOp)
 		{
 			DragDropOp->Payload = ItemWidget;
@@ -68,6 +74,8 @@ bool UGISSlotBaseWidget::OnDrop_Implementation(FGeometry MyGeometry, FPointerEve
 		if (item)
 		{
 			SlotInfo.CurrentInventoryComponent->AddItemOnSlot(SlotInfo, item->LastSlotInfo);
+			//item->LastSlot->SlotInfo.ItemData = nullptr;
+			//item->LastSlot.Reset();
 			return true;
 		}
 	}

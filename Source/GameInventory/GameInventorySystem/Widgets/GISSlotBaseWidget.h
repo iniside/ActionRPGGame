@@ -15,6 +15,12 @@ public:
 		FGISTabInfo TabInfo;
 
 	UPROPERTY()
+		FName DropSlottName;
+
+	UPROPERTY()
+	class UGISItemBaseWidget* ItemInSlot;
+
+	UPROPERTY()
 		TSubclassOf<class UGISItemBaseWidget> GISItemClass;
 
 	FEventReply OnMouseButtonDown_Implementation(FGeometry MyGeometry, const FPointerEvent& MouseEvent) override;

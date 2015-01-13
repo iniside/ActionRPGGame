@@ -8,6 +8,8 @@ class GAMESYSTEM_API AGSWeaponRanged : public AGWWeaponRanged
 {
 	GENERATED_UCLASS_BODY()
 public:
+	UPROPERTY(EditAnywhere, Category = "UI")
+		UTexture2D* Icon;
 	/**
 	 *	List of possible sockets, to which this weapon can attach itself when equiped.
 	 */

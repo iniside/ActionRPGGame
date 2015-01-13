@@ -12,6 +12,8 @@
 #include "Weapons/GSWeaponEquipmentComponent.h"
 #include "Components/GSActiveActionsComponent.h"
 
+#include "GSGlobalTypes.h"
+
 //#include "Net/UnrealNetwork.h"
 //#include "Engine/ActorChannel.h"
 
@@ -141,11 +143,11 @@ FVector AARCharacter::GetSocketLocation(FName SocketNameIn)
 // Input
 void AARCharacter::InputGetNextLeftWeapon()
 {
-	ActiveActions->CopyNextItemFromOtherInventoryTab(WeaponsEquipment, 0, 1, 0);
+	ActiveActions->CopyNextItemFromOtherInventoryTab(WeaponsEquipment, 0, 1, 0, EGSWeaponHand::Left);
 }
 void AARCharacter::InputGetNextRightWeapon()
 {
-	ActiveActions->CopyNextItemFromOtherInventoryTab(WeaponsEquipment, 1, 2, 0);
+	ActiveActions->CopyNextItemFromOtherInventoryTab(RightWeaponsEquipment, 0, 2, 0, EGSWeaponHand::Right);
 }
 
 void AARCharacter::InputUseLeftWeaponPressed()

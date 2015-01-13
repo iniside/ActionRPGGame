@@ -14,71 +14,143 @@ UGSActiveActionsComponent::UGSActiveActionsComponent(const FObjectInitializer& O
 	: Super(ObjectInitializer)
 {
 	bWantsInitializeComponent = true;
-	LastItemCopiedIndex = -1;
-	LastCopiedTabIndex = -1;
+	LastRightCopiedIndex = -1;
+	LastLeftCopiedIndex = -1;
 }
 void UGSActiveActionsComponent::InitializeComponent()
 {
 	EquipInt = Cast<IIGSEquipment>(GetOwner());
 	Super::InitializeComponent();
 }
-void UGSActiveActionsComponent::CopyNextItemFromOtherInventoryTab(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex)
+void UGSActiveActionsComponent::GetNextWeapon()
+{
+
+}
+void UGSActiveActionsComponent::OnWeaponActive()
+{
+
+}
+void UGSActiveActionsComponent::CopyNextItemFromOtherInventoryTab(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex, EGSWeaponHand WeaponHandIn)
 {
 	if (GetOwnerRole() < ROLE_Authority)
 	{
-		ServerCopyNextItemFromOtherInventoryTab(OtherIn, OtherTabIndex, TargetTabIndex, TargetSlotIndex);
+		ServerCopyNextItemFromOtherInventoryTab(OtherIn, OtherTabIndex, TargetTabIndex, TargetSlotIndex, WeaponHandIn);
 	}
 	else
 	{
 		if (OtherIn)
 		{
-			int32 OtherTabSlotCount = OtherIn->Tabs.InventoryTabs[OtherTabIndex].TabSlots.Num();
-
-			for (int32 TabIndex = 0; TabIndex < OtherTabSlotCount; TabIndex++)
+			if (WeaponHandIn == EGSWeaponHand::Left)
 			{
-				if (LastItemCopiedIndex < TabIndex)
+				int32 OtherTabSlotCount = OtherIn->Tabs.InventoryTabs[OtherTabIndex].TabSlots.Num();
+				for (int32 TabIndex = 0; TabIndex < OtherTabSlotCount; TabIndex++)
 				{
-					LastItemCopiedIndex++;
-					LastCopiedTabIndex = OtherTabIndex;
-					UGISItemData* LastData = Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData;
-					Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData = OtherIn->Tabs.InventoryTabs[OtherTabIndex].TabSlots[TabIndex].ItemData;
-					if (Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData)
+					if (LastLeftCopiedIndex < TabIndex)
 					{
-						Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData->CurrentInventory = this;
-						Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData->LastInventory = OtherIn;
+						LastLeftCopiedIndex++;
+						UGISItemData* LastData = Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData;
+						Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData = OtherIn->Tabs.InventoryTabs[OtherTabIndex].TabSlots[TabIndex].ItemData;
+						CurrentLeftHandWeapon = Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData;
+						if (Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData)
+						{
+							Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData->CurrentInventory = this;
+							Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData->LastInventory = OtherIn;
+						}
+
+						OnActionCopiedFromOtherInventoryTab(Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData, LastData, WeaponHandIn);
+
+						TabUpdateInfo.ReplicationCounter++;
+						TabUpdateInfo.TargetTabIndex = TargetTabIndex;
+						if (GetNetMode() == ENetMode::NM_Standalone)
+							OnTabChanged.ExecuteIfBound(TabUpdateInfo.TargetTabIndex);
+
+						if (LastLeftCopiedIndex == (OtherTabSlotCount - 1))
+							LastLeftCopiedIndex = -1;
+
+						return;
 					}
-					
-					OnActionCopiedFromOtherInventoryTab(Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData, LastData);
-	
-					TabUpdateInfo.ReplicationCounter++;
-					TabUpdateInfo.TargetTabIndex = TargetTabIndex;
-					if (GetNetMode() == ENetMode::NM_Standalone)
-						OnTabChanged.ExecuteIfBound(TabUpdateInfo.TargetTabIndex);
+				}
+			}
+			else if (WeaponHandIn == EGSWeaponHand::Right)
+			{
+				int32 OtherTabSlotCount = OtherIn->Tabs.InventoryTabs[OtherTabIndex].TabSlots.Num();
+				for (int32 TabIndex = 0; TabIndex < OtherTabSlotCount; TabIndex++)
+				{
+					if (LastRightCopiedIndex < TabIndex)
+					{
+						LastRightCopiedIndex++;
+						UGISItemData* LastData = Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData;
+						Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData = OtherIn->Tabs.InventoryTabs[OtherTabIndex].TabSlots[TabIndex].ItemData;
+						CurrentRightHandWeapon = Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData;
+						if (Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData)
+						{
+							Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData->CurrentInventory = this;
+							Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData->LastInventory = OtherIn;
+						}
 
-					if (LastItemCopiedIndex == (OtherTabSlotCount - 1))
-						LastItemCopiedIndex = -1;
+						OnActionCopiedFromOtherInventoryTab(Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData, LastData, WeaponHandIn);
 
-					return;
+						TabUpdateInfo.ReplicationCounter++;
+						TabUpdateInfo.TargetTabIndex = TargetTabIndex;
+						if (GetNetMode() == ENetMode::NM_Standalone)
+							OnTabChanged.ExecuteIfBound(TabUpdateInfo.TargetTabIndex);
+
+						if (LastRightCopiedIndex == (OtherTabSlotCount - 1))
+							LastRightCopiedIndex = -1;
+
+						return;
+					}
 				}
 			}
 		}
 	}
 }
-void UGSActiveActionsComponent::ServerCopyNextItemFromOtherInventoryTab_Implementation(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex)
+void UGSActiveActionsComponent::ServerCopyNextItemFromOtherInventoryTab_Implementation(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex, EGSWeaponHand WeaponHandIn)
 {
-	CopyNextItemFromOtherInventoryTab(OtherIn, OtherTabIndex, TargetTabIndex, TargetSlotIndex);
+	CopyNextItemFromOtherInventoryTab(OtherIn, OtherTabIndex, TargetTabIndex, TargetSlotIndex, WeaponHandIn);
 }
-bool UGSActiveActionsComponent::ServerCopyNextItemFromOtherInventoryTab_Validate(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex)
+bool UGSActiveActionsComponent::ServerCopyNextItemFromOtherInventoryTab_Validate(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex, EGSWeaponHand WeaponHandIn)
 {
 	return true;
 }
 
-void UGSActiveActionsComponent::OnActionCopiedFromOtherInventoryTab(class UGISItemData* DataIn, class UGISItemData* LastDataIn)
+void UGSActiveActionsComponent::OnActionCopiedFromOtherInventoryTab(class UGISItemData* DataIn, class UGISItemData* LastDataIn, EGSWeaponHand WeaponHandIn)
 {
 	if (EquipInt)
 	{
-		if (UGSItemWeaponInfo* weapon = Cast<UGSItemWeaponInfo>(DataIn))
+
+		UGSItemWeaponInfo* weapon = Cast<UGSItemWeaponInfo>(DataIn);
+		UGSItemWeaponInfo* lastWeapon = Cast<UGSItemWeaponInfo>(LastDataIn);
+
+		if (weapon)
 		{
+			if ( weapon->WeaponWieldType == EGSWeaponWield::TwoHands)
+			{
+				UGSItemWeaponInfo* leftWeapon = Cast<UGSItemWeaponInfo>(CurrentLeftHandWeapon);
+				UGSItemWeaponInfo* RightWeapon = Cast<UGSItemWeaponInfo>(CurrentRightHandWeapon);
+				if (WeaponHandIn == EGSWeaponHand::Right && leftWeapon)
+				{
+					EquipInt->AttachActor(leftWeapon->ActiveWeapon, leftWeapon->LastAttachedSocket);
+					Tabs.InventoryTabs[1].TabSlots[0].ItemData = nullptr;
+					CurrentRightHandWeapon = nullptr;
+					TabUpdateInfo.ReplicationCounter++;
+					TabUpdateInfo.TargetTabIndex = 1;
+					if (GetNetMode() == ENetMode::NM_Standalone)
+						OnTabChanged.ExecuteIfBound(TabUpdateInfo.TargetTabIndex);
+					//put back weapon
+				}
+				if (WeaponHandIn == EGSWeaponHand::Left && RightWeapon)
+				{
+					EquipInt->AttachActor(RightWeapon->ActiveWeapon, RightWeapon->LastAttachedSocket);
+					Tabs.InventoryTabs[2].TabSlots[0].ItemData = nullptr;
+					CurrentLeftHandWeapon = nullptr;
+					TabUpdateInfo.ReplicationCounter++;
+					TabUpdateInfo.TargetTabIndex = 2;
+					if (GetNetMode() == ENetMode::NM_Standalone)
+						OnTabChanged.ExecuteIfBound(TabUpdateInfo.TargetTabIndex);
+					//put back weapon
+				}
+			}
 			AGSCharacter* MyChar = Cast<AGSCharacter>(GetOwner());
 			if (MyChar)
 			{
@@ -95,14 +167,15 @@ void UGSActiveActionsComponent::OnActionCopiedFromOtherInventoryTab(class UGISIt
 					if (weapEqSock.SocketName == weapon->LastAttachedSocket)
 					{
 						weapEqSock.bIsSocketAvailable = true;
+						break;
 					}
 				}
 			}
 			EquipInt->AttachActor(weapon->ActiveWeapon, LeftSocketInfo.SocketName);
 		}
-		if (UGSItemWeaponInfo* weapon = Cast<UGSItemWeaponInfo>(LastDataIn))
+		if (lastWeapon)
 		{
-			EquipInt->AttachActor(weapon->ActiveWeapon, weapon->LastAttachedSocket);
+			EquipInt->AttachActor(lastWeapon->ActiveWeapon, lastWeapon->LastAttachedSocket);
 		}
 	}
 }

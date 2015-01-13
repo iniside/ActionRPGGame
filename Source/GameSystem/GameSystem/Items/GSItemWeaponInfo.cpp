@@ -14,6 +14,7 @@
 UGSItemWeaponInfo::UGSItemWeaponInfo(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
+	LastAttachedSocket = NAME_None;
 }
 
 void UGSItemWeaponInfo::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
@@ -28,7 +29,7 @@ UTexture2D* UGSItemWeaponInfo::GetImage()
 {
 	if (Weapon.GetDefaultObject())
 	{
-		//return Item.GetDefaultObject()->Icon;
+		return Weapon.GetDefaultObject()->Icon;
 	}
 	return nullptr;
 }
@@ -37,11 +38,12 @@ bool UGSItemWeaponInfo::OnItemAddedToSlot()
 {
 	if (Weapon)
 	{
-		ActiveWeapon = GetWorld()->SpawnActor<AGSWeaponRanged>(Weapon);
-		ActiveWeapon->SetOwner(OwningPawn);
-		ActiveWeapon->Instigator = OwningPawn;
 		if (UGSWeaponEquipmentComponent* eqComp = Cast<UGSWeaponEquipmentComponent>(CurrentInventory))
 		{
+			ActiveWeapon = GetWorld()->SpawnActor<AGSWeaponRanged>(Weapon);
+			ActiveWeapon->SetOwner(OwningPawn);
+			ActiveWeapon->Instigator = OwningPawn;
+
 			eqComp->AttachActorTo(ActiveWeapon, LastAttachedSocket, ActiveWeapon->SocketList);
 		}
 	}
@@ -51,7 +53,30 @@ bool UGSItemWeaponInfo::OnItemRemovedFromSlot()
 {
 	if (ActiveWeapon)
 	{
-		ActiveWeapon->Destroy();
+		UGSWeaponEquipmentComponent* eqComp = Cast<UGSWeaponEquipmentComponent>(CurrentInventory);
+		if (eqComp)
+		{
+			for (FGSWeaponSocketInfo& socket : eqComp->AttachmentSockets)
+			{
+				if (socket.SocketName == LastAttachedSocket)
+					socket.bIsSocketAvailable = true;
+			}
+		}
+		if (!eqComp)
+		{
+			UGSWeaponEquipmentComponent* eqLastComp = Cast<UGSWeaponEquipmentComponent>(LastInventory);
+			if (eqLastComp)
+			{
+				for (FGSWeaponSocketInfo& socket : eqLastComp->AttachmentSockets)
+				{
+					if (socket.SocketName == LastAttachedSocket)
+						socket.bIsSocketAvailable = true;
+
+					LastAttachedSocket = NAME_Name;
+				}
+			}
+			ActiveWeapon->Destroy();
+		}
 		return true;
 	}
 	return false;
