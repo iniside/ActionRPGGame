@@ -17,6 +17,7 @@ enum class EGSWeaponWield : uint8
 {
 	OneHand,
 	TwoHands,
+	Either, //weapon can be either wielded in one hand or in two hands if second hand is free.
 
 	Invalid,
 };

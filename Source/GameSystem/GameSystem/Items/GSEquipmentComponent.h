@@ -41,7 +41,6 @@ public:
 
 	UFUNCTION()
 		void AttachActorTo(AActor* ActorIn);
-
 private:
 	class IIGSEquipment* EquipInt;
 };

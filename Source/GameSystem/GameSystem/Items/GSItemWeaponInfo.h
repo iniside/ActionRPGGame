@@ -2,6 +2,7 @@
 #include "GISItemData.h"
 #include "GSItemTypes.h"
 #include "GSItemInfo.h"
+#include "../GSWeaponEquipmentTypes.h"
 #include "../GSGlobalTypes.h"
 
 #include "GSItemWeaponInfo.generated.h"
@@ -42,6 +43,8 @@ public:
 
 	virtual UTexture2D* GetImage() override;
 
+	virtual const TArray<FGSWeaponSocketInfo>& GetPossibleWeaponSockets() const;
+	virtual const EGSWeaponWield GetWeaponWield() const;
 	//these should be called on server.
 	virtual bool OnItemAddedToSlot() override;
 	virtual bool OnItemRemovedFromSlot() override;
@@ -57,4 +60,22 @@ public:
 	virtual int32 GetItemTypeID() const override { return UGSItemWeaponInfo::ItemTypeID; }
 
 	virtual bool IsOfType(int32 ItemTypeIDIn) override { return UGSItemWeaponInfo::ItemTypeID == ItemTypeIDIn; }
+
+	virtual void EquipWeapon();
+
+	EGSWeaponHand CurrentHand;
+
+private:
+	TArray<FGSWeaponSocketInfo> socketArray;
+
+
+	/*
+		move equiping logic here in form of interface (or not ?)
+		1. this inventory info class know about what weapon it contains.
+		2. so we have to check what are currently equiped weapons.
+		3. Then based on types of currently equiped weapons, and hand we want to equip this weapon
+		4. We can decide what action should be taken. (ie just equip weapon,
+		unequip weapon from one hand, unequip weapon, from other hand (if it is two handed))
+		etc.
+	*/
 };

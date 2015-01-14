@@ -25,8 +25,21 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Attachment Sockets")
 		FName  LeftBackSocketName;
+
+	UPROPERTY()
+		UGISInventoryBaseComponent* Inventory;
+
+	UFUNCTION()
+		void OnItemFromInventory(const FGISSlotSwapInfo& SlotSwapInfoIn);
+
+	UFUNCTION()
+		void OnItemWeapEquip(const FGISSlotSwapInfo& SlotSwapInfoIn);
+
+	virtual bool CheckIfCanAddItemToSlot(class UGISItemData* TargetDataIn, class UGISItemData* LastDataIn) override;
+
 protected:
 	class IIGSEquipment* EquipInt;
+	FName SocketToAttach;
 };
 
 

@@ -104,7 +104,7 @@ public:
 		void BP_DestroyField();
 
 	UFUNCTION()
-		void OnFieldHit(class AActor* OtherActor, class UPrimitiveComponent* HitComponent, class UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+		void OnFieldHit(class AActor* OtherActor, class UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	UFUNCTION()
 		void OnFieldBeginOverlap(class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

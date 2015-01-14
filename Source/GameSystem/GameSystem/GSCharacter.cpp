@@ -34,6 +34,9 @@ AGSCharacter::AGSCharacter(const FObjectInitializer& ObjectInitializer)
 	ActiveActions->SetIsReplicated(true);
 	ActiveActions->SetNetAddressable();
 
+	ActiveActions->LeftWeaponEquipment = WeaponsEquipment;
+	ActiveActions->RightWeaponEquipment = RightWeaponsEquipment;
+
 	HeadComp = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, AGSCharacter::HeadSlotComponent);
 	HeadComp->SetMasterPoseComponent(GetMesh());
 	HeadComp->AttachParent = GetMesh();

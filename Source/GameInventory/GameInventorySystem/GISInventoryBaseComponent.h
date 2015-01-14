@@ -310,6 +310,11 @@ public:
 	virtual void OnItemAddedToSlot(class UGISItemData* AddedItemIn);
 
 	/*
+		Override if you want to specify custom conditions under which item can be added to slot.
+	 */
+	virtual bool CheckIfCanAddItemToSlot(class UGISItemData* TargetDataIn, class UGISItemData* LastDataIn);
+
+	/*
 		Remove item from slot.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")

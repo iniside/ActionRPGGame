@@ -164,6 +164,22 @@ void AARCharacter::InputUseLeftWeaponReleased()
 		ActiveActions->InputSlotReleased(1, 0);
 	}
 }
+
+void AARCharacter::InputUseRightWeaponPressed()
+{
+	if (ActiveActions)
+	{
+		ActiveActions->InputSlotPressed(2, 0);
+	}
+}
+void AARCharacter::InputUseRightWeaponReleased()
+{
+	if (ActiveActions)
+	{
+		ActiveActions->InputSlotReleased(2, 0);
+	}
+}
+
 void AARCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 {
 	// Set up gameplay key bindings
@@ -196,6 +212,9 @@ void AARCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 
 	InputComponent->BindAction("InputUseLeftWeapon", IE_Pressed, this, &AARCharacter::InputUseLeftWeaponPressed);
 	InputComponent->BindAction("InputUseLeftWeapon", IE_Released, this, &AARCharacter::InputUseLeftWeaponReleased);
+
+	InputComponent->BindAction("InputUseRighttWeapon", IE_Pressed, this, &AARCharacter::InputUseRightWeaponPressed);
+	InputComponent->BindAction("InputUseRighttWeapon", IE_Released, this, &AARCharacter::InputUseRightWeaponReleased);
 
 	//InputComponent->BindAction("ActionButtonTab0Slot0", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 0>);
 	//InputComponent->BindAction("ActionButtonTab0Slot1", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 1>);

@@ -112,11 +112,6 @@ void UGISContainerBaseWidget::Widget_OnItemAdded(const FGISSlotUpdateData& SlotU
 		InventoryTabs[SlotUpdateInfo.TabIndex]->ItemCount++;
 		InventoryTabs[SlotUpdateInfo.TabIndex]->InventorySlots[SlotUpdateInfo.SlotIndex]->SlotInfo = SlotInfo;
 
-		//check against replicated component and struct in tabs in it.
-		//UWidget* superWidget = InventoryTabs[SlotUpdateInfo.TabIndex]->InventorySlots[SlotUpdateInfo.SlotIndex]->GetWidgetFromName(DropSlottName);
-		//UOverlay* overlay = Cast<UOverlay>(superWidget);
-		//UGISItemBaseWidget* ItemWidget = Cast<UGISItemBaseWidget>(overlay->GetChildAt(0));
-
 		UGISItemBaseWidget* ItemWidget = InventoryTabs[SlotUpdateInfo.TabIndex]->InventorySlots[SlotUpdateInfo.SlotIndex]->ItemInSlot;
 		if (InventoryComponent)
 		{
@@ -209,7 +204,7 @@ void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 		LastSlotInfo.ItemData = SlotSwapInfo.LastSlotData;
 		LastSlotInfo.SlotIndex = SlotSwapInfo.LastSlotIndex;
 		LastSlotInfo.SlotTabIndex = SlotSwapInfo.LastTabIndex;
-		InventoryTabs[SlotSwapInfo.LastTabIndex]->InventorySlots[SlotSwapInfo.LastSlotIndex]->SlotInfo.ItemData = SlotSwapInfo.LastSlotData;
+		SlotSwapInfo.LastSlotComponent->InventoryContainer->InventoryTabs[SlotSwapInfo.LastTabIndex]->InventorySlots[SlotSwapInfo.LastSlotIndex]->SlotInfo.ItemData = SlotSwapInfo.LastSlotData;
 		
 		UGISItemBaseWidget* TargetItemWidget = InventoryTabs[SlotSwapInfo.TargetTabIndex]->InventorySlots[SlotSwapInfo.TargetSlotIndex]->ItemInSlot;
 		if (InventoryComponent)
@@ -225,7 +220,7 @@ void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 			TargetItemWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		}
 
-		UGISItemBaseWidget* LastItemWidget = InventoryTabs[SlotSwapInfo.LastTabIndex]->InventorySlots[SlotSwapInfo.LastSlotIndex]->ItemInSlot;
+		UGISItemBaseWidget* LastItemWidget = SlotSwapInfo.LastSlotComponent->InventoryContainer->InventoryTabs[SlotSwapInfo.LastTabIndex]->InventorySlots[SlotSwapInfo.LastSlotIndex]->ItemInSlot;
 		if (InventoryComponent)
 		{
 			if (!LastItemWidget)
@@ -234,7 +229,7 @@ void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 			}
 			LastItemWidget->Initialize();
 			LastItemWidget->ItemData = SlotSwapInfo.LastSlotData;
-			LastItemWidget->InventoryComponent = InventoryComponent;
+			LastItemWidget->InventoryComponent = SlotSwapInfo.LastSlotComponent.Get();
 			LastItemWidget->InitializeItem();
 			LastItemWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		}

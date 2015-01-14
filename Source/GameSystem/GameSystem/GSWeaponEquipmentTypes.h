@@ -13,6 +13,11 @@ public:
 	*/
 	UPROPERTY(EditAnywhere)
 		FName SocketName;
+	/*
+		If possible try to attach to this socket first.
+	 */
+	UPROPERTY(EditAnywhere)
+		bool bPreferThisSocket;
 	/**
 	*	Only actor with these tags, can be attached to this socket.
 	*/
@@ -26,6 +31,8 @@ public:
 		UAnimMontage* Animation;
 
 	bool bIsSocketAvailable;
+
+
 
 	FGSWeaponSocketInfo()
 	{

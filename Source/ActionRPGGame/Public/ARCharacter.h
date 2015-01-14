@@ -99,6 +99,9 @@ protected:
 
 	void InputUseLeftWeaponPressed();
 	void InputUseLeftWeaponReleased();
+
+	void InputUseRightWeaponPressed();
+	void InputUseRightWeaponReleased();
 	/*
 		How to make it work in case where I would need to copy these pointer to other input buttons ?
 		let's think...

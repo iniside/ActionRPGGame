@@ -6,7 +6,7 @@
 #include "GSEquipmentComponent.h"
 #include "../Weapons/GSWeaponEquipmentComponent.h"
 #include "../Weapons/GSWeaponRanged.h"
-
+#include "../Components/GSActiveActionsComponent.h"
 #include "Net/UnrealNetwork.h"
 
 #include "GSItemWeaponInfo.h"
@@ -15,6 +15,7 @@ UGSItemWeaponInfo::UGSItemWeaponInfo(const FObjectInitializer& ObjectInitializer
 : Super(ObjectInitializer)
 {
 	LastAttachedSocket = NAME_None;
+	CurrentHand = EGSWeaponHand::Invalid;
 }
 
 void UGSItemWeaponInfo::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
@@ -32,6 +33,24 @@ UTexture2D* UGSItemWeaponInfo::GetImage()
 		return Weapon.GetDefaultObject()->Icon;
 	}
 	return nullptr;
+}
+
+const TArray<FGSWeaponSocketInfo>& UGSItemWeaponInfo::GetPossibleWeaponSockets() const
+{
+	if (Weapon.GetDefaultObject())
+	{
+		return Weapon.GetDefaultObject()->SocketList;
+	}
+	return socketArray;
+}
+
+const EGSWeaponWield UGSItemWeaponInfo::GetWeaponWield() const
+{
+	if (Weapon.GetDefaultObject())
+	{
+		return Weapon.GetDefaultObject()->WieldType;
+	}
+	return EGSWeaponWield::Invalid;
 }
 
 bool UGSItemWeaponInfo::OnItemAddedToSlot()
@@ -104,4 +123,24 @@ bool UGSItemWeaponInfo::InputReleased_Implementation()
 bool UGSItemWeaponInfo::CanItemBeSwapped()
 {
 	return true;
+}
+
+void UGSItemWeaponInfo::EquipWeapon()
+{
+	//check if we are in right inventory and get pointer to it.
+	if (UGSActiveActionsComponent* aaComp = Cast<UGSActiveActionsComponent>(CurrentInventory))
+	{
+		if (GetWeaponWield() == EGSWeaponWield::OneHand)
+		{
+
+		}
+		else if (GetWeaponWield() == EGSWeaponWield::TwoHands)
+		{
+
+		}
+		else if (GetWeaponWield() == EGSWeaponWield::Either)
+		{
+
+		}
+	}
 }

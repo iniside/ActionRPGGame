@@ -123,7 +123,7 @@ void AGSEffectField::BP_DestroyField()
 	DestroyField();
 }
 
-void AGSEffectField::OnFieldHit(class AActor* OtherActor, class UPrimitiveComponent* HitComponent, class UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AGSEffectField::OnFieldHit(class AActor* OtherActor, class UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	float test = 1;
 }

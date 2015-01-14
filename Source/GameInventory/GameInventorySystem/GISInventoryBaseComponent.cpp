@@ -228,12 +228,15 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 		//Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotTabIndex].ItemData
 		if (TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData == nullptr)
 		{
-
 			UGISItemData* TargetItem = LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData;
 			UGISItemData* LastItem = TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData; //Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData;
+			if (!CheckIfCanAddItemToSlot(TargetItem, LastItem))
+				return;
 
 			if (!TargetItem->HasAnyMatchingGameplayTags(TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].Tags))
 				return;
+
+
 
 			//if (!TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].Tags.HasTag(TargetItem->MyTag, EGameplayTagMatchType::Explicit, EGameplayTagMatchType::Explicit))
 			//	return;
@@ -276,14 +279,34 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 			SlotSwapInfo.TargetSlotData = TargetItem;
 			SlotSwapInfo.TargetSlotComponent = TargetSlotType.CurrentInventoryComponent;
 			if (GetNetMode() == ENetMode::NM_Standalone)
+			{
 				OnItemSlotSwapped.Broadcast(SlotSwapInfo);
+				LastSlotType.CurrentInventoryComponent->OnItemSlotSwapped.Broadcast(SlotSwapInfo);
+			}
+			//we will do it on server, to give chance for other
+			//componenets/actors to do something if item is removed/swapped in inventory.
+			if (GetNetMode() == ENetMode::NM_DedicatedServer)
+			{
+				OnItemSlotSwapped.Broadcast(SlotSwapInfo);
+				LastSlotType.CurrentInventoryComponent->OnItemSlotSwapped.Broadcast(SlotSwapInfo);
+			}
 			//ClientSlotSwap(SlotSwapInfo);
 		}
 		else
 		{
+
+			/*
+				Last copy item from last inventory, to be placed in Target inventory.
+			*/
 			UGISItemData* TargetItem = LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData;
+			/*
+				Copy item from target inventory, to be placed in last inventory.
+			*/
 			UGISItemData* LastItem = TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData; //Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData;
 			
+			if (!CheckIfCanAddItemToSlot(TargetItem, LastItem))
+				return;
+
 			if (!TargetItem->HasAnyMatchingGameplayTags(TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].Tags))
 				return;
 			
@@ -297,9 +320,25 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 				if (!LastItem->CanItemBeSwapped())
 					return;
 
+			/*
+				Assign current inventory to current item.
+			*/
 			TargetItem->CurrentInventory = TargetSlotType.CurrentInventoryComponent.Get(); //seems approperties instead of this ?
+			/*
+				Assign last inventory to current item.
+			*/
+			TargetItem->LastInventory = LastSlotType.CurrentInventoryComponent.Get();
+			/*
+				Assign last inventory to last item, as current inventory, since it's
+				possibly coming from different inventory than Target.
+			*/
 			LastItem->CurrentInventory = LastSlotType.CurrentInventoryComponent.Get();
-
+			/*
+				Same as above just in reverse. Last item is coming from TargetSlot, so we assign
+				Last Inventory from TargetSlot.
+			*/
+			LastItem->LastInventory = TargetSlotType.CurrentInventoryComponent.Get();
+			
 			LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].ItemCount--;
 			TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].ItemCount++;
 
@@ -331,7 +370,18 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 			SlotSwapInfo.TargetSlotData = TargetItem;
 			SlotSwapInfo.TargetSlotComponent = TargetSlotType.CurrentInventoryComponent;
 			if (GetNetMode() == ENetMode::NM_Standalone)
+			{
 				OnItemSlotSwapped.Broadcast(SlotSwapInfo);
+				LastSlotType.CurrentInventoryComponent->OnItemSlotSwapped.Broadcast(SlotSwapInfo);
+			}
+			//we will do it on server, to give chance for other
+			//componenets/actors to do something if item is removed/swapped in inventory.
+			if (GetNetMode() == ENetMode::NM_DedicatedServer)
+			{
+				OnItemSlotSwapped.Broadcast(SlotSwapInfo);
+				LastSlotType.CurrentInventoryComponent->OnItemSlotSwapped.Broadcast(SlotSwapInfo);
+			}
+				
 			//ClientSlotSwap(SlotSwapInfo);
 		}
 	}
@@ -380,6 +430,10 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 			OnItemSlotSwapped.Broadcast(SlotSwapInfo);
 		//ClientSlotSwap(SlotSwapInfo);
 	}
+}
+bool UGISInventoryBaseComponent::CheckIfCanAddItemToSlot(class UGISItemData* TargetDataIn, class UGISItemData* LastDataIn)
+{
+	return true;
 }
 void UGISInventoryBaseComponent::OnItemAddedToSlot(class UGISItemData* AddedItemIn)
 {
