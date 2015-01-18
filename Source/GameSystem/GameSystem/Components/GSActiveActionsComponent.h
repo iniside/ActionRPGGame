@@ -5,17 +5,28 @@
 #include "GISInventoryBaseComponent.h"
 #include "GSActiveActionsComponent.generated.h"
 
-
+/*
+	TODO:
+	1. Ability equiping (that should be far less complicated)
+	2. consumable item equiping (also should be pretty easy and not complicated).
+*/
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
 class GAMESYSTEM_API UGSActiveActionsComponent : public UGISInventoryBaseComponent
 {
 	GENERATED_UCLASS_BODY()
+
+	virtual bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags) override;
 protected:
 	UPROPERTY(EditAnywhere, Category = "Attachment Sockets")
 		FName  LeftHandName;
 
 	UPROPERTY(EditAnywhere, Category = "Attachment Sockets")
 		FGSWeaponSocketInfo  LeftSocketInfo;
+	/*
+		Index of equiping section of montage.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Animation")
+		int32 EquipingSectionIndex;
 
 	/*
 		Multipliers for animations.
@@ -25,6 +36,16 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 		float WeaponSwapSpeed;
+
+	UPROPERTY(EditAnywhere, Category = "Action Widgets")
+		TSubclassOf<class UGSWeaponInfoWidget> LeftWeaponInfoWidgetClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Action Widgets")
+		UGSWeaponInfoWidget* LeftWeaponInfoWidget;
+
+	UPROPERTY(EditAnywhere, Category = "Action Widgets")
+		TSubclassOf<class UGSWeaponInfoWidget> RightWeaponInfoWidgetClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Action Widgets")
+		UGSWeaponInfoWidget* RightWeaponInfoWidget;
 
 public:
 	UPROPERTY()
@@ -112,12 +133,16 @@ private:
 	int32 LastLeftCopiedIndex;
 	int32 LastRightCopiedIndex;
 	class IIGSEquipment* EquipInt;
-
-	UPROPERTY()
+protected:
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentLeftHandWeapon)
 	class UGSItemWeaponInfo* CurrentLeftHandWeapon;
-	UPROPERTY()
+	UFUNCTION()
+		void OnRep_CurrentLeftHandWeapon();
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentRightHandWeapon)
 	class UGSItemWeaponInfo* CurrentRightHandWeapon;
-
+	UFUNCTION()
+		void OnRep_CurrentRightHandWeapon();
+private:
 	UPROPERTY()
 	class UGSItemWeaponInfo* LastLeftHandWeapon;
 	UPROPERTY()
@@ -134,6 +159,14 @@ private:
 
 	void UpdateCurrentRightWeapon();
 	void UpdateLastRightWeapon();
+public:
+	void InputReloadWeapon(int32 TabIndex, int32 SlotIndex);
+
+//////////////////////////////////////////
+////////////// Ability Handling
+private:
+	UPROPERTY()
+	class UGSAbilityInfo* CurrentAbility;
 }; 
 
 

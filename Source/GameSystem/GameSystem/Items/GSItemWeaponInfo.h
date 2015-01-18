@@ -41,10 +41,15 @@ public:
 	UPROPERTY()
 		FName LastAttachedSocket;
 
+	inline void SetIsWeaponReady(bool bIsWeaponReadyIn);
+	inline bool GetIsWeaponReady();
+	virtual void SetEquipingTime(float TimeIn);
 	virtual UTexture2D* GetImage() override;
 
+	virtual AActor* GetActorToAttach();
 	virtual const TArray<FGSWeaponSocketInfo>& GetPossibleWeaponSockets() const;
 	virtual const EGSWeaponWield GetWeaponWield() const;
+	
 	//these should be called on server.
 	virtual bool OnItemAddedToSlot() override;
 	virtual bool OnItemRemovedFromSlot() override;
@@ -65,7 +70,7 @@ public:
 
 	EGSWeaponHand CurrentHand;
 
-private:
+protected:
 	TArray<FGSWeaponSocketInfo> socketArray;
 
 

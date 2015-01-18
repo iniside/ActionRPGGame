@@ -103,6 +103,9 @@ public:
 	Could be UObject, replicated trough component.
 	But is it worth fuss ?
 */
+/*
+	Ability code will be refactored! To be in more consistent design with rest of modules.
+*/
 UCLASS(BlueprintType, Blueprintable, DefaultToInstanced)
 class GAMEABILITIES_API AGASAbility : public AActor, public IIGTTrace
 {

@@ -18,14 +18,14 @@ void UGAAttributeMod::BindDelegates(FGAOnAttributeOutgoing& Outgoing, FGAOnAttri
 
 void UGAAttributeMod::OnAttributeModifyOutCheck(const FGAAttributeModifier& AttributeParam, FGAAttributeModifier& AttributeOut)
 {
-	if (AttributeParam.Tags.MatchesAll(RequiredTags, true)) //might change it to false later.
+	if (AttributeParam.Tags.MatchesAny(RequiredTags, true)) //might change it to false later.
 	{
 		OnAttributeModifyOut(AttributeParam, AttributeOut);
 	}
 }
 void UGAAttributeMod::OnAttributeModifyInCheck(const FGAAttributeModifier& AttributeParam, FGAAttributeModifier& AttributeOut)
 {
-	if (AttributeParam.Tags.MatchesAll(RequiredTags, true)) //might change it to false later.
+	if (AttributeParam.Tags.MatchesAny(RequiredTags, true)) //might change it to false later.
 	{
 		OnAttributeModifyIn(AttributeParam, AttributeOut);
 	}

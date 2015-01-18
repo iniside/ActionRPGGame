@@ -89,3 +89,24 @@ void UGAAttributesBlueprintFunctionLibrary::ModifyAttributes(TArray<FGAAttribute
 		//}
 	}
 }
+void UGAAttributesBlueprintFunctionLibrary::DamageAttribute(FGAAttribute AttributeIn, float ModValue, const FHitResult& TargetIn, const FGameplayTagContainer& TagsIn, APawn* Instigator)
+{
+	IIGAAttributes* attributeIn = Cast<IIGAAttributes>(TargetIn.Actor.Get());
+	IIGAAttributes* attributeInst = Cast<IIGAAttributes>(Instigator);
+	if (!attributeIn || !attributeInst)
+		return;
+
+	UGAAttributeComponent* attrComp = attributeInst->GetAttributeComponent();
+	if (!attrComp)
+		return;
+
+	FGAAttributeModifier AttrMod;
+	AttrMod.HitTarget = TargetIn;
+	AttrMod.Instigator = Instigator;
+	AttrMod.Attribute = AttributeIn;
+	AttrMod.Value = ModValue;
+	AttrMod.Operation = EGAAttributeOp::Subtract;
+	AttrMod.Tags = TagsIn;
+
+	attrComp->ModifyAttributesOnTarget(attributeIn->GetAttributeComponent(), AttrMod);
+}

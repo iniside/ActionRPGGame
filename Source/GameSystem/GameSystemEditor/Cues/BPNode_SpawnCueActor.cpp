@@ -34,7 +34,7 @@ FString FBPNode_SpawnCueActorHelper::InstigatorPinName(TEXT("CueInstigator"));
 UBPNode_SpawnCueActor::UBPNode_SpawnCueActor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	NodeTooltip = LOCTEXT("NodeTooltip", "Create new effect field from ability");
+	NodeTooltip = LOCTEXT("NodeTooltip", "Create visual cue actor.");
 }
 
 //Adds default pins to node. These Pins (inputs ?) are always displayed.
@@ -154,7 +154,7 @@ FLinearColor UBPNode_SpawnCueActor::GetNodeTitleColor() const
 
 FText UBPNode_SpawnCueActor::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
-	FText NodeTitle = NSLOCTEXT("K2Node", "EffectField_BaseTitle", "Spawn Effect Field from Class");
+	FText NodeTitle = NSLOCTEXT("K2Node", "VisualCue_BaseTitle", "Spawn visual cue actor from Class");
 	if (TitleType != ENodeTitleType::MenuTitle)
 	{
 		FText SpawnString = NSLOCTEXT("K2Node", "None", "NONE");
@@ -163,11 +163,11 @@ FText UBPNode_SpawnCueActor::GetNodeTitle(ENodeTitleType::Type TitleType) const
 			if (ClassPin->LinkedTo.Num() > 0)
 			{
 				// Blueprint will be determined dynamically, so we don't have the name in this case
-				NodeTitle = NSLOCTEXT("K2Node", "EffectField_Title_Unknown", "SpawnEffectField");
+				NodeTitle = NSLOCTEXT("K2Node", "VisualCue_Title_Unknown", "SpawnVisualCue");
 			}
 			else if (ClassPin->DefaultObject == nullptr)
 			{
-				NodeTitle = NSLOCTEXT("K2Node", "EffectField_Title_NONE", "EffectField NONE");
+				NodeTitle = NSLOCTEXT("K2Node", "VisualCue_Title_NONE", "VisualCue NONE");
 			}
 			else
 			{
@@ -183,26 +183,26 @@ FText UBPNode_SpawnCueActor::GetNodeTitle(ENodeTitleType::Type TitleType) const
 					Args.Add(TEXT("ClassName"), ClassName);
 
 					// FText::Format() is slow, so we cache this to save on performance
-					CachedNodeTitle = FText::Format(NSLOCTEXT("K2Node", "EffectField", "SpawnEffectField {ClassName}"), Args);
+					CachedNodeTitle = FText::Format(NSLOCTEXT("K2Node", "VisualCue", "SpawnVisualCue {ClassName}"), Args);
 				}
 				NodeTitle = CachedNodeTitle;
 			}
 		}
 		else
 		{
-			NodeTitle = NSLOCTEXT("K2Node", "EffectField_Title_NONE", "EffectField NONE");
+			NodeTitle = NSLOCTEXT("K2Node", "VisualCue_Title_NONE", "VisualCue NONE");
 		}
 	}
 	return NodeTitle;
 }
 FText UBPNode_SpawnCueActor::GetTooltipText() const
 {
-	return FText::FromString("Create new Effect Field");
+	return FText::FromString("Create new Visual Cue");
 }
 //Set context menu category in which our node will be present.
 FText UBPNode_SpawnCueActor::GetMenuCategory() const
 {
-	return FText::FromString("Game System|Effect Field");
+	return FText::FromString("Game System|Visual Cues");
 }
 
 void UBPNode_SpawnCueActor::GetMenuEntries(FGraphContextMenuBuilder& ContextMenuBuilder) const
@@ -210,8 +210,8 @@ void UBPNode_SpawnCueActor::GetMenuEntries(FGraphContextMenuBuilder& ContextMenu
 	UBPNode_SpawnCueActor* TemplateNode = NewObject<UBPNode_SpawnCueActor>(GetTransientPackage(), GetClass());
 
 	const FString Category = TEXT("Game System");
-	const FText   MenuDesc = LOCTEXT("CreateEffectFieldMenuOption", "Create Effect Field");
-	const FString Tooltip = TEXT("Create a new Effect Field");
+	const FText   MenuDesc = LOCTEXT("CreateVisualCueMenuOption", "Create Visual Cue");
+	const FString Tooltip = TEXT("Create a new Visual Cue");
 
 	TSharedPtr<FEdGraphSchemaAction_K2NewNode> NodeAction = FK2ActionMenuBuilder::AddNewNodeAction(ContextMenuBuilder, Category, MenuDesc, Tooltip);
 	NodeAction->NodeTemplate = TemplateNode;

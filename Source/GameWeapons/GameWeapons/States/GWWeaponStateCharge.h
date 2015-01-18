@@ -1,11 +1,11 @@
 #pragma once
 #include "GWWeaponState.h"
-#include "GWWeaponStateActiveCharge.generated.h"
+#include "GWWeaponStateCharge.generated.h"
 /*
 	I could, probabaly remake it with interface instead of within.
 */
 UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GWWeapon)
-class GAMEWEAPONS_API UGWWeaponStateActiveCharge : public UGWWeaponState
+class GAMEWEAPONS_API UGWWeaponStateCharge : public UGWWeaponState
 {
 	GENERATED_UCLASS_BODY()
 public:

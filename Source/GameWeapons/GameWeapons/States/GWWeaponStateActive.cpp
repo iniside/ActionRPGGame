@@ -17,6 +17,7 @@ void UGWWeaponStateActive::EndState()
 }
 void UGWWeaponStateActive::BeginActionSequence()
 {
+	GetOuterAGWWeapon()->GotoState(GetOuterAGWWeapon()->ActionState);
 }
 void UGWWeaponStateActive::EndActionSequence()
 {

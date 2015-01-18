@@ -23,7 +23,9 @@ namespace UnrealBuildTool.Rules
                     "GameFloatingCombatText",
                     "GameFloatingCombatText/Public",
                     "GameTrace",
-                    "GameTrace/Public"
+                    "GameTrace/Public",
+                    "GameInterfaces",
+                    "GameInterfaces/Public"
 					// ... add public include paths required here ...
 				}
 				);
@@ -37,7 +39,8 @@ namespace UnrealBuildTool.Rules
                     "GameEffectSystem/Private",
                     "GameInventorySystem/Private",
                     "GameFloatingCombatText/Private",
-                    "GameTrace/Private"
+                    "GameTrace/Private",
+                    "GameInterfaces/Private"
 					// ... add other private include paths required here ...
 				}
 				);
@@ -52,6 +55,7 @@ namespace UnrealBuildTool.Rules
                     "UMG",
                     "Slate",
                     "SlateCore",
+                    "GameInterfaces",
                     "GameTrace",
                     "GameAbilities",
                     "GameWeapons",

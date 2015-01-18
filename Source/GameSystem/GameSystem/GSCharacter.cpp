@@ -124,3 +124,27 @@ USkeletalMeshComponent* AGSCharacter::GetSkeletalMeshComponentByName(FName NameI
 {
 	return nullptr;
 }
+
+FVector AGSCharacter::GetSocketLocation(FName SocketNameIn)
+{
+	return GetMesh()->GetSocketLocation(SocketNameIn);
+}
+
+USkeletalMeshComponent* AGSCharacter::GetMasterSkeletalMesh()
+{
+	return GetMesh();
+}
+
+FRotator AGSCharacter::GetAimOffset() const
+{
+	const FVector AimDirWS = GetBaseAimRotation().Vector();
+	const FVector AimDirLS = ActorToWorld().InverseTransformVectorNoScale(AimDirWS);
+	const FRotator AimRotLS = AimDirLS.Rotation();
+
+	return AimRotLS;
+}
+
+void AGSCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	TagContainer = OwnedTags;
+}

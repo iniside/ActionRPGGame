@@ -14,7 +14,6 @@ void UAREditorEngine::Init(IEngineLoop* InEngineLoop)
 {
 	IGameplayTagsModule& GameplayTagsModule = IGameplayTagsModule::Get();
 	
-	////UDataTable* justDeleteMe = LoadObject<UDataTable>(NULL, *Tags, NULL, LOAD_None, NULL);
 	TArray<FString> TagsList;
 
 	FString ItemTags = "/Game/Blueprints/DataTables/InventoryTags.InventoryTags";
@@ -22,6 +21,12 @@ void UAREditorEngine::Init(IEngineLoop* InEngineLoop)
 
 	FString Tags = "/Game/Blueprints/SampleTags.SampleTags";
 	TagsList.Add(Tags);
+
+	FString PawnTypesTags = "/Game/Blueprints/DataTables/PawnTypes.PawnTypes";
+	TagsList.Add(PawnTypesTags);
+
+	GameplayTagsModule.GetGameplayTagsManager().DestroyGameplayTagTree();
 	GameplayTagsModule.GetGameplayTagsManager().LoadGameplayTagTables(TagsList);
+	GameplayTagsModule.GetGameplayTagsManager().ConstructGameplayTagTree();
 	Super::Init(InEngineLoop);
 }

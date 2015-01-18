@@ -2,6 +2,11 @@
 
 #include "GameWeapons.h"
 #include "States/GWWeaponState.h"
+
+#include "Net/UnrealNetwork.h"
+
+#include "IGISocket.h"
+
 #include "GWWeapon.h"
 
 AGWWeapon::AGWWeapon(const FObjectInitializer& ObjectInitializer)
@@ -13,17 +18,36 @@ AGWWeapon::AGWWeapon(const FObjectInitializer& ObjectInitializer)
 	WeaponMesh = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("WeaponMesh"));
 	WeaponMesh->AttachParent = RootComponent;
 }
+void AGWWeapon::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME_CONDITION(AGWWeapon, HitInfo, COND_SkipOwner);
+}
 void AGWWeapon::InitializeWeapon()
 {
-
+	SocketInt = Cast<IIGISocket>(Instigator);
 }
-
+void AGWWeapon::OnRep_Instigator()
+{
+	Super::OnRep_Instigator();
+	if (!SocketInt)
+		SocketInt = Cast<IIGISocket>(Instigator);
+}
 void AGWWeapon::InputPressed()
 {
 
 }
 void AGWWeapon::InputReleased()
+{
+
+}
+
+void AGWWeapon::ActionBegin()
+{
+
+}
+void AGWWeapon::ActionEnd()
 {
 
 }
@@ -56,4 +80,31 @@ void AGWWeapon::GotoState(class UGWWeaponState* NextState)
 			CurrentState->BeginState(PrevState);
 		}
 	}
+}
+
+void AGWWeapon::SetHitLocation(FVector StartLocation, FVector ImpactLocation)
+{
+	HitInfo.HitCounter++; 
+	HitInfo.Origin = StartLocation;
+	HitInfo.HitLocation = ImpactLocation;
+}
+void AGWWeapon::OnRep_HitInfo()
+{
+
+}
+FVector AGWWeapon::GetTargetingSocketLocation()
+{
+	if (SocketInt)
+	{
+		return SocketInt->GetSocketLocation(TargetingSocketName);
+	}
+	return FVector::ZeroVector;
+}
+FVector AGWWeapon::GetWeaponSocketLocation()
+{
+	if (WeaponMesh)
+	{
+		return WeaponMesh->GetSocketLocation(WeaponSocketName);
+	}
+	return FVector::ZeroVector;
 }

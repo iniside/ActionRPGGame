@@ -25,7 +25,10 @@ void UGSItemWeaponInfo::GetLifetimeReplicatedProps(TArray< class FLifetimeProper
 	DOREPLIFETIME_CONDITION(UGSItemWeaponInfo, Weapon, COND_OwnerOnly);
 	DOREPLIFETIME(UGSItemWeaponInfo, ActiveWeapon);
 }
+void UGSItemWeaponInfo::SetEquipingTime(float TimeIn)
+{
 
+}
 UTexture2D* UGSItemWeaponInfo::GetImage()
 {
 	if (Weapon.GetDefaultObject())
@@ -34,7 +37,10 @@ UTexture2D* UGSItemWeaponInfo::GetImage()
 	}
 	return nullptr;
 }
-
+AActor* UGSItemWeaponInfo::GetActorToAttach()
+{
+	return nullptr;
+}
 const TArray<FGSWeaponSocketInfo>& UGSItemWeaponInfo::GetPossibleWeaponSockets() const
 {
 	if (Weapon.GetDefaultObject())
@@ -62,7 +68,8 @@ bool UGSItemWeaponInfo::OnItemAddedToSlot()
 			ActiveWeapon = GetWorld()->SpawnActor<AGSWeaponRanged>(Weapon);
 			ActiveWeapon->SetOwner(OwningPawn);
 			ActiveWeapon->Instigator = OwningPawn;
-
+			ActiveWeapon->WeaponPC = OwiningPlayerController;
+			ActiveWeapon->InitializeWeapon();
 			eqComp->AttachActorTo(ActiveWeapon, LastAttachedSocket, ActiveWeapon->SocketList);
 		}
 	}
@@ -144,3 +151,5 @@ void UGSItemWeaponInfo::EquipWeapon()
 		}
 	}
 }
+void UGSItemWeaponInfo::SetIsWeaponReady(bool bIsWeaponReadyIn){ ActiveWeapon->bIsWeaponReady = bIsWeaponReadyIn; };
+bool UGSItemWeaponInfo::GetIsWeaponReady() { return ActiveWeapon->bIsWeaponReady; };

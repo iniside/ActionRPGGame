@@ -180,6 +180,15 @@ void AARCharacter::InputUseRightWeaponReleased()
 	}
 }
 
+
+void AARCharacter::InputReloadWeapon()
+{
+	if (ActiveActions)
+	{
+		ActiveActions->InputReloadWeapon(1, 0);
+		ActiveActions->InputReloadWeapon(2, 0);
+	}
+}
 void AARCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 {
 	// Set up gameplay key bindings
@@ -190,7 +199,7 @@ void AARCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 	InputComponent->BindAxis("MoveForward", this, &AARCharacter::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &AARCharacter::MoveRight);
 
-	InputComponent->BindAction("ShowHideInventory", IE_Pressed, this, &AARCharacter::ShowHideInventory);
+	InputComponent->BindAction("ShowInventory", IE_Pressed, this, &AARCharacter::ShowHideInventory);
 	InputComponent->BindAction("ShowHideAbilityBook", IE_Pressed, this, &AARCharacter::ShowHideAbilityBook);
 
 	InputComponent->BindAction("ActionButtonTab0Slot0", IE_Pressed, this, &AARCharacter::InputActionBarPressed<0, 0>);
@@ -215,6 +224,8 @@ void AARCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 
 	InputComponent->BindAction("InputUseRighttWeapon", IE_Pressed, this, &AARCharacter::InputUseRightWeaponPressed);
 	InputComponent->BindAction("InputUseRighttWeapon", IE_Released, this, &AARCharacter::InputUseRightWeaponReleased);
+
+	InputComponent->BindAction("InputReloadWeapon", IE_Released, this, &AARCharacter::InputReloadWeapon);
 
 	//InputComponent->BindAction("ActionButtonTab0Slot0", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 0>);
 	//InputComponent->BindAction("ActionButtonTab0Slot1", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 1>);
@@ -324,18 +335,26 @@ void AARCharacter::MoveRight(float Value)
 
 void AARCharacter::ShowHideInventory()
 {
-	if (Inventory && Inventory->InventoryContainer)
-	{
-		//Inventory->ChangeTabVisibility(0);
-		//if (Inventory->InventoryContainer->GetVisibility() == ESlateVisibility::Hidden)
-		//{
-		//	Inventory->InventoryContainer->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		//}
-		//else if (Inventory->InventoryContainer->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
-		//{
-		//	Inventory->InventoryContainer->SetVisibility(ESlateVisibility::Hidden);
-		//}
-	}
+	//if (Inventory && Inventory->InventoryContainer)
+	//{
+	//	if (Inventory->InventoryContainer->GetVisibility() != ESlateVisibility::SelfHitTestInvisible)
+	//	{
+	//		Inventory->InventoryContainer->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	//		if (Inventory->InventoryContainer->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
+	//			GEngine->AddOnScreenDebugMessage(0, 4, FColor::Red, "Widget Is SelfHitTestInvisible");
+	//		else
+	//			GEngine->AddOnScreenDebugMessage(0, 4, FColor::Red, "something is fucked up.");
+	//		
+	//	}
+	//	else if (Inventory->InventoryContainer->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
+	//	{
+	//		Inventory->InventoryContainer->SetVisibility(ESlateVisibility::Collapsed);
+	//		if (Inventory->InventoryContainer->GetVisibility() == ESlateVisibility::Collapsed)
+	//			GEngine->AddOnScreenDebugMessage(0, 4, FColor::Red, "Widget Is Collapsed");
+	//		else
+	//			GEngine->AddOnScreenDebugMessage(0, 4, FColor::Red, "something is fucked up.");
+	//	}
+	//}
 }
 
 void AARCharacter::ShowHideAbilityBook()

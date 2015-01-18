@@ -1,11 +1,11 @@
 #pragma once
 #include "GWWeaponState.h"
-#include "GWWeaponStateActiveFiring.generated.h"
+#include "GWWeaponStateFiring.generated.h"
 /*
 	I could, probabaly remake it with interface instead of within.
 */
 UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GWWeapon)
-class GAMEWEAPONS_API UGWWeaponStateActiveFiring : public UGWWeaponState
+class GAMEWEAPONS_API UGWWeaponStateFiring : public UGWWeaponState
 {
 	GENERATED_UCLASS_BODY()
 public:
@@ -14,4 +14,9 @@ public:
 	virtual void EndState() override;
 	virtual void BeginActionSequence() override;
 	virtual void EndActionSequence() override;
+protected:
+	void FireWeapon();
+	UPROPERTY()
+	class AGWWeaponRanged* CurrentWeapon;
+	FTimerHandle FiringTimerHandle;
 };

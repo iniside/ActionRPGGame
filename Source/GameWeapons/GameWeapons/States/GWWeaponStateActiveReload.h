@@ -14,4 +14,11 @@ public:
 	virtual void EndState();
 	virtual void BeginActionSequence();
 	virtual void EndActionSequence();
+protected:
+	UPROPERTY()
+	class AGWWeaponRanged* CurrentWeapon;
+
+	UFUNCTION()
+		void EndWeaponReload();
+	FTimerHandle ReloadTimerHandle;
 };

@@ -2,6 +2,7 @@
 
 #include "GameWeapons.h"
 #include "DrawDebugHelpers.h"
+#include "../GWWeapon.h"
 #include "GWTraceBase.h"
 
 UGWTraceBase::UGWTraceBase(const FObjectInitializer& ObjectInitializer)
@@ -24,48 +25,22 @@ void UGWTraceBase::Tick(float DeltaSecondsIn)
 
 }
 
-void UGWTraceBase::SingleLineTrace()
-{
-	FHitResult Impact;
-	//TraceInterface->GetTargetData().Empty();
-	const FVector ShootDir = GetPawnCameraAim();
-	
-	if (bTraceFromSocket)
-	{
-		const FVector StartTrace = GetStartLocationFromSocket();
-		const FVector EndTrace = (GetStartLocationFromSocket() + ShootDir * Range);
-		Impact = SingleLineRangedTrace(StartTrace, EndTrace);
-		//TraceInterface->SetHitLocation(StartTrace, EndTrace, Impact.Actor.Get());
-	}
-	else
-	{
-		const FVector StartTrace = GetPawnCameraDamageStartLocation(ShootDir);
-		const FVector EndTrace = (StartTrace + ShootDir * Range);
-		Impact = SingleLineRangedTrace(StartTrace, EndTrace);
-	//	TraceInterface->SetHitLocation(StartTrace, EndTrace, Impact.Actor.Get());
-	}
-	TArray<FHitResult> TargetData;
-	TargetData.Add(Impact);
-	//TraceInterface->SetTargetData(TargetData);
-	//GetOuterAGASAbility()->TargetData.Add(Impact);
-}
-
 void UGWTraceBase::SingleLineTraceSetHitLocation()
 {
 	const FVector ShootDir = GetPawnCameraAim();
 	if (bTraceFromSocket)
 	{
-		const FVector StartTrace = GetStartLocationFromSocket();
-		const FVector EndTrace = (GetStartLocationFromSocket() + ShootDir * Range);
+		const FVector StartTrace = GetStartLocationFromTargetingSocket();
+		const FVector EndTrace = (GetStartLocationFromTargetingSocket() + ShootDir * Range);
 		const FHitResult Impact = SingleLineRangedTrace(StartTrace, EndTrace);
-		//TraceInterface->SetHitLocation(StartTrace, Impact.Location, Impact.Actor.Get());
+		GetOuterAGWWeapon()->SetHitLocation(StartTrace, Impact.Location);
 	}
 	else
 	{
 		const FVector StartTrace = GetPawnCameraDamageStartLocation(ShootDir);
 		const FVector EndTrace = (StartTrace + ShootDir * Range);
 		const FHitResult Impact = SingleLineRangedTrace(StartTrace, EndTrace);
-		//TraceInterface->SetHitLocation(StartTrace, Impact.Location, Impact.Actor.Get());
+		GetOuterAGWWeapon()->SetHitLocation(StartTrace, Impact.Location);
 	}
 }
 
@@ -76,25 +51,31 @@ FVector UGWTraceBase::GetSingHitLocation()
 	//
 	if (bTraceFromSocket)
 	{
-		const FVector StartTrace = GetStartLocationFromSocket();
-		const FVector EndTrace = (GetStartLocationFromSocket() + ShootDir * Range);
+		const FVector StartTrace = GetStartLocationFromTargetingSocket();
+		const FVector EndTrace = (GetStartLocationFromTargetingSocket() + ShootDir * Range);
 		Impact = SingleLineRangedTrace(StartTrace, EndTrace);
-		//TraceInterface->SetHitLocation(StartTrace, EndTrace, Impact.Actor.Get());
 	}
 	else
 	{
 		const FVector StartTrace = GetPawnCameraDamageStartLocation(ShootDir);
 		const FVector EndTrace = (StartTrace + ShootDir * Range);
 		Impact = SingleLineRangedTrace(StartTrace, EndTrace);
-		//TraceInterface->SetHitLocation(StartTrace, EndTrace, Impact.Actor.Get());
 	}
 	
 	return Impact.Location;
 }
+
+void UGWTraceBase::SingleLineTraceFromWeapon()
+{
+	const FVector ShootDir = GetPawnCameraAim();
+	const FVector StartTrace = GetStartLocationFromWeaponSocket();
+	const FVector EndTrace = (GetStartLocationFromWeaponSocket() + ShootDir * Range);
+	const FHitResult Impact = SingleLineRangedTrace(StartTrace, EndTrace);
+	GetOuterAGWWeapon()->SetHitLocation(StartTrace, Impact.Location);
+}
+
 void UGWTraceBase::Initialize()
 {
-	UObject* out = GetOuter();
-	//TraceInterface = Cast<IIGTTrace>(GetOuter());
 	for (auto Iter = ObjectsToTrace.CreateConstIterator(); Iter; ++Iter)
 	{
 		const ECollisionChannel & Channel = (*Iter);
@@ -111,7 +92,7 @@ void UGWTraceBase::PreExecute()
 }
 void UGWTraceBase::Execute()
 {
-	SingleLineTrace();
+
 }
 
 void UGWTraceBase::PostExecute()
@@ -141,10 +122,10 @@ FVector UGWTraceBase::GetPawnCameraAim()
 {
 	FVector FinalAim = FVector::ZeroVector;
 
-	//if (TraceInterface->GetPawn())
-	//{
-	//	FinalAim = TraceInterface->GetPawn()->GetBaseAimRotation().Vector();
-	//}
+	if (GetOuterAGWWeapon()->Instigator)
+	{
+		FinalAim = GetOuterAGWWeapon()->Instigator->GetBaseAimRotation().Vector();
+	}
 	return FinalAim;
 }
 
@@ -159,27 +140,32 @@ FVector UGWTraceBase::GetPCCameraAim()
 	return AimDir.Vector();
 }
 
-FVector UGWTraceBase::GetStartLocationFromSocket()
+FVector UGWTraceBase::GetStartLocationFromTargetingSocket()
 {
-	return FVector::ZeroVector; // TraceInterface->GetSocketLocation(StartLocation);
+	return GetOuterAGWWeapon()->GetTargetingSocketLocation();
+}
+
+FVector UGWTraceBase::GetStartLocationFromWeaponSocket()
+{
+	return GetOuterAGWWeapon()->GetWeaponSocketLocation();
 }
 
 FVector UGWTraceBase::GetPawnCameraDamageStartLocation(const FVector& AimDir)
 {
 	FVector OutStartTrace = FVector::ZeroVector;
-	//if (TraceInterface->GetPawn())
-	//{
-	//	FRotator UnusedRot;
-	//	if (TraceInterface->GetPC())
-	//	{
-	//		TraceInterface->GetPC()->GetPlayerViewPoint(OutStartTrace, UnusedRot);
-	//	}
-	//	FVector ActorLocation = TraceInterface->GetPawn()->GetActorLocation();
-	//	OutStartTrace = OutStartTrace + AimDir * ((ActorLocation - OutStartTrace) | AimDir);
-	//	
-	//	//OutStartTrace = OutStartTrace + AimDir * ((GetOuterAGASAbility()->PawnOwner->GetActorLocation() - OutStartTrace));
-	//	return OutStartTrace;
-	//}
+	if (GetOuterAGWWeapon()->Instigator)
+	{
+		FRotator UnusedRot;
+		if (GetOuterAGWWeapon()->WeaponPC)
+		{
+			GetOuterAGWWeapon()->WeaponPC->GetPlayerViewPoint(OutStartTrace, UnusedRot);
+		}
+		FVector ActorLocation = GetOuterAGWWeapon()->Instigator->GetActorLocation();
+		OutStartTrace = OutStartTrace + AimDir * ((ActorLocation - OutStartTrace) | AimDir);
+		
+		//OutStartTrace = OutStartTrace + AimDir * ((GetOuterAGASAbility()->PawnOwner->GetActorLocation() - OutStartTrace));
+		return OutStartTrace;
+	}
 	return OutStartTrace;
 }
 
@@ -187,34 +173,34 @@ FHitResult UGWTraceBase::SingleLineRangedTrace(const FVector& StartTrace, const 
 {
 	FHitResult Hit(ForceInit);
 	UWorld* world = GetWorld();
-	//if (!TraceInterface->GetPawn())
-	//	return Hit;
+	if (!GetOuterAGWWeapon()->Instigator)
+		return Hit;
 
-	//static FName PowerTag = FName(TEXT("SingleLineTrace"));
-	//FCollisionQueryParams TraceParams(PowerTag, false, TraceInterface->GetPawn());
-	//TraceParams.bTraceComplex = false;
-	//TraceParams.bTraceAsyncScene = false;
-	//TraceParams.bReturnPhysicalMaterial = true;
+	static FName PowerTag = FName(TEXT("SingleLineTrace"));
+	FCollisionQueryParams TraceParams(PowerTag, false, GetOuterAGWWeapon()->Instigator);
+	TraceParams.bTraceComplex = false;
+	TraceParams.bTraceAsyncScene = false;
+	TraceParams.bReturnPhysicalMaterial = true;
 	
-	//if (bIgnoreSelf)
-	//{
-	//	TraceParams.AddIgnoredActor(TraceInterface->GetPawn());
-	//}
+	if (bIgnoreSelf)
+	{
+		TraceParams.AddIgnoredActor(GetOuterAGWWeapon()->Instigator);
+	}
 
-	//bool traceResult = GetWorld()->LineTraceSingle(Hit, StartTrace, EndTrace, TraceParams, CollisionObjectParams);
-	//if (bDrawDebug)
-	//{
-	//	if (traceResult && Hit.bBlockingHit)
-	//	{
-	//		::DrawDebugLine(world, StartTrace, Hit.ImpactPoint, FColor::Red, false, 2);
-	//		::DrawDebugLine(world, Hit.ImpactPoint, EndTrace, FColor::Green, false, 2);
-	//		::DrawDebugPoint(world, Hit.ImpactPoint, 7, FColor::Red, false, 2);
-	//	}
-	//	else
-	//	{
-	//		::DrawDebugPoint(world, Hit.ImpactPoint, 15, FColor::Red, false, 2);
-	//	}
-	//}
+	bool traceResult = GetWorld()->LineTraceSingle(Hit, StartTrace, EndTrace, TraceParams, CollisionObjectParams);
+	if (bDrawDebug)
+	{
+		if (traceResult && Hit.bBlockingHit)
+		{
+			::DrawDebugLine(world, StartTrace, Hit.ImpactPoint, FColor::Red, false, 2);
+			::DrawDebugLine(world, Hit.ImpactPoint, EndTrace, FColor::Green, false, 2);
+			::DrawDebugPoint(world, Hit.ImpactPoint, 7, FColor::Red, false, 2);
+		}
+		else
+		{
+			::DrawDebugPoint(world, Hit.ImpactPoint, 15, FColor::Red, false, 2);
+		}
+	}
 	return Hit;
 }
 

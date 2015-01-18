@@ -68,8 +68,6 @@ bool UGSWeaponEquipmentComponent::CheckIfCanAddItemToSlot(class UGISItemData* Ta
 	
 	if (!tarWeap)
 		return false;
-	if (!tarWeap->Weapon)
-		return false;
 	
 	//TArray<FGSWeaponSocketInfo> LeftFreeAttachments;
 	//for (FGSWeaponSocketInfo& socket : LeftAttachmentSockets)

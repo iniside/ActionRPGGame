@@ -7,6 +7,7 @@
 AGSAbility::AGSAbility(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
+	OnSetWeaponsForAbility.AddUObject(this, &AGSAbility::SetWeaponForAbility);
 }
 
 
@@ -35,3 +36,8 @@ void AGSAbility::OnRep_CastEnded()
 	OnCueActionEnded.Broadcast();
 }
 
+void AGSAbility::SetWeaponForAbility(class UGSItemWeaponInfo* LeftWeaponIn, class UGSItemWeaponInfo* RightWeaponIn)
+{
+	CurrentLeftWeapon = LeftWeaponIn;
+	CurrentRightWeapon = RightWeaponIn;
+}

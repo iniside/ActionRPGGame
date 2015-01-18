@@ -1,5 +1,6 @@
 #pragma once
 #include "GISItemData.h"
+#include "GSAbility.h"
 #include "GSAbilityInfo.generated.h"
 /*
 	Base class to show abilities in UI.
@@ -45,7 +46,7 @@ public:
 		}
 		return 0;
 	}
-
+	inline FGSOnSetWeaponsForAbility& GetOnSetWeaponsForAbility(){ return ActiveAbility->OnSetWeaponsForAbility; };
 	virtual bool InputPressed_Implementation() override;
 	virtual bool InputReleased_Implementation() override;
 

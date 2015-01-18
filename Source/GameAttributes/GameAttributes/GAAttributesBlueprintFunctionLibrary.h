@@ -56,4 +56,7 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 		static void ModifyAttributes(TArray<FGAAttributeModifier> AttributesIn);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
+		static void DamageAttribute(FGAAttribute AttributeIn, float ModValue, const FHitResult& TargetIn, const FGameplayTagContainer& TagsIn, APawn* Instigator);
 };

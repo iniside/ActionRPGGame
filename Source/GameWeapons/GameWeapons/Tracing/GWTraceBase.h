@@ -44,19 +44,27 @@ public:
 		suiteable skeletal meshes present (weapons, multiple character parts), from which to select socket.
 	*/
 
-	UPROPERTY(EditAnywhere, Category = "Configuration")
-		float Range;
+	float Range;
+	inline void SetRange(float RangeIn){ Range = RangeIn; };
+
+	FVector AreaExtens;
+	/*
+		This one is trucky since it's used for capsule, sphere and box trace.
+		When Needed that is.
+		1. Box - normal.
+		2. Sphere - first non zero value is used as radius.
+		3. Capsule. X - half height, Y - radius.
+	*/
+	inline void SetAreaExtens(const FVector& AreaExtensIn){ AreaExtens = AreaExtensIn; };
+
+
+
 
 	/**
 	*	Should trace start in socket ? If false it will start from center of screen.
 	*/
 	UPROPERTY(EditAnywhere, Category = "Configuration")
 		bool bTraceFromSocket;
-	/**
-	 *	Name of socket or bone, from which to start trace.
-	 */
-	UPROPERTY(EditAnywhere, Category = "Configuration")
-		FName StartLocation;
 
 	UPROPERTY(EditAnywhere, Category = "Configuration")
 		TArray<TEnumAsByte<ECollisionChannel> > ObjectsToTrace;
@@ -79,11 +87,15 @@ public:
 	/**/
 	virtual void Tick(float DeltaSecondsIn);
 
-	void SingleLineTrace();
-
 	void SingleLineTraceSetHitLocation();
 
 	FVector GetSingHitLocation();
+
+	/*
+		Start tracing from weapon socket
+		and set trace results in weapon HitInfo variable. Or something.
+	*/
+	void SingleLineTraceFromWeapon();
 
 	virtual void Initialize();
 
@@ -116,15 +128,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Game Trace")
 		virtual FVector GetHelperScale();
-private:
-	/*
-		Cached Skeletal mesh component from which we will get Start socket location if needed.
-	*/
-	UPROPERTY()
-		USkeletalMeshComponent* CachedSkeletalMesh;
 
 protected:
-	//class IIGTTrace* TraceInterface;
 
 	/*
 		Initialized after Actor::BeginPlay(),
@@ -148,7 +153,9 @@ protected:
 	/**
 	*	Get star trace location from socket on skeletal mesh.
 	*/
-	FVector GetStartLocationFromSocket();
+	FVector GetStartLocationFromTargetingSocket();
+
+	FVector GetStartLocationFromWeaponSocket();
 	/**
 	 *	Get start location from pawn camera location.
 	 */

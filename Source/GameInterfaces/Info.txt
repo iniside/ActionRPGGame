@@ -1,1 +1,0 @@
-Collection of interfaces which are common for all modules.

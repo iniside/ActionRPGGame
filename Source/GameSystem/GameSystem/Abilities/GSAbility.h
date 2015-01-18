@@ -4,10 +4,14 @@
 #include "../Cues/GSCueTypes.h"
 #include "../Cues/IGSCue.h"
 
+#include "GameplayTagContainer.h"
+
 #include "GAGlobalTypes.h"
 
 #include "IGESEffectManager.h"
 #include "GSAbility.generated.h"
+
+DECLARE_MULTICAST_DELEGATE_TwoParams(FGSOnSetWeaponsForAbility, class UGSItemWeaponInfo*, class UGSItemWeaponInfo*);
 
 USTRUCT(BlueprintType)
 struct FGSAbilityCost
@@ -35,7 +39,28 @@ private:
 	UPROPERTY()
 	class UGESEffect* CachedEffect;
 
+protected:
+	/*
+		Currently equiped weapons.
+		1. Weapon must be equiped to use ability.
+		2. It must right type of weapon for this particular ability.
+		3. At least one weapon must meet  criteria, unless ability specifies otherwise
+		4. Lack of weapon is considere bare hands.
+	*/
+	UPROPERTY()
+	class UGSItemWeaponInfo* CurrentLeftWeapon;
+	UPROPERTY()
+	class UGSItemWeaponInfo* CurrentRightWeapon;
 
+public:
+	FGSOnSetWeaponsForAbility OnSetWeaponsForAbility;
+public:
+	//set everytime weapon changes!
+	inline void SetCurrentLeftWeapon(class UGSItemWeaponInfo* CurrentLeftWeaponIn) { CurrentLeftWeapon = CurrentLeftWeaponIn; };
+	inline void SetCurrentRightWeapon(class UGSItemWeaponInfo* CurrentRightWeaponIn) { CurrentRightWeapon = CurrentRightWeaponIn; };
+private:
+	UFUNCTION()
+		void SetWeaponForAbility(class UGSItemWeaponInfo* LeftWeaponIn, class UGSItemWeaponInfo* RightWeaponIn);
 public:
 	virtual bool CheckIfCanUseAbility() override;
 
