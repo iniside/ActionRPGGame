@@ -143,25 +143,27 @@ FVector AARCharacter::GetSocketLocation(FName SocketNameIn)
 // Input
 void AARCharacter::InputGetNextLeftWeapon()
 {
-	ActiveActions->CopyNextItemFromOtherInventoryTab(WeaponsEquipment, 0, 1, 0, EGSWeaponHand::Left);
+	ActiveActions->SetWeaponFrom(WeaponsEquipment, 0, 1, 0, EGSWeaponHand::Left);
 }
 void AARCharacter::InputGetNextRightWeapon()
 {
-	ActiveActions->CopyNextItemFromOtherInventoryTab(RightWeaponsEquipment, 0, 2, 0, EGSWeaponHand::Right);
+	ActiveActions->SetWeaponFrom(RightWeaponsEquipment, 0, 2, 0, EGSWeaponHand::Right);
 }
 
 void AARCharacter::InputUseLeftWeaponPressed()
 {
 	if (ActiveActions)
 	{
-		ActiveActions->InputSlotPressed(1, 0);
+		//ActiveActions->InputSlotPressed(1, 0);
+		ActiveActions->InputPressLeftWeapon();
 	}
 }
 void AARCharacter::InputUseLeftWeaponReleased()
 {
 	if (ActiveActions)
 	{
-		ActiveActions->InputSlotReleased(1, 0);
+		//ActiveActions->InputSlotReleased(1, 0);
+		ActiveActions->InputReleaseLeftWeapon();
 	}
 }
 
@@ -169,14 +171,16 @@ void AARCharacter::InputUseRightWeaponPressed()
 {
 	if (ActiveActions)
 	{
-		ActiveActions->InputSlotPressed(2, 0);
+		//ActiveActions->InputSlotPressed(2, 0);
+		ActiveActions->InputPressRightWeapon();
 	}
 }
 void AARCharacter::InputUseRightWeaponReleased()
 {
 	if (ActiveActions)
 	{
-		ActiveActions->InputSlotReleased(2, 0);
+		//ActiveActions->InputSlotReleased(2, 0);
+		ActiveActions->InputReleaseRightWeapon();
 	}
 }
 

@@ -33,7 +33,7 @@ void UGWWeaponStateSingleShot::BeginActionSequence()
 	if (bCanRefire)
 	{
 		bCanRefire = false;
-		CurrentWeapon->ActionBegin();
+		CurrentWeapon->ShootWeapon();
 		CurrentWeapon->GetWorldTimerManager().SetTimer(CanRefireTimerHandle, this, &UGWWeaponStateSingleShot::SetCanRefireWeapon, CurrentWeapon->ReloadTime, false);
 	}
 }
@@ -45,7 +45,7 @@ void UGWWeaponStateSingleShot::EndActionSequence()
 void UGWWeaponStateSingleShot::FireWeapon()
 {
 	CurrentWeapon->GetWorldTimerManager().ClearTimer(CanRefireTimerHandle);
-	CurrentWeapon->ActionBegin();
+	CurrentWeapon->ShootWeapon();
 }
 void UGWWeaponStateSingleShot::SetCanRefireWeapon()
 {

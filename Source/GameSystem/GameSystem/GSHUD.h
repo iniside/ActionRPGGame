@@ -2,6 +2,19 @@
 #include "IGTTrace.h"
 #include "Widgets/FCTHudWidget.h"
 #include "GSHUD.generated.h"
+
+
+struct FGSCrosshairDirection
+{
+	static const int32 Left;
+	static const int32 Right;
+	static const int32 Top;
+	static const int32 Bottom;
+	static const int32 Center;
+	FGSCrosshairDirection()
+	{};
+};
+
 /*
 	Hud need to retrieve information about:
 	1. Current weapon socket.
@@ -23,6 +36,17 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "Crosshair")
 	class UGTTraceBase* CrossHairTrace;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crosshair")
+	class UTexture2D* CrossHairTexture;
+
+	UPROPERTY()
+		FCanvasIcon Crosshair[5];
+	UPROPERTY(EditAnywhere, Category = "Crosshair")
+		float CrosshairScale;
+	UPROPERTY(EditAnywhere, Category = "Crosshair")
+		float CrossSpread;
+	void DrawCrosshair();
 
 	/**
 	 *	Where hit will really hit. Crosshair is traced against world and
@@ -56,10 +80,13 @@ protected:
 		FVector2D HitPosition;
 
 	UPROPERTY()
-		ACharacter* OwnChar;
+		class AGSCharacter* OwnChar;
 
 	class IIGTSocket* iSocket;
 
-
 	bool bInitialized;
+
+	float CurrentSpread;
+	void SetCurrentSpread(float CurrentSpreadIn);
+	class UGSItemWeaponRangedInfo* CurrentLeftWeapon;
 };

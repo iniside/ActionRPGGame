@@ -42,15 +42,17 @@ void AGWWeaponRanged::Tick(float DeltaSeconds)
 }
 void AGWWeaponRanged::BeginPlay()
 {
-	if (TargetingMethod)
-	{
-		TargetingMethod->SetRange(Range);
-		TargetingMethod->SetCurrentSpread(BaseSpread);
-		TargetingMethod->Initialize();
-	}
 	CurrentState = ActiveState;
 	RemaningAmmo = MaximumAmmo;
 	RemainingMagazineAmmo = MagazineSize;
+	CurrentSpread = BaseSpread;
+	if (TargetingMethod)
+	{
+		TargetingMethod->SetRange(Range);
+		TargetingMethod->SetCurrentSpread(CurrentSpread);
+		TargetingMethod->Initialize();
+	}
+
 	if (TypeOfAmmo)
 	{
 		CurrentAmmo = ConstructObject<UGWAmmo>(TypeOfAmmo, this);
@@ -90,7 +92,7 @@ void AGWWeaponRanged::FireWeapon(const FHitResult& TargetIn, float DamageIn, APa
 		CurrentAmmo->ApplyDamage(TargetIn, DamageIn, InstigatorIn);
 	}
 }
-void AGWWeaponRanged::ActionBegin()
+void AGWWeaponRanged::ShootWeapon()
 {
 	//check for ammo, subtract it
 	//if no ammo end current state
@@ -104,18 +106,11 @@ void AGWWeaponRanged::ActionBegin()
 		return;
 	}
 	SubtractAmmo();
+	CalculateCurrentWeaponSpread();
 
 	if (TargetingMethod)
 		TargetingMethod->Execute();
-	OnFireBegin();
-
-	//fire Ammo somewhere around here.
-	/*
-		1. It should be automatic. Designer should not remember to put ammo.
-		2. Even if, it should not be expected to call in in right place.
-		3. Worst case scnario, ammo should be called as either first or last node.
-	*/
-
+	OnShoot();
 	if (GetNetMode() == ENetMode::NM_Standalone)
 		OnRep_HitInfo();
 }
@@ -132,14 +127,14 @@ void AGWWeaponRanged::BeginFire()
 		if (!CheckIfHaveAmmo())
 			return;
 		SubtractAmmo();
-		
 		bIsWeaponFiring = true;
-
-		ServerBeginFire();
-		if (TargetingMethod)
-			TargetingMethod->Execute();
+		//start shooting also on onwing client, to provide better feedback.
+		CurrentState->BeginActionSequence(); 
 		OnRep_HitInfo();
-
+		GetWorldTimerManager().ClearTimer(ReduceSpreadOverTimeTimerHandle);
+		ServerBeginFire();
+		//if (TargetingMethod)
+		//	TargetingMethod->Execute();
 
 	}
 	else
@@ -149,6 +144,7 @@ void AGWWeaponRanged::BeginFire()
 			CurrentState->EndActionSequence();
 			return;
 		}
+		GetWorldTimerManager().ClearTimer(ReduceSpreadOverTimeTimerHandle);
 		bIsWeaponFiring = true;
 		SubtractAmmo();
 		CurrentState->BeginActionSequence();
@@ -168,11 +164,15 @@ void AGWWeaponRanged::EndFire()
 	if (Role < ROLE_Authority)
 	{
 		bIsWeaponFiring = false;
+		CurrentState->EndActionSequence();
+
+		GetWorldTimerManager().SetTimer(ReduceSpreadOverTimeTimerHandle, this, &AGWWeaponRanged::ReduceSpreadOverTime, 0.1, true);
 		ServerEndFire();
 	}
 	else
 	{
 		bIsWeaponFiring = false;
+		GetWorldTimerManager().SetTimer(ReduceSpreadOverTimeTimerHandle, this, &AGWWeaponRanged::ReduceSpreadOverTime, 0.1, true);
 		CurrentState->EndActionSequence();
 		OnFireEnd();
 	}
@@ -306,4 +306,27 @@ bool AGWWeaponRanged::CheckIfCanReload()
 		return false;
 	else
 		return true;
+}
+
+void AGWWeaponRanged::CalculateCurrentWeaponSpread()
+{
+	CurrentSpread = CurrentSpread * SpreadMultiplier;
+	if (CurrentSpread > MaximumSpread)
+	{
+		CurrentSpread = MaximumSpread;
+	}
+	OnCurrentWeaponSpread.Broadcast(CurrentSpread);
+	if (TargetingMethod)
+	{
+		TargetingMethod->SetCurrentSpread(CurrentSpread);
+	}
+}
+void AGWWeaponRanged::ReduceSpreadOverTime()
+{
+	CurrentSpread -= SpreadReduce;
+	if (CurrentSpread <= BaseSpread)
+	{
+		CurrentSpread = BaseSpread;
+		GetWorldTimerManager().ClearTimer(ReduceSpreadOverTimeTimerHandle);
+	}
 }

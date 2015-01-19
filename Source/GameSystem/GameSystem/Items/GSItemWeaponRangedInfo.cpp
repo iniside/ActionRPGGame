@@ -75,7 +75,62 @@ const EGSWeaponWield UGSItemWeaponRangedInfo::GetWeaponWield() const
 	}
 	return EGSWeaponWield::Invalid;
 }
+const EGSWeaponType UGSItemWeaponRangedInfo::GetWeaponType() const
+{
+	if (RangedWeaponClass.GetDefaultObject())
+	{
+		return RangedWeaponClass.GetDefaultObject()->WeaponType;
+	}
+	return EGSWeaponType::Invalid;
+}
+FVector UGSItemWeaponRangedInfo::GetCrosshairStartLocation()
+{
+	if (RangedWeapon)
+		return RangedWeapon->GetWeaponSocketLocation();
+	return FVector::ZeroVector;
+}
 
+UAnimSequence* UGSItemWeaponRangedInfo::GetEquipedAnimation()
+{
+	if (RangedWeaponClass.GetDefaultObject())
+	{
+		switch (CurrentHand)
+		{
+		case EGSWeaponHand::Left:
+			return RangedWeaponClass.GetDefaultObject()->LeftHandAnimation;
+		case EGSWeaponHand::Right:
+			return RangedWeaponClass.GetDefaultObject()->RightHandAnimation;
+		case EGSWeaponHand::BothHands:
+			return RangedWeaponClass.GetDefaultObject()->BothHandsAnimation;
+		case EGSWeaponHand::Invalid:
+			return nullptr;
+		default:
+			return nullptr;
+		}
+	}
+	return nullptr;
+}
+UAimOffsetBlendSpace* UGSItemWeaponRangedInfo::GetEquipedAimBlendSpace()
+{
+	if (RangedWeaponClass.GetDefaultObject())
+	{
+		return RangedWeaponClass.GetDefaultObject()->AimOffsetBlend;
+		//switch (CurrentHand)
+		//{
+		//case EGSWeaponHand::Left:
+		//	return RangedWeaponClass.GetDefaultObject()->LeftHandAnimation;
+		//case EGSWeaponHand::Right:
+		//	return RangedWeaponClass.GetDefaultObject()->RightHandAnimation;
+		//case EGSWeaponHand::BothHands:
+		//	return RangedWeaponClass.GetDefaultObject()->BothHandsAnimation;
+		//case EGSWeaponHand::Invalid:
+		//	return nullptr;
+		//default:
+		//	return nullptr;
+		//}
+	}
+	return nullptr;
+}
 bool UGSItemWeaponRangedInfo::OnItemAddedToSlot()
 {
 	if (RangedWeaponClass)

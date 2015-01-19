@@ -41,7 +41,11 @@ public:
 	virtual AActor* GetActorToAttach() override;
 	virtual const TArray<FGSWeaponSocketInfo>& GetPossibleWeaponSockets() const override;
 	virtual const EGSWeaponWield GetWeaponWield() const override;
+	virtual const EGSWeaponType GetWeaponType() const override;
+	virtual FVector GetCrosshairStartLocation() override;
 
+	virtual UAnimSequence* GetEquipedAnimation() override;
+	virtual UAimOffsetBlendSpace* GetEquipedAimBlendSpace() override;
 	virtual bool OnItemAddedToSlot() override;
 	virtual bool OnItemRemovedFromSlot() override;
 

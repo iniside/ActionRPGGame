@@ -6,4 +6,5 @@
 AGSWeaponRanged::AGSWeaponRanged(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
+	WeaponType = EGSWeaponType::Ranged;
 }

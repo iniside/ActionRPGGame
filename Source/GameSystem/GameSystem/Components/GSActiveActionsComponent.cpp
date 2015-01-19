@@ -119,6 +119,10 @@ void UGSActiveActionsComponent::OnRightWeaponRemoved(const FGISSlotSwapInfo& Slo
 		float justTesting = 0;
 	}
 }
+/*
+	1 - Left Hand
+	2 - Right Hand;
+*/
 void UGSActiveActionsComponent::SwapWeapon(int32& LastCopiedIndex, class UGSItemWeaponInfo*& CurrentWeapon, class UGSItemWeaponInfo*& LastWeapon, class UGISInventoryBaseComponent* OtherInventory,
 	int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex)
 {
@@ -168,12 +172,48 @@ void UGSActiveActionsComponent::SwapWeapon(int32& LastCopiedIndex, class UGSItem
 		loopCounter++;
 	}
 }
-
-void UGSActiveActionsComponent::FinishSwappingWeapons(class UGSItemWeaponInfo* CurrentWeapon, class UGSItemWeaponInfo*& CurrentOppositeWeapon, class UGSItemWeaponInfo*& LastOppositeWeapon, int32 TabIndexIn)
+/*
+	TabIndex - Hand
+	1 - Left Hand
+	2 - Right Hand;
+*/
+void UGSActiveActionsComponent::FinishSwappingWeapons(class UGSItemWeaponInfo*& CurrentWeapon, class UGSItemWeaponInfo*& CurrentOppositeWeapon, 
+class UGSItemWeaponInfo*& LastOppositeWeapon, int32 OppositeTabIndexIn, int32 CurrentTabIndexIn)
 {
 	if (!CurrentWeapon)
 		return;
+	/*
+		Steps needed:
+		1. If weapon is One handed and mele - equip it to either slot.
+		2. If weapon is ranged - equipt it to left slot. Ranged weapons, always
+		are equiped individualy unless paired with mele weapon.
+		3. If we have one mele weapon in left slot and incoming weapon is ranged weapon
+		either equip ranged weapon to right slot, or equip ranged to left slot
+		and mele to right.
+		4. If weapon is either one handed or two handed and is ranged, and there
+		is one ranged weapon equiped, unequip old ranged weapon, and equip new 
+		one to left slot.
 
+
+
+	*/
+
+	//if (CurrentWeapon->GetWeaponType() == EGSWeaponType::Ranged)
+	//{
+	//	if (CurrentWeapon->CurrentHand == EGSWeaponHand::Right)
+	//	{
+	//		CurrentOppositeWeapon = CurrentWeapon;
+	//		Tabs.InventoryTabs[OppositeTabIndexIn].TabSlots[0].ItemData = CurrentWeapon;
+
+	//		CurrentWeapon = nullptr;
+	//		Tabs.InventoryTabs[CurrentTabIndexIn].TabSlots[0].ItemData = nullptr;
+
+	//		TabUpdateInfo.ReplicationCounter++;
+	//		TabUpdateInfo.TargetTabIndex = CurrentTabIndexIn; //wont work, we need to reconstruct entire widget.
+	//		if (GetNetMode() == ENetMode::NM_Standalone)
+	//			OnTabChanged.ExecuteIfBound(TabUpdateInfo.TargetTabIndex);
+	//	}
+	//}
 	//and it's two handed
 	if (CurrentWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
 	{
@@ -181,11 +221,11 @@ void UGSActiveActionsComponent::FinishSwappingWeapons(class UGSItemWeaponInfo* C
 		//and we then we null current right weapon so it no longer going to be accessible
 		//as it should not be equiped to hand.
 		LastOppositeWeapon = CurrentOppositeWeapon;
-		Tabs.InventoryTabs[TabIndexIn].TabSlots[0].ItemData = nullptr;
+		Tabs.InventoryTabs[OppositeTabIndexIn].TabSlots[0].ItemData = nullptr;
 		CurrentOppositeWeapon = nullptr;
 	}
 	/*
-	If current weapon is one handed
+		If current weapon is one handed
 	*/
 	if (CurrentWeapon->GetWeaponWield() == EGSWeaponWield::OneHand)
 	{
@@ -199,19 +239,23 @@ void UGSActiveActionsComponent::FinishSwappingWeapons(class UGSItemWeaponInfo* C
 		if (CurrentOppositeWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
 		{
 			LastOppositeWeapon = CurrentOppositeWeapon;
-			Tabs.InventoryTabs[TabIndexIn].TabSlots[0].ItemData = nullptr;
+			Tabs.InventoryTabs[OppositeTabIndexIn].TabSlots[0].ItemData = nullptr;
 			CurrentOppositeWeapon = nullptr;
 		}
+	}
+	if (CurrentWeapon->GetWeaponType() == EGSWeaponType::Ranged)
+	{
+
 	}
 	//add functionality which will always place ActiveWeapon two handed weapon in left hand
 	//so it can be activate by left mouse button. Which is what most players expect anyway.
 }
 
-void UGSActiveActionsComponent::CopyNextItemFromOtherInventoryTab(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex, EGSWeaponHand WeaponHandIn)
+void UGSActiveActionsComponent::SetWeaponFrom(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex, EGSWeaponHand WeaponHandIn)
 {
 	if (GetOwnerRole() < ROLE_Authority)
 	{
-		ServerCopyNextItemFromOtherInventoryTab(OtherIn, OtherTabIndex, TargetTabIndex, TargetSlotIndex, WeaponHandIn);
+		ServerSetWeaponFrom(OtherIn, OtherTabIndex, TargetTabIndex, TargetSlotIndex, WeaponHandIn);
 	}
 	else
 	{
@@ -225,33 +269,100 @@ void UGSActiveActionsComponent::CopyNextItemFromOtherInventoryTab(class UGISInve
 		if (WeaponHandIn == EGSWeaponHand::Left)
 		{
 			SwapWeapon(LastLeftCopiedIndex, CurrentLeftHandWeapon, LastLeftHandWeapon, OtherIn, OtherTabIndex, TargetTabIndex, TargetSlotIndex);
-			FinishSwappingWeapons(CurrentLeftHandWeapon, CurrentRightHandWeapon, LastRightHandWeapon, 2);
 			
+			if (CurrentLeftHandWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
+				CurrentLeftHandWeapon->CurrentHand = EGSWeaponHand::BothHands;
+			else
+				CurrentLeftHandWeapon->CurrentHand = EGSWeaponHand::Left;
+
+			FinishSwappingWeapons(CurrentLeftHandWeapon, CurrentRightHandWeapon, LastRightHandWeapon, 2, 1);
 		}
 		else if (WeaponHandIn == EGSWeaponHand::Right)
 		{
 			SwapWeapon(LastRightCopiedIndex, CurrentRightHandWeapon, LastRightHandWeapon, OtherIn, OtherTabIndex, TargetTabIndex, TargetSlotIndex);
-			FinishSwappingWeapons(CurrentRightHandWeapon, CurrentLeftHandWeapon, LastLeftHandWeapon, 1);
+			
+			if (CurrentRightHandWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
+				CurrentRightHandWeapon->CurrentHand = EGSWeaponHand::BothHands;
+			else
+				CurrentRightHandWeapon->CurrentHand = EGSWeaponHand::Right;
+
+			FinishSwappingWeapons(CurrentRightHandWeapon, CurrentLeftHandWeapon, LastLeftHandWeapon, 1, 2);
 		}
 		if (GetNetMode() == ENetMode::NM_Standalone)
 		{
 			OnRep_CurrentLeftHandWeapon();
 			OnRep_CurrentRightHandWeapon();
 		}
+		//move to separate function. Later.
+		if (CurrentRightHandWeapon && CurrentLeftHandWeapon
+			&& CurrentRightHandWeapon->GetWeaponWield() == EGSWeaponWield::OneHand
+			&& CurrentLeftHandWeapon->GetWeaponWield() == EGSWeaponWield::OneHand)
+		{
+			WeaponEquipState = EGSWeaponEquipState::DualWield;
+		}
+		else if (CurrentLeftHandWeapon && !CurrentRightHandWeapon
+			&& CurrentLeftHandWeapon->GetWeaponWield() == EGSWeaponWield::OneHand)
+		{
+			WeaponEquipState = EGSWeaponEquipState::LeftHand;
+		}
+		else if (CurrentRightHandWeapon && !CurrentLeftHandWeapon
+			&& CurrentRightHandWeapon->GetWeaponWield() == EGSWeaponWield::OneHand)
+		{
+			WeaponEquipState = EGSWeaponEquipState::RightHand;
+		}
+		else if (CurrentLeftHandWeapon &&
+			CurrentLeftHandWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
+		{
+			WeaponEquipState = EGSWeaponEquipState::BothHands;
+		}
+		else if (CurrentRightHandWeapon &&
+			CurrentRightHandWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
+		{
+			WeaponEquipState = EGSWeaponEquipState::BothHands;
+		}
 
 		//if there is ability set current weapons when weapons change.
 		if (CurrentAbility)
 			CurrentAbility->GetOnSetWeaponsForAbility().Broadcast(CurrentLeftHandWeapon, CurrentRightHandWeapon);
+
+		OnLeftWeaponChangedEvent.Broadcast(CurrentLeftHandWeapon);
 	}
 }
-void UGSActiveActionsComponent::ServerCopyNextItemFromOtherInventoryTab_Implementation(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex, EGSWeaponHand WeaponHandIn)
+void UGSActiveActionsComponent::ServerSetWeaponFrom_Implementation(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex, EGSWeaponHand WeaponHandIn)
 {
-	CopyNextItemFromOtherInventoryTab(OtherIn, OtherTabIndex, TargetTabIndex, TargetSlotIndex, WeaponHandIn);
+	SetWeaponFrom(OtherIn, OtherTabIndex, TargetTabIndex, TargetSlotIndex, WeaponHandIn);
 }
-bool UGSActiveActionsComponent::ServerCopyNextItemFromOtherInventoryTab_Validate(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex, EGSWeaponHand WeaponHandIn)
+bool UGSActiveActionsComponent::ServerSetWeaponFrom_Validate(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex, EGSWeaponHand WeaponHandIn)
 {
 	return true;
 }
+
+void UGSActiveActionsComponent::InputPressLeftWeapon()
+{
+	if (CurrentLeftHandWeapon)
+		CurrentLeftHandWeapon->InputPressed();
+	if (CurrentRightHandWeapon && CurrentRightHandWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
+		CurrentRightHandWeapon->InputPressed();
+}
+void UGSActiveActionsComponent::InputReleaseLeftWeapon()
+{
+	if (CurrentLeftHandWeapon)
+		CurrentLeftHandWeapon->InputReleased();
+	if (CurrentRightHandWeapon && CurrentRightHandWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
+		CurrentRightHandWeapon->InputReleased();
+}
+void UGSActiveActionsComponent::InputPressRightWeapon()
+{
+	if (CurrentRightHandWeapon)
+		CurrentRightHandWeapon->InputPressed();
+}
+void UGSActiveActionsComponent::InputReleaseRightWeapon()
+{
+	if (CurrentRightHandWeapon)
+		CurrentRightHandWeapon->InputReleased();
+}
+
+
 void UGSActiveActionsComponent::OnRightWeaponChanged()
 {
 	if (EquipInt)
@@ -429,6 +540,7 @@ void UGSActiveActionsComponent::OnLeftHandReachedWeapon()
 	{
 	}
 
+
 	UpdateSocket(CurrentLeftHandWeapon);
 }
 void UGSActiveActionsComponent::OnLeftHandReachedSheathe()
@@ -568,4 +680,37 @@ void UGSActiveActionsComponent::InputReloadWeapon(int32 TabIndex, int32 SlotInde
 	{
 		weap->InputRealadWeapon();
 	}
+}
+
+UAnimSequence* UGSActiveActionsComponent::GetLeftWeaponAnimSequence() const
+{
+	if (CurrentLeftHandWeapon)
+		return CurrentLeftHandWeapon->GetEquipedAnimation();
+
+	return nullptr;
+}
+
+UAnimSequence* UGSActiveActionsComponent::GetRightWeaponAnimSequence() const
+{
+	if (CurrentRightHandWeapon)
+		return CurrentRightHandWeapon->GetEquipedAnimation();
+
+	return nullptr;
+}
+UAnimSequence* UGSActiveActionsComponent::GetBothHandWeaponAnimSequence() const
+{
+	if (CurrentLeftHandWeapon)
+		return CurrentLeftHandWeapon->GetEquipedAnimation();
+	else if (CurrentRightHandWeapon)
+		return CurrentRightHandWeapon->GetEquipedAnimation();
+	return nullptr;
+}
+
+UAimOffsetBlendSpace* UGSActiveActionsComponent::GetBothHandWeaponAimBlend() const
+{
+	if (CurrentLeftHandWeapon)
+		return CurrentLeftHandWeapon->GetEquipedAimBlendSpace();
+	else if (CurrentRightHandWeapon)
+		return CurrentRightHandWeapon->GetEquipedAimBlendSpace();
+	return nullptr;
 }

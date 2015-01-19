@@ -49,7 +49,11 @@ public:
 	virtual AActor* GetActorToAttach();
 	virtual const TArray<FGSWeaponSocketInfo>& GetPossibleWeaponSockets() const;
 	virtual const EGSWeaponWield GetWeaponWield() const;
-	
+	virtual const EGSWeaponType GetWeaponType() const;
+	virtual FVector GetCrosshairStartLocation();
+
+	virtual UAnimSequence* GetEquipedAnimation() { return nullptr; }
+	virtual UAimOffsetBlendSpace* GetEquipedAimBlendSpace() { return nullptr; }
 	//these should be called on server.
 	virtual bool OnItemAddedToSlot() override;
 	virtual bool OnItemRemovedFromSlot() override;
@@ -60,13 +64,11 @@ public:
 
 	virtual bool CanItemBeSwapped() override;
 
+
 	static const int32 ItemTypeID = 30;
-
 	virtual int32 GetItemTypeID() const override { return UGSItemWeaponInfo::ItemTypeID; }
-
 	virtual bool IsOfType(int32 ItemTypeIDIn) override { return UGSItemWeaponInfo::ItemTypeID == ItemTypeIDIn; }
 
-	virtual void EquipWeapon();
 
 	EGSWeaponHand CurrentHand;
 

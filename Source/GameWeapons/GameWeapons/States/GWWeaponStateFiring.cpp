@@ -37,5 +37,5 @@ void UGWWeaponStateFiring::EndActionSequence()
 
 void UGWWeaponStateFiring::FireWeapon()
 {
-	CurrentWeapon->ActionBegin();
+	CurrentWeapon->ShootWeapon();
 }

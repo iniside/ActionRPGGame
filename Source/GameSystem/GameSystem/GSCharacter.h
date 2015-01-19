@@ -33,7 +33,7 @@ public:
 		2. Two Weapons (left and right hand)
 		3. One item to active.
 	 */
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
 	class UGSActiveActionsComponent* ActiveActions;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Equipment")
@@ -116,6 +116,11 @@ public:
 	/** IGameplayTagAssetInterface */
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	/* IGameplayTagAssetInterface **/
+
+	FVector GetStartLocationForCrosshair();
+	float GetCurrentWeaponSpread();
+
+	void SetOnLeftCurrentWeaponChanged(class UGSItemWeaponInfo* WeaponIn);
 protected:
 	UPROPERTY()
 		USkeletalMesh* DefaultLegMesh;

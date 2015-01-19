@@ -3,6 +3,7 @@
 #include "GameSystem.h"
 
 #include "Items/GSEquipmentComponent.h"
+#include "Items/GSItemWeaponRangedInfo.h"
 #include "Weapons/GSWeaponEquipmentComponent.h"
 #include "Components/GSActiveActionsComponent.h"
 #include "GSCharacter.h"
@@ -36,6 +37,7 @@ AGSCharacter::AGSCharacter(const FObjectInitializer& ObjectInitializer)
 
 	ActiveActions->LeftWeaponEquipment = WeaponsEquipment;
 	ActiveActions->RightWeaponEquipment = RightWeaponsEquipment;
+	ActiveActions->OnLeftWeaponChangedEvent.AddUObject(this, &AGSCharacter::SetOnLeftCurrentWeaponChanged);
 
 	HeadComp = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, AGSCharacter::HeadSlotComponent);
 	HeadComp->SetMasterPoseComponent(GetMesh());
@@ -147,4 +149,22 @@ FRotator AGSCharacter::GetAimOffset() const
 void AGSCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {
 	TagContainer = OwnedTags;
+}
+
+FVector AGSCharacter::GetStartLocationForCrosshair()
+{
+	if (ActiveActions->CurrentLeftHandWeapon)
+	{
+		return ActiveActions->CurrentLeftHandWeapon->GetCrosshairStartLocation();
+	}
+	return FVector::ZeroVector;
+}
+float AGSCharacter::GetCurrentWeaponSpread()
+{
+	return 0;
+}
+
+void AGSCharacter::SetOnLeftCurrentWeaponChanged(class UGSItemWeaponInfo* WeaponIn)
+{
+
 }

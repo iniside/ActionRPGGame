@@ -17,6 +17,39 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Config")
 		EGSWeaponWield WieldType;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Config")
+		EGSWeaponType WeaponType;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Animation")
+		UAnimSequence* EquipedAnimation;
+
+	/*
+		New idle and combat animations.
+		Idle is relaxed pose (gun down), combat is aimed pose.
+		All animations are one frame.
+	*/
+	//asd
+	UPROPERTY(EditAnywhere, Category = "Weapon Animation")
+		UAnimSequence* LeftHandAnimation;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Animation")
+		UAnimSequence* RightHandAnimation;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Animation")
+		UAnimSequence* BothHandsAnimation;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Animation")
+		UAnimSequence* RelaxedLeftHandAnimation;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Animation")
+		UAnimSequence* RelaxedRightHandAnimation;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Animation")
+		UAnimSequence* RelaxedBothHandsAnimation;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Animation")
+		UAimOffsetBlendSpace* AimOffsetBlend;
 	/**
 	 *	List of possible sockets, to which this weapon can attach itself when equiped.
 	 */

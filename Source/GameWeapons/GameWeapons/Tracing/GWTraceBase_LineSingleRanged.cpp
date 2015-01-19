@@ -33,6 +33,8 @@ void UGWTraceBase_LineSingleRanged::TraceLineSingle()
 	{
 		const FVector StartTrace = GetStartLocationFromTargetingSocket();
 		const FVector EndTrace = (GetStartLocationFromTargetingSocket() + ShootDir * Range);
+		//const FVector StartTrace = GetStartLocationFromTargetingSocket();
+		//const FVector EndTrace = (GetStartLocationFromTargetingSocket() + ShootDir * Range);
 		Impact = SingleLineRangedTrace(StartTrace, EndTrace);
 		//another trace this time from weapon, to impact point.
 		if (Impact.bBlockingHit)

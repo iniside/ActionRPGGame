@@ -5,10 +5,26 @@
 #include "GISInventoryBaseComponent.h"
 #include "GSActiveActionsComponent.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FGSOnLeftWeaponChanged, class UGSItemWeaponInfo*);
+
 /*
 	TODO:
 	1. Ability equiping (that should be far less complicated)
 	2. consumable item equiping (also should be pretty easy and not complicated).
+	3. If weapon is two handed bind it to left mouse button.
+	4. Only one ranged weapon can be equipped at time (for most of the time shouldn't be big deal
+	since most ranged weapon are two handed..). 
+	Not sure about it, but it's the only sane option i can think of, if i want to retain
+	how I trace shooting. Especially if we mix abilities with weapon.
+	Abilities are targeted using current weaponPosition.
+	5. Can have two mele weapons, or mele + ranged weapon.
+
+
+	New Design goal:
+	1. One ranged weapon at time.
+	2. Ranged weapon is always equiped to left hand (or rather input is in left hand).
+	3. Mele weapons can be dual wielded. Normal binding rules apply (left to left).
+	4. Can have mixed ranged and mele. Ranged left hand, mele right. With respective input.
 */
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
 class GAMESYSTEM_API UGSActiveActionsComponent : public UGISInventoryBaseComponent
@@ -61,11 +77,16 @@ public:
 
 
 
-	void CopyNextItemFromOtherInventoryTab(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex, EGSWeaponHand WeaponHandIn);
+	void SetWeaponFrom(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex, EGSWeaponHand WeaponHandIn);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerCopyNextItemFromOtherInventoryTab(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex, EGSWeaponHand WeaponHandIn);
+		void ServerSetWeaponFrom(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex, EGSWeaponHand WeaponHandIn);
 
+	void InputPressLeftWeapon();
+	void InputReleaseLeftWeapon();
+
+	void InputPressRightWeapon();
+	void InputReleaseRightWeapon();
 protected:
 	UFUNCTION()
 		void OnLeftWeaponRemoved(const FGISSlotSwapInfo& SlotSwapInfoIn);
@@ -103,7 +124,8 @@ protected:
 		Null pointer to weapons if nessessary, (for example weapon is going to be removed from socket).
 		To prevent using that weapon, if another incompatibile weapon is equiped.
 	 */
-	void FinishSwappingWeapons(class UGSItemWeaponInfo* CurrentWeapon, class UGSItemWeaponInfo*& CurrentOppositeWeapon, class UGSItemWeaponInfo*& LastOppositeWeapon, int32 TabIndexIn);
+	void FinishSwappingWeapons(class UGSItemWeaponInfo*& CurrentWeapon, class UGSItemWeaponInfo*& CurrentOppositeWeapon,
+	class UGSItemWeaponInfo*& LastOppositeWeapon, int32 OppositeTabIndexInm, int32 CurrentTabIndexIn);
 
 	float CalculateAttachTimeLenght();
 
@@ -133,7 +155,7 @@ private:
 	int32 LastLeftCopiedIndex;
 	int32 LastRightCopiedIndex;
 	class IIGSEquipment* EquipInt;
-protected:
+public:
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentLeftHandWeapon)
 	class UGSItemWeaponInfo* CurrentLeftHandWeapon;
 	UFUNCTION()
@@ -142,6 +164,21 @@ protected:
 	class UGSItemWeaponInfo* CurrentRightHandWeapon;
 	UFUNCTION()
 		void OnRep_CurrentRightHandWeapon();
+
+	FGSOnLeftWeaponChanged OnLeftWeaponChangedEvent;
+
+	UPROPERTY(BlueprintReadOnly)
+		EGSWeaponEquipState WeaponEquipState;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon Animations")
+		UAnimSequence* GetLeftWeaponAnimSequence() const;
+	UFUNCTION(BlueprintCallable, Category = "Weapon Animations")
+		UAnimSequence* GetRightWeaponAnimSequence() const;
+	UFUNCTION(BlueprintCallable, Category = "Weapon Animations")
+		UAnimSequence* GetBothHandWeaponAnimSequence() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon Animations")
+		UAimOffsetBlendSpace* GetBothHandWeaponAimBlend() const;
 private:
 	UPROPERTY()
 	class UGSItemWeaponInfo* LastLeftHandWeapon;

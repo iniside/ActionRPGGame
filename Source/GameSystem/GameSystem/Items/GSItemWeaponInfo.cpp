@@ -58,7 +58,14 @@ const EGSWeaponWield UGSItemWeaponInfo::GetWeaponWield() const
 	}
 	return EGSWeaponWield::Invalid;
 }
-
+const EGSWeaponType UGSItemWeaponInfo::GetWeaponType() const
+{
+	return EGSWeaponType::Invalid;
+}
+FVector UGSItemWeaponInfo::GetCrosshairStartLocation()
+{
+	return FVector::ZeroVector;
+}
 bool UGSItemWeaponInfo::OnItemAddedToSlot()
 {
 	if (Weapon)
@@ -130,26 +137,6 @@ bool UGSItemWeaponInfo::InputReleased_Implementation()
 bool UGSItemWeaponInfo::CanItemBeSwapped()
 {
 	return true;
-}
-
-void UGSItemWeaponInfo::EquipWeapon()
-{
-	//check if we are in right inventory and get pointer to it.
-	if (UGSActiveActionsComponent* aaComp = Cast<UGSActiveActionsComponent>(CurrentInventory))
-	{
-		if (GetWeaponWield() == EGSWeaponWield::OneHand)
-		{
-
-		}
-		else if (GetWeaponWield() == EGSWeaponWield::TwoHands)
-		{
-
-		}
-		else if (GetWeaponWield() == EGSWeaponWield::Either)
-		{
-
-		}
-	}
 }
 void UGSItemWeaponInfo::SetIsWeaponReady(bool bIsWeaponReadyIn){ ActiveWeapon->bIsWeaponReady = bIsWeaponReadyIn; };
 bool UGSItemWeaponInfo::GetIsWeaponReady() { return ActiveWeapon->bIsWeaponReady; };

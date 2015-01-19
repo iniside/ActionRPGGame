@@ -2,6 +2,8 @@
 #include "GWWeapon.h"
 #include "GWWeaponRanged.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FGWOnCurrentWeaponSpread, float);
+
 /*
 	Base class for all weapons.
 	Mele and ranged weapons need separate classes (at least).
@@ -11,6 +13,10 @@ class GAMEWEAPONS_API AGWWeaponRanged : public AGWWeapon
 {
 	GENERATED_UCLASS_BODY()
 public:
+	/*
+		TODO:
+		Refactor it into structs. Gonna be easier to handle.
+	*/
 	/*
 		Indicates that HitInfo trace should be done every frame.
 		Might be useful for displaying beam effects
@@ -49,10 +55,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 		float BaseSpread;
 	/*
+		Maximum spread of this weapon. Used to clamp, CurrentSpread, so we won't get some ridiculous values..
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+		float MaximumSpread;
+	/*
 		If weapon fires continously, spread will increase by this multiplier, every time weapon shoot.
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 		float SpreadMultiplier;
+	/*
+		Base reduce value of CurrentSpread, when weapon is not firing.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+		float SpreadReduce;
 	/*
 		Amount of bullets shoot in single shoot. Default 1.
 	*/
@@ -72,6 +88,9 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Modifications")
 		TSubclassOf<class UGWAmmo> TypeOfAmmo;
+
+
+	FGWOnCurrentWeaponSpread OnCurrentWeaponSpread;
 protected:
 	UPROPERTY(BlueprintReadOnly, Category ="Ammo")
 	class UGWAmmo* CurrentAmmo;
@@ -99,15 +118,27 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Weapons")
 		void FireWeapon(const FHitResult& TargetIn, float DamageIn, APawn* InstigatorIn);
 
+	/*
+		Mele weapons don't display crosshair ?
+	*/
+	bool bCanDisplayCrosshair;
+
 protected:
 	UPROPERTY(Replicated)
 	float RemainingMagazineAmmo;
 	UPROPERTY(Replicated)
 	float RemaningAmmo;
+
+	float CurrentSpread;
 	bool CheckIfHaveAmmo();
 	void SubtractAmmo();
 	void CalculateReloadAmmo();
 	bool CheckIfCanReload();
+
+	float CurrentCharge;
+
+	void ReduceSpreadOverTime();
+	FTimerHandle ReduceSpreadOverTimeTimerHandle;
 public:
 	/*
 		Set remaning ammo in magazine from external source. Ie. saved data.
@@ -123,10 +154,16 @@ public:
 	*/
 	inline void SetRemaningAmmofloat(int32 RemainingAmmoIn){ RemaningAmmo = RemainingAmmoIn; };
 	/*
-		Get remaning total ammo for this weapon from external source. For example for saving ;).
+		Get remaning total ammo for this weapon for external source. For example for saving ;).
 	*/
 	inline int32 GetRemaningAmmo() { return RemaningAmmo; };
 
+	inline float GetCurrentSpread(){ return CurrentSpread; };
+
+	/*
+		Calculates current weapon spread. Called on every shot.
+	*/
+	virtual void CalculateCurrentWeaponSpread();
 public:
 	/*
 		Ranged weapons need special trace methods, which will account for spread.
@@ -144,7 +181,11 @@ public:
 
 	virtual void InputReload();
 
-	virtual void ActionBegin() override;
+	/*
+		Shoots weapons. Going to be called from client and server. Though there is no synchronization btween those two.
+		And client is mainly using for cosmetics.
+	*/
+	virtual void ShootWeapon();
 	virtual void ActionEnd() override;
 
 	virtual void BeginFire();
@@ -170,7 +211,7 @@ public:
 
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void OnFireBegin();
+		void OnShoot();
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnFireEnd();
 protected:
