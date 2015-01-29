@@ -4,6 +4,69 @@
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FGWOnCurrentWeaponSpread, float);
 
+USTRUCT(BlueprintType)
+struct GAMEWEAPONS_API FGWRecoilInfo
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	/**
+	 *	How much gun will move horizontally while fire is pressed.
+	 *	Negative Left, positive right.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil Horizontal")
+		float HorizontalRecoilBase;
+	/**
+	 *	Maximum offset for horizontal recoil. Anything beyond that will be clamped to max
+	 *	value.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil Horizontal")
+		float HorizontalRecoilMaximum;
+	/**
+	 *	Recoil Multiplier. How much (quickly) will gun reach it's maximum
+	 *	recoil the formula is:
+	 *	HorizontalRecoilBase = HorizontalRecoilBase * HorizontalRecoilMultiplier;
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil Horizontal")
+		float HorizontalRecoilMultiplier;
+	/**
+	 *	How much gun will move vertically while fire is pressed.
+	 *	Negative down, positive up.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil Vertical")
+		float VerticalRecoilBase;
+	/**
+	 *	Maximum offset for horizontal recoil. Anything beyond that will be clamped to max
+	 *	value.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil Vertical")
+		float VerticalRecoilMaximum;
+	/**
+	 *	Recoil Multiplier. How much (quickly) will gun reach it's maximum
+	 *	recoil the formula is:
+	 *	VerticalRecoilBase = VerticalRecoilBase * VerticalRecoilMultiplier;
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil Vertical")
+		float VerticalRecoilMultiplier;
+	/**
+	 *	Random spread for bullets. Direction is spread is picked randomly.
+	 *	This value indicates how far from weapon bullet can be offested.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil Vertical")
+		float RandomSpreadBase;
+	/**
+	 *	Maximum amount of spread. Values higher than this will be clmaped.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil Vertical")
+		float RandomSpreadMaximum;
+	/**
+	 *	Spread Multiplier. How much spread will be increased on each shot.
+	 *	RandomSpreadBase = RandomSpreadBase * RandomSpreadMultiplier;
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil Vertical")
+		float RandomSpreadMultiplier;
+
+};
+
 /*
 	Base class for all weapons.
 	Mele and ranged weapons need separate classes (at least).
@@ -82,6 +145,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 		float MaximumChargeTime;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+		FGWRecoilInfo RecoilConfig;
 	/*
 		Type of ammo, this weapon currently have.
 		Ammo type indicates type of damage this weapon will deal.
@@ -139,6 +205,12 @@ protected:
 
 	void ReduceSpreadOverTime();
 	FTimerHandle ReduceSpreadOverTimeTimerHandle;
+
+public:
+	//UPROPERTY(BlueprintReadOnly, Catgory = "Game Weapon|Recoil")
+		float CurrentHorizontalRecoil;
+	//UPROPERTY(BlueprintReadOnly, Catgory = "Game Weapon|Recoil")
+		float CurrentVerticalRecoil;
 public:
 	/*
 		Set remaning ammo in magazine from external source. Ie. saved data.

@@ -12,29 +12,34 @@ UGASAbilityStateCooldown::UGASAbilityStateCooldown(const FObjectInitializer& Obj
 
 void UGASAbilityStateCooldown::Tick(float DeltaSeconds)
 {
-	GetOuterAGASAbility()->CurrentCooldownTime += DeltaSeconds;
-	if (GetOuterAGASAbility()->CurrentCooldownTime >= GetOuterAGASAbility()->CooldownTime)
+	GetOuterUGASAbility()->CurrentRechargeTime += DeltaSeconds;
+	if (GetOuterUGASAbility()->CurrentRechargeTime >= GetOuterUGASAbility()->RechargeTime
+		&& GetOuterUGASAbility()->bIsOnCooldown)
 	{
-		GetOuterAGASAbility()->CurrentCooldownTime = 0;
+		GetOuterUGASAbility()->CurrentRechargeTime = 0;
 		FinishCooldown();
 	}
 }
 void UGASAbilityStateCooldown::FinishCooldown()
 {
-	GetOuterAGASAbility()->bIsOnCooldown = false;
-	//GetOuterAARAbility()->LeaveCooldown();
-	GetOuterAGASAbility()->GotoState(GetOuterAGASAbility()->ActiveState);
+	GetOuterUGASAbility()->bIsOnCooldown = false;
+	if (GetOuterUGASAbility()->GetNetMode() == ENetMode::NM_DedicatedServer)
+		GetOuterUGASAbility()->EndCooldown();
+
+	GetOuterUGASAbility()->SetTickEnabled(false);
+	GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->ActiveState);
 }
 void UGASAbilityStateCooldown::BeginState(UGASAbilityState* PrevState)
 {
-	GetOuterAGASAbility()->bIsOnCooldown = true;
+	//GetOuterUGASAbility()->bIsOnCooldown = true;
 	//GetOuterAARAbility()->EnterCooldown();
-	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(true);
+	GetOuterUGASAbility()->bIsOnCooldown = true;
+	GetOuterUGASAbility()->SetTickEnabled(true);
 }
 void UGASAbilityStateCooldown::EndState()
 {
 	//GetOuterAARAbility()->bIsCooldownFinished = true;
-	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
+	//GetOuterUGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
 }
 void UGASAbilityStateCooldown::BeginActionSequence()
 {

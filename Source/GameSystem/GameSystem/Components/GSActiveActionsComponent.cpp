@@ -1,4 +1,4 @@
- // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
 #include "GameSystem.h"
 #include "../Items/GSItemWeaponInfo.h"
@@ -31,6 +31,9 @@ UGSActiveActionsComponent::UGSActiveActionsComponent(const FObjectInitializer& O
 	EquipingSectionIndex = 0;
 	LastLeftSocket = NAME_None;
 	LastRightSocket = NAME_None;
+	TimeInCombat = 1;
+	bIsInCombat = false;
+	//WeaponEquipState = EGSWeaponEquipState::Invalid; //default;
 }
 void UGSActiveActionsComponent::InitializeComponent()
 {
@@ -41,7 +44,7 @@ void UGSActiveActionsComponent::InitializeComponent()
 	if (RightWeaponEquipment)
 		RightWeaponEquipment->OnItemSlotSwapped.AddDynamic(this, &UGSActiveActionsComponent::OnRightWeaponRemoved);
 
-	if (GetNetMode() == ENetMode::NM_Client ||
+	if (GetOwnerRole() < ROLE_Authority ||
 		GetNetMode() == ENetMode::NM_Standalone)
 	{
 		if (LeftWeaponInfoWidgetClass)
@@ -68,20 +71,27 @@ void UGSActiveActionsComponent::GetLifetimeReplicatedProps(TArray< class FLifeti
 
 	DOREPLIFETIME(UGSActiveActionsComponent, EquipWeapon);
 	DOREPLIFETIME(UGSActiveActionsComponent, UnequipWeapon);
-	DOREPLIFETIME_CONDITION(UGSActiveActionsComponent, CurrentLeftHandWeapon, COND_OwnerOnly);
+	DOREPLIFETIME(UGSActiveActionsComponent, bIsInCombat);
+	DOREPLIFETIME(UGSActiveActionsComponent, WeaponEquipState);
+	DOREPLIFETIME(UGSActiveActionsComponent, CurrentLeftHandWeapon);
+	DOREPLIFETIME(UGSActiveActionsComponent, CurrentAbility);
 	DOREPLIFETIME_CONDITION(UGSActiveActionsComponent, CurrentRightHandWeapon, COND_OwnerOnly);
 }
 bool UGSActiveActionsComponent::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
 {
 	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
 
-	if (LastLeftHandWeapon)
+	if (CurrentLeftHandWeapon)
 	{
-		WroteSomething |= Channel->ReplicateSubobject(const_cast<UGSItemWeaponInfo*>(LastLeftHandWeapon), *Bunch, *RepFlags);
+		WroteSomething |= Channel->ReplicateSubobject(const_cast<UGSItemWeaponInfo*>(CurrentLeftHandWeapon), *Bunch, *RepFlags);
 	}
-	if (LastRightHandWeapon)
+	if (CurrentRightHandWeapon)
 	{
-		WroteSomething |= Channel->ReplicateSubobject(const_cast<UGSItemWeaponInfo*>(LastRightHandWeapon), *Bunch, *RepFlags);
+		WroteSomething |= Channel->ReplicateSubobject(const_cast<UGSItemWeaponInfo*>(CurrentRightHandWeapon), *Bunch, *RepFlags);
+	}
+	if (CurrentAbility)
+	{
+		WroteSomething |= Channel->ReplicateSubobject(const_cast<UGSAbilityInfo*>(CurrentAbility), *Bunch, *RepFlags);
 	}
 	return WroteSomething;
 }
@@ -89,6 +99,12 @@ void UGSActiveActionsComponent::OnRep_CurrentLeftHandWeapon()
 {
 	if (LeftWeaponInfoWidget)
 		LeftWeaponInfoWidget->CurrentWeapon = CurrentLeftHandWeapon;
+
+	UGSItemWeaponRangedInfo* leftWeap = Cast<UGSItemWeaponRangedInfo>(CurrentLeftHandWeapon);
+	if (leftWeap)
+		LeftRangedWeapon = leftWeap->RangedWeapon;
+
+	OnLeftWeaponEquipedDel.Broadcast(CurrentLeftHandWeapon);
 }
 void UGSActiveActionsComponent::OnRep_CurrentRightHandWeapon()
 {
@@ -122,7 +138,7 @@ void UGSActiveActionsComponent::OnRightWeaponRemoved(const FGISSlotSwapInfo& Slo
 /*
 	1 - Left Hand
 	2 - Right Hand;
-*/
+	*/
 void UGSActiveActionsComponent::SwapWeapon(int32& LastCopiedIndex, class UGSItemWeaponInfo*& CurrentWeapon, class UGSItemWeaponInfo*& LastWeapon, class UGISInventoryBaseComponent* OtherInventory,
 	int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex)
 {
@@ -176,8 +192,8 @@ void UGSActiveActionsComponent::SwapWeapon(int32& LastCopiedIndex, class UGSItem
 	TabIndex - Hand
 	1 - Left Hand
 	2 - Right Hand;
-*/
-void UGSActiveActionsComponent::FinishSwappingWeapons(class UGSItemWeaponInfo*& CurrentWeapon, class UGSItemWeaponInfo*& CurrentOppositeWeapon, 
+	*/
+void UGSActiveActionsComponent::FinishSwappingWeapons(class UGSItemWeaponInfo*& CurrentWeapon, class UGSItemWeaponInfo*& CurrentOppositeWeapon,
 class UGSItemWeaponInfo*& LastOppositeWeapon, int32 OppositeTabIndexIn, int32 CurrentTabIndexIn)
 {
 	if (!CurrentWeapon)
@@ -191,16 +207,17 @@ class UGSItemWeaponInfo*& LastOppositeWeapon, int32 OppositeTabIndexIn, int32 Cu
 		either equip ranged weapon to right slot, or equip ranged to left slot
 		and mele to right.
 		4. If weapon is either one handed or two handed and is ranged, and there
-		is one ranged weapon equiped, unequip old ranged weapon, and equip new 
+		is one ranged weapon equiped, unequip old ranged weapon, and equip new
 		one to left slot.
 
 
 
-	*/
+		*/
 
-	//if (CurrentWeapon->GetWeaponType() == EGSWeaponType::Ranged)
+	//if (CurrentWeapon->GetWeaponType() == EGSWeaponType::MainHand)
 	//{
-	//	if (CurrentWeapon->CurrentHand == EGSWeaponHand::Right)
+	//	if (CurrentWeapon->CurrentHand == EGSWeaponHand::Right
+	//		|| CurrentWeapon->CurrentHand == EGSWeaponHand::BothHands)
 	//	{
 	//		CurrentOppositeWeapon = CurrentWeapon;
 	//		Tabs.InventoryTabs[OppositeTabIndexIn].TabSlots[0].ItemData = CurrentWeapon;
@@ -208,10 +225,12 @@ class UGSItemWeaponInfo*& LastOppositeWeapon, int32 OppositeTabIndexIn, int32 Cu
 	//		CurrentWeapon = nullptr;
 	//		Tabs.InventoryTabs[CurrentTabIndexIn].TabSlots[0].ItemData = nullptr;
 
-	//		TabUpdateInfo.ReplicationCounter++;
-	//		TabUpdateInfo.TargetTabIndex = CurrentTabIndexIn; //wont work, we need to reconstruct entire widget.
-	//		if (GetNetMode() == ENetMode::NM_Standalone)
-	//			OnTabChanged.ExecuteIfBound(TabUpdateInfo.TargetTabIndex);
+	//		//TabUpdateInfo.ReplicationCounter++;
+	//		//TabUpdateInfo.TargetTabIndex = CurrentTabIndexIn; //wont work, we need to reconstruct entire widget.
+	//		//if (GetNetMode() == ENetMode::NM_Standalone)
+	//		//	OnTabChanged.ExecuteIfBound(TabUpdateInfo.TargetTabIndex);
+
+	//		return;
 	//	}
 	//}
 	//and it's two handed
@@ -226,7 +245,7 @@ class UGSItemWeaponInfo*& LastOppositeWeapon, int32 OppositeTabIndexIn, int32 Cu
 	}
 	/*
 		If current weapon is one handed
-	*/
+		*/
 	if (CurrentWeapon->GetWeaponWield() == EGSWeaponWield::OneHand)
 	{
 		if (!CurrentOppositeWeapon)
@@ -243,7 +262,7 @@ class UGSItemWeaponInfo*& LastOppositeWeapon, int32 OppositeTabIndexIn, int32 Cu
 			CurrentOppositeWeapon = nullptr;
 		}
 	}
-	if (CurrentWeapon->GetWeaponType() == EGSWeaponType::Ranged)
+	if (CurrentWeapon->GetWeaponType() == EGSWeaponType::MainHand)
 	{
 
 	}
@@ -260,33 +279,43 @@ void UGSActiveActionsComponent::SetWeaponFrom(class UGISInventoryBaseComponent* 
 	else
 	{
 		//flat out prevent changing of weapons, when ability is being used.
-		if (CurrentAbility && CurrentAbility->ActiveAbility)
-			if (CurrentAbility->ActiveAbility->GetIsBeingCast())
-				return;
+		//if (CurrentAbility && CurrentAbility->ActiveAbility)
+		//	if (CurrentAbility->ActiveAbility->GetIsBeingCast())
+		//		return;
 
 		if (!OtherIn)
 			return;
 		if (WeaponHandIn == EGSWeaponHand::Left)
 		{
 			SwapWeapon(LastLeftCopiedIndex, CurrentLeftHandWeapon, LastLeftHandWeapon, OtherIn, OtherTabIndex, TargetTabIndex, TargetSlotIndex);
-			
-			if (CurrentLeftHandWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
-				CurrentLeftHandWeapon->CurrentHand = EGSWeaponHand::BothHands;
-			else
-				CurrentLeftHandWeapon->CurrentHand = EGSWeaponHand::Left;
 
-			FinishSwappingWeapons(CurrentLeftHandWeapon, CurrentRightHandWeapon, LastRightHandWeapon, 2, 1);
+			if (CurrentLeftHandWeapon)
+			{
+				if (CurrentLeftHandWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
+					CurrentLeftHandWeapon->CurrentHand = EGSWeaponHand::BothHands;
+				else
+					CurrentLeftHandWeapon->CurrentHand = EGSWeaponHand::Left;
+
+				//TODO:: Refactor.
+				UGSItemWeaponRangedInfo* leftWeap = Cast<UGSItemWeaponRangedInfo>(CurrentLeftHandWeapon);
+				if (leftWeap)
+					LeftRangedWeapon = leftWeap->RangedWeapon;
+				FinishSwappingWeapons(CurrentLeftHandWeapon, CurrentRightHandWeapon, LastRightHandWeapon, 2, 1);
+			}
 		}
 		else if (WeaponHandIn == EGSWeaponHand::Right)
 		{
 			SwapWeapon(LastRightCopiedIndex, CurrentRightHandWeapon, LastRightHandWeapon, OtherIn, OtherTabIndex, TargetTabIndex, TargetSlotIndex);
-			
-			if (CurrentRightHandWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
-				CurrentRightHandWeapon->CurrentHand = EGSWeaponHand::BothHands;
-			else
-				CurrentRightHandWeapon->CurrentHand = EGSWeaponHand::Right;
 
-			FinishSwappingWeapons(CurrentRightHandWeapon, CurrentLeftHandWeapon, LastLeftHandWeapon, 1, 2);
+			if (CurrentRightHandWeapon)
+			{
+				if (CurrentRightHandWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
+					CurrentRightHandWeapon->CurrentHand = EGSWeaponHand::BothHands;
+				else
+					CurrentRightHandWeapon->CurrentHand = EGSWeaponHand::Right;
+
+				FinishSwappingWeapons(CurrentRightHandWeapon, CurrentLeftHandWeapon, LastLeftHandWeapon, 1, 2);
+			}
 		}
 		if (GetNetMode() == ENetMode::NM_Standalone)
 		{
@@ -294,36 +323,41 @@ void UGSActiveActionsComponent::SetWeaponFrom(class UGISInventoryBaseComponent* 
 			OnRep_CurrentRightHandWeapon();
 		}
 		//move to separate function. Later.
-		if (CurrentRightHandWeapon && CurrentLeftHandWeapon
-			&& CurrentRightHandWeapon->GetWeaponWield() == EGSWeaponWield::OneHand
-			&& CurrentLeftHandWeapon->GetWeaponWield() == EGSWeaponWield::OneHand)
-		{
-			WeaponEquipState = EGSWeaponEquipState::DualWield;
-		}
-		else if (CurrentLeftHandWeapon && !CurrentRightHandWeapon
-			&& CurrentLeftHandWeapon->GetWeaponWield() == EGSWeaponWield::OneHand)
-		{
-			WeaponEquipState = EGSWeaponEquipState::LeftHand;
-		}
-		else if (CurrentRightHandWeapon && !CurrentLeftHandWeapon
-			&& CurrentRightHandWeapon->GetWeaponWield() == EGSWeaponWield::OneHand)
-		{
-			WeaponEquipState = EGSWeaponEquipState::RightHand;
-		}
-		else if (CurrentLeftHandWeapon &&
-			CurrentLeftHandWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
-		{
-			WeaponEquipState = EGSWeaponEquipState::BothHands;
-		}
-		else if (CurrentRightHandWeapon &&
-			CurrentRightHandWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
-		{
-			WeaponEquipState = EGSWeaponEquipState::BothHands;
-		}
+		//if (CurrentRightHandWeapon && CurrentLeftHandWeapon
+		//	&& CurrentRightHandWeapon->GetWeaponWield() == EGSWeaponWield::OneHand
+		//	&& CurrentLeftHandWeapon->GetWeaponWield() == EGSWeaponWield::OneHand)
+		//{
+		//	WeaponEquipState = EGSWeaponEquipState::DualWield;
+		//}
+		//else if (CurrentLeftHandWeapon && !CurrentRightHandWeapon
+		//	&& CurrentLeftHandWeapon->GetWeaponWield() == EGSWeaponWield::OneHand)
+		//{
+		//	WeaponEquipState = EGSWeaponEquipState::LeftHand;
+		//}
+		//else if (CurrentRightHandWeapon && !CurrentLeftHandWeapon
+		//	&& CurrentRightHandWeapon->GetWeaponWield() == EGSWeaponWield::OneHand)
+		//{
+		//	WeaponEquipState = EGSWeaponEquipState::RightHand;
+		//}
+		//else if (CurrentLeftHandWeapon &&
+		//	CurrentLeftHandWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
+		//{
+		//	WeaponEquipState = EGSWeaponEquipState::BothHands;
+		//}
+		//else if (CurrentRightHandWeapon &&
+		//	CurrentRightHandWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
+		//{
+		//	WeaponEquipState = EGSWeaponEquipState::BothHands;
+		//}
+
+		//if (!CurrentRightHandWeapon && !CurrentLeftHandWeapon)
+		//{
+		//	WeaponEquipState = EGSWeaponEquipState::Invalid;
+		//}
 
 		//if there is ability set current weapons when weapons change.
-		if (CurrentAbility)
-			CurrentAbility->GetOnSetWeaponsForAbility().Broadcast(CurrentLeftHandWeapon, CurrentRightHandWeapon);
+		//if (CurrentAbility)
+		//	CurrentAbility->GetOnSetWeaponsForAbility().Broadcast(CurrentLeftHandWeapon, CurrentRightHandWeapon);
 
 		OnLeftWeaponChangedEvent.Broadcast(CurrentLeftHandWeapon);
 	}
@@ -336,30 +370,194 @@ bool UGSActiveActionsComponent::ServerSetWeaponFrom_Validate(class UGISInventory
 {
 	return true;
 }
-
+void UGSActiveActionsComponent::ServerInputPressLeftWeapon_Implementation()
+{
+	InputPressLeftWeapon();
+}
+bool UGSActiveActionsComponent::ServerInputPressLeftWeapon_Validate()
+{
+	return true;
+}
+//refactor.
 void UGSActiveActionsComponent::InputPressLeftWeapon()
 {
-	if (CurrentLeftHandWeapon)
-		CurrentLeftHandWeapon->InputPressed();
-	if (CurrentRightHandWeapon && CurrentRightHandWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
-		CurrentRightHandWeapon->InputPressed();
+	if (GetOwnerRole() < ROLE_Authority)
+	{
+		ServerInputPressLeftWeapon();
+		if (CurrentRightHandWeapon
+			&& (CurrentRightHandWeapon->CurrentHand == EGSWeaponHand::BothHands
+			|| CurrentRightHandWeapon->GetWeaponType() == EGSWeaponType::MainHand))
+		{
+			CurrentRightHandWeapon->InputPressed();
+			GetWorld()->GetTimerManager().ClearTimer(TimerLeaveCombat);
+			bIsInCombat = true;
+			return;
+		}
+
+		if (CurrentLeftHandWeapon)
+		{
+			CurrentLeftHandWeapon->InputPressed();
+
+			GetWorld()->GetTimerManager().ClearTimer(TimerLeaveCombat);
+			bIsInCombat = true;
+		}
+	}
+	else
+	{
+		if (CurrentRightHandWeapon
+			&& (CurrentRightHandWeapon->CurrentHand == EGSWeaponHand::BothHands
+			|| CurrentRightHandWeapon->GetWeaponType() == EGSWeaponType::MainHand))
+		{
+			CurrentRightHandWeapon->InputPressed();
+			GetWorld()->GetTimerManager().ClearTimer(TimerLeaveCombat);
+			bIsInCombat = true;
+			return;
+		}
+
+		if (CurrentLeftHandWeapon)
+		{
+			CurrentLeftHandWeapon->InputPressed();
+
+			GetWorld()->GetTimerManager().ClearTimer(TimerLeaveCombat);
+			bIsInCombat = true;
+		}
+	}
+}
+void UGSActiveActionsComponent::ServerInputReleaseLeftWeapon_Implementation()
+{
+	InputReleaseLeftWeapon();
+}
+bool UGSActiveActionsComponent::ServerInputReleaseLeftWeapon_Validate()
+{
+	return true;
 }
 void UGSActiveActionsComponent::InputReleaseLeftWeapon()
 {
-	if (CurrentLeftHandWeapon)
-		CurrentLeftHandWeapon->InputReleased();
-	if (CurrentRightHandWeapon && CurrentRightHandWeapon->GetWeaponWield() == EGSWeaponWield::TwoHands)
-		CurrentRightHandWeapon->InputReleased();
+	if (GetOwnerRole() < ROLE_Authority)
+	{
+		ServerInputReleaseLeftWeapon();
+		GetWorld()->GetTimerManager().ClearTimer(TimerLeaveCombat);
+		if (CurrentRightHandWeapon
+			&& (CurrentRightHandWeapon->CurrentHand == EGSWeaponHand::BothHands
+			|| CurrentRightHandWeapon->GetWeaponType() == EGSWeaponType::MainHand))
+		{
+			CurrentRightHandWeapon->InputPressed();
+			FTimerDelegate del = FTimerDelegate::CreateUObject(this, &UGSActiveActionsComponent::OnLeaveCombatTimer);
+			GetWorld()->GetTimerManager().SetTimer(TimerLeaveCombat, del, TimeInCombat, false);
+			return;
+		}
+
+		if (CurrentLeftHandWeapon)
+			CurrentLeftHandWeapon->InputReleased();
+
+		FTimerDelegate del = FTimerDelegate::CreateUObject(this, &UGSActiveActionsComponent::OnLeaveCombatTimer);
+		GetWorld()->GetTimerManager().SetTimer(TimerLeaveCombat, del, TimeInCombat, false);
+	}
+	else
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerLeaveCombat);
+		if (CurrentRightHandWeapon
+			&& (CurrentRightHandWeapon->CurrentHand == EGSWeaponHand::BothHands
+			|| CurrentRightHandWeapon->GetWeaponType() == EGSWeaponType::MainHand))
+		{
+			CurrentRightHandWeapon->InputPressed();
+			FTimerDelegate del = FTimerDelegate::CreateUObject(this, &UGSActiveActionsComponent::OnLeaveCombatTimer);
+			GetWorld()->GetTimerManager().SetTimer(TimerLeaveCombat, del, TimeInCombat, false);
+			return;
+		}
+
+		if (CurrentLeftHandWeapon)
+			CurrentLeftHandWeapon->InputReleased();
+
+		FTimerDelegate del = FTimerDelegate::CreateUObject(this, &UGSActiveActionsComponent::OnLeaveCombatTimer);
+		GetWorld()->GetTimerManager().SetTimer(TimerLeaveCombat, del, TimeInCombat, false);
+	}
+}
+void UGSActiveActionsComponent::ServerPressRightWeapon_Implementation()
+{
+	InputPressRightWeapon();
+}
+bool UGSActiveActionsComponent::ServerPressRightWeapon_Validate()
+{
+	return true;
 }
 void UGSActiveActionsComponent::InputPressRightWeapon()
 {
-	if (CurrentRightHandWeapon)
-		CurrentRightHandWeapon->InputPressed();
+	if (GetOwnerRole() < ROLE_Authority)
+	{
+		ServerPressRightWeapon();
+		GetWorld()->GetTimerManager().ClearTimer(TimerLeaveCombat);
+	}
+	else
+	{
+		if (CurrentLeftHandWeapon &&
+			CurrentLeftHandWeapon->CurrentHand == EGSWeaponHand::BothHands)
+		{
+			CurrentLeftHandWeapon->InputAlternatePressed();
+			return;
+		}
+
+		if (CurrentRightHandWeapon &&
+			CurrentRightHandWeapon->CurrentHand == EGSWeaponHand::BothHands)
+		{
+			CurrentRightHandWeapon->InputAlternatePressed();
+			return;
+		}
+
+		if (CurrentRightHandWeapon)
+		{
+			CurrentRightHandWeapon->InputPressed();
+			GetWorld()->GetTimerManager().ClearTimer(TimerLeaveCombat);
+			bIsInCombat = true;
+		}
+	}
+}
+void UGSActiveActionsComponent::ServerReleaseRightWeapon_Implementation()
+{
+	InputReleaseRightWeapon();
+}
+bool UGSActiveActionsComponent::ServerReleaseRightWeapon_Validate()
+{
+	return true;
 }
 void UGSActiveActionsComponent::InputReleaseRightWeapon()
 {
-	if (CurrentRightHandWeapon)
-		CurrentRightHandWeapon->InputReleased();
+	if (GetOwnerRole() < ROLE_Authority)
+	{
+		ServerReleaseRightWeapon();
+		FTimerDelegate del = FTimerDelegate::CreateUObject(this, &UGSActiveActionsComponent::OnLeaveCombatTimer);
+		GetWorld()->GetTimerManager().SetTimer(TimerLeaveCombat, del, TimeInCombat, false);
+	}
+	else
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerLeaveCombat);
+
+		if (!CurrentRightHandWeapon && CurrentLeftHandWeapon &&
+			CurrentLeftHandWeapon->CurrentHand == EGSWeaponHand::BothHands)
+		{
+			CurrentLeftHandWeapon->InputAlternateReleased(); //fake should be something like:
+			//InputAlternateModePressed(); or even just take 0,1 0 -primary mode 1-alternate mode.
+			FTimerDelegate del = FTimerDelegate::CreateUObject(this, &UGSActiveActionsComponent::OnLeaveCombatTimer);
+			GetWorld()->GetTimerManager().SetTimer(TimerLeaveCombat, del, TimeInCombat, false);
+			return;
+		}
+
+		if (CurrentRightHandWeapon &&
+			CurrentRightHandWeapon->CurrentHand == EGSWeaponHand::BothHands)
+		{
+			CurrentRightHandWeapon->InputAlternateReleased(); //fake should be something like:
+			//InputAlternateModePressed();
+			FTimerDelegate del = FTimerDelegate::CreateUObject(this, &UGSActiveActionsComponent::OnLeaveCombatTimer);
+			GetWorld()->GetTimerManager().SetTimer(TimerLeaveCombat, del, TimeInCombat, false);
+			return;
+		}
+
+		if (CurrentRightHandWeapon)
+			CurrentRightHandWeapon->InputReleased();
+
+		FTimerDelegate del = FTimerDelegate::CreateUObject(this, &UGSActiveActionsComponent::OnLeaveCombatTimer);
+		GetWorld()->GetTimerManager().SetTimer(TimerLeaveCombat, del, TimeInCombat, false);
+	}
 }
 
 
@@ -408,12 +606,16 @@ void UGSActiveActionsComponent::OnLeftWeaponChanged()
 
 float UGSActiveActionsComponent::CalculateAttachTimeLenght()
 {
-	float montageLenght = LeftSocketInfo.Animation->CalculateSequenceLength();
-	float multiplier = montageLenght / WeaponSwapSpeed;
-	float EquipStartLen = LeftSocketInfo.Animation->GetSectionLength(EquipingSectionIndex);
-	float WhenToAttach = EquipStartLen * (1 / multiplier);
-
-	return WhenToAttach;
+	float montagelenght = 1;
+	float equipstartlen = .5;
+	if (LeftSocketInfo.Animation)
+	{
+		montagelenght = LeftSocketInfo.Animation->CalculateSequenceLength();
+		LeftSocketInfo.Animation->GetSectionLength(EquipingSectionIndex);
+	}
+	float multiplier = montagelenght / WeaponSwapSpeed;
+	float whentoattach = equipstartlen * (1 / multiplier);
+	return whentoattach; //WhenToAttach;
 }
 
 void UGSActiveActionsComponent::UpdateCurrentLeftWeapon()
@@ -502,7 +704,7 @@ void UGSActiveActionsComponent::UpdateSocket(class UGSItemWeaponInfo* WeaponIn)
 {
 	if (UGSWeaponEquipmentComponent* weapEq = Cast<UGSWeaponEquipmentComponent>(WeaponIn->LastInventory))
 	{
-		for (FGSWeaponSocketInfo& weapEqSock : weapEq->AttachmentSockets)
+		for (FGSEquipSocketInfo& weapEqSock : weapEq->AttachmentSockets)
 		{
 			if (weapEqSock.SocketName == WeaponIn->LastAttachedSocket)
 			{
@@ -631,6 +833,8 @@ void UGSActiveActionsComponent::OnRep_EquipWeapon()
 	UAnimInstance* AnimInst = MyChar->GetMesh()->GetAnimInstance();
 	if (!AnimInst)
 		return;
+	if (!LeftSocketInfo.Animation)
+		return;
 	float montageLenght = LeftSocketInfo.Animation->CalculateSequenceLength();
 
 	float multiplier = montageLenght / WeaponSwapSpeed;
@@ -646,6 +850,8 @@ void UGSActiveActionsComponent::OnRep_UnequipWeapon()
 
 	UAnimInstance* AnimInst = MyChar->GetMesh()->GetAnimInstance();
 	if (!AnimInst)
+		return;
+	if (!LeftSocketInfo.Animation)
 		return;
 	float montageLenght = LeftSocketInfo.Animation->CalculateSequenceLength();
 
@@ -681,29 +887,9 @@ void UGSActiveActionsComponent::InputReloadWeapon(int32 TabIndex, int32 SlotInde
 		weap->InputRealadWeapon();
 	}
 }
-
-UAnimSequence* UGSActiveActionsComponent::GetLeftWeaponAnimSequence() const
+void UGSActiveActionsComponent::OnLeaveCombatTimer()
 {
-	if (CurrentLeftHandWeapon)
-		return CurrentLeftHandWeapon->GetEquipedAnimation();
-
-	return nullptr;
-}
-
-UAnimSequence* UGSActiveActionsComponent::GetRightWeaponAnimSequence() const
-{
-	if (CurrentRightHandWeapon)
-		return CurrentRightHandWeapon->GetEquipedAnimation();
-
-	return nullptr;
-}
-UAnimSequence* UGSActiveActionsComponent::GetBothHandWeaponAnimSequence() const
-{
-	if (CurrentLeftHandWeapon)
-		return CurrentLeftHandWeapon->GetEquipedAnimation();
-	else if (CurrentRightHandWeapon)
-		return CurrentRightHandWeapon->GetEquipedAnimation();
-	return nullptr;
+	bIsInCombat = false;
 }
 
 UAimOffsetBlendSpace* UGSActiveActionsComponent::GetBothHandWeaponAimBlend() const
@@ -713,4 +899,147 @@ UAimOffsetBlendSpace* UGSActiveActionsComponent::GetBothHandWeaponAimBlend() con
 	else if (CurrentRightHandWeapon)
 		return CurrentRightHandWeapon->GetEquipedAimBlendSpace();
 	return nullptr;
+}
+
+UAnimSequence* UGSActiveActionsComponent::GetLeftHandIdleAnim() const
+{
+	if (CurrentLeftHandWeapon)
+		return CurrentLeftHandWeapon->GetIdleAnimation();
+
+	return nullptr;
+}
+
+UAnimSequence* UGSActiveActionsComponent::GetLeftHandCombatAnim() const
+{
+	if (CurrentLeftHandWeapon)
+		return CurrentLeftHandWeapon->GetEquipedAnimation();
+
+	return nullptr;
+}
+
+UAnimSequence* UGSActiveActionsComponent::GetLeftHandMoveAnim() const
+{
+	if (CurrentLeftHandWeapon)
+		return CurrentLeftHandWeapon->GetMoveAnimation();
+
+	return nullptr;
+}
+
+UAnimSequence* UGSActiveActionsComponent::GetRightHandIdleAnim() const
+{
+	if (CurrentRightHandWeapon)
+		return CurrentRightHandWeapon->GetIdleAnimation();
+
+	return nullptr;
+}
+
+UAnimSequence* UGSActiveActionsComponent::GetRightHandCombatAnim() const
+{
+	if (CurrentRightHandWeapon)
+		return CurrentRightHandWeapon->GetEquipedAnimation();
+
+	return nullptr;
+}
+
+UAnimSequence* UGSActiveActionsComponent::GetRightHandMoveAnim() const
+{
+	if (CurrentRightHandWeapon)
+		return CurrentRightHandWeapon->GetMoveAnimation();
+
+	return nullptr;
+}
+
+UAnimSequence* UGSActiveActionsComponent::GetBothHandsIdleAnim() const
+{
+	if (CurrentLeftHandWeapon)
+		return CurrentLeftHandWeapon->GetIdleAnimation();
+	else if (CurrentRightHandWeapon)
+		return CurrentRightHandWeapon->GetIdleAnimation();
+
+	return nullptr;
+}
+
+UAnimSequence* UGSActiveActionsComponent::GetBothHandsCombatAnim() const
+{
+	if (CurrentLeftHandWeapon)
+		return CurrentLeftHandWeapon->GetCombatAnimation();
+	else if (CurrentRightHandWeapon)
+		return CurrentRightHandWeapon->GetCombatAnimation();
+
+	return nullptr;
+}
+
+UAnimSequence* UGSActiveActionsComponent::GetBothHandsMoveAnim() const
+{
+	if (CurrentLeftHandWeapon)
+		return CurrentLeftHandWeapon->GetMoveAnimation();
+	else if (CurrentRightHandWeapon)
+		return CurrentRightHandWeapon->GetMoveAnimation();
+
+	return nullptr;
+}
+
+const float UGSActiveActionsComponent::GetCurrentWeaponHorizontalRecoil() const
+{
+	if (CurrentLeftHandWeapon)
+		return CurrentLeftHandWeapon->GetCurrentHorizontalRecoil();
+	else if (CurrentRightHandWeapon)
+		return CurrentRightHandWeapon->GetCurrentHorizontalRecoil();
+
+	return 0;
+}
+const float UGSActiveActionsComponent::GetCurrentWeaponVerticalRecoil() const
+{
+	if (CurrentLeftHandWeapon)
+		return CurrentLeftHandWeapon->GetCurrentVerticalRecoil();
+	else if (CurrentRightHandWeapon)
+		return CurrentRightHandWeapon->GetCurrentVerticalRecoil();
+
+	return 0;
+}
+void UGSActiveActionsComponent::SetAbility(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 OtherSlotIndex)
+{
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		ServerSetAbility(OtherIn, OtherTabIndex, OtherSlotIndex);
+	}
+	else
+	{
+		if (!OtherIn)
+			return;
+		//update tab
+		CurrentAbility = Cast<UGSAbilityInfo>(OtherIn->Tabs.InventoryTabs[OtherTabIndex].TabSlots[OtherSlotIndex].ItemData);
+		Tabs.InventoryTabs[0].TabSlots[0].ItemData = CurrentAbility;
+
+		//if (CurrentAbility)
+		//	CurrentAbility->GetOnSetWeaponsForAbility().Broadcast(CurrentLeftHandWeapon, CurrentRightHandWeapon);
+
+		TabUpdateInfo.ReplicationCounter++;
+		TabUpdateInfo.TargetTabIndex = 0;
+		if (GetNetMode() == ENetMode::NM_Standalone)
+			OnTabChanged.ExecuteIfBound(TabUpdateInfo.TargetTabIndex);
+	}
+}
+
+void UGSActiveActionsComponent::ServerSetAbility_Implementation(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 OtherSlotIndex)
+{
+	SetAbility(OtherIn, OtherTabIndex, OtherSlotIndex);
+}
+bool UGSActiveActionsComponent::ServerSetAbility_Validate(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 OtherSlotIndex)
+{
+	return true;
+}
+void UGSActiveActionsComponent::OnRep_CurrentAbility()
+{
+
+}
+void UGSActiveActionsComponent::InputAbilityPressed()
+{
+	if (CurrentAbility)
+		CurrentAbility->InputPressed();
+}
+void UGSActiveActionsComponent::InputAbilityReleased()
+{
+	if (CurrentAbility)
+		CurrentAbility->InputReleased();
 }

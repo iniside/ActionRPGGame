@@ -6,6 +6,7 @@
 #include "Items/GSItemWeaponRangedInfo.h"
 #include "Weapons/GSWeaponEquipmentComponent.h"
 #include "Components/GSActiveActionsComponent.h"
+#include "Abilities/GSAbilitiesComponent.h"
 #include "GSCharacter.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -18,7 +19,6 @@ const FName AGSCharacter::LegsSlotComponent(TEXT("LegsSlot"));
 AGSCharacter::AGSCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-
 	Equipment = ObjectInitializer.CreateDefaultSubobject<UGSEquipmentComponent>(this, TEXT("Equipment"));
 	Equipment->SetIsReplicated(true);
 	Equipment->SetNetAddressable();
@@ -27,17 +27,9 @@ AGSCharacter::AGSCharacter(const FObjectInitializer& ObjectInitializer)
 	WeaponsEquipment->SetIsReplicated(true);
 	WeaponsEquipment->SetNetAddressable();
 
-	RightWeaponsEquipment = ObjectInitializer.CreateDefaultSubobject<UGSWeaponEquipmentComponent>(this, TEXT("RightWeaponsEquipment"));
-	RightWeaponsEquipment->SetIsReplicated(true);
-	RightWeaponsEquipment->SetNetAddressable();
-
-	ActiveActions = ObjectInitializer.CreateDefaultSubobject<UGSActiveActionsComponent>(this, TEXT("ActiveActions"));
-	ActiveActions->SetIsReplicated(true);
-	ActiveActions->SetNetAddressable();
-
-	ActiveActions->LeftWeaponEquipment = WeaponsEquipment;
-	ActiveActions->RightWeaponEquipment = RightWeaponsEquipment;
-	ActiveActions->OnLeftWeaponChangedEvent.AddUObject(this, &AGSCharacter::SetOnLeftCurrentWeaponChanged);
+	Abilities = ObjectInitializer.CreateDefaultSubobject<UGSAbilitiesComponent>(this, TEXT("Abilities"));
+	Abilities->SetIsReplicated(true);
+	Abilities->SetNetAddressable();
 
 	HeadComp = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, AGSCharacter::HeadSlotComponent);
 	HeadComp->SetMasterPoseComponent(GetMesh());
@@ -70,11 +62,9 @@ void AGSCharacter::BeginPlay()
 	WeaponsEquipment->SetIsReplicated(true);
 	WeaponsEquipment->SetNetAddressable();
 
-	RightWeaponsEquipment->SetIsReplicated(true);
-	RightWeaponsEquipment->SetNetAddressable();
+	Abilities->SetIsReplicated(true);
+	Abilities->SetNetAddressable();
 
-	ActiveActions->SetIsReplicated(true);
-	ActiveActions->SetNetAddressable();
 	DefaultLegMesh = LegsComp->SkeletalMesh;
 }
 
@@ -126,16 +116,16 @@ USkeletalMeshComponent* AGSCharacter::GetSkeletalMeshComponentByName(FName NameI
 {
 	return nullptr;
 }
-
+/** IIGISkeletalMesh */
 FVector AGSCharacter::GetSocketLocation(FName SocketNameIn)
 {
 	return GetMesh()->GetSocketLocation(SocketNameIn);
 }
-
 USkeletalMeshComponent* AGSCharacter::GetMasterSkeletalMesh()
 {
 	return GetMesh();
 }
+/* IIGISkeletalMesh **/
 
 FRotator AGSCharacter::GetAimOffset() const
 {
@@ -153,9 +143,9 @@ void AGSCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) con
 
 FVector AGSCharacter::GetStartLocationForCrosshair()
 {
-	if (ActiveActions->CurrentLeftHandWeapon)
+	if (WeaponsEquipment->MainHandWeapon)
 	{
-		return ActiveActions->CurrentLeftHandWeapon->GetCrosshairStartLocation();
+		return WeaponsEquipment->MainHandWeapon->GetCrosshairStartLocation();
 	}
 	return FVector::ZeroVector;
 }

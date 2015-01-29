@@ -25,7 +25,7 @@ public:
 };
 
 UCLASS(BlueprintType, Blueprintable)
-class GAMESYSTEM_API AGSAbility : public AGASAbility, public IIGESEffectManager, public IIGSCue
+class GAMESYSTEM_API UGSAbility : public UGASAbility, public IIGESEffectManager, public IIGSCue
 {
 	GENERATED_UCLASS_BODY()
 public:
@@ -62,7 +62,7 @@ private:
 	UFUNCTION()
 		void SetWeaponForAbility(class UGSItemWeaponInfo* LeftWeaponIn, class UGSItemWeaponInfo* RightWeaponIn);
 public:
-	virtual bool CheckIfCanUseAbility() override;
+	//virtual bool CheckIfCanUseAbility() override;
 
 	FGSOnCueActionStarted OnCueActionStarted;
 	FGSOnCueActionEnded OnCueActionEnded;
@@ -73,10 +73,14 @@ public:
 	/** IIGSCue overrides */
 
 	/** AGASAbility overrides */
-	virtual void OnRep_CastEnded() override;
-	virtual void OnRep_CastStarted() override;
+	//virtual void OnRep_CastEnded() override;
+	//virtual void OnRep_CastStarted() override;
 	/** AGASAbility overrides */
 
+	//FVector GetSocketLocation(FName SocketNameIn) override;
+	//virtual FVector GetTraceStartLocation() override;
+
+	void SetOnSetWeaponsforability(class UGSItemWeaponInfo* LeftWeaponIn, class UGSItemWeaponInfo* RightWeaponIn);
 protected:
 	/**
 	 *	Subtract cost of all attributes if that were needed to cast this ability.

@@ -18,13 +18,13 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Game Ability System")
 		static class AGASEffectField* CreateEffectField(TSubclassOf<class AGASEffectField> EffectFieldClass, FVector Location
-		, class AGASAbility* AbilityInstigator);
+		, class UGASAbility* AbilityInstigator);
 
 
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System", meta = (UnsafeDuringActorConstruction = "true", BlueprintInternalUseOnly = "true"))
 		static class AGASEffectField* BeginCreateEffectField(TSubclassOf<class AGASEffectField> EffectFieldClass
 		, const FVector& Location
-		, class AGASAbility* AbilityInstigator);
+		, class UGASAbility* AbilityInstigator);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System", meta = (UnsafeDuringActorConstruction = "true", BlueprintInternalUseOnly = "true"))
 		static class AGASEffectField* FinishCreateEffectField(class AGASEffectField* EffectField);

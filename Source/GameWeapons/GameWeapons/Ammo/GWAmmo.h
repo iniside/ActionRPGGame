@@ -16,6 +16,11 @@ class GAMEWEAPONS_API UGWAmmo : public UObject
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
 		FGameplayTagContainer OwnedTags;
+	/*
+		Count of this particular ammo. (?)
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Info")
+		int32 AmmoCount;
 
 	UFUNCTION(BlueprintNativeEvent)
 		void ApplyDamage(const FHitResult& TargetIn, float DamageIn, APawn* InstigatorIn);

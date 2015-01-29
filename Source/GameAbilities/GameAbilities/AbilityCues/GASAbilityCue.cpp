@@ -11,5 +11,5 @@ UGASAbilityCue::UGASAbilityCue(const FObjectInitializer& ObjectInitializer)
 }
 UWorld* UGASAbilityCue::GetWorld() const
 {
-	return GetOuterAGASAbility()->GetWorld();
+	return GetOuterUGASAbility()->GetWorld();
 }

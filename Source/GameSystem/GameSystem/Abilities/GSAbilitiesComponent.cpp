@@ -2,13 +2,7 @@
 
 #include "GameSystem.h"
 
-#include "GISGlobalTypes.h"
-#include "GISItemData.h"
-
-#include "GSAbility.h"
-#include "GSAbilityInfo.h"
-
-#include "Widgets/GSAbilityCastTimeWidget.h"
+#include "Net/UnrealNetwork.h"
 
 #include "GSAbilitiesComponent.h"
 
@@ -21,49 +15,39 @@ UGSAbilitiesComponent::UGSAbilitiesComponent(const FObjectInitializer& ObjectIni
 void UGSAbilitiesComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
-
-	ENetRole CurrentRole = GetOwnerRole();
-	ENetMode CurrentNetMode = GetNetMode();
-
-	if (CurrentRole < ROLE_Authority || CurrentNetMode == ENetMode::NM_Standalone)
-	{
-		UObject* Outer = GetWorld()->GetGameInstance() ? StaticCast<UObject*>(GetWorld()->GetGameInstance()) : StaticCast<UObject*>(GetWorld());
-		if (CastTimeWidgetClass)
-		{
-			CastTimeWidget = ConstructObject<UGSAbilityCastTimeWidget>(CastTimeWidgetClass, Outer);
-			if (CastTimeWidget)
-			{
-				ULocalPlayer* Player = World->GetFirstLocalPlayerFromController(); //temporary
-				CastTimeWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
-				CastTimeWidget->Initialize();
-				CastTimeWidget->AbilityComponent = this;
-				CastTimeWidget->SetVisibility(InventoryVisibility);
-			}
-		}
-	}
+}
+void UGSAbilitiesComponent::InputPressed(int32 SetIndex, int32 SlotIndex)
+{
+	UGASAbilitiesComponent::InputPressed(AbilitySets[SetIndex].AbilitySlots[SlotIndex].AbilityIndex);
+}
+void UGSAbilitiesComponent::InputReleased(int32 SetIndex, int32 SlotIndex)
+{
+	UGASAbilitiesComponent::InputReleased(AbilitySets[SetIndex].AbilitySlots[SlotIndex].AbilityIndex);
 }
 
-void UGSAbilitiesComponent::InputSlotPressed(int32 TabIndex, int32 SlotIndex)
+void UGSAbilitiesComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
 {
-	if (Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData)
-	{
-		UGSAbilityInfo* abilityPtr = Cast<UGSAbilityInfo>(Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData);
-		if (abilityPtr)
-		{
-			ActiveAbility = abilityPtr->ActiveAbility;
-			abilityPtr->InputPressed();
-		}
-	}
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME_CONDITION(UGSAbilitiesComponent, OwnedAbilities, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UGSAbilitiesComponent, AbilitySets, COND_OwnerOnly);
 }
-void UGSAbilitiesComponent::InputSlotReleased(int32 TabIndex, int32 SlotIndex)
+
+void UGSAbilitiesComponent::InitializeActivatableAbilities()
 {
-	if (Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData)
+	int32 SetCounter = 0;
+	for (FGSActiveAbilitiesSlotConfig& set : ActivatableAbilitiesConfig)
 	{
-		UGSAbilityInfo* abilityPtr = Cast<UGSAbilityInfo>(Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData);
-		if (abilityPtr)
+		FGSAbilitiesSets setIn;
+		setIn.SetIndex = SetCounter;
+		for (int32 Index = 0; Index < set.NumberOfSlots; Index++)
 		{
-			//ActiveAbility = nullptr;
-			abilityPtr->InputReleased();
+			FGSAbilitySlot ability;
+			ability.SlotIndex = Index;
+			ability.SetIndex = SetCounter;
+			setIn.AbilitySlots.Add(ability);
+			
 		}
+		AbilitySets.Add(setIn);
+		SetCounter++;
 	}
 }

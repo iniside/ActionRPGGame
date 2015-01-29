@@ -1,105 +1,95 @@
 {
-    "FileVersion": 3,
-    "EngineAssociation": "{CF612759-44C9-6E51-E165-FC8B78EABB69}",
-    "Category": "",
-    "Description": "",
-    "Modules": [
-        {
-            "Name": "GameInterfaces",
-            "Type": "Runtime",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "GameTrace",
-            "Type": "Runtime",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "GameTraceEditor",
-            "Type": "Editor",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "GameAbilities",
-            "Type": "Runtime",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "GameAbilitiesEditor",
-            "Type": "Editor",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "GameWeapons",
-            "Type": "Runtime",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "GameWeaponsEditor",
-            "Type": "Editor",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "GameEffectSystem",
-            "Type": "Runtime",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "GameEffectSystemEditor",
-            "Type": "Editor",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "GameAttributes",
-            "Type": "Runtime",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "GameAttributesEditor",
-            "Type": "Editor",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "GameInventorySystem",
-            "Type": "Runtime",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "GameInventorySystemEditor",
-            "Type": "Editor",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "GameFloatingCombatText",
-            "Type": "Runtime",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "GameFloatingCombatTextEditor",
-            "Type": "Editor",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "GameSystem",
-            "Type": "Runtime",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "GameSystemEditor",
-            "Type": "Editor",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "ActionRPGGame",
-            "Type": "Runtime",
-            "LoadingPhase": "Default"
-        },
-        {
-            "Name": "ActionRPGGameEditor",
-            "Type": "Developer",
-            "LoadingPhase": "Default"
-        }
-    ],
+	"FileVersion": 3,
+	"EngineAssociation": "{14CB0F28-4327-2032-BC9A-DC9B80BD680F}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "GameInterfaces",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GameAbilities",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GameAbilitiesEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GameWeapons",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GameWeaponsEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GameEffectSystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GameEffectSystemEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GameAttributes",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GameAttributesEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GameInventorySystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GameInventorySystemEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GameFloatingCombatText",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GameFloatingCombatTextEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GameSystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GameSystemEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "ActionRPGGame",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "ActionRPGGameEditor",
+			"Type": "Developer",
+			"LoadingPhase": "Default"
+		}
+	],
 	"TargetPlatforms": [
 		"WindowsNoEditor"
 	]

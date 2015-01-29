@@ -46,6 +46,9 @@ void AGWWeaponRanged::BeginPlay()
 	RemaningAmmo = MaximumAmmo;
 	RemainingMagazineAmmo = MagazineSize;
 	CurrentSpread = BaseSpread;
+	CurrentHorizontalRecoil = RecoilConfig.HorizontalRecoilBase;
+	CurrentVerticalRecoil = RecoilConfig.VerticalRecoilBase;
+
 	if (TargetingMethod)
 	{
 		TargetingMethod->SetRange(Range);
@@ -66,6 +69,7 @@ void AGWWeaponRanged::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty
 	DOREPLIFETIME_CONDITION(AGWWeaponRanged, RemaningAmmo, COND_OwnerOnly);
 	DOREPLIFETIME(AGWWeaponRanged, ReloadEndCount);
 	DOREPLIFETIME(AGWWeaponRanged, ReloadBeginCount);
+
 }
 
 void AGWWeaponRanged::InitializeWeapon()
@@ -94,12 +98,6 @@ void AGWWeaponRanged::FireWeapon(const FHitResult& TargetIn, float DamageIn, APa
 }
 void AGWWeaponRanged::ShootWeapon()
 {
-	//check for ammo, subtract it
-	//if no ammo end current state
-	//and go to reload state.
-	//GotoState(ReloadState);
-	//or don't do anything abort firing, goto active state
-	//and let player deicide if he want to reaload.
 	if (!CheckIfHaveAmmo())
 	{
 		CurrentState->EndActionSequence();
@@ -108,10 +106,14 @@ void AGWWeaponRanged::ShootWeapon()
 	SubtractAmmo();
 	CalculateCurrentWeaponSpread();
 
-	if (TargetingMethod)
-		TargetingMethod->Execute();
-	OnShoot();
-	if (GetNetMode() == ENetMode::NM_Standalone)
+	//if (Role == ROLE_Authority)
+	//{
+		if (TargetingMethod)
+			TargetingMethod->Execute();
+
+		OnShoot();
+	//}
+	if (GetNetMode() == ENetMode::NM_Standalone || Role < ROLE_Authority)
 		OnRep_HitInfo();
 }
 void AGWWeaponRanged::ActionEnd()
@@ -122,23 +124,23 @@ void AGWWeaponRanged::ActionEnd()
 //activate states
 void AGWWeaponRanged::BeginFire()
 {
-	if (Role < ROLE_Authority)
-	{
-		if (!CheckIfHaveAmmo())
-			return;
-		SubtractAmmo();
-		bIsWeaponFiring = true;
-		//start shooting also on onwing client, to provide better feedback.
-		CurrentState->BeginActionSequence(); 
-		OnRep_HitInfo();
-		GetWorldTimerManager().ClearTimer(ReduceSpreadOverTimeTimerHandle);
-		ServerBeginFire();
-		//if (TargetingMethod)
-		//	TargetingMethod->Execute();
+	//if (Role < ROLE_Authority)
+	//{
+	//	if (!CheckIfHaveAmmo())
+	//		return;
 
-	}
-	else
-	{
+	//	ServerBeginFire();
+	//	bIsWeaponFiring = true;
+	//	//start shooting also on onwing client, to provide better feedback.
+	//	CurrentState->BeginActionSequence();
+	//	//OnRep_HitInfo();
+
+	//	GetWorldTimerManager().ClearTimer(ReduceSpreadOverTimeTimerHandle);
+	//	//if (TargetingMethod)
+	//	//	TargetingMethod->Execute();
+	//}
+	//else
+	//{
 		if (!CheckIfHaveAmmo())
 		{
 			CurrentState->EndActionSequence();
@@ -146,9 +148,8 @@ void AGWWeaponRanged::BeginFire()
 		}
 		GetWorldTimerManager().ClearTimer(ReduceSpreadOverTimeTimerHandle);
 		bIsWeaponFiring = true;
-		SubtractAmmo();
 		CurrentState->BeginActionSequence();
-	}
+	//}
 }
 void AGWWeaponRanged::ServerBeginFire_Implementation()
 {
@@ -161,21 +162,21 @@ bool AGWWeaponRanged::ServerBeginFire_Validate()
 
 void AGWWeaponRanged::EndFire()
 {
-	if (Role < ROLE_Authority)
-	{
-		bIsWeaponFiring = false;
-		CurrentState->EndActionSequence();
+	//if (Role < ROLE_Authority)
+	//{
+	//	bIsWeaponFiring = false;
+	//	CurrentState->EndActionSequence();
 
-		GetWorldTimerManager().SetTimer(ReduceSpreadOverTimeTimerHandle, this, &AGWWeaponRanged::ReduceSpreadOverTime, 0.1, true);
-		ServerEndFire();
-	}
-	else
-	{
+	//	GetWorldTimerManager().SetTimer(ReduceSpreadOverTimeTimerHandle, this, &AGWWeaponRanged::ReduceSpreadOverTime, 0.1, true);
+	//	ServerEndFire();
+	//}
+	//else
+	//{
 		bIsWeaponFiring = false;
 		GetWorldTimerManager().SetTimer(ReduceSpreadOverTimeTimerHandle, this, &AGWWeaponRanged::ReduceSpreadOverTime, 0.1, true);
 		CurrentState->EndActionSequence();
 		OnFireEnd();
-	}
+	//}
 }
 void AGWWeaponRanged::ServerEndFire_Implementation()
 {
@@ -311,6 +312,16 @@ bool AGWWeaponRanged::CheckIfCanReload()
 void AGWWeaponRanged::CalculateCurrentWeaponSpread()
 {
 	CurrentSpread = CurrentSpread * SpreadMultiplier;
+	CurrentHorizontalRecoil = CurrentHorizontalRecoil * RecoilConfig.HorizontalRecoilMultiplier;
+	CurrentVerticalRecoil = CurrentVerticalRecoil * RecoilConfig.VerticalRecoilMultiplier;
+	if (CurrentHorizontalRecoil > RecoilConfig.HorizontalRecoilMaximum)
+	{
+		CurrentHorizontalRecoil = RecoilConfig.HorizontalRecoilMaximum;
+	}
+	if (CurrentVerticalRecoil > RecoilConfig.VerticalRecoilMaximum)
+	{
+		CurrentVerticalRecoil = RecoilConfig.VerticalRecoilMaximum;
+	}
 	if (CurrentSpread > MaximumSpread)
 	{
 		CurrentSpread = MaximumSpread;
@@ -324,6 +335,8 @@ void AGWWeaponRanged::CalculateCurrentWeaponSpread()
 void AGWWeaponRanged::ReduceSpreadOverTime()
 {
 	CurrentSpread -= SpreadReduce;
+	CurrentHorizontalRecoil -= 1;
+	CurrentVerticalRecoil -= 1;
 	if (CurrentSpread <= BaseSpread)
 	{
 		CurrentSpread = BaseSpread;

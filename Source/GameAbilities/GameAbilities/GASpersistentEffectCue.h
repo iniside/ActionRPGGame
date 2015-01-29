@@ -15,8 +15,8 @@ class GAMEABILITIES_API AGASPersistentEffectCue : public AActor
 	GENERATED_UCLASS_BODY()
 public:
 
-	UPROPERTY(BlueprintReadWrite, meta=(ExposeOnSpawn), Category = "Info")
-	class AGASAbility* OwningAbility;
+	//UPROPERTY(BlueprintReadWrite, meta=(ExposeOnSpawn), Category = "Info")
+	//class AGASAbility* OwningAbility;
 
 	/*
 		Who Instigated this cue.

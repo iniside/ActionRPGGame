@@ -14,7 +14,7 @@
 */
 
 
-UCLASS(BlueprintType, Blueprintable, DefaultToInstanced)
+UCLASS(BlueprintType, Blueprintable)
 class GAMESYSTEM_API UGSItemInfo : public UGISItemData
 {
 	GENERATED_UCLASS_BODY()

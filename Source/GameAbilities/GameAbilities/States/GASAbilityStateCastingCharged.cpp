@@ -14,11 +14,11 @@ UGASAbilityStateCastingCharged::UGASAbilityStateCastingCharged(const FObjectInit
 
 void UGASAbilityStateCastingCharged::Tick(float DeltaSeconds)
 {
-	GetOuterAGASAbility()->CurrentCastTime += DeltaSeconds;
+	GetOuterUGASAbility()->CurrentCastTime += DeltaSeconds;
 	CurrentCastTime += DeltaSeconds;
-	if (CurrentCastTime >= GetOuterAGASAbility()->CastTime)
+	if (CurrentCastTime >= GetOuterUGASAbility()->CastTime)
 	{
-		GetOuterAGASAbility()->CurrentCastTime = 0;
+		GetOuterUGASAbility()->CurrentCastTime = 0;
 		CurrentCastTime = 0;
 		ExecuteAbility();
 	}
@@ -27,30 +27,30 @@ void UGASAbilityStateCastingCharged::Tick(float DeltaSeconds)
 void UGASAbilityStateCastingCharged::ExecuteAbility()
 {
 	CurrentCastTime = 0;
-	GetOuterAGASAbility()->bIsBeingCast = false;
-	GetOuterAGASAbility()->ExecuteAbility();
-	
-	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
-	GetOuterAGASAbility()->GotoState(GetOuterAGASAbility()->CooldownState);
+	//GetOuterUGASAbility()->bIsBeingCast = false;
+	//GetOuterUGASAbility()->ExecuteAbility();
+	//
+	//GetOuterUGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
+	//GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->CooldownState);
 }
 
 void UGASAbilityStateCastingCharged::BeginState(UGASAbilityState* PrevState)
 {
-	//GetOuterAGASAbility()->OnAbilityActivated();
-	GetOuterAGASAbility()->bIsBeingCast = true;
-	GetOuterAGASAbility()->AbilityCastStart();
-	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(true);
+	//GetOuterUGASAbility()->OnAbilityActivated();
+	//GetOuterUGASAbility()->bIsBeingCast = true;
+	//GetOuterUGASAbility()->AbilityCastStart();
+	//GetOuterUGASAbility()->PrimaryActorTick.SetTickFunctionEnable(true);
 }
 void UGASAbilityStateCastingCharged::EndState()
 {
 	CurrentCastTime = 0;
-	GetOuterAGASAbility()->AbilityCastEnd();
+	//GetOuterUGASAbility()->AbilityCastEnd();
 }
 void UGASAbilityStateCastingCharged::BeginActionSequence()
 {}
 void UGASAbilityStateCastingCharged::EndActionSequence()
 {
-	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
+//	GetOuterUGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
 	CurrentCastTime = 0;
-	GetOuterAGASAbility()->GotoActiveState();
+//	GetOuterUGASAbility()->GotoActiveState();
 }

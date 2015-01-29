@@ -11,7 +11,7 @@ UGASAbilityState::UGASAbilityState(const FObjectInitializer& ObjectInitializer)
 }
 UWorld* UGASAbilityState::GetWorld() const
 {
-	return GetOuterAGASAbility()->GetWorld();
+	return GetOuterUGASAbility()->GetWorld();
 }
 
 void UGASAbilityState::Tick(float DeltaSeconds)

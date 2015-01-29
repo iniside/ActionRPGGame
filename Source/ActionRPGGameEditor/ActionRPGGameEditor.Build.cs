@@ -31,8 +31,6 @@ public class ActionRPGGameEditor : ModuleRules
             "GameEffectSystemEditor",
             "GameplayTags",
             "GameplayAbilitiesEditor",
-            "GameTrace",
-            "GameTraceEditor",
             "AssetTools",
             "GameplayTags",
             "GameplayTagsEditor",

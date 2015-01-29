@@ -18,7 +18,7 @@
 */
 
 
-UCLASS(BlueprintType, Blueprintable, DefaultToInstanced)
+UCLASS(BlueprintType, Blueprintable)
 class GAMESYSTEM_API UGSItemWeaponInfo : public UGSItemInfo
 {
 	GENERATED_UCLASS_BODY()
@@ -38,7 +38,7 @@ public:
 	UPROPERTY(Replicated)
 	class AGSWeaponRanged* ActiveWeapon;
 
-	UPROPERTY()
+	UPROPERTY(Replicated)
 		FName LastAttachedSocket;
 
 	inline void SetIsWeaponReady(bool bIsWeaponReadyIn);
@@ -53,7 +53,21 @@ public:
 	virtual FVector GetCrosshairStartLocation();
 
 	virtual UAnimSequence* GetEquipedAnimation() { return nullptr; }
+	virtual UAnimSequence* GetIdleAnimation() { return nullptr; }
+	virtual UAnimSequence* GetMoveAnimation() { return nullptr; }
+	UFUNCTION(BlueprintCallable, Category = "Animations")
+		virtual UAnimSequence* GetCombatAnimation();
+
+	/*
+		This starts to look ugly.
+	*/
+	virtual const float GetCurrentHorizontalRecoil() const { return 0; };
+	virtual const float GetCurrentVerticalRecoil() const { return 0; };
+
 	virtual UAimOffsetBlendSpace* GetEquipedAimBlendSpace() { return nullptr; }
+
+	virtual FVector GetCrosshairTraceStartLocation() { return FVector::ZeroVector; };
+
 	//these should be called on server.
 	virtual bool OnItemAddedToSlot() override;
 	virtual bool OnItemRemovedFromSlot() override;
@@ -62,6 +76,9 @@ public:
 	virtual bool InputPressed_Implementation() override;
 	virtual bool InputReleased_Implementation() override;
 
+	virtual bool InputAlternatePressed() { return false; }
+	virtual bool InputAlternateReleased() { return false; }
+
 	virtual bool CanItemBeSwapped() override;
 
 
@@ -69,7 +86,7 @@ public:
 	virtual int32 GetItemTypeID() const override { return UGSItemWeaponInfo::ItemTypeID; }
 	virtual bool IsOfType(int32 ItemTypeIDIn) override { return UGSItemWeaponInfo::ItemTypeID == ItemTypeIDIn; }
 
-
+	UPROPERTY(Replicated)
 	EGSWeaponHand CurrentHand;
 
 protected:

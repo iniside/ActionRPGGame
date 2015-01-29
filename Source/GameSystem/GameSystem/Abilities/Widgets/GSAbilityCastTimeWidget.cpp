@@ -19,19 +19,19 @@ void UGSAbilityCastTimeWidget::InitializeWidget()
 
 float const UGSAbilityCastTimeWidget::GetCurrentCastTime() const
 {
-	if (AbilityComponent && AbilityComponent->ActiveAbility)
-	{
-		return AbilityComponent->ActiveAbility->GetCurrentCastTime();
-	}
+	//if (AbilityComponent && AbilityComponent->ActiveAbility)
+	//{
+	//	return AbilityComponent->ActiveAbility->GetCurrentCastTime();
+	//}
 	return 0;
 }
 
 float const UGSAbilityCastTimeWidget::GetMaxCastTime() const
 {
-	if (AbilityComponent && AbilityComponent->ActiveAbility)
-	{
-		return AbilityComponent->ActiveAbility->GetMaxCastTime();
-	}
+	//if (AbilityComponent && AbilityComponent->ActiveAbility)
+	//{
+	//	return AbilityComponent->ActiveAbility->GetMaxCastTime();
+	//}
 	return 0;
 }
 

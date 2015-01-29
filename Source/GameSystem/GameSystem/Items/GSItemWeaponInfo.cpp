@@ -22,8 +22,8 @@ void UGSItemWeaponInfo::GetLifetimeReplicatedProps(TArray< class FLifetimeProper
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(UGSItemWeaponInfo, Weapon, COND_OwnerOnly);
-	DOREPLIFETIME(UGSItemWeaponInfo, ActiveWeapon);
+	DOREPLIFETIME(UGSItemWeaponInfo, CurrentHand);
+	DOREPLIFETIME(UGSItemWeaponInfo, LastAttachedSocket);
 }
 void UGSItemWeaponInfo::SetEquipingTime(float TimeIn)
 {
@@ -89,7 +89,7 @@ bool UGSItemWeaponInfo::OnItemRemovedFromSlot()
 		UGSWeaponEquipmentComponent* eqComp = Cast<UGSWeaponEquipmentComponent>(CurrentInventory);
 		if (eqComp)
 		{
-			for (FGSWeaponSocketInfo& socket : eqComp->AttachmentSockets)
+			for (FGSEquipSocketInfo& socket : eqComp->AttachmentSockets)
 			{
 				if (socket.SocketName == LastAttachedSocket)
 					socket.bIsSocketAvailable = true;
@@ -100,14 +100,16 @@ bool UGSItemWeaponInfo::OnItemRemovedFromSlot()
 			UGSWeaponEquipmentComponent* eqLastComp = Cast<UGSWeaponEquipmentComponent>(LastInventory);
 			if (eqLastComp)
 			{
-				for (FGSWeaponSocketInfo& socket : eqLastComp->AttachmentSockets)
+				for (FGSEquipSocketInfo& socket : eqLastComp->AttachmentSockets)
 				{
 					if (socket.SocketName == LastAttachedSocket)
+					{
 						socket.bIsSocketAvailable = true;
-
-					LastAttachedSocket = NAME_Name;
+						break;
+					}
 				}
 			}
+			LastAttachedSocket = NAME_Name;
 			ActiveWeapon->Destroy();
 		}
 		return true;
@@ -140,3 +142,8 @@ bool UGSItemWeaponInfo::CanItemBeSwapped()
 }
 void UGSItemWeaponInfo::SetIsWeaponReady(bool bIsWeaponReadyIn){ ActiveWeapon->bIsWeaponReady = bIsWeaponReadyIn; };
 bool UGSItemWeaponInfo::GetIsWeaponReady() { return ActiveWeapon->bIsWeaponReady; };
+
+UAnimSequence* UGSItemWeaponInfo::GetCombatAnimation()
+{
+	return nullptr;
+}

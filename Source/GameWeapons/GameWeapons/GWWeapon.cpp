@@ -94,10 +94,14 @@ void AGWWeapon::OnRep_HitInfo()
 }
 FVector AGWWeapon::GetTargetingSocketLocation()
 {
-	if (SocketInt)
+	if (WeaponMesh)
 	{
-		return SocketInt->GetSocketLocation(TargetingSocketName);
+		return WeaponMesh->GetSocketLocation(WeaponSocketName);
 	}
+	//if (SocketInt)
+	//{
+	//	return SocketInt->GetSocketLocation(TargetingSocketName);
+	//}
 	return FVector::ZeroVector;
 }
 FVector AGWWeapon::GetWeaponSocketLocation()

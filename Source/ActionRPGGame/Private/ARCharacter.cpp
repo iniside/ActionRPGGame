@@ -12,12 +12,15 @@
 #include "Weapons/GSWeaponEquipmentComponent.h"
 #include "Components/GSActiveActionsComponent.h"
 
+#include "Items/GSItemWeaponInfo.h"
+
 #include "GSGlobalTypes.h"
 
 //#include "Net/UnrealNetwork.h"
 //#include "Engine/ActorChannel.h"
 
 #include "GSPlayerController.h"
+#include "../ARPlayerController.h"
 
 #include "ARCharacter.h"
 
@@ -63,29 +66,13 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	Inventory = ObjectInitializer.CreateDefaultSubobject<UGISInventoryBaseComponent>(this, TEXT("Inventory"));
 	Inventory->SetIsReplicated(true);
 	Inventory->SetNetAddressable();
-	//testing out multi commponent interaction.
-	
-	AbilityBook = ObjectInitializer.CreateDefaultSubobject<UGSAbilitiesComponent>(this, TEXT("AbilityBook"));
-	AbilityBook->SetIsReplicated(true);
-	AbilityBook->SetNetAddressable();
-
-	ActionBar = ObjectInitializer.CreateDefaultSubobject<UGSAbilitiesComponent>(this, TEXT("ActionBar"));
-	ActionBar->SetIsReplicated(true);
-	ActionBar->SetNetAddressable();
-	
-	StaticActionBar = ObjectInitializer.CreateDefaultSubobject<UGSAbilitiesComponent>(this, TEXT("StaticActionBar"));
-	StaticActionBar->SetIsReplicated(true);
-	StaticActionBar->SetNetAddressable();
+	//testing out multi commponent interaction
 
 	Attributes = ObjectInitializer.CreateDefaultSubobject<UGAAttributeComponent>(this, TEXT("Attributes"));
 	Attributes->SetIsReplicated(true);
 	Attributes->SetNetAddressable();
 
 	GameEffects = ObjectInitializer.CreateDefaultSubobject<UGESEffectComponent>(this, TEXT("GameEffects"));
-
-	GameEffectManager = ObjectInitializer.CreateDefaultSubobject<UGESEffectManager>(this, TEXT("GameEffectManager"));
-
-
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -93,11 +80,6 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 void AARCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	ActionBar->SetIsReplicated(true);
-	ActionBar->SetNetAddressable();
-
-	AbilityBook->SetIsReplicated(true);
-	AbilityBook->SetNetAddressable();
 
 	Inventory->SetIsReplicated(true);
 	Inventory->SetNetAddressable();
@@ -106,7 +88,16 @@ void AARCharacter::BeginPlay()
 	Attributes->SetNetAddressable();
 
 }
-
+void AARCharacter::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+	ARPController = Cast<AARPlayerController>(Controller);
+}
+void AARCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	ARPController = Cast<AARPlayerController>(NewController);
+}
 /** IIGAAttributes Begin */
 class UGAAttributesBase* AARCharacter::GetAttributes()
 {
@@ -117,6 +108,12 @@ class UGAAttributeComponent* AARCharacter::GetAttributeComponent()
 {
 	return Attributes;
 }
+
+float AARCharacter::GetAttributeValue(FGAAttribute AttributeIn)
+{
+	return Attributes->DefaultAttributes->GetFloatValue(AttributeIn);
+}
+
 /** IIGAAttributes End */
 
 /** IIGESEffect Begin */
@@ -126,72 +123,61 @@ class UGESEffectComponent* AARCharacter::GetEffectComponent()
 }
 class UGESEffectManager* AARCharacter::GetEffectManager()
 {
-	return GameEffectManager;
+	return nullptr;
 }
 /* IIGESEffect End **/
 
 /** IIGTSocket Begin */
-FVector AARCharacter::GetSocketLocation(FName SocketNameIn)
-{
-	FVector SocketLocation = FVector::ZeroVector;
-	if (GetMesh())
-		SocketLocation = GetMesh()->GetSocketLocation(SocketNameIn);
-	return SocketLocation;
-}
+//FVector AARCharacter::GetSocketLocation(FName SocketNameIn)
+//{
+//	FVector SocketLocation = FVector::ZeroVector;
+//	if (GetMesh())
+//		SocketLocation = GetMesh()->GetSocketLocation(SocketNameIn);
+//	return SocketLocation;
+//}
 /* IIGTSocket End **/
 //////////////////////////////////////////////////////////////////////////
 // Input
 void AARCharacter::InputGetNextLeftWeapon()
 {
-	ActiveActions->SetWeaponFrom(WeaponsEquipment, 0, 1, 0, EGSWeaponHand::Left);
+	WeaponsEquipment->SwapWeaponSet();
+	//ActiveActions->SetWeaponFrom(WeaponsEquipment, 0, 1, 0, EGSWeaponHand::Left);
 }
 void AARCharacter::InputGetNextRightWeapon()
 {
-	ActiveActions->SetWeaponFrom(RightWeaponsEquipment, 0, 2, 0, EGSWeaponHand::Right);
+	//ActiveActions->SetWeaponFrom(RightWeaponsEquipment, 0, 2, 0, EGSWeaponHand::Right);
 }
 
 void AARCharacter::InputUseLeftWeaponPressed()
 {
-	if (ActiveActions)
-	{
-		//ActiveActions->InputSlotPressed(1, 0);
-		ActiveActions->InputPressLeftWeapon();
-	}
+	WeaponsEquipment->InputLeftWeaponPressed();
 }
 void AARCharacter::InputUseLeftWeaponReleased()
 {
-	if (ActiveActions)
-	{
-		//ActiveActions->InputSlotReleased(1, 0);
-		ActiveActions->InputReleaseLeftWeapon();
-	}
+	WeaponsEquipment->InputLeftWeaponReleased();
 }
 
 void AARCharacter::InputUseRightWeaponPressed()
 {
-	if (ActiveActions)
-	{
-		//ActiveActions->InputSlotPressed(2, 0);
-		ActiveActions->InputPressRightWeapon();
-	}
+	WeaponsEquipment->InputRightWeaponPressed();
 }
 void AARCharacter::InputUseRightWeaponReleased()
 {
-	if (ActiveActions)
-	{
-		//ActiveActions->InputSlotReleased(2, 0);
-		ActiveActions->InputReleaseRightWeapon();
-	}
+	WeaponsEquipment->InputRightWeaponReleased();
 }
 
 
 void AARCharacter::InputReloadWeapon()
 {
-	if (ActiveActions)
-	{
-		ActiveActions->InputReloadWeapon(1, 0);
-		ActiveActions->InputReloadWeapon(2, 0);
-	}
+
+}
+void AARCharacter::InputAbilityPressed()
+{
+
+}
+void AARCharacter::InputAbilityReleased()
+{
+
 }
 void AARCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 {
@@ -231,6 +217,9 @@ void AARCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 
 	InputComponent->BindAction("InputReloadWeapon", IE_Released, this, &AARCharacter::InputReloadWeapon);
 
+	InputComponent->BindAction("InputUseAbility", IE_Pressed, this, &AARCharacter::InputAbilityPressed);
+	InputComponent->BindAction("InputUseAbility", IE_Released, this, &AARCharacter::InputAbilityReleased);
+
 	//InputComponent->BindAction("ActionButtonTab0Slot0", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 0>);
 	//InputComponent->BindAction("ActionButtonTab0Slot1", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 1>);
 	//InputComponent->BindAction("ActionButtonTab0Slot2", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 2>);
@@ -269,8 +258,8 @@ void AARCharacter::ActivateAbility()
 }
 void AARCharacter::InputSwapActionBars()
 {
-	ActionBar->CopyItemsFromOtherInventoryTab(StaticActionBar, 0);
-	//ActionBar->CopyItemsToTargetTabFromLinkedTabs();
+	//ActionBar->CopyItemsFromOtherInventoryTab(StaticActionBar, 0);
+	////ActionBar->CopyItemsToTargetTabFromLinkedTabs();
 }
 void AARCharacter::ShowHideEditableHotbars()
 {
@@ -363,16 +352,18 @@ void AARCharacter::ShowHideInventory()
 
 void AARCharacter::ShowHideAbilityBook()
 {
-	if (AbilityBook && AbilityBook->InventoryContainer)
-	{
-		//AbilityBook->ChangeTabVisibility(0);
-		//if (AbilityBook->InventoryContainer->GetVisibility() == ESlateVisibility::Hidden)
-		//{
-		//	AbilityBook->InventoryContainer->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		//}
-		//else if (AbilityBook->InventoryContainer->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
-		//{
-		//	AbilityBook->InventoryContainer->SetVisibility(ESlateVisibility::Hidden);
-		//}
-	}
+	//if (AbilityBook && AbilityBook->InventoryContainer)
+	//{
+	//	//AbilityBook->ChangeTabVisibility(0);
+	//	//if (AbilityBook->InventoryContainer->GetVisibility() == ESlateVisibility::Hidden)
+	//	//{
+	//	//	AbilityBook->InventoryContainer->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	//	//}
+	//	//else if (AbilityBook->InventoryContainer->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
+	//	//{
+	//	//	AbilityBook->InventoryContainer->SetVisibility(ESlateVisibility::Hidden);
+	//	//}
+	//}
 }
+APlayerController* AARCharacter::GetGamePlayerController()
+{ return ARPController; }

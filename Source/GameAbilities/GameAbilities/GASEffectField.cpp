@@ -15,14 +15,14 @@ AGASEffectField::AGASEffectField(const FObjectInitializer& ObjectInitializer)
 
 void AGASEffectField::InitializeField()
 {
-	if (bIsFieldPersistent && AbilityInstigator)
-	{
+	//if (bIsFieldPersistent && AbilityInstigator)
+	//{
 
-	}
-	else if (!bIsFieldPersistent && AbilityInstigator)
-	{
-		AbilityInstigator->OnAbilityCastEnd.AddUObject(this, &AGASEffectField::DestroyField);
-	}
+	//}
+	//else if (!bIsFieldPersistent && AbilityInstigator)
+	//{
+	//	AbilityInstigator->OnAbilityCastEnd.AddUObject(this, &AGASEffectField::DestroyField);
+	//}
 
 	//1. Automaticallt gather all collision componenets from blueprinted version.
 	// don't want to hardcode any kind of collision inside base class

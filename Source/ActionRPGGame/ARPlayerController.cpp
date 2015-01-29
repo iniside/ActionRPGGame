@@ -50,6 +50,6 @@ void AARPlayerController::OnRecivedModifiedAttribute(const FGAModifiedAttribute&
 	DisplayData.TargetLocation = AttributeModIn.TargetLocation;
 	DisplayData.Tags = AttributeModIn.Tags;
 	AGSHUD* gshud = Cast<AGSHUD>(GetHUD());
-	if (gshud)
+	if (gshud && gshud->FCTWidget)
 		gshud->FCTWidget->OnReceivedData.Broadcast(DisplayData);
 }

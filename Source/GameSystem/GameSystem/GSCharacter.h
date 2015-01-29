@@ -14,18 +14,18 @@ class GAMESYSTEM_API AGSCharacter : public ACharacter, public IIGSEquipment, pub
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
 	class UGSEquipmentComponent* Equipment;
 
 	/*
 		Component used to store currently active weapons.
 		Delibertly different from EquipmentComponent, as it have set of different requriments.
 	 */
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
 	class UGSWeaponEquipmentComponent* WeaponsEquipment;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Equipment")
-	class UGSWeaponEquipmentComponent* RightWeaponsEquipment;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	class UGSAbilitiesComponent* Abilities;
 
 	/*
 		This component will store current active actions, similiar to Dark Souls
@@ -33,19 +33,19 @@ public:
 		2. Two Weapons (left and right hand)
 		3. One item to active.
 	 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
-	class UGSActiveActionsComponent* ActiveActions;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	//class UGSActiveActionsComponent* ActiveActions;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
 	class USkeletalMeshComponent* HeadComp;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
 	class USkeletalMeshComponent* ChestComp;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
 	class USkeletalMeshComponent* HandsComp;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
 	class USkeletalMeshComponent* LegsComp;
 
 	static const FName HeadSlotComponent;
@@ -106,16 +106,18 @@ public:
 	/* IIGSEquipment interface **/
 
 	/** IIGISocket */
-	virtual FVector GetSocketLocation(FName SocketNameIn) override;
+	//virtual FVector GetSocketLocation(FName SocketNameIn) override;
 	/* IIGISocket **/
 
 	/** IIGISkeletalMesh */
 	virtual USkeletalMeshComponent* GetMasterSkeletalMesh() override;
+	virtual FVector GetSocketLocation(FName SocketNameIn) override;
 	/* IIGISkeletalMesh **/
 
 	/** IGameplayTagAssetInterface */
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	/* IGameplayTagAssetInterface **/
+
 
 	FVector GetStartLocationForCrosshair();
 	float GetCurrentWeaponSpread();

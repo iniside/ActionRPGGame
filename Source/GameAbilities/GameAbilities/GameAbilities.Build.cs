@@ -29,7 +29,12 @@ namespace UnrealBuildTool.Rules
 				    "Core",
 				    "CoreUObject",
 				    "Engine",
-                    "GameTrace"
+                    "GameInterfaces",
+                    "GameTrace",
+                    "InputCore",
+                    "UMG",
+                    "Slate",
+                    "SlateCore",
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);

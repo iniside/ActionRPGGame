@@ -1,5 +1,6 @@
 #pragma once
-#include "IGTTrace.h"
+#include "IGIPawn.h"
+#include "IGISkeletalMesh.h"
 #include "Widgets/FCTHudWidget.h"
 #include "GSHUD.generated.h"
 
@@ -23,7 +24,7 @@ struct FGSCrosshairDirection
 	4. Display crosshair according to above information.
 */
 UCLASS()
-class GAMESYSTEM_API AGSHUD : public AHUD, public IIGTTrace
+class GAMESYSTEM_API AGSHUD : public AHUD, public IIGIPawn, public IIGISkeletalMesh
 {
 	GENERATED_UCLASS_BODY()
 public:
@@ -35,7 +36,7 @@ public:
 	 *	is traced against world and special Crosshair collision box around pawn.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "Crosshair")
-	class UGTTraceBase* CrossHairTrace;
+	class UGTTraceBase* CrosshairTrace;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crosshair")
 	class UTexture2D* CrossHairTexture;
@@ -52,26 +53,24 @@ public:
 	 *	Where hit will really hit. Crosshair is traced against world and
 	 *	special collision box around pawn. this trace will ignore crosshair box.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "Crosshair")
-	class UGTTraceBase* BulletHitTrace;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "Crosshair")
+	//class UGTTraceBase* BulletHitTrace;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Instanced, Category = "Floating Combat Text")
 		UFCTHudWidget* FCTWidget;
 
 	virtual void DrawHUD() override;
 
+	/** IIGIPawn */
+	virtual APawn* GetGamePawn() { return GetOwningPawn(); }
+	virtual ACharacter* GetGameCharacter() { return nullptr; }
+	virtual AController* GetGameController() { return nullptr; }
+	virtual APlayerController* GetGamePlayerController() { return GetOwningPlayerController(); }
+	/* IIGIPawn **/
+
 	/** IIGTTrace Begin */
-	virtual FVector GetSocketLocation(FName SocketNameIn);
-
-	virtual APawn* GetPawn() { return GetOwningPawn(); };
-
-	virtual APlayerController* GetPC() { return GetOwningPlayerController(); };
-
-	virtual FVector GetLocation() { return GetOwningPawn()->GetActorLocation(); };
-
-	virtual void SetTargetData(const TArray<FHitResult>& DataIn) {};
-	/** IIGTTrace End */
-
+	virtual FVector GetSocketLocation(FName SocketNameIn) override;
+	/* IIGTTrace End **/
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Crosshair")
 		FVector2D CrossHairPosition;
@@ -82,11 +81,13 @@ protected:
 	UPROPERTY()
 		class AGSCharacter* OwnChar;
 
-	class IIGTSocket* iSocket;
+	//class IIGTSocket* iSocket;
 
 	bool bInitialized;
 
 	float CurrentSpread;
 	void SetCurrentSpread(float CurrentSpreadIn);
-	class UGSItemWeaponRangedInfo* CurrentLeftWeapon;
+	UPROPERTY()
+	class UGSItemWeaponInfo* CurrentLeftWeapon;
+	class UGSItemWeaponRangedInfo* CurrentRangedLeftWeapon;
 };

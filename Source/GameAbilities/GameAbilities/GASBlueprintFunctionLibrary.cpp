@@ -16,29 +16,29 @@ UGASBlueprintFunctionLibrary::UGASBlueprintFunctionLibrary(const FObjectInitiali
 }
 
 class AGASEffectField* UGASBlueprintFunctionLibrary::CreateEffectField(TSubclassOf<class AGASEffectField> EffectFieldClass, FVector Location
-	, class AGASAbility* AbilityInstigator)
+	, class UGASAbility* AbilityInstigator)
 {
 	return nullptr;
 }
 
 class AGASEffectField* UGASBlueprintFunctionLibrary::BeginCreateEffectField(TSubclassOf<class AGASEffectField> EffectFieldClass
 	, const FVector& Location
-	, class AGASAbility* AbilityInstigator)
+	, class UGASAbility* AbilityInstigator)
 {
 	AGASEffectField* effectField = nullptr;
 
-	if (AbilityInstigator)
-	{
-		FRotator Rotation = FRotator::ZeroRotator;
-		Rotation = AbilityInstigator->GetPawn()->GetBaseAimRotation();
-		Rotation.Pitch = 0;
-		effectField = AbilityInstigator->GetWorld()->SpawnActorDeferred<AGASEffectField>(EffectFieldClass,
-			Location, Rotation, AbilityInstigator, AbilityInstigator->GetPawn(), true);
-		if (effectField)
-		{
-			effectField->AbilityInstigator = AbilityInstigator;
-		}
-	}
+	//if (AbilityInstigator)
+	//{
+	//	FRotator Rotation = FRotator::ZeroRotator;
+	//	Rotation = AbilityInstigator->GetPawn()->GetBaseAimRotation();
+	//	Rotation.Pitch = 0;
+	//	effectField = AbilityInstigator->GetWorld()->SpawnActorDeferred<AGASEffectField>(EffectFieldClass,
+	//		Location, Rotation, AbilityInstigator, AbilityInstigator->GetPawn(), true);
+	//	if (effectField)
+	//	{
+	//		effectField->AbilityInstigator = AbilityInstigator;
+	//	}
+	//}
 
 	return effectField;
 }
@@ -48,9 +48,9 @@ class AGASEffectField* UGASBlueprintFunctionLibrary::FinishCreateEffectField(cla
 {
 	if (EffectField)
 	{
-		FTransform Trans;
-		EffectField->FinishSpawning(Trans);
-		EffectField->InitializeField();
+		//FTransform Trans;
+		//EffectField->FinishSpawning(Trans);
+		//EffectField->InitializeField();
 	}
 	return EffectField;
 }

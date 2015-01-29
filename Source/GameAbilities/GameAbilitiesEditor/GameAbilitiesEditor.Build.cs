@@ -42,8 +42,6 @@ namespace UnrealBuildTool.Rules
                     "MainFrame",
                     "InputCore",
                     "GameAbilities",
-                    "GameTrace",
-                    "GameTraceEditor"
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);

@@ -15,21 +15,21 @@ UGASAbilityStateChanneledLocked::UGASAbilityStateChanneledLocked(const FObjectIn
 
 void UGASAbilityStateChanneledLocked::Tick(float DeltaSeconds)
 {
-	GetOuterAGASAbility()->CurrentCastTime += DeltaSeconds;
-	CurrentCastTime += DeltaSeconds;
-	if (CurrentCastTime >= GetOuterAGASAbility()->PeriodLenght
-		&& GetOuterAGASAbility()->PeriodCount > CurrentPeriodCount)
-	{
-		CurrentCastTime = 0;
-		CurrentPeriodCount += 1;
-		ExecuteAbility();
-	}
-	else if(CurrentPeriodCount >= GetOuterAGASAbility()->PeriodCount)
-	{
-		GetOuterAGASAbility()->CurrentCastTime = 0;
-		CurrentPeriodCount = 0;
-		ChannelFinished();
-	}
+	//GetOuterUGASAbility()->CurrentCastTime += DeltaSeconds;
+	//CurrentCastTime += DeltaSeconds;
+	//if (CurrentCastTime >= GetOuterUGASAbility()->PeriodLenght
+	//	&& GetOuterUGASAbility()->PeriodCount > CurrentPeriodCount)
+	//{
+	//	CurrentCastTime = 0;
+	//	CurrentPeriodCount += 1;
+	//	ExecuteAbility();
+	//}
+	//else if(CurrentPeriodCount >= GetOuterUGASAbility()->PeriodCount)
+	//{
+	//	GetOuterUGASAbility()->CurrentCastTime = 0;
+	//	CurrentPeriodCount = 0;
+	//	ChannelFinished();
+	//}
 }
 void UGASAbilityStateChanneledLocked::ChannelStarted()
 {
@@ -37,26 +37,26 @@ void UGASAbilityStateChanneledLocked::ChannelStarted()
 }
 void UGASAbilityStateChanneledLocked::ExecuteAbility()
 {
-	GetOuterAGASAbility()->ExecuteAbility();
+//	GetOuterUGASAbility()->ExecuteAbility();
 
 }
 
 void UGASAbilityStateChanneledLocked::ChannelFinished()
 {
-	GetOuterAGASAbility()->bIsBeingCast = false;
-	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
-	GetOuterAGASAbility()->GotoState(GetOuterAGASAbility()->CooldownState);
+	//GetOuterUGASAbility()->bIsBeingCast = false;
+	//GetOuterUGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
+	//GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->CooldownState);
 }
 
 void UGASAbilityStateChanneledLocked::BeginState(UGASAbilityState* PrevState)
 {
-	GetOuterAGASAbility()->bIsBeingCast = true;
-	GetOuterAGASAbility()->AbilityCastStart();
-	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(true);
+	//GetOuterUGASAbility()->bIsBeingCast = true;
+	//GetOuterUGASAbility()->AbilityCastStart();
+	//GetOuterUGASAbility()->PrimaryActorTick.SetTickFunctionEnable(true);
 }
 void UGASAbilityStateChanneledLocked::EndState()
 {
-	GetOuterAGASAbility()->AbilityCastEnd();
+//	GetOuterUGASAbility()->AbilityCastEnd();
 }
 void UGASAbilityStateChanneledLocked::BeginActionSequence()
 {}

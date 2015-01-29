@@ -15,7 +15,7 @@ public:
 	//UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 
 	/*
-		Helper C++ functions. Shouldn't never be exposed or valled from blueprint. Alos never
+		Helper C++ functions. Shouldn't ever be exposed or called from blueprint. Also never
 		try to override them.
 
 		probabaly could also add support for int32 values.

@@ -15,7 +15,7 @@ UGISSlotBaseWidget::UGISSlotBaseWidget(const FObjectInitializer& ObjectInitializ
 {
 
 }
-
+\
 FEventReply UGISSlotBaseWidget::OnMouseButtonDown_Implementation(FGeometry MyGeometry, const FPointerEvent& MouseEvent)
 {
 	FEventReply Reply;
@@ -31,7 +31,7 @@ FEventReply UGISSlotBaseWidget::OnMouseButtonDown_Implementation(FGeometry MyGeo
 			Reply.NativeReply = Reply.NativeReply.DetectDrag(DetectingDrag.ToSharedRef(), EKeys::LeftMouseButton);
 		}
 	}
-	
+
 	//Reply = UWidgetBlueprintLibrary::DetectDragIfPressed(MouseEvent, this, EKeys::LeftMouseButton);
 	return Reply;
 }

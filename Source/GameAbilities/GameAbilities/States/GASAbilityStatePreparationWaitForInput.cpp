@@ -11,7 +11,7 @@ UGASAbilityStatePreparationWaitForInput::UGASAbilityStatePreparationWaitForInput
 }
 UWorld* UGASAbilityStatePreparationWaitForInput::GetWorld() const
 {
-	return GetOuterAGASAbility()->GetWorld();
+	return GetOuterUGASAbility()->GetWorld();
 }
 
 void UGASAbilityStatePreparationWaitForInput::Tick(float DeltaSeconds)
@@ -19,15 +19,15 @@ void UGASAbilityStatePreparationWaitForInput::Tick(float DeltaSeconds)
 }
 void UGASAbilityStatePreparationWaitForInput::BeginState(UGASAbilityState* PrevState)
 {
-	GEngine->AddOnScreenDebugMessage(0, 2, FColor::Red, FString("This ability is in preparation State"));
+	//GEngine->AddOnScreenDebugMessage(0, 2, FColor::Red, FString("This ability is in preparation State"));
 
 	//we will run any preparation actions, which should be executed at this stage, to
 	//to provide ability with any base data, it needs to run.
 
-	GetOuterAGASAbility()->AbilityPreparationStart();
+	//GetOuterUGASAbility()->AbilityPreparationStart();
 
-	GetOuterAGASAbility()->SetActorTickEnabled(true);
-	GetOuterAGASAbility()->RunPreparationActions();
+	//GetOuterUGASAbility()->SetActorTickEnabled(true);
+	//GetOuterUGASAbility()->RunPreparationActions();
 	//BeginActionSequence();
 	//if there is no need for something special, like display some targeting helpers
 	//we run those action and move immidietly to next state
@@ -38,12 +38,12 @@ void UGASAbilityStatePreparationWaitForInput::BeginState(UGASAbilityState* PrevS
 void UGASAbilityStatePreparationWaitForInput::EndState()
 {
 	//clean up.
-	GetOuterAGASAbility()->AbilityPreparationEnd();
-	GetOuterAGASAbility()->SetActorTickEnabled(false);
+	//GetOuterUGASAbility()->AbilityPreparationEnd();
+	//GetOuterUGASAbility()->SetActorTickEnabled(false);
 }
 void UGASAbilityStatePreparationWaitForInput::BeginActionSequence()
 {
-	GetOuterAGASAbility()->GotoState(GetOuterAGASAbility()->ActivationState);
+	//GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->ActivationState);
 }
 void UGASAbilityStatePreparationWaitForInput::EndActionSequence()
 {

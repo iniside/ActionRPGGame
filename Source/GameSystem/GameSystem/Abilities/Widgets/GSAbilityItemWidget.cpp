@@ -18,25 +18,25 @@ UGSAbilityItemWidget::UGSAbilityItemWidget(const FObjectInitializer& ObjectIniti
 
 void UGSAbilityItemWidget::InitializeItem()
 {
-	AbilityComponent = Cast<UGSAbilitiesComponent>(InventoryComponent);
-	AbilityInfo = Cast<UGSAbilityInfo>(ItemData);
+	//AbilityComponent = Cast<UGSAbilitiesComponent>(InventoryComponent);
+	//AbilityInfo = Cast<UGSAbilityInfo>(ItemData);
 }
 
 
 float const UGSAbilityItemWidget::GetCurrentCooldownTime() const
 {
-	if (AbilityInfo)
-	{
-		return AbilityInfo->GetCurrentCooldownTime();
-	}
+	//if (AbilityInfo)
+	//{
+	//	return AbilityInfo->GetCurrentCooldownTime();
+	//}
 	return 0;
 }
 
 float const UGSAbilityItemWidget::GetMaxCooldownTime() const
 {
-	if (AbilityInfo)
-	{
-		return AbilityInfo->GetCooldownTime();
-	}
+	//if (AbilityInfo)
+	//{
+	//	return AbilityInfo->GetCooldownTime();
+	//}
 	return 0;
 }

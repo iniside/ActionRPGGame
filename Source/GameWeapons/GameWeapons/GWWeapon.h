@@ -55,6 +55,12 @@ public:
 
 	UPROPERTY(ReplicatedUsing = OnRep_HitInfo)
 		FGWWeaponHitInfo HitInfo;
+
+	//Add AttackComponent ?
+	//it would be used to determine the type of weapon attack
+	//mele, ranged and also contain data specific to
+	//to attack type, like ammo count. ???
+
 	UFUNCTION()
 		virtual void OnRep_HitInfo();
 	virtual void InitializeWeapon();

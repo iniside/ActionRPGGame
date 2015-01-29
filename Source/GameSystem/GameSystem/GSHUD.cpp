@@ -2,10 +2,12 @@
 
 #include "GameSystem.h"
 #include "GTTraceBase.h"
-#include "IGTSocket.h"
+//#include "IGTSocket.h"
 #include "GSCharacter.h"
 #include "Weapons/GSWeaponRanged.h"
 #include "Components/GSActiveActionsComponent.h"
+
+#include "Weapons/GSWeaponEquipmentComponent.h"
 
 #include "Items/GSItemWeaponRangedInfo.h"
 
@@ -30,10 +32,10 @@ void AGSHUD::SetCurrentSpread(float CurrentSpreadIn)
 void AGSHUD::BeginPlay()
 {
 	Super::BeginPlay();
-	if (CrossHairTrace)
-		CrossHairTrace->Initialize();
-	if (BulletHitTrace)
-		BulletHitTrace->Initialize();
+	if (CrosshairTrace)
+		CrosshairTrace->Initialize();
+	//if (BulletHitTrace)
+	//	BulletHitTrace->Initialize();
 	if (CrossHairTexture)
 	{
 		Crosshair[FGSCrosshairDirection::Left] = UCanvas::MakeIcon(CrossHairTexture, 43, 402, 25, 9); // left
@@ -46,13 +48,15 @@ void AGSHUD::BeginPlay()
 }
 void AGSHUD::DrawCrosshair()
 {
+	//add target recognition (make corsshair red if under applicable target, ie. pawn
+	//or check against interface.
 	FCanvasIcon* CurrentCrosshair[5];
 	for (int32 i = 0; i< 5; i++)
 	{
 		CurrentCrosshair[i] = &Crosshair[i];
 	}
-	float CenterX = CrossHairPosition.X;// Canvas->ClipX / 2;
-	float CenterY = CrossHairPosition.Y;// Canvas->ClipY / 2;
+	float CenterX = Canvas->ClipX / 2; //CrossHairPosition.X;
+	float CenterY = Canvas->ClipY / 2; //CrossHairPosition.Y;
 	float Scale = 1;
 	float FinalSpread = CrossSpread * CurrentSpread;
 	Canvas->DrawIcon(*CurrentCrosshair[FGSCrosshairDirection::Center],
@@ -75,7 +79,7 @@ void AGSHUD::DrawCrosshair()
 }
 void AGSHUD::BeginDestroy()
 {
-	iSocket = nullptr;
+	//iSocket = nullptr;
 	Super::BeginDestroy();
 }
 void AGSHUD::DrawHUD()
@@ -89,10 +93,10 @@ void AGSHUD::DrawHUD()
 	{
 		OwnChar = Cast<AGSCharacter>(GetOwningPawn());
 	}
-	if (!iSocket)
-	{
-		iSocket = Cast<IIGTSocket>(GetOwningPawn());
-	}
+	//if (!iSocket)
+	//{
+	//	iSocket = Cast<IIGTSocket>(GetOwningPawn());
+	//}
 	if (FCTWidget)
 	{
 		FCTWidget->HUDPawn = GetOwningPawn();
@@ -100,28 +104,33 @@ void AGSHUD::DrawHUD()
 	}
 	if (OwnChar) //(iSocket)
 	{
-		if (CrossHairTrace)
+		if (CurrentRangedLeftWeapon != OwnChar->WeaponsEquipment->MainHandWeapon)
+			CurrentRangedLeftWeapon = Cast<UGSItemWeaponRangedInfo>(OwnChar->WeaponsEquipment->MainHandWeapon);
+
+		if (CurrentLeftWeapon != OwnChar->WeaponsEquipment->MainHandWeapon)
+			CurrentLeftWeapon = OwnChar->WeaponsEquipment->MainHandWeapon;
+
+		if (CrosshairTrace)
 		{
-			FVector HitLocation = CrossHairTrace->GetSingHitLocation();
+			//get location from current weapon!
+			FVector HitLocation = CrosshairTrace->GetSingHitLocation();
 			FVector ScreenLocation = Project(HitLocation);
 			CrossHairPosition.X = ScreenLocation.X;
 			CrossHairPosition.Y = ScreenLocation.Y;
 		}
-		if (BulletHitTrace)
+		//if (BulletHitTrace)
+		//{
+		//	FVector HitLocation = BulletHitTrace->GetSingHitLocation();
+		//	FVector ScreenLocation = Project(HitLocation);
+		//	HitPosition.X = ScreenLocation.X;
+		//	HitPosition.Y = ScreenLocation.Y;
+		//}
+
+
+		if (CurrentRangedLeftWeapon)
 		{
-			FVector HitLocation = BulletHitTrace->GetSingHitLocation();
-			FVector ScreenLocation = Project(HitLocation);
-			HitPosition.X = ScreenLocation.X;
-			HitPosition.Y = ScreenLocation.Y;
-		}
-		if (CurrentLeftWeapon != OwnChar->ActiveActions->CurrentLeftHandWeapon)
-		{
-			if (UGSItemWeaponRangedInfo* weap = Cast<UGSItemWeaponRangedInfo>(OwnChar->ActiveActions->CurrentLeftHandWeapon))
-			{
-				//weap->RangedWeapon->OnCurrentWeaponSpread.Clear();
-				//weap->RangedWeapon->OnCurrentWeaponSpread.AddUObject(this, &AGSHUD::SetCurrentSpread);
-				CurrentSpread = weap->RangedWeapon->GetCurrentSpread();
-			}
+			if (CurrentRangedLeftWeapon->RangedWeapon)
+				CurrentSpread = CurrentRangedLeftWeapon->RangedWeapon->GetCurrentSpread();
 		}
 	}
 	DrawCrosshair();
@@ -129,6 +138,7 @@ void AGSHUD::DrawHUD()
 
 FVector AGSHUD::GetSocketLocation(FName SocketNameIn)
 { 
-	//return OwnChar->GetStartLocationForCrosshair();
-	return iSocket->GetSocketLocation(SocketNameIn);
+	if (CurrentLeftWeapon)
+		return CurrentLeftWeapon->GetCrosshairTraceStartLocation();
+	return OwnChar->GetMesh()->GetSocketLocation(SocketNameIn);
 }

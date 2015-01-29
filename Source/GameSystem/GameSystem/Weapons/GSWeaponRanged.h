@@ -30,23 +30,35 @@ public:
 		All animations are one frame.
 	*/
 	//asd
-	UPROPERTY(EditAnywhere, Category = "Weapon Animation")
-		UAnimSequence* LeftHandAnimation;
+	UPROPERTY(EditAnywhere, Category = "Left Hand")
+		UAnimSequence* LeftHandIdle;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon Animation")
-		UAnimSequence* RightHandAnimation;
+	UPROPERTY(EditAnywhere, Category = "Left Hand")
+		UAnimSequence* LeftHandCombat;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon Animation")
-		UAnimSequence* BothHandsAnimation;
+	UPROPERTY(EditAnywhere, Category = "Left Hand")
+		UAnimSequence* LeftHandMove;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon Animation")
-		UAnimSequence* RelaxedLeftHandAnimation;
+	UPROPERTY(EditAnywhere, Category = "Right Hand")
+		UAnimSequence* RightHandIdle;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon Animation")
-		UAnimSequence* RelaxedRightHandAnimation;
+	UPROPERTY(EditAnywhere, Category = "Right Hand")
+		UAnimSequence* RightHandCombat;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon Animation")
-		UAnimSequence* RelaxedBothHandsAnimation;
+	UPROPERTY(EditAnywhere, Category = "Right Hand")
+		UAnimSequence* RightHandMove;
+
+	UPROPERTY(EditAnywhere, Category = "Both Hands")
+		UAnimSequence* BothHandsIdle;
+
+	UPROPERTY(EditAnywhere, Category = "Both Hands")
+		UAnimSequence* BothHandsCombat;
+
+	UPROPERTY(EditAnywhere, Category = "Both Hands")
+		UAnimSequence* BothHandsMove;
+
+	UPROPERTY(EditAnywhere, Category = "Both Hands")
+		UAnimMontage* BothHandsMontage;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Animation")
 		UAimOffsetBlendSpace* AimOffsetBlend;

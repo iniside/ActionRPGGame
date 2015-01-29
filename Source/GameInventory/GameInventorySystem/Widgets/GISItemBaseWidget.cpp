@@ -34,7 +34,9 @@ UTexture2D* UGISItemBaseWidget::GetIcon() const
 {
 	if (ItemData)
 	{
-		return ItemData->GetImage();
+		/*const UGISItemBaseWidget* widget = this;
+		UTexture2D* tempTex = ItemData->GetImage();*/
+		return ItemData->GetImage();;
 	}
 	return nullptr;
 }

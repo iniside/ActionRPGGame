@@ -21,7 +21,7 @@ void UGSItemWeaponRangedInfo::GetLifetimeReplicatedProps(TArray< class FLifetime
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(UGSItemWeaponRangedInfo, RangedWeaponClass, COND_OwnerOnly);
+	DOREPLIFETIME(UGSItemWeaponRangedInfo, RangedWeaponClass);
 	DOREPLIFETIME(UGSItemWeaponRangedInfo, RangedWeapon);
 }
 void UGSItemWeaponRangedInfo::SetEquipingTime(float TimeIn)
@@ -92,16 +92,22 @@ FVector UGSItemWeaponRangedInfo::GetCrosshairStartLocation()
 
 UAnimSequence* UGSItemWeaponRangedInfo::GetEquipedAnimation()
 {
+
+	return nullptr;
+}
+
+UAnimSequence* UGSItemWeaponRangedInfo::GetIdleAnimation()
+{
 	if (RangedWeaponClass.GetDefaultObject())
 	{
 		switch (CurrentHand)
 		{
 		case EGSWeaponHand::Left:
-			return RangedWeaponClass.GetDefaultObject()->LeftHandAnimation;
+			return RangedWeaponClass.GetDefaultObject()->LeftHandIdle;
 		case EGSWeaponHand::Right:
-			return RangedWeaponClass.GetDefaultObject()->RightHandAnimation;
+			return RangedWeaponClass.GetDefaultObject()->RightHandIdle;
 		case EGSWeaponHand::BothHands:
-			return RangedWeaponClass.GetDefaultObject()->BothHandsAnimation;
+			return RangedWeaponClass.GetDefaultObject()->BothHandsIdle;
 		case EGSWeaponHand::Invalid:
 			return nullptr;
 		default:
@@ -109,6 +115,66 @@ UAnimSequence* UGSItemWeaponRangedInfo::GetEquipedAnimation()
 		}
 	}
 	return nullptr;
+}
+UAnimSequence* UGSItemWeaponRangedInfo::GetMoveAnimation()
+{
+	if (RangedWeaponClass.GetDefaultObject())
+	{
+		switch (CurrentHand)
+		{
+		case EGSWeaponHand::Left:
+			return RangedWeaponClass.GetDefaultObject()->LeftHandMove;
+		case EGSWeaponHand::Right:
+			return RangedWeaponClass.GetDefaultObject()->RightHandMove;
+		case EGSWeaponHand::BothHands:
+			return RangedWeaponClass.GetDefaultObject()->BothHandsMove;
+		case EGSWeaponHand::Invalid:
+			return nullptr;
+		default:
+			return nullptr;
+		}
+	}
+	return nullptr;
+}
+UAnimSequence* UGSItemWeaponRangedInfo::GetCombatAnimation()
+{
+	if (RangedWeaponClass.GetDefaultObject())
+	{
+		switch (CurrentHand)
+		{
+		case EGSWeaponHand::Left:
+			return RangedWeaponClass.GetDefaultObject()->LeftHandCombat;
+		case EGSWeaponHand::Right:
+			return RangedWeaponClass.GetDefaultObject()->RightHandCombat;
+		case EGSWeaponHand::BothHands:
+			return RangedWeaponClass.GetDefaultObject()->BothHandsCombat;
+		case EGSWeaponHand::Invalid:
+			return nullptr;
+		default:
+			return nullptr;
+		}
+	}
+	return nullptr;
+}
+
+FVector UGSItemWeaponRangedInfo::GetCrosshairTraceStartLocation()
+{
+	if (!RangedWeapon)
+		return FVector::ZeroVector;
+
+	return RangedWeapon->GetWeaponSocketLocation();
+}
+const float UGSItemWeaponRangedInfo::GetCurrentHorizontalRecoil() const
+{
+	if (RangedWeapon)
+		return RangedWeapon->CurrentHorizontalRecoil;
+	return 0;
+}
+const float UGSItemWeaponRangedInfo::GetCurrentVerticalRecoil() const
+{
+	if (RangedWeapon)
+		return RangedWeapon->CurrentVerticalRecoil;
+	return 0;
 }
 UAimOffsetBlendSpace* UGSItemWeaponRangedInfo::GetEquipedAimBlendSpace()
 {
@@ -161,7 +227,7 @@ bool UGSItemWeaponRangedInfo::OnItemRemovedFromSlot()
 		UGSWeaponEquipmentComponent* eqComp = Cast<UGSWeaponEquipmentComponent>(CurrentInventory);
 		if (eqComp)
 		{
-			for (FGSWeaponSocketInfo& socket : eqComp->AttachmentSockets)
+			for (FGSEquipSocketInfo& socket : eqComp->AttachmentSockets)
 			{
 				if (socket.SocketName == LastAttachedSocket)
 					socket.bIsSocketAvailable = true;
@@ -172,14 +238,16 @@ bool UGSItemWeaponRangedInfo::OnItemRemovedFromSlot()
 			UGSWeaponEquipmentComponent* eqLastComp = Cast<UGSWeaponEquipmentComponent>(LastInventory);
 			if (eqLastComp)
 			{
-				for (FGSWeaponSocketInfo& socket : eqLastComp->AttachmentSockets)
+				for (FGSEquipSocketInfo& socket : eqLastComp->AttachmentSockets)
 				{
 					if (socket.SocketName == LastAttachedSocket)
+					{
 						socket.bIsSocketAvailable = true;
-
-					LastAttachedSocket = NAME_Name;
+						break;
+					}
 				}
 			}
+			LastAttachedSocket = NAME_Name;
 			RemainingAmmoMagazine = RangedWeapon->GetRemainingMagazineAmmo();
 			RemainingAmmoTotal = RangedWeapon->GetRemaningAmmo();
 			RangedWeapon->Destroy();

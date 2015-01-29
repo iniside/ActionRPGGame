@@ -20,8 +20,7 @@ public class ActionRPGGameEditorTarget : TargetRules
 		ref List<string> OutExtraModuleNames
 		)
 	{
-        OutExtraModuleNames.Add("GameTrace");
-        OutExtraModuleNames.Add("GameTraceEditor");
+        OutExtraModuleNames.Add("GameInterfaces");
 		OutExtraModuleNames.Add("GameInventorySystem");
 		OutExtraModuleNames.Add("GameInventorySystemEditor");
 		OutExtraModuleNames.Add("GameAttributes");

@@ -14,35 +14,43 @@ UGASAbilityStateCasting::UGASAbilityStateCasting(const FObjectInitializer& Objec
 
 void UGASAbilityStateCasting::Tick(float DeltaSeconds)
 {
-	GetOuterAGASAbility()->CurrentCastTime += DeltaSeconds;
+	GetOuterUGASAbility()->CurrentCastTime += DeltaSeconds;
 	CurrentCastTime += DeltaSeconds;
-	if (CurrentCastTime >= GetOuterAGASAbility()->CastTime)
+	if (CurrentCastTime >= GetOuterUGASAbility()->CastTime)
 	{
-		GetOuterAGASAbility()->CurrentCastTime = 0;
+		GetOuterUGASAbility()->CurrentCastTime = 0;
 		CurrentCastTime = 0;
+		GetOuterUGASAbility()->SetTickEnabled(false);
 		ExecuteAbility();
 	}
 }
 
 void UGASAbilityStateCasting::ExecuteAbility()
 {
-	GetOuterAGASAbility()->bIsBeingCast = false;
-	GetOuterAGASAbility()->ExecuteAbility();
-	
-	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
-	GetOuterAGASAbility()->GotoState(GetOuterAGASAbility()->CooldownState);
+	//GetOuterUGASAbility()->bIsBeingCast = false;
+	//GetOuterUGASAbility()->ExecuteAbility();
+	GetOuterUGASAbility()->CastAbility();
+	GetOuterUGASAbility()->SetTickEnabled(false);
+	GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->CooldownState);
 }
 
 void UGASAbilityStateCasting::BeginState(UGASAbilityState* PrevState)
 {
-	GetOuterAGASAbility()->bIsBeingCast = true;
+	GetOuterUGASAbility()->CurrentCastTime = 0;
+	if (GetOuterUGASAbility()->CommitAbility())
+	{
+		GetOuterUGASAbility()->SetTickEnabled(true);
+	}
+	else
+	{
+		//can commit ability, back to active state.
+		GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->ActiveState);
+	}
 	
-	GetOuterAGASAbility()->AbilityCastStart();
-	GetOuterAGASAbility()->PrimaryActorTick.SetTickFunctionEnable(true);
 }
 void UGASAbilityStateCasting::EndState()
 {
-	GetOuterAGASAbility()->AbilityCastEnd();
+	//GetOuterUGASAbility()->AbilityCastEnd();
 }
 void UGASAbilityStateCasting::BeginActionSequence()
 {}

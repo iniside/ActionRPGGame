@@ -14,4 +14,6 @@ class IIGISkeletalMesh
 	GENERATED_IINTERFACE_BODY()
 public:
 	virtual USkeletalMeshComponent* GetMasterSkeletalMesh() { return nullptr; };
+
+	virtual FVector GetSocketLocation(FName SocketNameIn) { return FVector::ZeroVector; };
 };

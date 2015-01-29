@@ -20,42 +20,35 @@
 #include "IGAAttributes.h"
 #include "IGESEffect.h"
 #include "IGESEffectManager.h"
-#include "IGTSocket.h"
+#include "IGIPawn.h"
+#include "Abilities/GSAbilitiesComponent.h"
 
 #include "ARCharacter.generated.h"
 
 UCLASS(config=Game)
-class AARCharacter : public AGSCharacter, public IIGAAttributes, public IIGESEffect, public IIGESEffectManager
-	, public IIGTSocket
+class AARCharacter : public AGSCharacter, public IIGAAttributes, public IIGESEffect, public IIGESEffectManager,
+	public IIGIPawn
 {
 	GENERATED_BODY()
 
 	/** Camera boom positioning the camera behind the character */
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
 	/** Follow camera */
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	class UGISInventoryBaseComponent* Inventory;
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
-	class UGSAbilitiesComponent* ActionBar;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
-	class UGSAbilitiesComponent* StaticActionBar;
-
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
-	class UGSAbilitiesComponent* AbilityBook;
-
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Attributes", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes", meta = (AllowPrivateAccess = "true"))
 	class UGAAttributeComponent* Attributes;
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Effects", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Effects", meta = (AllowPrivateAccess = "true"))
 	class UGESEffectComponent* GameEffects;
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Effects", meta = (AllowPrivateAccess = "true"))
-	class UGESEffectManager* GameEffectManager;
 
+	UPROPERTY()
+	class AARPlayerController* ARPController;
 public:
 	/** IIGAAttributes Begin */
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
@@ -63,6 +56,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 		virtual class UGAAttributeComponent* GetAttributeComponent() override;
+
+	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
+		virtual float GetAttributeValue(FGAAttribute AttributeIn);
 	/** IIGAAttributes End */
 
 	/** IIGESEffect Begin */
@@ -73,10 +69,16 @@ public:
 		virtual class UGESEffectManager* GetEffectManager();
 	/** IIGESEffect End */
 
-	/** IGTSocket Begin */
-	virtual FVector GetSocketLocation(FName SocketNameIn) override;
-	/** IGTSocket End */
+	/** IIGIPawn */
+	virtual APawn* GetGamePawn() override { return this; };
+	virtual ACharacter* GetGameCharacter() override { return this; }
+	virtual AController* GetGameController() override { return GetController(); }
+	virtual APlayerController* GetGamePlayerController() override;
+	/* IIGIPawn **/
 
+
+	virtual void OnRep_Controller() override;
+	virtual void PossessedBy(AController* NewController) override;
 public:
 	AARCharacter(const FObjectInitializer& ObjectInitializer);
 
@@ -105,30 +107,25 @@ protected:
 
 	//reload both weapnons if both are equiped.
 	void InputReloadWeapon();
+	
+	
+	void InputAbilityPressed();
+	void InputAbilityReleased();
 	/*
 		How to make it work in case where I would need to copy these pointer to other input buttons ?
 		let's think...
 	*/
 	void ActivateAbility();
-	template<int32 TabIndex, int32 SlotIndex>
+	template<int32 SetIndex, int32 SlotIndex>
 	void InputActionBarPressed()
 	{
-		//let's say that only one tab in binding 1-7 can be active
-		//from binding 8-12 they are always active
-		//like Guild Wars 2 hotbar. Proof of concept!
-		if (ActionBar->Tabs.InventoryTabs[TabIndex].bIsTabActive)
-		{
-			ActionBar->InputSlotPressed(TabIndex, SlotIndex);
-		}
+		Abilities->InputPressed(SetIndex, SlotIndex);
 	}
 
-	template<int32 TabIndex, int32 SlotIndex>
+	template<int32 SetIndex, int32 SlotIndex>
 	void InputActionBarReleased()
 	{
-		if(ActionBar->Tabs.InventoryTabs[TabIndex].bIsTabActive)
-		{
-			ActionBar->InputSlotReleased(TabIndex, SlotIndex);
-		}
+		Abilities->InputReleased(SetIndex, SlotIndex);
 	}
 
 	void ShowHideEditableHotbars();

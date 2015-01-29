@@ -17,27 +17,27 @@ AGASPersistentEffectCue::AGASPersistentEffectCue(const FObjectInitializer& Objec
 
 void AGASPersistentEffectCue::InitializeEffectCue()
 {
-	if (OwningAbility)
-	{
-		//I'm not convinced this will work as intended.
-		//while there can be theoretically onyl one CurrentState
-		//there is possiblty that binding all delegates at once, might make them interering with
-		//each other.
-		SetOwner(OwningAbility);
-		BindCastDelegates();
-		BindPreparationDelegates();
-	}
+	//if (OwningAbility)
+	//{
+	//	//I'm not convinced this will work as intended.
+	//	//while there can be theoretically onyl one CurrentState
+	//	//there is possiblty that binding all delegates at once, might make them interering with
+	//	//each other.
+	//	SetOwner(OwningAbility);
+	//	BindCastDelegates();
+	//	BindPreparationDelegates();
+	//}
 }
 
 void AGASPersistentEffectCue::BindCastDelegates()
 {
-	OwningAbility->OnAbilityCastStart.AddUObject(this, &AGASPersistentEffectCue::ExecuteEffect);
-	OwningAbility->OnAbilityCastEnd.AddUObject(this, &AGASPersistentEffectCue::DestroyEffectCue);
+	//OwningAbility->OnAbilityCastStart.AddUObject(this, &AGASPersistentEffectCue::ExecuteEffect);
+	//OwningAbility->OnAbilityCastEnd.AddUObject(this, &AGASPersistentEffectCue::DestroyEffectCue);
 }
 void AGASPersistentEffectCue::BindPreparationDelegates()
 {
-	OwningAbility->OnAbilityPreparationStart.AddUObject(this, &AGASPersistentEffectCue::ExecuteEffect);
-	OwningAbility->OnAbilityPreparationEnd.AddUObject(this, &AGASPersistentEffectCue::DestroyEffectCue);
+	//OwningAbility->OnAbilityPreparationStart.AddUObject(this, &AGASPersistentEffectCue::ExecuteEffect);
+	//OwningAbility->OnAbilityPreparationEnd.AddUObject(this, &AGASPersistentEffectCue::DestroyEffectCue);
 }
 
 void AGASPersistentEffectCue::ExecuteEffect()

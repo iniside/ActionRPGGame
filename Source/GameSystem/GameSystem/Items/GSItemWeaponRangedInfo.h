@@ -18,13 +18,16 @@
 */
 
 
-UCLASS(BlueprintType, Blueprintable, DefaultToInstanced)
+UCLASS(BlueprintType, Blueprintable)
 class GAMESYSTEM_API UGSItemWeaponRangedInfo : public UGSItemWeaponInfo
 {
 	GENERATED_UCLASS_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, meta = (ExposeOnSpawn), Category = "Item")
 		TSubclassOf<class AGSWeaponRanged> RangedWeaponClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, meta = (ExposeOnSpawn), Category = "Weapon Parts")
+		TSubclassOf<class UGWAmmo> WeaponAmmoClass;
 
 	UPROPERTY(Replicated)
 		class AGSWeaponRanged* RangedWeapon;
@@ -45,6 +48,16 @@ public:
 	virtual FVector GetCrosshairStartLocation() override;
 
 	virtual UAnimSequence* GetEquipedAnimation() override;
+
+	virtual UAnimSequence* GetIdleAnimation() override;
+	virtual UAnimSequence* GetMoveAnimation() override;
+	virtual UAnimSequence* GetCombatAnimation() override;
+
+	virtual const float GetCurrentHorizontalRecoil() const override;
+	virtual const float GetCurrentVerticalRecoil() const override;
+
+	virtual FVector GetCrosshairTraceStartLocation() override;
+
 	virtual UAimOffsetBlendSpace* GetEquipedAimBlendSpace() override;
 	virtual bool OnItemAddedToSlot() override;
 	virtual bool OnItemRemovedFromSlot() override;

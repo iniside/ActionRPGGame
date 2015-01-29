@@ -1,7 +1,8 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
 #include "GameTrace.h"
-#include "IGTTrace.h"
+#include "IGIPawn.h"
+#include "IGISkeletalMesh.h"
 #include "DrawDebugHelpers.h"
 #include "GTTraceBase.h"
 
@@ -25,77 +26,58 @@ void UGTTraceBase::Tick(float DeltaSecondsIn)
 
 }
 
-void UGTTraceBase::SingleLineTrace()
+FHitResult UGTTraceBase::GetSingleHitResult()
 {
 	FHitResult Impact;
-	TraceInterface->GetTargetData().Empty();
 	const FVector ShootDir = GetPawnCameraAim();
-	
 	if (bTraceFromSocket)
 	{
 		const FVector StartTrace = GetStartLocationFromSocket();
 		const FVector EndTrace = (GetStartLocationFromSocket() + ShootDir * Range);
 		Impact = SingleLineRangedTrace(StartTrace, EndTrace);
-		TraceInterface->SetHitLocation(StartTrace, EndTrace, Impact.Actor.Get());
 	}
 	else
 	{
 		const FVector StartTrace = GetPawnCameraDamageStartLocation(ShootDir);
 		const FVector EndTrace = (StartTrace + ShootDir * Range);
 		Impact = SingleLineRangedTrace(StartTrace, EndTrace);
-		TraceInterface->SetHitLocation(StartTrace, EndTrace, Impact.Actor.Get());
 	}
-	TArray<FHitResult> TargetData;
-	TargetData.Add(Impact);
-	TraceInterface->SetTargetData(TargetData);
-	//GetOuterAGASAbility()->TargetData.Add(Impact);
-}
-
-void UGTTraceBase::SingleLineTraceSetHitLocation()
-{
-	const FVector ShootDir = GetPawnCameraAim();
-	if (bTraceFromSocket)
-	{
-		const FVector StartTrace = GetStartLocationFromSocket();
-		const FVector EndTrace = (GetStartLocationFromSocket() + ShootDir * Range);
-		const FHitResult Impact = SingleLineRangedTrace(StartTrace, EndTrace);
-		TraceInterface->SetHitLocation(StartTrace, Impact.Location, Impact.Actor.Get());
-	}
-	else
-	{
-		const FVector StartTrace = GetPawnCameraDamageStartLocation(ShootDir);
-		const FVector EndTrace = (StartTrace + ShootDir * Range);
-		const FHitResult Impact = SingleLineRangedTrace(StartTrace, EndTrace);
-		TraceInterface->SetHitLocation(StartTrace, Impact.Location, Impact.Actor.Get());
-	}
+	return Impact;
 }
 
 FVector UGTTraceBase::GetSingHitLocation()
 {
-	FHitResult Impact;
+	
 	const FVector ShootDir = GetPawnCameraAim();
-	//
+	const FVector FinalAim = GetPawnCameraDamageStartLocation(ShootDir);
 	if (bTraceFromSocket)
 	{
 		const FVector StartTrace = GetStartLocationFromSocket();
-		const FVector EndTrace = (GetStartLocationFromSocket() + ShootDir * Range);
-		Impact = SingleLineRangedTrace(StartTrace, EndTrace);
-		//TraceInterface->SetHitLocation(StartTrace, EndTrace, Impact.Actor.Get());
+		const FVector EndTrace = (StartTrace + ShootDir * Range);
+		const FHitResult Impact = SingleLineRangedTrace(StartTrace, EndTrace);
+		if (Impact.bBlockingHit)
+			return Impact.Location;
+		else
+			return EndTrace;
 	}
 	else
 	{
 		const FVector StartTrace = GetPawnCameraDamageStartLocation(ShootDir);
 		const FVector EndTrace = (StartTrace + ShootDir * Range);
-		Impact = SingleLineRangedTrace(StartTrace, EndTrace);
-		//TraceInterface->SetHitLocation(StartTrace, EndTrace, Impact.Actor.Get());
+		const FHitResult Impact = SingleLineRangedTrace(StartTrace, EndTrace);
+		if (Impact.bBlockingHit)
+			return Impact.Location;
+		else
+			return EndTrace;
 	}
-	
-	return Impact.Location;
+	return FVector::ZeroVector;
 }
+
 void UGTTraceBase::Initialize()
 {
 	UObject* out = GetOuter();
-	TraceInterface = Cast<IIGTTrace>(GetOuter());
+	TraceInterface = Cast<IIGIPawn>(GetOuter());
+	SkeletalMeshInt = Cast<IIGISkeletalMesh>(GetOuter());
 	for (auto Iter = ObjectsToTrace.CreateConstIterator(); Iter; ++Iter)
 	{
 		const ECollisionChannel & Channel = (*Iter);
@@ -112,28 +94,13 @@ void UGTTraceBase::PreExecute()
 }
 void UGTTraceBase::Execute()
 {
-	SingleLineTrace();
 }
 
 void UGTTraceBase::PostExecute()
 {
-
 }
 
-void UGTTraceBase::ModifyExtendsByPrecentage(float PrcentageIn)
-{
-
-}
-void UGTTraceBase::BP_ModiyExtendsByPrcentage(float PrecentageIn)
-{
-	ModifyExtendsByPrecentage(PrecentageIn);
-}
 void UGTTraceBase::ModifyRangeByPrecentage(float PrcentageIn)
-{
-
-}
-
-void UGTTraceBase::SetTraceRange(float PrcentageIn)
 {
 
 }
@@ -141,65 +108,74 @@ void UGTTraceBase::SetTraceRange(float PrcentageIn)
 FVector UGTTraceBase::GetPawnCameraAim()
 {
 	FVector FinalAim = FVector::ZeroVector;
-
-	if (TraceInterface->GetPawn())
+	FRotator FinalRot = FRotator(0, 0, 0);
+	if (TraceInterface->GetGamePawn())
 	{
-		FinalAim = TraceInterface->GetPawn()->GetBaseAimRotation().Vector();
+		FinalAim = TraceInterface->GetGamePawn()->GetBaseAimRotation().Vector();
+		//TraceInterface->GetPawn()->GetActorEyesViewPoint(FinalAim, FinalRot);
 	}
-	return FinalAim;
+	return FinalAim;// .Vector();
 }
 
 FVector UGTTraceBase::GetPCCameraAim()
 {
 	FVector OutStartTrace = FVector::ZeroVector;
 	FRotator AimDir;
-	if (TraceInterface->GetPC())
+	if (TraceInterface->GetGamePlayerController())
 	{
-		TraceInterface->GetPC()->GetPlayerViewPoint(OutStartTrace, AimDir);
+		TraceInterface->GetGamePlayerController()->GetPlayerViewPoint(OutStartTrace, AimDir);
 	}
 	return AimDir.Vector();
 }
 
 FVector UGTTraceBase::GetStartLocationFromSocket()
 {
-	return TraceInterface->GetSocketLocation(StartLocation);
+	return SkeletalMeshInt->GetSocketLocation(StartLocation);
 }
 
 FVector UGTTraceBase::GetPawnCameraDamageStartLocation(const FVector& AimDir)
 {
-	FVector OutStartTrace = FVector::ZeroVector;
-	if (TraceInterface->GetPawn())
+	FVector OutStartTrace = FVector::ZeroVector; //change it to socket location
+	if (TraceInterface->GetGamePawn())
 	{
 		FRotator UnusedRot;
-		if (TraceInterface->GetPC())
+		if (TraceInterface->GetGamePlayerController())
 		{
-			TraceInterface->GetPC()->GetPlayerViewPoint(OutStartTrace, UnusedRot);
+			TraceInterface->GetGamePlayerController()->GetPlayerViewPoint(OutStartTrace, UnusedRot);
 		}
-		FVector ActorLocation = TraceInterface->GetPawn()->GetActorLocation();
+		FVector ActorLocation = TraceInterface->GetGamePawn()->GetActorLocation();
 		OutStartTrace = OutStartTrace + AimDir * ((ActorLocation - OutStartTrace) | AimDir);
-		
-		//OutStartTrace = OutStartTrace + AimDir * ((GetOuterAGASAbility()->PawnOwner->GetActorLocation() - OutStartTrace));
 		return OutStartTrace;
 	}
 	return OutStartTrace;
 }
-
+FVector UGTTraceBase::GetPawnSocketDamageStartLocation(const FVector& AimDir)
+{
+	FVector SocketStartLocation = GetStartLocationFromSocket();
+	if (TraceInterface->GetGamePawn())
+	{
+		FVector ActorLocation = TraceInterface->GetGamePawn()->GetActorLocation();
+		SocketStartLocation = SocketStartLocation + AimDir * ((ActorLocation - SocketStartLocation) | AimDir);
+		return SocketStartLocation;
+	}
+	return SocketStartLocation;
+}
 FHitResult UGTTraceBase::SingleLineRangedTrace(const FVector& StartTrace, const FVector& EndTrace)
 {
 	FHitResult Hit(ForceInit);
 	UWorld* world = GetWorld();
-	if (!TraceInterface->GetPawn())
+	if (!TraceInterface->GetGamePawn())
 		return Hit;
 
 	static FName PowerTag = FName(TEXT("SingleLineTrace"));
-	FCollisionQueryParams TraceParams(PowerTag, false, TraceInterface->GetPawn());
+	FCollisionQueryParams TraceParams(PowerTag, false, TraceInterface->GetGamePawn());
 	TraceParams.bTraceComplex = false;
 	TraceParams.bTraceAsyncScene = false;
 	TraceParams.bReturnPhysicalMaterial = true;
 	
 	if (bIgnoreSelf)
 	{
-		TraceParams.AddIgnoredActor(TraceInterface->GetPawn());
+		TraceParams.AddIgnoredActor(TraceInterface->GetGamePawn());
 	}
 
 	bool traceResult = GetWorld()->LineTraceSingle(Hit, StartTrace, EndTrace, TraceParams, CollisionObjectParams);
@@ -217,10 +193,4 @@ FHitResult UGTTraceBase::SingleLineRangedTrace(const FVector& StartTrace, const 
 		}
 	}
 	return Hit;
-}
-
-
-FVector UGTTraceBase::GetHelperScale()
-{
-	return FVector::ZeroVector;
 }

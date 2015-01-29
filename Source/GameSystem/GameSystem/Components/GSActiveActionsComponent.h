@@ -7,6 +7,18 @@
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FGSOnLeftWeaponChanged, class UGSItemWeaponInfo*);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGSOnLeftWeaponEquiped, class UGSItemWeaponInfo*, LeftWeaponIn);
+
+USTRUCT()
+struct GAMESYSTEM_API FGSCombatModeInfo
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY()
+		int8 RepCounter;
+	UPROPERTY()
+		bool bIsInCombat;
+};
 /*
 	TODO:
 	1. Ability equiping (that should be far less complicated)
@@ -25,6 +37,11 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FGSOnLeftWeaponChanged, class UGSItemWeaponI
 	2. Ranged weapon is always equiped to left hand (or rather input is in left hand).
 	3. Mele weapons can be dual wielded. Normal binding rules apply (left to left).
 	4. Can have mixed ranged and mele. Ranged left hand, mele right. With respective input.
+
+
+	1. IF ability is begin casted, you can't use weapons.
+	2. If you use weapon cancel casting ability (?).
+	3. When you start using ability current weapon action is interrupted.
 */
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
 class GAMESYSTEM_API UGSActiveActionsComponent : public UGISInventoryBaseComponent
@@ -53,6 +70,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 		float WeaponSwapSpeed;
 
+	UPROPERTY(EditAnywhere, Category = "Combat")
+		float TimeInCombat;
 	UPROPERTY(EditAnywhere, Category = "Action Widgets")
 		TSubclassOf<class UGSWeaponInfoWidget> LeftWeaponInfoWidgetClass;
 	UPROPERTY(BlueprintReadOnly, Category = "Action Widgets")
@@ -63,6 +82,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Action Widgets")
 		UGSWeaponInfoWidget* RightWeaponInfoWidget;
 
+	UPROPERTY(BlueprintCallable, BlueprintAssignable)
+	FGSOnLeftWeaponEquiped OnLeftWeaponEquipedDel;
+
 public:
 	UPROPERTY()
 		class UGSWeaponEquipmentComponent* LeftWeaponEquipment;
@@ -70,7 +92,8 @@ public:
 		class UGSWeaponEquipmentComponent* RightWeaponEquipment;
 public:
 	virtual void InitializeComponent() override;
-
+	////////////////////
+	////////// Weapons
 	//refactoring into more meaningful names.
 	void GetNextWeapon();
 	void OnWeaponActive();
@@ -82,11 +105,23 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerSetWeaponFrom(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex, EGSWeaponHand WeaponHandIn);
 
+	/*
+		Probabaly should do it on server.
+	*/
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerInputPressLeftWeapon();
 	void InputPressLeftWeapon();
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerInputReleaseLeftWeapon();
 	void InputReleaseLeftWeapon();
 
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerPressRightWeapon();
 	void InputPressRightWeapon();
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerReleaseRightWeapon();
 	void InputReleaseRightWeapon();
+
 protected:
 	UFUNCTION()
 		void OnLeftWeaponRemoved(const FGISSlotSwapInfo& SlotSwapInfoIn);
@@ -151,12 +186,14 @@ protected:
 
 	FTimerHandle TimerRightEquipStartHandle;
 	FTimerHandle TimerRightUnquipStartHandle;
+
+	FTimerHandle TimerLeaveCombat;
 private:
 	int32 LastLeftCopiedIndex;
 	int32 LastRightCopiedIndex;
 	class IIGSEquipment* EquipInt;
 public:
-	UPROPERTY(ReplicatedUsing = OnRep_CurrentLeftHandWeapon)
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentLeftHandWeapon)
 	class UGSItemWeaponInfo* CurrentLeftHandWeapon;
 	UFUNCTION()
 		void OnRep_CurrentLeftHandWeapon();
@@ -165,17 +202,47 @@ public:
 	UFUNCTION()
 		void OnRep_CurrentRightHandWeapon();
 
+	UPROPERTY()
+		class AGSWeaponRanged* LeftRangedWeapon;
+	UPROPERTY()
+		class AGSWeaponRanged* RightRangedWeapon;
+
 	FGSOnLeftWeaponChanged OnLeftWeaponChangedEvent;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Replicated)
 		EGSWeaponEquipState WeaponEquipState;
 
+	UPROPERTY(BlueprintReadOnly, Replicated)
+		bool bIsInCombat;
+
+	void OnLeaveCombatTimer();
+
 	UFUNCTION(BlueprintCallable, Category = "Weapon Animations")
-		UAnimSequence* GetLeftWeaponAnimSequence() const;
+		UAnimSequence* GetLeftHandIdleAnim() const;
 	UFUNCTION(BlueprintCallable, Category = "Weapon Animations")
-		UAnimSequence* GetRightWeaponAnimSequence() const;
+		UAnimSequence* GetLeftHandCombatAnim() const;
 	UFUNCTION(BlueprintCallable, Category = "Weapon Animations")
-		UAnimSequence* GetBothHandWeaponAnimSequence() const;
+		UAnimSequence* GetLeftHandMoveAnim() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon Animations")
+		UAnimSequence* GetRightHandIdleAnim() const;
+	UFUNCTION(BlueprintCallable, Category = "Weapon Animations")
+		UAnimSequence* GetRightHandCombatAnim() const;
+	UFUNCTION(BlueprintCallable, Category = "Weapon Animations")
+		UAnimSequence* GetRightHandMoveAnim() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon Animations")
+		UAnimSequence* GetBothHandsIdleAnim() const;
+	UFUNCTION(BlueprintCallable, Category = "Weapon Animations")
+		UAnimSequence* GetBothHandsCombatAnim() const;
+	UFUNCTION(BlueprintCallable, Category = "Weapon Animations")
+		UAnimSequence* GetBothHandsMoveAnim() const;
+
+	UFUNCTION(BlueprintPure, Category = "Weapon")
+		const float GetCurrentWeaponHorizontalRecoil() const;
+
+	UFUNCTION(BlueprintPure, Category = "Weapon")
+		const float GetCurrentWeaponVerticalRecoil() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon Animations")
 		UAimOffsetBlendSpace* GetBothHandWeaponAimBlend() const;
@@ -202,8 +269,18 @@ public:
 //////////////////////////////////////////
 ////////////// Ability Handling
 private:
-	UPROPERTY()
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentAbility)
 	class UGSAbilityInfo* CurrentAbility;
+	UFUNCTION()
+	void OnRep_CurrentAbility();
+public:
+
+	void SetAbility(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 OtherSlotIndex);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSetAbility(class UGISInventoryBaseComponent* OtherIn, int32 OtherTabIndex, int32 OtherSlotIndex);
+	
+	void InputAbilityPressed();
+	void InputAbilityReleased();
 }; 
 
 

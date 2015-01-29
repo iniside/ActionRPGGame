@@ -12,32 +12,32 @@ UGSAbilityInfo::UGSAbilityInfo(const FObjectInitializer& ObjectInitializer)
 {
 }
 
-void UGSAbilityInfo::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME_CONDITION(UGSAbilityInfo, AbilityType, COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UGSAbilityInfo, ActiveAbility, COND_OwnerOnly);
-}
+//void UGSAbilityInfo::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
+//{
+//	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+//
+//	DOREPLIFETIME_CONDITION(UGSAbilityInfo, AbilityType, COND_OwnerOnly);
+//	DOREPLIFETIME_CONDITION(UGSAbilityInfo, ActiveAbility, COND_OwnerOnly);
+//}
 
 UTexture2D* UGSAbilityInfo::GetImage()
 {
-	if (AbilityType && AbilityType.GetDefaultObject())
-	{
-		return AbilityType.GetDefaultObject()->AbilityIcon;
-	}
+	//if (AbilityType && AbilityType.GetDefaultObject())
+	//{
+	//	return AbilityType.GetDefaultObject()->AbilityIcon;
+	//}
 	return nullptr;
 }
 
 bool UGSAbilityInfo::OnItemAddedToSlot()
 {
-	if (AbilityType)
-	{
-		ActiveAbility = GetWorld()->SpawnActor<AGSAbility>(AbilityType);
-		ActiveAbility->SetOwner(CurrentOwner);
-		ActiveAbility->SetPawnOwner(OwningPawn);
-		ActiveAbility->SetPlayerController(OwiningPlayerController);
-	}
+	//if (AbilityType)
+	//{
+	//	ActiveAbility = GetWorld()->SpawnActor<AGSAbility>(AbilityType);
+	//	ActiveAbility->SetOwner(CurrentOwner);
+	//	ActiveAbility->SetPawnOwner(OwningPawn);
+	//	ActiveAbility->SetPlayerController(OwiningPlayerController);
+	//}
 	return false;
 }
 bool UGSAbilityInfo::OnItemRemovedFromSlot()
@@ -47,31 +47,31 @@ bool UGSAbilityInfo::OnItemRemovedFromSlot()
 
 bool UGSAbilityInfo::InputPressed_Implementation()
 {
-	if (ActiveAbility)
-	{
-		ActiveAbility->InputPressed();
-		return true;
-	}
+	//if (ActiveAbility)
+	//{
+	//	ActiveAbility->InputPressed();
+	//	return true;
+	//}
 	return false;
 }
 bool UGSAbilityInfo::InputReleased_Implementation()
 {
-	if (ActiveAbility)
-	{
-		ActiveAbility->InputReleased();
-		return true;
-	}
+	//if (ActiveAbility)
+	//{
+	//	ActiveAbility->InputReleased();
+	//	return true;
+	//}
 	return false;
 }
 
 bool UGSAbilityInfo::CanItemBeSwapped()
 {
-	if (ActiveAbility)
-	{
-		if (ActiveAbility->GetIsBeingCast() || ActiveAbility->GetIsOnCooldown())
-		{
-			return false;
-		}
-	}
+	//if (ActiveAbility)
+	//{
+	//	if (ActiveAbility->GetIsBeingCast() || ActiveAbility->GetIsOnCooldown())
+	//	{
+	//		return false;
+	//	}
+	//}
 	return true;
 }

@@ -15,24 +15,24 @@ void UGWTraceBase_LineSingleRanged::TraceLineSingle()
 	FHitResult Impact;
 	GetOuterAGWWeapon()->TargetData.Empty();
 	const FVector AimDir = GetPawnCameraAim();
-	int32 CurrentSeed = 0;
-	if (GetOuterAGWWeapon()->GetNetMode() == ENetMode::NM_Client
-		|| GetOuterAGWWeapon()->GetNetMode() == ENetMode::NM_DedicatedServer)
-	{
-		if (GetOuterAGWWeapon()->Instigator->PlayerState)
-			CurrentSeed = GetOuterAGWWeapon()->Instigator->PlayerState->StartTime;
-	}
-	else if (GetOuterAGWWeapon()->GetNetMode() == ENetMode::NM_Standalone)
-		CurrentSeed = FMath::Rand();
+	//int32 CurrentSeed = 0;
+	//if (GetOuterAGWWeapon()->GetNetMode() == ENetMode::NM_Client
+	//	|| GetOuterAGWWeapon()->GetNetMode() == ENetMode::NM_DedicatedServer)
+	//{
+	//	if (GetOuterAGWWeapon()->Instigator->PlayerState)
+	//		CurrentSeed = GetOuterAGWWeapon()->Instigator->PlayerState->StartTime;
+	//}
+	//else if (GetOuterAGWWeapon()->GetNetMode() == ENetMode::NM_Standalone)
+	//	CurrentSeed = FMath::Rand();
 
-	float ConeHalfAngl = FMath::DegreesToRadians(CurrentSpreadRadius* 0.5f);
-	FRandomStream RandomWeaponStream(CurrentSeed);
-	const FVector ShootDir = RandomWeaponStream.VRandCone(AimDir, ConeHalfAngl,ConeHalfAngl);
+	//float ConeHalfAngl = FMath::DegreesToRadians(CurrentSpreadRadius* 0.5f);
+	//FRandomStream RandomWeaponStream(CurrentSeed);
+	const FVector ShootDir = AimDir; //RandomWeaponStream.VRandCone(AimDir, ConeHalfAngl, ConeHalfAngl);
 
 	if (bTraceFromSocket)
 	{
-		const FVector StartTrace = GetStartLocationFromTargetingSocket();
-		const FVector EndTrace = (GetStartLocationFromTargetingSocket() + ShootDir * Range);
+		const FVector StartTrace = GetStartLocationFromWeaponSocket();
+		const FVector EndTrace = (GetStartLocationFromWeaponSocket() + ShootDir * Range);
 		//const FVector StartTrace = GetStartLocationFromTargetingSocket();
 		//const FVector EndTrace = (GetStartLocationFromTargetingSocket() + ShootDir * Range);
 		Impact = SingleLineRangedTrace(StartTrace, EndTrace);
@@ -53,6 +53,16 @@ void UGWTraceBase_LineSingleRanged::TraceLineSingle()
 		const FVector StartTrace = GetPawnCameraDamageStartLocation(ShootDir);
 		const FVector EndTrace = (StartTrace + ShootDir * Range);
 		Impact = SingleLineRangedTrace(StartTrace, EndTrace);
+		if (Impact.bBlockingHit)
+		{
+			const FVector CorrectStart = GetStartLocationFromWeaponSocket();
+			GetOuterAGWWeapon()->TargetData.Add(Impact);
+			GetOuterAGWWeapon()->SetHitLocation(CorrectStart, Impact.ImpactPoint);
+		}
+		else if (!Impact.bBlockingHit)
+		{
+			GetOuterAGWWeapon()->SetHitLocation(StartTrace, EndTrace);
+		}
 	}
 	
 	//GetOuterAGWWeapon()->TargetData.Add(Impact);

@@ -21,7 +21,6 @@ public class ActionRPGGameServerTarget : TargetRules
 		ref List<string> OutExtraModuleNames
 		)
 	{
-        OutExtraModuleNames.Add("GameTrace");
 		OutExtraModuleNames.Add("GameInventorySystem");
 		OutExtraModuleNames.Add("GameAttributes");
 		OutExtraModuleNames.Add("GameEffectSystem");

@@ -230,7 +230,7 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 		{
 			UGISItemData* TargetItem = LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData;
 			UGISItemData* LastItem = TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData; //Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData;
-			if (!CheckIfCanAddItemToSlot(TargetItem, LastItem))
+			if (!CheckIfCanAddItemToSlot(TargetItem, TargetSlotType.SlotTabIndex, TargetSlotType.SlotIndex, LastItem))
 				return;
 
 			if (!TargetItem->HasAnyMatchingGameplayTags(TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].Tags))
@@ -304,7 +304,7 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 			*/
 			UGISItemData* LastItem = TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData; //Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData;
 			
-			if (!CheckIfCanAddItemToSlot(TargetItem, LastItem))
+			if (!CheckIfCanAddItemToSlot(TargetItem, TargetSlotType.SlotTabIndex, TargetSlotType.SlotIndex, LastItem))
 				return;
 
 			if (!TargetItem->HasAnyMatchingGameplayTags(TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].Tags))
@@ -431,7 +431,8 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 		//ClientSlotSwap(SlotSwapInfo);
 	}
 }
-bool UGISInventoryBaseComponent::CheckIfCanAddItemToSlot(class UGISItemData* TargetDataIn, class UGISItemData* LastDataIn)
+bool UGISInventoryBaseComponent::CheckIfCanAddItemToSlot(class UGISItemData* TargetDataIn, int32 TargetTabIndex, int32 TargetSlotIndex, 
+		class UGISItemData* LastDataIn)
 {
 	return true;
 }

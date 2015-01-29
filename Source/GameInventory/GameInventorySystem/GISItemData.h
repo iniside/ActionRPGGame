@@ -12,7 +12,7 @@
 
 	If you so desire, you can of course just extend any item from this class but I do not recommend it.
 */
-UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInlineNew) // proly don't need that.
+UCLASS(BlueprintType, Blueprintable) // proly don't need that.
 class GAMEINVENTORYSYSTEM_API UGISItemData : public UObject, public IGameplayTagAssetInterface
 {
 	GENERATED_UCLASS_BODY()

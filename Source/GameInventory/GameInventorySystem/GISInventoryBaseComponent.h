@@ -312,7 +312,8 @@ public:
 	/*
 		Override if you want to specify custom conditions under which item can be added to slot.
 	 */
-	virtual bool CheckIfCanAddItemToSlot(class UGISItemData* TargetDataIn, class UGISItemData* LastDataIn);
+	virtual bool CheckIfCanAddItemToSlot(class UGISItemData* TargetDataIn, int32 TargetTabIndex, int32 TargetSlotIndex,
+		class UGISItemData* LastDataIn);
 
 	/*
 		Remove item from slot.

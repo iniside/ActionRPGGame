@@ -2,7 +2,7 @@
 
 #pragma once
 #include "Engine.h"
-#include "GameTrace.h"
+//#include "GameTrace.h"
 
 #include "InputCoreTypes.h"
 

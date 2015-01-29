@@ -1,115 +1,28 @@
 #pragma once
-#include "IGTTrace.h"
-#include "GTGlobalTypes.h"
-#include "GTTraceBase.h"
+#include "IGIPawn.h"
+#include "IGISkeletalMesh.h"
 #include "GASAbility.generated.h"
 
-
-DECLARE_MULTICAST_DELEGATE(FGASOnAbilityCastStart);
-DECLARE_MULTICAST_DELEGATE(FGASOnAbilityCastEnd);
-
-DECLARE_MULTICAST_DELEGATE(FGASOnAbilityPreparationStart);
-DECLARE_MULTICAST_DELEGATE(FGASOnAbilityPreparationEnd);
-UENUM(BlueprintType)
-enum class EGASTraceAbility : uint8
-{
-	Pawn,
-	Avatar,
-
-	Invalid,
-};
-/*
-	Minimum info about target of this ability, to which attach effect.
-*/
-USTRUCT()
-struct FGASCueTargetActorInfo
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY()
-		AActor* TargetActor;
-};
-
-/*
-	Quick prototype!
-*/
-USTRUCT()
-struct FGASCueReplication
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY()
-		int8 Counter;
-
-	UPROPERTY()
-		TArray<AActor*> Targets;
-};
-
-/*
-	This will cover only single hit of ability.
-
-	For AoE effects, spawning actuall effect in center of hit location of
-	AoE, would be probabaly be better solution.
-*/
 USTRUCT(BlueprintType)
-struct FGASAbilityHitInfo
+struct GAMEABILITIES_API FGASHitLocation
 {
 	GENERATED_USTRUCT_BODY()
 public:
-	//force replication, if oany of other properties don't change
 	UPROPERTY()
-		int8 Counter;
-	UPROPERTY(BlueprintReadOnly)
+		int8 HitCounter;
+	UPROPERTY(BlueprintReadOnly, Category = "Hit")
 		FVector Origin;
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category = "Hit")
 		FVector HitLocation;
-	UPROPERTY(BlueprintReadOnly)
-		AActor* HitActor; //need ?
 };
-/*
-	Visual effects, basics:
-	1. Visual effects are only specific to ability.
-	2. Which means they should be connected to the states of ability.
-	3. We can safely assume, that visual effect == particle effect.
-	4. If ability spawn for example some kind of actor, this actor can take care of it's own visual effects.
-	5. We can also assume that people might want to spawn more complicated effects, which
-	would consist of several different componenets (like mesh, particles, decals), What do ?
-	Best solution is to spawn actor, which will contain those effects.
-	
-	So, each state could spawn visual effect actor. This actor would have effects to play, durning this particular 
-	state. If state end, this actor is being destroyed.
-	Effect actor is replicated, so it will display effect for all relevelant players.
 
-	The hard part is to keep this actor in sync, so effect transforms will be updated on each client.
-	If effect is attached to particular location on one player, and that player moves, so should effect.
-	For obvious reasons, it would be best to be updated locally. Once actor is replicated,
-	each client should take care of transforms.
-
-	In practice we need only effects for three states. Preparation, Casting and Executed (when ability casting is
-	finished).
-
-	Note, that final state, where ability is casted (Executed) is bit differentt than previous states,
-	because ability can affect other actors in world (targets), and spawned effect must take care of it.
-
-	It might be simple from spawning explosion, to more complicated like beam connected from
-	causer to target.
-
-	If ability creates presistent effect (or something like Rain of fire) it is responsibity of this effect 
-	to provide visual cues.
-
-	Otherwise there is nothing special in particular regarding this.
-*/
-/*
-	Could be UObject, replicated trough component.
-	But is it worth fuss ?
-*/
-/*
-	Ability code will be refactored! To be in more consistent design with rest of modules.
-*/
 UCLASS(BlueprintType, Blueprintable, DefaultToInstanced)
-class GAMEABILITIES_API AGASAbility : public AActor, public IIGTTrace
+class GAMEABILITIES_API UGASAbility : public UObject, public FTickableGameObject, public IIGIPawn
+	, public IIGISkeletalMesh
 {
-	GENERATED_UCLASS_BODY()
+	GENERATED_BODY()
+	friend class UGASAbilityState;
+	friend class UGASAbilityStateActive;
 	friend class UGASAbilityStateCastingBase;
 	friend class UGASAbilityStateCasting;
 	friend class UGASAbilityStateCastingCharged;
@@ -121,292 +34,35 @@ class GAMEABILITIES_API AGASAbility : public AActor, public IIGTTrace
 	friend class UGASAbilityStatePreparation;
 	friend class UGASAbilityStatePreparationNoPrep;
 	friend class UGASAbilityStatePreparationWaitForInput;
+	
+	friend class UGASTrace;
+	friend class UGASTrace_SingleLineTrace;
+	friend class UGASTrace_SphereTrace;
+
+	friend class UGASAbilityAction;
+
+	friend class UGASAbilityCue;
+
+	friend class UGASAbilityMods;
 public:
-	virtual void Tick(float DeltaSeconds) override;
+	UGASAbility(const FObjectInitializer& ObjectInitializer);
 
+	UPROPERTY(EditAnywhere, Category = "Replication")
+		bool bReplicate;
 
-	virtual void BeginDestroy() override;
-	/*
-		Property here or in states ?
-		CastTime, ChannelTime, period time (Ability pulse, every X seconds while active or while
-		pressed)
-	*/
-protected:
-	/**
-	 *	If true, AbilityHitInfo will be updated every frame.
-	 *
-	 *	Useful for effects, which needs to update position as often as possible,
-	 *	like beam.
-	 */
-	UPROPERTY(EditAnywhere, Category = "Config")
-		bool bUpdateHitLocationEveryFrame;
+	bool bIsNameStable;
 
-	/**
-	 *	Cast time for this ability. How long it will take after pressing input
-	 *	to execute ability.
-	 *	Set 0 for instant cast.
-	 */
-	UPROPERTY(EditAnywhere, Category = "Using")
-		float CastTime;
-
-	/**
-	 *	Used only with channeled state.
-	 *	Indicates how often channeled ability will be triggered.
-	 */
-	UPROPERTY(EditAnywhere, Category = "Using")
-		float PeriodLenght;
-	/**
-	 *	Used only with channeled state.
-	 *	Indicates how many time ability will be triggered.
-	 */
-	UPROPERTY(EditAnywhere, Category = "Using")
-		float PeriodCount;
-
-	/**
-	 *	Ability cooldown.
-	 */
-	UPROPERTY(EditAnywhere, Category = "Using")
-		float CooldownTime;
-
-	/*
-		1 - don't change anything
-		1> - abilities will channel/cast faster
-		<1 - abilities will channel/cast slower
-	*/
-	UPROPERTY()
-		float CastTimeModifier;
-
-	UPROPERTY(EditAnywhere, Category = "Animation")
-		UAnimMontage* CastingMontage; //anim montage or raw animation ?
+	UPROPERTY(BlueprintReadOnly, Category = "Targeting")
+		TArray<FHitResult> TargetData;
 
 	float CurrentCastTime;
-
-	float CurrentCooldownTime;
-
-	bool bIsBeingCast;
-
-	bool bIsOnCooldown;
-public:
-
-	inline const bool GetIsBeingCast() const { return bIsBeingCast; };
-	inline const bool GetIsOnCooldown() const { return bIsOnCooldown; };
-	inline const float GetCurrentCastTime() const { return CurrentCastTime; };
-
-	inline const float GetMaxCastTime() const
-	{
-		if (CastTime > 0)
-		{
-			return CastTime;
-		}
-		else
-		{
-			return PeriodLenght * PeriodCount;
-		}
-	};
-	inline const float GetCooldownTime() const { return CooldownTime; };
-	inline const float GetCurrentCooldownTime() const { return CurrentCooldownTime; };
-protected:
-	/**
-	 *	This will be using to prevent, using other abilities
-	 *	while this ability is currently being used.
-	 *	Unless someone want to launch second ability "pararel" to this one.
-	 */
-
-	/*
-		Quick prototype for effect replication - Begin;
-	*/
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual Cues")
-		UParticleSystem* ParticleEffect;
-	/*
-		Quick prototype for effect replication - End;
-	*/
-	virtual void BeginPlay() override;
-
-	/*
-		These are small helpers, which will help with spawning cosmetics effects (and ending them).
-		technically i would need them for all relevelant states..
-		fortunetly it's not that much of data, simple int8 (byte).
-		technically even 16 bits would be enough as long as I can increcement it beyond 2 ;).
-
-		Also it could be done usig NetMulticast.
-	*/
-protected:
-	UPROPERTY(ReplicatedUsing=OnRep_CastStarted)
-		int8 AbilityCastStarted;
-	UFUNCTION()
-		virtual void OnRep_CastStarted();
-
-	UPROPERTY(ReplicatedUsing = OnRep_CastEnded)
-		int8 AbilityCastEnded;
-	UFUNCTION()
-		virtual void OnRep_CastEnded();
-
-	UPROPERTY(ReplicatedUsing = OnRep_PreparationStarted)
-		int8 PreparationStarted;
-	UFUNCTION()
-		virtual void OnRep_PreparationStarted();
-
-	UPROPERTY(ReplicatedUsing = OnRep_PreparationEnded)
-		int8 PreparationEnd;
-	UFUNCTION()
-		virtual void OnRep_PreparationEnded();
-
-	UPROPERTY(ReplicatedUsing = OnRep_AbilityHitInfo, RepRetry, BlueprintReadOnly, Category ="Hit Info")
-		FGASAbilityHitInfo AbilityHitInfo;
-	UFUNCTION()
-		virtual void OnRep_AbilityHitInfo();
-
-	UPROPERTY(BlueprintReadOnly, Category = "Hit Info")
-		FVector OriginLocation;
-//delegates:
-public:
-	FGASOnAbilityCastStart OnAbilityCastStart;
-	FGASOnAbilityCastEnd OnAbilityCastEnd;
-
-	FGASOnAbilityPreparationStart OnAbilityPreparationStart;
-	FGASOnAbilityPreparationEnd OnAbilityPreparationEnd;
-public:
-	void AbilityCastStart();
-	void AbilityCastEnd();
-	void AbilityPreparationStart();
-	void AbilityPreparationEnd();
-
-	void SetAbilityHitInfo(const FVector& Origin, const FVector& HitLocation, AActor* HitTarget);
-	/*
-		we need to enforce End states on client, RPC or RepNotify ?
-		Because right now, initiating client, and server, essentialy run two unsynchornized versions
-		of the same ability, if we consider the visual effect part.
-
-		It should work for most part if client doesn't trying to cheat
-		or there is no siginificant network lag.
-
-		Worst that can happen is visual effect playing even if ability have not been properly
-		executed, and will do nothoing (it. won't deal any damage).
-
-		So while we probabaly don't need any kind of notification that ability have been 
-		executed properly, we most likely need confirmation,
-		that ability changed state. 
-		Client will change state predictively, and if the result is the same as server
-		nothing will happen.
-
-		If server state is different, it will override current ability state.
-		Or at least it will tell client to stop
-		executing current visual cues ;).
-	*/
-	UFUNCTION(Client, Unreliable)
-		void ClientAbilityCastingEnd();
-	UFUNCTION(Client, Unreliable)
-		void ClientAbilityPreparationEnd();
-
-	/**
-	 *	Control visual effects when ability casting start.
-	 */
-	UFUNCTION(BlueprintNativeEvent, Category = "Visual Cues")
-		void OnAbilityCastStarted();
-	/**
-	 *	Controll visual effects when ability casting is finished.
-	 */
-	UFUNCTION(BlueprintNativeEvent, Category = "Visual Cues")
-		void OnAbilityCastEnded();
-	/**
-	 *	Controll visual effects when ability is in preparation state.
-	 */
-	UFUNCTION(BlueprintNativeEvent, Category = "Visual Cues")
-		void OnAbilityPreperationStarted();
-	/**
-	 *	Controll visual effects when ability preparation state end.
-	 */
-	UFUNCTION(BlueprintNativeEvent, Category = "Visual Cues")
-		void OnAbilityPreperationEnded();
-
-	/**
-	 *	Controll visual effects, when ability hits something.
-	 *	For example with channeled ability it might be used to controll ray origin/hit location.
-	 *	Or for AoE ability it might controll location or AoE visual effect Actor (or whatever
-	 *	ability will spawn to indicate current action).
-	 */
-	UFUNCTION(BlueprintNativeEvent, Category = "Visual Cues")
-		void OnAbilityHit(const FVector& Origin, const FVector& HitLocation, AActor* TargetActor);
-public:
-	inline float GetCooldownTime() { return CurrentCooldownTime; };
-
-	UPROPERTY(EditAnywhere, Category = "Configuration")
-		EGASTraceAbility TraceFrom;
-
-	/**
-	 *	Do we require avatar to be present for this ability to work ?
-	 */
-	UPROPERTY(EditAnywhere, Category = "Configuration")
-		bool bRequireAvatar;
-
-	/*
-		Maximum range of ability.
-	*/
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Configuration")
-		float AbilityRange;
-	/*
-		Radius of ability.
-
-		This I'm not so sure if I want it here. Not all abilities are AoE,
-		but it's useful, for determining sizes of things like targeting helpers.
-
-		More over what if ability is... Wall ? No radial ? Should I also provide
-		Rectangle parameters or should I determine lenght from radius 
-		and depth, being arbitrary or as separate property ?
-
-		Probabaly best option is to move all of it to Trace action where it belgons
-		in first place, and just figure out better way to modify it at runtime.
-	*/
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Configuration")
-		float Radius;
-
-	/*
-		Field size of ability which searches for targets in rectangle.
-	*/
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Configuration")
-		FVector FieldSize;
-
-	UPROPERTY(EditAnywhere, Category = "Ability Cosmetics")
-		FText AbilityName;
-
-	UPROPERTY(EditAnywhere, Category = "Ability Cosmetics")
-		UTexture2D* AbilityIcon;
-
-	UPROPERTY(EditAnywhere, Category = "Ability Cosmetics")
-		FText AbilityDescription;
-	/*
-		Does this ability have preparation stage. Ie. in AoE ability if you press button to activate it
-		you might want to display AoE targetting circle first, and after second input press, activate
-		ability to launch it place where targetting circle is.
-
-		If this is false, ability will launch instantly after button press.
+	float CurrentRechargeTime;
+	UPROPERTY(EditAnywhere, Category = "Using Ability")
+		float CastTime;
+	UPROPERTY(EditAnywhere, Category = "Using Ability")
+		float RechargeTime;
 
 
-		This is probabaly bad idea. What I should do is to add addtional intermediate state. 
-		Which would be called preparation state. It would called after Active state
-		but before activation state. By default, it would slip right trough it
-		and go to activation state. But it could be overriden to perfor specific actions,
-		like display targeting helper, and after another input press it would go to activation state.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Ability")
-		bool bHasPreparationStage;
-
-	/**
-	 *	State Machine Properties Begin
-	 */
-	/*
-		Add  ability to modify timers by outside objects (cast time, period time, etc).
-
-
-
-		1. Add states:
-		a) Channeled Charged and Channeled, which only makes intial trace.
-		Current states will trace new hit location on each period.
-	 */
-	/**
-	*	State used when this ability is active
-	*/
 	UPROPERTY(EditAnywhere, Instanced, Category = "Ability State")
 	class UGASAbilityState* ActiveState;
 	/**
@@ -420,188 +76,180 @@ public:
 	UPROPERTY(EditAnywhere, Instanced, meta = (MetaClass = "UGASAbilityStateCooldown"), Category = "Ability State")
 	class UGASAbilityState* CooldownState;
 	/**
-	 *	State used when ability is activated. After preperation state.
-	 */
+	*	State used when ability is activated. After preperation state.
+	*/
 	UPROPERTY(EditAnywhere, Instanced, meta = (AllowedClasses = "GASAbilityStateCastingBase"), Category = "Ability State")
 	class UGASAbilityState* ActivationState;
 
+	UPROPERTY(EditAnywhere, Instanced, Category = "Targeting")
+	class UGASTrace* Targeting;
 	/*
-		Make It replicated?
+		Should update, hit location every frame ? Useful for properly displaying
+		effects like beams.
 	*/
-	/**/
+	UPROPERTY(EditAnywhere, Category = "Targeting")
+		bool bUpdateHitLocationEveryFrame;
+
 	UPROPERTY()
 	class UGASAbilityState* CurrentState;
-	
-	/**
-	 *	State Machine Properties End
-	 */
 
-	/**
-	 *	Default Targeting action for this ability. Targeting action will gather information about target, 
-	 *	which can be later utilized in blueprint.
-	 *	They might also display targeting helpers (like splines, circles, spheres).
-	 * 
-	 *	Those actions are executed independetly on server and client.
-	 *	Which means they might be out of sync if client suffers immense lag or is trying to cheat.
-	 *	As server have it's own real version of this object running, and does not replicate it for client.
-	 *	Client version is mainly used to help with targeting by displaying various targeting helpers.
-	 *	Play animations, particle effects, depends on how you want to indicate that ability
-	 *	is currently in "targeting" mode and player must press button again to execute it.
-	 *	This possibly could be done in state machine, but action which are point hit
-	 *	don't really need such things.
-	 *	Also while useful it is certainly not critical enough to waste bandwith and CPU on replicating 
-	 *	this object to clients.
-	 */
-
-	UPROPERTY(EditAnywhere, Instanced, Category = "Targeting")
-	class UGTTraceBase* Targeting;
-	/**
-	 *	Add here any ability mods, which should alwyas be precent on this ability.
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "Default Mods")
-		TArray<class UGASAbilityMods*> AbilityMods;
-	
-	/**
-	 *	These mods can be added on runtime. You can also create predefined list of mods
-	 *	which can be activated (constructed) or deactivated (destroyed).
-	 */
-	UPROPERTY(EditAnywhere, Category = "Defaul Mods Classes")
-		TArray<TSubclassOf<class UGASAbilityMods> > AbilityModsClasses;
-
-
-	/**
-	 *	Temporary. Will probabaly need custom struct for it.
-	 *
-	 *	Contains list of current targets for this ability. If there is one, there can be more ;).
-	 *	the list will be prefiltered, by filters specified by designer upon selection proper TargetingAction.
-	 *	Replicated because we will need information about target(s) on client, in order
-	 *  to properly handle visual effects.
-	 */
-	UPROPERTY(BlueprintReadOnly, Replicated, RepRetry, Category = "Target Data")
-		TArray<FHitResult> TargetData;
-
+	UPROPERTY(BlueprintReadOnly)
+	class UGASAbilitiesComponent* AbilityComponent;
 	/*
-		This will be useful for tracing from player eyes. What about AI ?
-		
-		I see two options:
-		1. I add somethig generic here like Actor* and you will to work out chain somehow, to get
-		useful data to trace from. Doesn't really improve situation.
-		2. Extend from this class and add you game specific AI information/tracing here. Which is better
-		as I have no idea what kind of AI you might want or if you want to have any at all.
-
+		Can be null! Though shouldn't be. This component should be attach to pawn at very least.
 	*/
+	UPROPERTY(BlueprintReadOnly)
+	class APawn* POwner;
+	/*
+		Can be null!
+	*/
+	UPROPERTY(BlueprintReadOnly)
+	class APlayerController* PCOwner;
+	/*
+		Can be null!
+	*/
+//	UPROPERTY(BlueprintReadOnly)
+	//class AAIController* AIOwner;
 protected:
-	UPROPERTY()
-		APlayerController* PCOwner;
-
-	UPROPERTY(ReplicatedUsing = OnRep_PawnOwner, BlueprintReadOnly, Category = "Actors")
-		APawn* PawnOwner;
-	UFUNCTION()
-		void OnRep_PawnOwner();
-
+	IIGISkeletalMesh* GISkeletalMesh;
+	bool bShouldTick;
 	/*
-		So we have access to skeletal mesh.
+		Intentionally not replicated, since we will initialize once on server, and once on client
+		when ability will be replicated.
 	*/
-	UPROPERTY()
-		ACharacter* CharOwner;
-	/*
-		Actor which is directly required, for this ability to work.
-		It might be a weapon, player controller or character.
+	bool bIsInitialized;
 
-		I assume for most cases it will be weapon or something similiar since character is
-		covered by PawnOwner, and PlayerController by PCOwner.
-
-		It might be useful for retriving socket location to start tracing from.
-		Mainly for cosmetic purposes. For example to spawn particle effects
-		at location.
-	*/
-	UPROPERTY()
-		AActor* AvatarActor;
-
-	class IIGTSocket* iSocket;
-
-	void ExecuteAbility();
-
-	void ExecuteAbilityPeriod();
-	UFUNCTION(Server, Reliable, WithValidation)	
-		void ServerExecuteAbilityPeriod();
-	
-	void ExecuteTargeting();
-	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerExecuteAbility();
-
+	bool bIsOnCooldown;
 public:
-	inline void SetPlayerController(APlayerController* PCOwnerIn){ PCOwner = PCOwnerIn; }
-	void SetPawnOwner(APawn* PawnOwnerIn);
-	inline void SetAvatarActor(AActor* ActorIn) { AvatarActor = ActorIn; };
-public:
+	void SetTickEnabled(bool ValueIn){ bShouldTick = ValueIn; };
 
-	/** IIGTTrace Begin */
-	virtual FVector GetSocketLocation(FName SocketNameIn);// { return FVector::ZeroVector; };
+	virtual void Initialize();
 
-	virtual APawn* GetPawn() override { return PawnOwner; };
-
-	virtual APlayerController* GetPC() override { return PCOwner; };
-
-	virtual FVector GetLocation() override { return PawnOwner->GetActorLocation(); };
-
-	virtual void SetTargetData(const TArray<FHitResult>& DataIn);
-	virtual TArray<FHitResult>& GetTargetData() override { return TargetData; };
-
-	virtual void SetHitLocation(const FVector& Origin, const FVector& HitLocation, AActor* HitActor) override;
-	/** IIGTTrace End */
-
-	/**
-	 *	State Machine Function Begin
-	 */
-	void GotoState(class UGASAbilityState* NextState);
-
-	inline void GotoActiveState()
-	{
-		GotoState(ActiveState);
-	};
-	/**
-	 *	State Machine Function End
-	 */
-
-	/**
-	 *	Hook it up to input.
-	 */
-	
+	inline bool GetIsInitialized(){ return bIsInitialized; };
 	void InputPressed();
 	void InputReleased();
+	void InputCancel();
+protected:
+	void CancelAbility();
 
-	void ActivateAbility();
-	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerActivateAbility();
-
-	void DeactivateAbility();
-	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerDeactivateAbility();
-
-	void RunPreparationActions();
+	virtual bool CanCommitAbility();
+	virtual void CommitResources();
 
 	/*
-		Override to implement custom check code, which will check if ability can be executed
-		or not.
+		Prepare ability, we go from Active State to Preparation State.
 	*/
-	virtual bool CheckIfCanUseAbility();
-	/**
-	 *	Blueprint Events
-	 */
-	/**
-	 *	Called when ability is Activated (ie. casting finished).
-	 *	Make it overridable in blueprint ? Or just use it to start event graph ?
-	 */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintAuthorityOnly, Category = "Game Abilities")
-		void OnAbilityActivated();
+	virtual void PrepareAbility();
 
-	UFUNCTION(BlueprintImplementableEvent, BlueprintAuthorityOnly, Category = "Game Abilities")
-		void OnAbilityDeactivated();
+	/*
+		Commits ability, which means we will go from PreparationState to ActionState
+	*/
+	virtual bool CommitAbility();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Game Abilities")
-		void OnCooldownStarted();
+	/*
+		We call it from state machine, to actually cast ability.
+	*/
+	void CastAbility();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Game Abilities")
-		void OnCooldownEnded();
+	void CastAbilityInterval();
+
+	void GotoState(class UGASAbilityState* NextState);
+
+	inline void GotoActiveState(){ GotoState(ActiveState); };
+
+	inline void GotoCooldownState(){ GotoState(CooldownState); };
+
+	ENetMode GetNetMode();
+	/*
+		Called when ability finished casting and will be fired.
+
+		Also fired on each interval for channeled abilities ?
+	*/
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnAbilityCasted();
+
+	/*
+		Please note that object does not tick contanstly.
+		Ticking is enabled/disabled on demand.
+	*/
+	/** FTickableGameObject */
+	virtual void Tick(float DeltaTime) override;
+	virtual bool IsTickable() const override;
+	virtual TStatId GetStatId() const override;
+	/* FTickableGameObject **/
+
+	/*
+		Replication
+	*/
+	//
+	bool IsNameStableForNetworking() const override;
+
+	bool IsSupportedForNetworking() const override
+	{
+		return bReplicate;
+	}
+	void SetNetAddressable();
+
+	virtual UWorld* GetWorld() const override;
+
+	virtual FVector GetCorrectedSocketLocation(FName SocketNameIn) { return FVector::ZeroVector; };
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Cosmetic Events")
+		void OnAbilityCastingStarted();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Cosmetic Events")
+		void OnAbilityCastingEnded();
+	//////////////////////////////
+	////// Rep Notifies
+	UPROPERTY(ReplicatedUsing=OnRep_AbilityCastingStarted)
+		int8 AbilityCastingStarted;
+	UFUNCTION()
+		void OnRep_AbilityCastingStarted();
+	UPROPERTY(ReplicatedUsing = OnRep_AbilityCastingEnded)
+		int8 AbilityCastingEnded;
+	UFUNCTION()
+		void OnRep_AbilityCastingEnded();
+
+	UPROPERTY(ReplicatedUsing = OnRep_HitLocation)
+		FGASHitLocation HitLocation;
+	UFUNCTION()
+	void OnRep_HitLocation();
+
+	////// Rep Notifies
+	//////////////////////////////
+
+	void SetHitLocation(const FVector& OriginIn, const FVector& HitLocationIn);
+
+	/** IIGIPawn */
+	virtual APawn* GetGamePawn() { return POwner; }
+	virtual ACharacter* GetGameCharacter() { return nullptr; }
+	virtual AController* GetGameController() { return nullptr; }
+	virtual APlayerController* GetGamePlayerController() { return PCOwner; }
+	/* IIGIPawn **/
+
+	/** IIGISkeletalMesh */
+	virtual USkeletalMeshComponent* GetMasterSkeletalMesh() override 
+	{
+		if (GISkeletalMesh)
+			return GISkeletalMesh->GetMasterSkeletalMesh();
+		return nullptr; 
+	};
+	virtual FVector GetSocketLocation(FName SocketNameIn) override 
+	{
+		if (GISkeletalMesh)
+			return GISkeletalMesh->GetSocketLocation(SocketNameIn);
+		return FVector::ZeroVector; 
+	};
+	/* IIGISkeletalMesh **/
+	/*
+		Clieant pls, end cooldown right now!, I ended mine - Server.
+	*/
+	UFUNCTION(Client, Reliable)
+		void EndCooldown();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Cosmetic Events")
+		void OnAbilityHit(const FVector& OriginOut, const FVector& HitLocationOut);
+
+	virtual void EndCooldown_Implementation();
+private:
+	bool CheckStandalone();
 };

@@ -13,24 +13,7 @@ class IIGTTrace
 {
 	GENERATED_IINTERFACE_BODY()
 public:
-	virtual FVector GetSocketLocation(FName SocketNameIn){ return FVector::ZeroVector; };
-
 	virtual APawn* GetPawn() { return nullptr; };
 
 	virtual APlayerController* GetPC() { return nullptr; };
-
-	virtual FVector GetLocation() { return FVector::ZeroVector; };
-
-	virtual void SetTargetData(const TArray<FHitResult>& DataIn) {};
-
-	virtual TArray<FHitResult>& GetTargetData()
-	{
-		
-		return ret;
-	};
-
-	virtual void SetHitLocation(const FVector& Origin, const FVector& HitLocation, AActor* HitActor){};
-private:
-	//because I need something for GetTargetData().
-	TArray<FHitResult> ret;
 };

@@ -54,7 +54,7 @@ void UBPNode_CreateEffectField::AllocateDefaultPins()
 	UEdGraphPin* LocationPin = CreatePin(EGPD_Input, K2Schema->PC_Struct, TEXT(""), VectorStruct, false, false, FUBPNode_CreateEffectFieldHelper::LocationPinName);
 	K2Schema->ConstructBasicPinTooltip(*LocationPin, LOCTEXT("LocationPinTooltip", "Location at which Effect Field will be spawned"), LocationPin->PinToolTip);
 
-	UEdGraphPin* InstigatorPin = CreatePin(EGPD_Input, K2Schema->PC_Object, TEXT(""), AGASAbility::StaticClass(), false, false, FUBPNode_CreateEffectFieldHelper::InstigatorPinName);
+	UEdGraphPin* InstigatorPin = CreatePin(EGPD_Input, K2Schema->PC_Object, TEXT(""), UGASAbility::StaticClass(), false, false, FUBPNode_CreateEffectFieldHelper::InstigatorPinName);
 	K2Schema->ConstructBasicPinTooltip(*InstigatorPin, LOCTEXT("InstigatorPinTooltip", "Ability which spawned this Effect Field."), InstigatorPin->PinToolTip);
 
 	UEdGraphPin* ResultPin = CreatePin(EGPD_Output, K2Schema->PC_Object, TEXT(""), AGASEffectField::StaticClass(), false, false, K2Schema->PN_ReturnValue);

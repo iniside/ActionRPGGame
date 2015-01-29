@@ -11,5 +11,5 @@ UGASAbilityMods::UGASAbilityMods(const FObjectInitializer& ObjectInitializer)
 }
 UWorld* UGASAbilityMods::GetWorld() const
 {
-	return GetOuterAGASAbility()->GetWorld();
+	return GetOuterUGASAbility()->GetWorld();
 }

@@ -10,8 +10,8 @@ class GAMESYSTEM_API UGSAbilityInfo : public UGISItemData
 {
 	GENERATED_UCLASS_BODY()
 public:
-	UPROPERTY(BlueprintReadWrite, meta=(ExposeOnSpawn), Replicated)
-		TSubclassOf<class AGSAbility> AbilityType;
+	//UPROPERTY(BlueprintReadWrite, meta=(ExposeOnSpawn), Replicated)
+	//	TSubclassOf<class AGSAbility> AbilityType;
 
 	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn))
 		APawn* OwningPawn;
@@ -20,8 +20,8 @@ public:
 		APlayerController* OwiningPlayerController;
 
 	//needed ?
-	UPROPERTY(Replicated)
-	class AGSAbility* ActiveAbility;
+	//UPROPERTY(Replicated)
+	//class AGSAbility* ActiveAbility;
 
 	virtual UTexture2D* GetImage() override;
 
@@ -29,24 +29,24 @@ public:
 	virtual bool OnItemAddedToSlot() override;
 	virtual bool OnItemRemovedFromSlot() override;
 
-	inline const float GetCurrentCooldownTime() const
-	{
-		if (ActiveAbility)
-		{
-			return ActiveAbility->GetCurrentCooldownTime();
-		}
-		return 0;
-	}
+	//inline const float GetCurrentCooldownTime() const
+	//{
+	//	if (ActiveAbility)
+	//	{
+	//		return ActiveAbility->GetCurrentCooldownTime();
+	//	}
+	//	return 0;
+	//}
 
-	inline const float GetCooldownTime() const
-	{
-		if (ActiveAbility)
-		{
-			return ActiveAbility->GetCooldownTime();
-		}
-		return 0;
-	}
-	inline FGSOnSetWeaponsForAbility& GetOnSetWeaponsForAbility(){ return ActiveAbility->OnSetWeaponsForAbility; };
+	//inline const float GetCooldownTime() const
+	//{
+	//	if (ActiveAbility)
+	//	{
+	//		return ActiveAbility->GetCooldownTime();
+	//	}
+	//	return 0;
+	//}
+	//inline FGSOnSetWeaponsForAbility& GetOnSetWeaponsForAbility(){ return ActiveAbility->OnSetWeaponsForAbility; };
 	virtual bool InputPressed_Implementation() override;
 	virtual bool InputReleased_Implementation() override;
 

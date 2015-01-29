@@ -1,4 +1,5 @@
 #pragma once
+#include "GAGlobalTypes.h"
 #include "IGAAttributes.generated.h"
 
 
@@ -19,6 +20,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 		virtual class UGAAttributeComponent* GetAttributeComponent() = 0;
 
+	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
+		virtual float GetAttributeValue(FGAAttribute AttributeIn){ return 0; };
 
 	virtual void Died() {};
 };

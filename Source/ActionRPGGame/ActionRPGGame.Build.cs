@@ -8,8 +8,8 @@ public class ActionRPGGame : ModuleRules
 	{
         PublicIncludePaths.AddRange(
             new string[] {
-                    "GameTrace",
-                    "GameTrace/Public",
+                    "GameInterfaces",
+                    "GameInterfaces/Public",
                     "GameSystem",
                     "GameSystem/Public",
                     "GameAbilities",
@@ -48,7 +48,6 @@ public class ActionRPGGame : ModuleRules
                 "UMG",
                 "Slate",
                 "SlateCore",
-                "GameTrace",
                 "GameInventorySystem", 
 				"GameAttributes",
                 "GameEffectSystem",
@@ -56,7 +55,8 @@ public class ActionRPGGame : ModuleRules
                 "GameplayAbilities",
                 "GameFloatingCombatText",
                 "GameAbilities",
-                "GameSystem"
+                "GameSystem",
+                "GameInterfaces"
 				});
 		if (Target.Type == TargetRules.TargetType.Editor)
         {

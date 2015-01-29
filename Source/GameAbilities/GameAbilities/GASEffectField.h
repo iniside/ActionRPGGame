@@ -45,8 +45,8 @@ public:
 	UPROPERTY(BlueprintReadOnly, meta = (ExposeOnSpawn), Category = "Config")
 		float Lifetime;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Owner")
-	class AGASAbility* AbilityInstigator;
+	//UPROPERTY(BlueprintReadOnly, Category = "Owner")
+	//class AGASAbility* AbilityInstigator;
 
 	void InitializeField();
 

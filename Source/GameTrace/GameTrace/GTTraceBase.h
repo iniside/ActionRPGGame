@@ -50,8 +50,8 @@ public:
 		float Range;
 
 	/**
-	*	Should trace start in socket ? If false it will start from center of screen.
-	*/
+	 *	Should trace start in socket ? If false it will start from center of screen.
+	 */
 	UPROPERTY(EditAnywhere, Category = "Configuration")
 		bool bTraceFromSocket;
 	/**
@@ -81,9 +81,7 @@ public:
 	/**/
 	virtual void Tick(float DeltaSecondsIn);
 
-	void SingleLineTrace();
-
-	void SingleLineTraceSetHitLocation();
+	FHitResult GetSingleHitResult();
 
 	FVector GetSingHitLocation();
 
@@ -102,22 +100,11 @@ public:
 	virtual void PostExecute();
 
 	/**
-	 *	Modify area of effect for area traces, by precentage.
-	 */
-	virtual void ModifyExtendsByPrecentage(float PrcentageIn);
-
-	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
-		void BP_ModiyExtendsByPrcentage(float PrecentageIn);
-
-	/**
 	*	Modify Range of Trace, by precentage value.
 	*/
 	virtual void ModifyRangeByPrecentage(float PrcentageIn);
 
-	virtual void SetTraceRange(float PrcentageIn);
-
-	UFUNCTION(BlueprintCallable, Category = "Game Trace")
-		virtual FVector GetHelperScale();
+	inline void SetTraceRange(float RangeIn){ Range = RangeIn; };
 private:
 	/*
 		Cached Skeletal mesh component from which we will get Start socket location if needed.
@@ -126,8 +113,8 @@ private:
 		USkeletalMeshComponent* CachedSkeletalMesh;
 
 protected:
-	class IIGTTrace* TraceInterface;
-
+	class IIGISkeletalMesh* SkeletalMeshInt;
+	class IIGIPawn* TraceInterface;
 	/*
 		Initialized after Actor::BeginPlay(),
 		to avoid not needed 
@@ -155,6 +142,10 @@ protected:
 	 *	Get start location from pawn camera location.
 	 */
 	FVector GetPawnCameraDamageStartLocation(const FVector& AimDir);
+	/**
+	 *	Get start location from socket on pawn
+	 */
+	FVector GetPawnSocketDamageStartLocation(const FVector& AimDir);
 	/**
 	*	Base single line trace.
 	*/
