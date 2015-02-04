@@ -20,7 +20,7 @@ public:
 	*
 	*  @return value of attribute from actor.
 	*/
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
+	UFUNCTION(BlueprintPure, Category = "Game Attributes")
 		static float GetAttributeFloat(AActor* Target, FGAAttribute AttributeIn);
 	/**
 	 *	Takes attribute, change it and then return it's new value.

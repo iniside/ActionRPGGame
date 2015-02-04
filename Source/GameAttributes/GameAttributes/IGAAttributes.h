@@ -21,7 +21,7 @@ public:
 		virtual class UGAAttributeComponent* GetAttributeComponent() = 0;
 
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
-		virtual float GetAttributeValue(FGAAttribute AttributeIn){ return 0; };
+		virtual float GetAttributeValue(FGAAttribute AttributeIn) const { return 0; };
 
 	virtual void Died() {};
 };

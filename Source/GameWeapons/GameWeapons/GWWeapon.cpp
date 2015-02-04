@@ -42,7 +42,14 @@ void AGWWeapon::InputReleased()
 {
 
 }
+void AGWWeapon::InputAltPressed()
+{
 
+}
+void AGWWeapon::InputAltReleased()
+{
+
+}
 void AGWWeapon::ActionBegin()
 {
 

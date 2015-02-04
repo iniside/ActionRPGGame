@@ -113,10 +113,10 @@ void AGSHUD::DrawHUD()
 		if (CrosshairTrace)
 		{
 			//get location from current weapon!
-			FVector HitLocation = CrosshairTrace->GetSingHitLocation();
-			FVector ScreenLocation = Project(HitLocation);
-			CrossHairPosition.X = ScreenLocation.X;
-			CrossHairPosition.Y = ScreenLocation.Y;
+			//FVector HitLocation = CrosshairTrace->GetSingHitLocation();
+			//FVector ScreenLocation = Project(HitLocation);
+			//CrossHairPosition.X = ScreenLocation.X;
+			//CrossHairPosition.Y = ScreenLocation.Y;
 		}
 		//if (BulletHitTrace)
 		//{

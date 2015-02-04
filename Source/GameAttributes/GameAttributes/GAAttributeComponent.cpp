@@ -26,11 +26,17 @@ void UGAAttributeComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 	AttributeInterface = Cast<IIGAAttributes>(GetOwner());
-	if (DefaultAttributesClass)
+	//if (DefaultAttributesClass)
+	//{
+	//	DefaultAttributes = ConstructObject<UGAAttributesBase>(DefaultAttributesClass, this);
+	//	//DefaultAttributes->SetNetAddressable();
+	//}
+
+	if (DefaultAttributes)
 	{
-		DefaultAttributes = ConstructObject<UGAAttributesBase>(DefaultAttributesClass, this);
-		//DefaultAttributes->SetNetAddressable();
+		DefaultAttributes->InitializeAttributes();
 	}
+
 	if (AttributeMods.Num() > 0)
 	{
 		for (TSubclassOf<UGAAttributeMod> mod : AttributeMods)
@@ -73,20 +79,43 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(UGAAttributeComponent* Causer
 	{
 		Causer->OnAttributeModifed.Broadcast(ModifiedAttribute);
 	}
+	FGAUpdatedAttribute attributeUpdate;
+	attributeUpdate.Attribute = AttributeIn.Attribute;
+	attributeUpdate.NewValue = newValue;
+	OnAttributeUpdated.Broadcast(attributeUpdate);
+
 	MulticastAttributeChanged();
 }
 void UGAAttributeComponent::ModifyAttributesOnTarget(UGAAttributeComponent* Target, FGAAttributeModifier& AttributeIn)
 {
 	//apply possible mods from
-	OnAttributeOutgoing.Broadcast(AttributeIn, AttributeIn);
+	//OnAttributeOutgoing.Broadcast(AttributeIn, AttributeIn); //In, Out. to Complicated.
 	Target->ModifyAttributesOnSelf(this, AttributeIn);
 
-	//ModifiedAttribute.Attribute = AttributeIn.Attribute;
-	//ModifiedAttribute.InstigatorLocation = AttributeIn.Instigator->GetActorLocation();
-	//ModifiedAttribute.TargetLocation = AttributeIn.Target->GetActorLocation();
-	//ModifiedAttribute.ModifiedByValue = AttributeIn.Value;
-	//ModifiedAttribute.Tags = AttributeIn.Tags;
-	//ModifiedAttribute.ReplicationCounter += 1;
+	/*
+		So they idea is this.
+		We iterate over all mods, executing mod function.
+		Incoming attribute is moded, returned, and then moded by next object,
+		in order those objects were added.
+
+		Therepractically two ways of doing it.
+
+		Create one uber function, in C++, which will, do everything,
+		or create lots of small objects.
+
+		Uber function is probabaly better, once you figured stuff out.
+
+		In anycase there two sets of functions, for modiging outgoing changes (from Source).
+		and for modiging incoming changes (On Target).
+
+		Some things, we don't want to be appilied from Source (for example, target damage reduction by source
+		armor)
+	*/
+	for (UGAAttributeMod* mod : AttributeMods)
+	{
+		mod->OnAttributeModifyOut(AttributeIn, AttributeIn); //In, out, 
+		//probabaly should just do return value..
+	}
 
 	//if (GetNetMode() == ENetMode::NM_Standalone)
 	//{

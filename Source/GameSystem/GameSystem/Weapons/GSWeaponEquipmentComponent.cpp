@@ -109,7 +109,7 @@ void UGSWeaponEquipmentComponent::OnRep_MainHandWeapon()
 	if (!MontageToPlay)
 		return;
 	float montageLenght = MontageToPlay->CalculateSequenceLength();
-
+	MontageToPlay->GetSectionLength(0);
 	float multiplier = montageLenght / BaseEquipTime;
 
 	AnimInst->Montage_Play(MontageToPlay, multiplier);
@@ -376,11 +376,11 @@ void UGSWeaponEquipmentComponent::AttachActorTo(AActor* ActorIn, FName& Attached
 }
 /////////////////////////
 ////////// Input Begin
-void UGSWeaponEquipmentComponent::InputLeftWeaponPressed()
+void UGSWeaponEquipmentComponent::InputMainWeaponPressed()
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
-		ServerInputLeftWeaponPressed();
+		ServerInputMainWeaponPressed();
 		if (MainHandWeapon)
 			MainHandWeapon->InputPressed();
 	}
@@ -390,20 +390,20 @@ void UGSWeaponEquipmentComponent::InputLeftWeaponPressed()
 			MainHandWeapon->InputPressed();
 	}
 }
-void UGSWeaponEquipmentComponent::ServerInputLeftWeaponPressed_Implementation()
+void UGSWeaponEquipmentComponent::ServerInputMainWeaponPressed_Implementation()
 {
-	InputLeftWeaponPressed();
+	InputMainWeaponPressed();
 }
-bool UGSWeaponEquipmentComponent::ServerInputLeftWeaponPressed_Validate()
+bool UGSWeaponEquipmentComponent::ServerInputMainWeaponPressed_Validate()
 {
 	return true;
 }
 
-void UGSWeaponEquipmentComponent::InputLeftWeaponReleased()
+void UGSWeaponEquipmentComponent::InputMainWeaponReleased()
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
-		ServerInputLeftWeaponReleased();
+		ServerInputMainWeaponReleased();
 		if (MainHandWeapon)
 			MainHandWeapon->InputReleased();
 	}
@@ -413,20 +413,48 @@ void UGSWeaponEquipmentComponent::InputLeftWeaponReleased()
 			MainHandWeapon->InputReleased();
 	}
 }
-void UGSWeaponEquipmentComponent::ServerInputLeftWeaponReleased_Implementation()
+void UGSWeaponEquipmentComponent::ServerInputMainWeaponReleased_Implementation()
 {
-	InputLeftWeaponReleased();
+	InputMainWeaponReleased();
 }
-bool UGSWeaponEquipmentComponent::ServerInputLeftWeaponReleased_Validate()
+bool UGSWeaponEquipmentComponent::ServerInputMainWeaponReleased_Validate()
 {
 	return true;
 }
 
-void UGSWeaponEquipmentComponent::InputRightWeaponPressed()
+void UGSWeaponEquipmentComponent::InputMainWeaponAltPressed()
+{
+	//if we have offhand weapon it means we can't use alt attack on main
+	//hand weapon.
+	if (OffHandWeapon)
+		return;
+
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		ServerInputMainWeaponAltPressed();
+		if (MainHandWeapon)
+			MainHandWeapon->InputPressed();
+	}
+	else
+	{
+		if (MainHandWeapon)
+			MainHandWeapon->InputPressed();
+	}
+}
+void UGSWeaponEquipmentComponent::ServerInputMainWeaponAltPressed_Implementation()
+{
+	InputMainWeaponAltPressed();
+}
+bool UGSWeaponEquipmentComponent::ServerInputMainWeaponAltPressed_Validate()
+{
+	return true;
+}
+
+void UGSWeaponEquipmentComponent::InputOffWeaponPressed()
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
-		ServerInputRightWeaponPressed();
+		ServerInputOffWeaponPressed();
 		if (OffHandWeapon)
 			OffHandWeapon->InputPressed();
 	}
@@ -436,20 +464,20 @@ void UGSWeaponEquipmentComponent::InputRightWeaponPressed()
 			OffHandWeapon->InputPressed();
 	}
 }
-void UGSWeaponEquipmentComponent::ServerInputRightWeaponPressed_Implementation()
+void UGSWeaponEquipmentComponent::ServerInputOffWeaponPressed_Implementation()
 {
-	InputRightWeaponPressed();
+	InputOffWeaponPressed();
 }
-bool UGSWeaponEquipmentComponent::ServerInputRightWeaponPressed_Validate()
+bool UGSWeaponEquipmentComponent::ServerInputOffWeaponPressed_Validate()
 {
 	return true;
 }
 
-void UGSWeaponEquipmentComponent::InputRightWeaponReleased()
+void UGSWeaponEquipmentComponent::InputOffWeaponReleased()
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
-		ServerInputRightWeaponReleased();
+		ServerInputOffWeaponReleased();
 		if (OffHandWeapon)
 			OffHandWeapon->InputReleased();
 	}
@@ -459,11 +487,11 @@ void UGSWeaponEquipmentComponent::InputRightWeaponReleased()
 			OffHandWeapon->InputReleased();
 	}
 }
-void UGSWeaponEquipmentComponent::ServerInputRightWeaponReleased_Implementation()
+void UGSWeaponEquipmentComponent::ServerInputOffWeaponReleased_Implementation()
 {
-	InputRightWeaponReleased();
+	InputOffWeaponReleased();
 }
-bool UGSWeaponEquipmentComponent::ServerInputRightWeaponReleased_Validate()
+bool UGSWeaponEquipmentComponent::ServerInputOffWeaponReleased_Validate()
 {
 	return true;
 }

@@ -4,7 +4,6 @@
 
 #include "../Items/GSItemWeaponInfo.h"
 
-#include "GESEffect.h"
 #include "GSAbility.h"
 
 UGSAbility::UGSAbility(const FObjectInitializer& ObjectInitializer)
@@ -13,12 +12,6 @@ UGSAbility::UGSAbility(const FObjectInitializer& ObjectInitializer)
 	OnSetWeaponsForAbility.AddUObject(this, &UGSAbility::SetWeaponForAbility);
 
 	OnSetWeaponsForAbility.AddUObject(this, &UGSAbility::SetOnSetWeaponsforability);
-}
-
-
-UGESEffect* UGSAbility::GetCachedEffect()
-{
-	return CachedEffect;
 }
 
 //bool UGSAbility::CheckIfCanUseAbility()

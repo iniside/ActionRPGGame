@@ -27,8 +27,6 @@ public class ActionRPGGameEditor : ModuleRules
             "GameInventorySystemEditor",
             "GameAttributes",
             "GameAttributesEditor",
-            "GameEffectSystem",
-            "GameEffectSystemEditor",
             "GameplayTags",
             "GameplayAbilitiesEditor",
             "AssetTools",

@@ -24,16 +24,38 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		FName AttributeName;
 
+	inline bool operator== (const FGAAttribute& OtherAttribute) const
+	{
+		return (OtherAttribute.AttributeName == AttributeName);
+	}
+
+	inline bool operator!= (const FGAAttribute& OtherAttribute) const
+	{
+		return (OtherAttribute.AttributeName != AttributeName);
+	}
+
 	FGAAttribute()
 	{
 		AttributeName = NAME_None;
 	};
 };
 
+USTRUCT(BlueprintType)
+struct GAMEATTRIBUTES_API FGAUpdatedAttribute
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(BlueprintReadOnly)
+		FGAAttribute Attribute;
+
+	UPROPERTY(BlueprintReadOnly)
+		float NewValue;
+};
+
 /**
  *	Struct defining what attribute to modify, by what value, and how.
  */
-USTRUCT(BlueprintType)
+USTRUCT(BlueprintType, meta = (DisplayName = "Attribute Modifier"))
 struct GAMEATTRIBUTES_API FGAAttributeModifier
 {
 	GENERATED_USTRUCT_BODY()
@@ -136,6 +158,7 @@ public:
 		TWeakObjectPtr<class UGAAttributeComponent> Causer;
 };
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FGAOnAttributeUpdated, const FGAUpdatedAttribute&);
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FGAOnAttributeOutgoing, const FGAAttributeModifier&, FGAAttributeModifier&);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FGAOnAttributeIncoming, const FGAAttributeModifier&, FGAAttributeModifier&);

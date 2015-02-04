@@ -25,15 +25,13 @@ void UGASAbility::Initialize()
 	CurrentState = ActiveState;
 	GISkeletalMesh = Cast<IIGISkeletalMesh>(POwner);
 	Targeting->Initialize();
+	Targeting->SetTraceRange(Range);
+	Targeting->SetTraceArea(AbilityArea);
 	bIsInitialized = true;
 }
 void UGASAbility::InputPressed()
 {
 	PrepareAbility();
-	//OnAbilityCasted();
-	
-	if (CheckStandalone())
-		OnRep_AbilityCastingStarted();
 }
 
 void UGASAbility::InputReleased()
@@ -55,6 +53,16 @@ void UGASAbility::PrepareAbility()
 	//if thee PreaparationState is set to NoPrep it will, go from here straight to CommitAbility();
 	CurrentState->BeginActionSequence();
 }
+void UGASAbility::RunPreparationActions()
+{
+	OnAbilityPrepare();
+	if (Targeting)
+	{
+		Targeting->SetTraceRange(Range);
+		Targeting->SetTraceArea(AbilityArea);
+		Targeting->PreExecute();
+	}
+}
 bool UGASAbility::CommitAbility()
 {
 	bool bAbilityCommited = false;
@@ -65,7 +73,11 @@ bool UGASAbility::CommitAbility()
 	AbilityComponent->bIsAnyAbilityActive = true;
 
 	bAbilityCommited = true;
+	
 	AbilityCastingStarted++;
+	if (CheckStandalone())
+		OnRep_AbilityCastingStarted();
+
 	return bAbilityCommited;
 }
 
@@ -85,7 +97,12 @@ void UGASAbility::CastAbility()
 	AbilityComponent->bIsAnyAbilityActive = false;
 	if (CheckStandalone())
 		OnRep_AbilityCastingEnded();
+
+	Targeting->SetTraceRange(Range);
+	Targeting->SetTraceArea(AbilityArea);
+
 	Targeting->Execute();
+	OnAbilityCastedDel.ExecuteIfBound();
 	OnAbilityCasted();
 }
 
@@ -117,10 +134,13 @@ void UGASAbility::GotoState(class UGASAbilityState* NextState)
 
 void UGASAbility::Tick(float DeltaTime)
 {
-	if (CheckStandalone())
-		Targeting->Tick(DeltaTime);
-	if (bUpdateHitLocationEveryFrame)
-		Targeting->SingleLineTraceSetHitLocation();
+	if (!bIsOnCooldown)
+	{
+		if (CheckStandalone())
+			Targeting->Tick(DeltaTime);
+		if (bUpdateHitLocationEveryFrame)
+			Targeting->SingleLineTraceSetHitLocation();
+	}
 
 	if (CurrentState)
 		CurrentState->Tick(DeltaTime);
@@ -163,6 +183,11 @@ void UGASAbility::SetHitLocation(const FVector& OriginIn, const FVector& HitLoca
 	HitLocation.HitLocation = HitLocationIn;
 	if (CheckStandalone())
 		OnRep_HitLocation();
+}
+
+void UGASAbility::HitTarget(AActor* HitActor, const FVector& HitLocation, const FHitResult& Hit)
+{
+	OnAbilityTargetHit(HitActor, HitLocation, Hit);
 }
 
 void UGASAbility::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const

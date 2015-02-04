@@ -46,6 +46,8 @@ void UGASTrace_SphereTrace::PreExecute()
 	}
 	TargetingHelper = GetWorld()->SpawnActor<AGTTraceDisplayHelper>(TargetingHelperClass);
 	TargetingHelper->TraceAction = this;
+	TargetingHelper->AreaSize = TraceArea;
+	TargetingHelper->OnPostInitialize();
 }
 void UGASTrace_SphereTrace::Execute()
 {
@@ -80,7 +82,7 @@ void UGASTrace_SphereTrace::SphereTrace()
 
 	//don't like it. But sweep is just useless in this scenario.
 	bHit = GetWorld()->OverlapMulti(Overlaps, StartLocation, FQuat::Identity, FCollisionShape::MakeSphere(TraceArea.X), Params, SphereCollisionObjectParams);
-
+	TArray<FHitResult> hitDebugs;
 	for (const FOverlapResult overlap : Overlaps)
 	{
 		FHitResult hit;
@@ -91,14 +93,15 @@ void UGASTrace_SphereTrace::SphereTrace()
 			hit.Location = hit.Actor->GetActorLocation();
 		hit.Location.Z += 50;
 		hit.ImpactPoint = hit.Location;
-		GetOuterUGASAbility()->TargetData.Add(hit);
+		GetOuterUGASAbility()->HitTarget(overlap.Actor.Get(), hit.Location, hit);
+		hitDebugs.Add(hit);
 	}
 
 	if (bDrawDebug)
 	{
-		if (bHit && GetOuterUGASAbility()->TargetData.Last().bBlockingHit)
+		if (bHit && hitDebugs.Last().bBlockingHit)
 		{
-			FVector const BlockingHitPoint = GetOuterUGASAbility()->TargetData.Last().Location;
+			FVector const BlockingHitPoint = hitDebugs.Last().Location;
 			DrawDebugSphere(GetWorld(), StartLocation, TraceArea.X, 32, FColor::Red, false, 2, 0);
 		}
 		else
@@ -106,11 +109,11 @@ void UGASTrace_SphereTrace::SphereTrace()
 			DrawDebugSphere(GetWorld(), StartLocation, TraceArea.X, 32, FColor::Blue, false, 2, 0);
 		}
 
-		int32 HitCount = GetOuterUGASAbility()->TargetData.Num();
+		int32 HitCount = hitDebugs.Num();
 		// draw hits
 		for (int32 HitIdx = 0; HitIdx < HitCount; ++HitIdx)
 		{
-			FHitResult const& Hit = GetOuterUGASAbility()->TargetData[HitIdx];
+			FHitResult const& Hit = hitDebugs[HitIdx];
 			::DrawDebugPoint(GetWorld(), Hit.ImpactPoint, 30, (Hit.bBlockingHit ? FColor::Red : FColor::Green), false, 3, 0);
 		}
 	}

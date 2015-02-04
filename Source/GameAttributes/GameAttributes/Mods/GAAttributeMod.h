@@ -42,6 +42,9 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 		void OnAttributeModifyIn(const FGAAttributeModifier& AttributeParam, FGAAttributeModifier& AttributeIn);
 
+
+
+
 	/*
 		I require these tags to be present, if I'm going to apply any changes.
 	*/

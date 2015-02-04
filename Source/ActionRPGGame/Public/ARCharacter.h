@@ -6,7 +6,7 @@
 
 #include "GAAttributeComponent.h"
 #include "GISInventoryBaseComponent.h" //need for template
-#include "GESEffectComponent.h"
+#include "Effects/GSEffectComponent.h"
 
 #include "Abilities/GSAbilitiesComponent.h"
 
@@ -15,18 +15,15 @@
 #include "GISGlobalTypes.h"
 #include "GISItemData.h"
 
-#include "GESEffectManager.h"
-
 #include "IGAAttributes.h"
-#include "IGESEffect.h"
-#include "IGESEffectManager.h"
+#include "Effects/IGAEffect.h"
 #include "IGIPawn.h"
 #include "Abilities/GSAbilitiesComponent.h"
 
 #include "ARCharacter.generated.h"
 
 UCLASS(config=Game)
-class AARCharacter : public AGSCharacter, public IIGAAttributes, public IIGESEffect, public IIGESEffectManager,
+class AARCharacter : public AGSCharacter, public IIGAAttributes, public IIGAEffect,
 	public IIGIPawn
 {
 	GENERATED_BODY()
@@ -45,7 +42,7 @@ class AARCharacter : public AGSCharacter, public IIGAAttributes, public IIGESEff
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes", meta = (AllowPrivateAccess = "true"))
 	class UGAAttributeComponent* Attributes;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Effects", meta = (AllowPrivateAccess = "true"))
-	class UGESEffectComponent* GameEffects;
+	class UGSEffectComponent* GameAttributeEffects;
 
 	UPROPERTY()
 	class AARPlayerController* ARPController;
@@ -58,16 +55,13 @@ public:
 		virtual class UGAAttributeComponent* GetAttributeComponent() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
-		virtual float GetAttributeValue(FGAAttribute AttributeIn);
+		virtual float GetAttributeValue(FGAAttribute AttributeIn) const;
 	/** IIGAAttributes End */
 
-	/** IIGESEffect Begin */
+	/** IGAEffect Begin */
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
-		virtual class UGESEffectComponent* GetEffectComponent();
-
-	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
-		virtual class UGESEffectManager* GetEffectManager();
-	/** IIGESEffect End */
+		virtual class UGAEffectComponent* GetEffectComponent();
+	/** IGAEffect End */
 
 	/** IIGIPawn */
 	virtual APawn* GetGamePawn() override { return this; };

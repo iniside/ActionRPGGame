@@ -6,5 +6,7 @@ UCLASS(BlueprintType, Blueprintable)
 class GAMESYSTEM_API UGSAbilitySlotWidget : public UUserWidget
 {
 	GENERATED_UCLASS_BODY()
-
+public:
+	UPROPERTY(BlueprintReadOnly, Category = "UI")
+		class UGSAbilityWidget* Ability;
 };

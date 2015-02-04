@@ -8,7 +8,6 @@
 
 #include "GAGlobalTypes.h"
 
-#include "IGESEffectManager.h"
 #include "GSAbility.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FGSOnSetWeaponsForAbility, class UGSItemWeaponInfo*, class UGSItemWeaponInfo*);
@@ -25,19 +24,15 @@ public:
 };
 
 UCLASS(BlueprintType, Blueprintable)
-class GAMESYSTEM_API UGSAbility : public UGASAbility, public IIGESEffectManager, public IIGSCue
+class GAMESYSTEM_API UGSAbility : public UGASAbility, public IIGSCue
 {
 	GENERATED_UCLASS_BODY()
 public:
-	float deleteMe;
-	
+	UPROPERTY(EditAnywhere, Category = "UI")
+		UTexture2D* AbilityIcon;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Info")
 		TArray<FGSAbilityCost> AttributeCost;
-
-	class UGESEffect* GetCachedEffect();
-private:
-	UPROPERTY()
-	class UGESEffect* CachedEffect;
 
 protected:
 	/*

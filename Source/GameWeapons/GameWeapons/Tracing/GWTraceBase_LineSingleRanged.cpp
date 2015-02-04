@@ -45,7 +45,8 @@ void UGWTraceBase_LineSingleRanged::TraceLineSingle()
 		}
 		else if (!Impact.bBlockingHit)
 		{
-			GetOuterAGWWeapon()->SetHitLocation(StartTrace, EndTrace);
+			const FVector CorrectStart = GetStartLocationFromWeaponSocket();
+			GetOuterAGWWeapon()->SetHitLocation(CorrectStart, EndTrace);
 		}
 	}
 	else
@@ -61,7 +62,8 @@ void UGWTraceBase_LineSingleRanged::TraceLineSingle()
 		}
 		else if (!Impact.bBlockingHit)
 		{
-			GetOuterAGWWeapon()->SetHitLocation(StartTrace, EndTrace);
+			const FVector CorrectStart = GetStartLocationFromWeaponSocket();
+			GetOuterAGWWeapon()->SetHitLocation(CorrectStart, EndTrace);
 		}
 	}
 	

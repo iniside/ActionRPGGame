@@ -55,7 +55,7 @@ void UBPNode_SpawnCueActor::AllocateDefaultPins()
 	K2Schema->ConstructBasicPinTooltip(*LocationPin, LOCTEXT("LocationPinTooltip", "Location at which Effect Field will be spawned"), LocationPin->PinToolTip);
 
 	UEdGraphPin* InstigatorPin = CreatePin(EGPD_Input, K2Schema->PC_Object, TEXT(""), AActor::StaticClass(), false, false, FBPNode_SpawnCueActorHelper::InstigatorPinName);
-	K2Schema->ConstructBasicPinTooltip(*InstigatorPin, LOCTEXT("InstigatorPinTooltip", "Actor which spawned this field. Must implement IIGSEffectField Interface."), InstigatorPin->PinToolTip);
+	K2Schema->ConstructBasicPinTooltip(*InstigatorPin, LOCTEXT("InstigatorPinTooltip", "Actor which spawned this field. Must implement IIGSCue Interface."), InstigatorPin->PinToolTip);
 
 	UEdGraphPin* ResultPin = CreatePin(EGPD_Output, K2Schema->PC_Object, TEXT(""), AGSPersistentCue::StaticClass(), false, false, K2Schema->PN_ReturnValue);
 	K2Schema->ConstructBasicPinTooltip(*ResultPin, LOCTEXT("ResultPinDescription", "The  spawned Effect Field"), ResultPin->PinToolTip);
@@ -197,7 +197,7 @@ FText UBPNode_SpawnCueActor::GetNodeTitle(ENodeTitleType::Type TitleType) const
 }
 FText UBPNode_SpawnCueActor::GetTooltipText() const
 {
-	return FText::FromString("Create new Visual Cue");
+	return FText::FromString("Spawn New Visual Cue");
 }
 //Set context menu category in which our node will be present.
 FText UBPNode_SpawnCueActor::GetMenuCategory() const
@@ -210,8 +210,8 @@ void UBPNode_SpawnCueActor::GetMenuEntries(FGraphContextMenuBuilder& ContextMenu
 	UBPNode_SpawnCueActor* TemplateNode = NewObject<UBPNode_SpawnCueActor>(GetTransientPackage(), GetClass());
 
 	const FString Category = TEXT("Game System");
-	const FText   MenuDesc = LOCTEXT("CreateVisualCueMenuOption", "Create Visual Cue");
-	const FString Tooltip = TEXT("Create a new Visual Cue");
+	const FText   MenuDesc = LOCTEXT("CreateVisualCueMenuOption", "Spawn Visual Cue");
+	const FString Tooltip = TEXT("Spawn New Visual Cue");
 
 	TSharedPtr<FEdGraphSchemaAction_K2NewNode> NodeAction = FK2ActionMenuBuilder::AddNewNodeAction(ContextMenuBuilder, Category, MenuDesc, Tooltip);
 	NodeAction->NodeTemplate = TemplateNode;

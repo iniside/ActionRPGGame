@@ -1,6 +1,9 @@
 #pragma once
 #include "UserWidget.h"
 #include "GSAbilityCastTimeWidget.generated.h"
+
+
+
 /*
 	Base class to show abilities in UI.
 */
@@ -15,6 +18,10 @@ public:
 	class UGSAbilitiesComponent* AbilityComponent;
 
 protected:
+	int32 CurrentAbilityIndex;
+public:
+	void MarkWidgetDirty();
+protected:
 	UFUNCTION(BlueprintCallable, Category = "Cast Time")
 		float const GetCurrentCastTime() const;
 	UFUNCTION(BlueprintCallable, Category = "Cast Time")
@@ -23,4 +30,7 @@ protected:
 protected:
 	void OnAbilityCastStarted();
 	void OnAbilityCastFinished();
+	UFUNCTION()
+	void Del_OnAbilityChangedIndex(int32 IndexIn);
+
 };

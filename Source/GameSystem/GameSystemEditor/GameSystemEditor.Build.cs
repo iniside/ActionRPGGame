@@ -21,13 +21,10 @@ namespace UnrealBuildTool.Rules
                     "GameAbilitiesEditor",
                     "GameAbilitiesEditor/Public",
                     "GameAttributes",
+					"GameAttributes/Effects",
                     "GameAttributes/Public",
                     "GameAttributesEditor",
                     "GameAttributesEditor/Public",
-                    "GameEffectSystem",
-                    "GameEffectSystem/Public",
-                    "GameEffectSystemEditor",
-                    "GameEffectSystemEditor/Public",
                     "GameInventorySystem",
                     "GameInventorySystem/Public",
                     "GameInventorySystemEditor",
@@ -46,8 +43,6 @@ namespace UnrealBuildTool.Rules
                     "GameAbilitiesEditor/Private",
                     "GameAttributes/Private",
                     "GameAttributesEditor/Private",
-                    "GameEffectSystem/Private",
-                    "GameEffectSystemEditor/Private",
                     "GameInventorySystem/Private",
                     "GameInventorySystemEditor/Private",
 					// ... add other private include paths required here ...
@@ -77,11 +72,9 @@ namespace UnrealBuildTool.Rules
                     "GameWeapons",
                     "GameWeaponsEditor",
                     "GameAttributes",
-                    "GameEffectSystem",
                     "GameInventorySystem",
                     "GameAbilitiesEditor",
                     "GameAttributesEditor",
-                    "GameEffectSystemEditor",
                     "GameInventorySystemEditor"
 					// ... add other public dependencies that you statically link with here ...
 				}

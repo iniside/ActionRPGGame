@@ -37,6 +37,8 @@ void UGASAbilitiesComponent::InitializeComponent()
 void UGASAbilitiesComponent::InputPressed(int32 AbilityId)
 {
 	//if we can't activate ability there is no reason to go further.
+	if (AbilityId < 0)
+		return;
 	if (!CanActivateAbility())
 		return;
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)

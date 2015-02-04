@@ -21,8 +21,8 @@ public:
 	/*
 		Temprorary hack. Direct inline spawning of object on ActorComponents doesn't work!
 	*/
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, meta=(ExposedOnSpawn))
-		TSubclassOf<class UGAAttributesBase> DefaultAttributesClass;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, meta=(ExposedOnSpawn))
+	//	TSubclassOf<class UGAAttributesBase> DefaultAttributesClass;
 
 
 	UPROPERTY(EditAnywhere, Category = "Attribute Mods")
@@ -61,7 +61,12 @@ public:
 
 	FGAOnAttributeIncoming OnAttributeIncoming;
 	/*
-		Two functions, They will allow to appl any static numerical mods from player who
+		I'm not entirely sure if this should be here. Just sayin.
+	*/
+	FGAOnAttributeUpdated OnAttributeUpdated;
+
+	/*
+		Two functions, They will allow to apply any static numerical mods from player who
 		initiated attribute change, and from player who will be affected by change.
 
 		Mods will be appiled by small objects, and changed against tags.

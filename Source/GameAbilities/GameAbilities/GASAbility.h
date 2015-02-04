@@ -15,6 +15,12 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Hit")
 		FVector HitLocation;
 };
+/*
+	1. Add linked (sequence) abilities. Which means, when user press input, and ability is executed,
+	next ability is queued and wait for input, without triggering cost/cooldown, but still
+	might trigger cast time. (or probabaly left it as configuration options)
+*/
+DECLARE_DELEGATE(FGASOnAbilityCasted)
 
 UCLASS(BlueprintType, Blueprintable, DefaultToInstanced)
 class GAMEABILITIES_API UGASAbility : public UObject, public FTickableGameObject, public IIGIPawn
@@ -62,6 +68,27 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Using Ability")
 		float RechargeTime;
 
+	UPROPERTY(EditAnywhere, Category = "Area")
+		float Range;
+	/*
+		Sphere:
+		1. X - Radius
+		Box:
+		1. Just like box.
+		Capsule:
+		1. X - Radius
+		2. Y - Height (total!).
+	*/
+	UPROPERTY(EditAnywhere, Category = "Area")
+		FVector AbilityArea;
+	
+	/*
+		Where to spawn effects for ability or projectile.
+
+		It can be socket on Pawn or on weapon.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Area")
+		FName SpawnSocketName;
 
 	UPROPERTY(EditAnywhere, Instanced, Category = "Ability State")
 	class UGASAbilityState* ActiveState;
@@ -110,6 +137,12 @@ public:
 	*/
 //	UPROPERTY(BlueprintReadOnly)
 	//class AAIController* AIOwner;
+
+	/*
+		Single cast delegate called on server, and client.
+		On client it's used to provide information for UI.
+	*/
+	FGASOnAbilityCasted OnAbilityCastedDel;
 protected:
 	IIGISkeletalMesh* GISkeletalMesh;
 	bool bShouldTick;
@@ -129,6 +162,8 @@ public:
 	void InputPressed();
 	void InputReleased();
 	void InputCancel();
+
+	virtual UWorld* GetWorld() const override;
 protected:
 	void CancelAbility();
 
@@ -158,7 +193,15 @@ protected:
 
 	inline void GotoCooldownState(){ GotoState(CooldownState); };
 
+	void RunPreparationActions();
+
 	ENetMode GetNetMode();
+	/*
+		Called when ability is entering preparation state.
+		Useful for setup, things like 
+	*/
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnAbilityPrepare();
 	/*
 		Called when ability finished casting and will be fired.
 
@@ -166,6 +209,15 @@ protected:
 	*/
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnAbilityCasted();
+
+
+	void HitTarget(AActor* HitActor, const FVector& HitLocation, const FHitResult& Hit);
+	/*
+		Called when something is hit by ability. Can be called multiple times, if
+		ability hit multiple actors!
+	*/
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnAbilityTargetHit(AActor* HitActor, const FVector& HitLocation, const FHitResult& Hit);
 
 	/*
 		Please note that object does not tick contanstly.
@@ -189,13 +241,26 @@ protected:
 	}
 	void SetNetAddressable();
 
-	virtual UWorld* GetWorld() const override;
-
 	virtual FVector GetCorrectedSocketLocation(FName SocketNameIn) { return FVector::ZeroVector; };
+	/*
+		Called when ability is commited (started casting). Probabaly best used to start playing
+		montage, and attach effects, to pawn mesh, as.
 
+		Best practives:
+		1. When you spawn new effects components, always store it in variable, to have
+		reference, you can later use. The same goes for actors, and any other objects.
+		Yes there is garbage collector, but it doesn't work instantly ;).
+		2. This reference can be used to destroy effect immidietly when it's not needed, so
+		it won't linger in world.
+		3. You can also use this reference to modify any effects/animations over time
+		to create more complex effects.
+	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Cosmetic Events")
 		void OnAbilityCastingStarted();
-
+	/*
+		Called when ability casting is finished. You can use it to cleanup, or spawn additional
+		effects, indicating that ability casting is finished.
+	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Cosmetic Events")
 		void OnAbilityCastingEnded();
 	//////////////////////////////
@@ -218,7 +283,7 @@ protected:
 	//////////////////////////////
 
 	void SetHitLocation(const FVector& OriginIn, const FVector& HitLocationIn);
-
+public:
 	/** IIGIPawn */
 	virtual APawn* GetGamePawn() { return POwner; }
 	virtual ACharacter* GetGameCharacter() { return nullptr; }
@@ -236,7 +301,7 @@ protected:
 	virtual FVector GetSocketLocation(FName SocketNameIn) override 
 	{
 		if (GISkeletalMesh)
-			return GISkeletalMesh->GetSocketLocation(SocketNameIn);
+			return GISkeletalMesh->GetSocketLocation(SpawnSocketName);
 		return FVector::ZeroVector; 
 	};
 	/* IIGISkeletalMesh **/
@@ -246,6 +311,10 @@ protected:
 	UFUNCTION(Client, Reliable)
 		void EndCooldown();
 
+	/*
+		Use it to spawn cosmetics effects. Trails, impact effects, 
+		ability irigin effects etc.
+	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Cosmetic Events")
 		void OnAbilityHit(const FVector& OriginOut, const FVector& HitLocationOut);
 

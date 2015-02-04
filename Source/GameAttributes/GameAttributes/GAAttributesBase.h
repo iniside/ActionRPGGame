@@ -2,16 +2,38 @@
 #include "GAGlobalTypes.h"
 #include "GAAttributesBase.generated.h"
 
+
+/*
+
+	Execute effmod object linearlly in single iteration every time appropertiate attribute is modified.
+*/
 UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInlineNew)
 class GAMEATTRIBUTES_API UGAAttributesBase : public UObject
 {
 	GENERATED_UCLASS_BODY()
 public:
 	~UGAAttributesBase();
+
+	virtual void InitializeAttributes();
+
+	UFUNCTION(BlueprintImplementableEvent, meta = (FriendlyName = "Initialize Attributes"))
+		bool BP_InitializeAttributes();
+	/*
+		Updates attributes.
+		@param AttributeIn - attribute which changed value.
+
+		You can use this function to update other attributes (for example derived ones),
+		based on the primary attribute, if the primary attribute (AttributeIn), changed.
+
+		I have yet to fully figure out how do I want it to work. But one thing for certain is
+		that it must be fully functional from within blueprint.
+	*/
+	virtual void UpdateAttributes(const FGAAttribute& AttributeIn);
 private:
 	UProperty* FindProperty(const FGAAttribute& AttributeIn);
 
 public:
+
 	//UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 
 	/*

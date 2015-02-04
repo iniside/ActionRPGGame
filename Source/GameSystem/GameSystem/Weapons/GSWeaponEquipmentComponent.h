@@ -231,29 +231,35 @@ public:
 
 	/////////////////////////
 	////////// Input Begin
-	void InputLeftWeaponPressed();
+	void InputMainWeaponPressed();
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerInputLeftWeaponPressed();
-	void ServerInputLeftWeaponPressed_Implementation();
-	bool ServerInputLeftWeaponPressed_Validate();
+		void ServerInputMainWeaponPressed();
+	void ServerInputMainWeaponPressed_Implementation();
+	bool ServerInputMainWeaponPressed_Validate();
 
-	void InputLeftWeaponReleased();
+	void InputMainWeaponReleased();
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerInputLeftWeaponReleased();
-	void ServerInputLeftWeaponReleased_Implementation();
-	bool ServerInputLeftWeaponReleased_Validate();
+		void ServerInputMainWeaponReleased();
+	void ServerInputMainWeaponReleased_Implementation();
+	bool ServerInputMainWeaponReleased_Validate();
 
-	void InputRightWeaponPressed();
+	void InputMainWeaponAltPressed();
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerInputRightWeaponPressed();
-	void ServerInputRightWeaponPressed_Implementation();
-	bool ServerInputRightWeaponPressed_Validate();
+		void ServerInputMainWeaponAltPressed();
+	void ServerInputMainWeaponAltPressed_Implementation();
+	bool ServerInputMainWeaponAltPressed_Validate();
 
-	void InputRightWeaponReleased();
+	void InputOffWeaponPressed();
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerInputRightWeaponReleased();
-	void ServerInputRightWeaponReleased_Implementation();
-	bool ServerInputRightWeaponReleased_Validate();
+		void ServerInputOffWeaponPressed();
+	void ServerInputOffWeaponPressed_Implementation();
+	bool ServerInputOffWeaponPressed_Validate();
+
+	void InputOffWeaponReleased();
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerInputOffWeaponReleased();
+	void ServerInputOffWeaponReleased_Implementation();
+	bool ServerInputOffWeaponReleased_Validate();
 	////////// Input End
 	////////////////////////////
 

@@ -69,6 +69,9 @@ public:
 		int32 NumberOfSlots;
 };
 
+DECLARE_DELEGATE(FGSOnAbilityAddedToSet);
+DECLARE_DELEGATE_OneParam(FGSOnGetAbilityIndex, int32);
+
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
 class GAMESYSTEM_API UGSAbilitiesComponent : public UGASAbilitiesComponent
 {
@@ -76,9 +79,10 @@ class GAMESYSTEM_API UGSAbilitiesComponent : public UGASAbilitiesComponent
 public:
 	UGSAbilitiesComponent(const FObjectInitializer& ObjectInitializer);
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_OwnedAbilities)
 		TArray<FGSAvailableAbilities> OwnedAbilities;
-
+	UFUNCTION()
+		void OnRep_OwnedAbilities();
 	/*
 		Contains list of abilities which can be activated trough
 		input binding or UI.
@@ -87,11 +91,31 @@ public:
 	UPROPERTY(Replicated)
 		TArray<FGSAbilitiesSets> AbilitySets;
 
-	UPROPERTY(EditAnywhere, Category = "UI")
+	UPROPERTY(EditAnywhere, Category = "Action Bar UI")
 		TSubclassOf<class UGSAbilityContainerWidget> AbilityContainerClass;
 
-	UPROPERTY(BlueprintReadOnly, Category = "UI")
+	UPROPERTY(EditAnywhere, Category = "Action Bar UI")
+		TSubclassOf<class UGSAbilityTabWidget> AbilityTabClass;
+
+	UPROPERTY(EditAnywhere, Category = "Action Bar UI")
+		TSubclassOf<class UGSAbilitySlotWidget> AbilitySlotClass;
+
+	UPROPERTY(EditAnywhere, Category = "Action Bar UI")
+		TSubclassOf<class UGSAbilityWidget> AbilityWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category = "Action Bar UI")
+		ESlateVisibility ActionBarVisibility;
+	UPROPERTY(EditAnywhere, Category = "Action Bar UI")
+		FName ActionBarAbilitySlotName;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Action Bar UI")
 		UGSAbilityContainerWidget* AbilityContainer;
+	
+	UPROPERTY(EditAnywhere, Category = "UI")
+		TSubclassOf<class UGSAbilityCastTimeWidget> CastTimeWidgetClass;
+
+	UPROPERTY(BlueprintReadOnly, Category = "UI")
+		UGSAbilityCastTimeWidget* CastTimeWidget;
 	/*
 		One element in array is one Set.
 		Think of set like hotbar, or something like that ;).
@@ -100,15 +124,32 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, Category = "UI Config")
 		TArray<FGSActiveAbilitiesSlotConfig> ActivatableAbilitiesConfig;
+	
+	FGSOnAbilityAddedToSet OnAbilityAddedToSet;
+
+	FGSOnGetAbilityIndex OnGetAbilityIndex;
+protected:
+	int32 CurrentAbility;
+public:
 	virtual void InitializeComponent() override;
+	inline class UGSAbility* GetGSAbility(int32 IndexIn);
 	/*
 		Another variant of Input for activating abilities.
 	*/
 	void InputPressed(int32 SetIndex, int32 SlotIndex);
 	void InputReleased(int32 SetIndex, int32 SlotIndex);
 
+	UFUNCTION(BlueprintCallable, Category = "Abilities Test")
+	void BP_AddAbilityToSlot(int32 TargetSetIndex, int32 TargetSlotIndex, int32 AbilityIndex);
+
+	void AddAbilityToSlot(int32 TargetSetIndex, int32 TargetSlotIndex, int32 AbilityIndex);
+	void AddAbilityToSlot(int32 TargetSetIndex, int32 TargetSlotIndex,
+		 int32 LastSetIndex, int32 LastSlotIndex, int32 AbilityIndex);
 private:
 	void InitializeActivatableAbilities();
+
+	UFUNCTION()
+		void Del_OnAbilityCasted();
 };
 
 

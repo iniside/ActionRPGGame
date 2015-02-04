@@ -17,6 +17,15 @@ UGAAttributesBase::~UGAAttributesBase()
 	CachedFloatPropety = nullptr;
 }
 
+void UGAAttributesBase::InitializeAttributes()
+{
+	BP_InitializeAttributes();
+}
+void UGAAttributesBase::UpdateAttributes(const FGAAttribute& AttributeIn)
+{
+
+}
+
 UProperty* UGAAttributesBase::FindProperty(const FGAAttribute& AttributeIn)
 {
 	//if new attribute name is the same as last attribute name and pointer to last property

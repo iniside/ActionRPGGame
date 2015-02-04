@@ -13,7 +13,5 @@ class IIGTTrace
 {
 	GENERATED_IINTERFACE_BODY()
 public:
-	virtual APawn* GetPawn() { return nullptr; };
-
-	virtual APlayerController* GetPC() { return nullptr; };
+	virtual class UGTTraceBase* GetTraceObject() { return nullptr; }
 };

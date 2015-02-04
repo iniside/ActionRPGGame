@@ -14,6 +14,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Game Trace")
 	class UGTTraceBase* TraceAction;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Config")
+		FVector AreaSize;
+
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnPostInitialize();
 };

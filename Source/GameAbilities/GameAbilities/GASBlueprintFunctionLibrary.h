@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Projectiles/GASProjectileGlobals.h"
 #include "GASBlueprintFunctionLibrary.generated.h"
 /*
 	Some static helper functions, to interact with Attribute system.
@@ -28,4 +28,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System", meta = (UnsafeDuringActorConstruction = "true", BlueprintInternalUseOnly = "true"))
 		static class AGASEffectField* FinishCreateEffectField(class AGASEffectField* EffectField);
+
+
+	UFUNCTION(BlueprintCallable, Category = "Game Ability System|Projectiles", meta = (UnsafeDuringActorConstruction = "true", BlueprintInternalUseOnly = "true"))
+		static class AGASProjectile* BeginSpawnProjectile(TSubclassOf<class AGASProjectile> ProjectileClass
+		, const FGASProjectileConfig& Config
+		, class UGASAbility* AbilityInstigator);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Ability System|Projectiles", meta = (UnsafeDuringActorConstruction = "true", BlueprintInternalUseOnly = "true"))
+		static class AGASProjectile* FinishSpawnProjectile(class AGASProjectile* Projectile);
 };

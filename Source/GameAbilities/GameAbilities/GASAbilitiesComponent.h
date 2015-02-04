@@ -71,6 +71,11 @@ public:
 
 	virtual void InitializeComponent() override;
 
+	inline class UGASAbility* GetGASAbility(int32 IndexIn)
+	{
+		return InstancedAbilities[IndexIn].ActiveAbility;
+	}
+
 	void InputPressed(int32 AbilityId);
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerInputPressed(int32 AbilityId);

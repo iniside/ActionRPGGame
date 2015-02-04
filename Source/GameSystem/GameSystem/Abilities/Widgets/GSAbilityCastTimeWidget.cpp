@@ -10,15 +10,23 @@
 UGSAbilityCastTimeWidget::UGSAbilityCastTimeWidget(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
+	CurrentAbilityIndex = INDEX_NONE;
 }
 
 void UGSAbilityCastTimeWidget::InitializeWidget()
 {
-
+	AbilityComponent->OnGetAbilityIndex.BindUObject(this, &UGSAbilityCastTimeWidget::Del_OnAbilityChangedIndex);
 }
-
+void UGSAbilityCastTimeWidget::MarkWidgetDirty()
+{
+	CurrentAbilityIndex = INDEX_NONE;
+}
 float const UGSAbilityCastTimeWidget::GetCurrentCastTime() const
 {
+	if (CurrentAbilityIndex != INDEX_NONE)
+	{
+		return AbilityComponent->GetGASAbility(CurrentAbilityIndex)->CurrentCastTime;
+	}
 	//if (AbilityComponent && AbilityComponent->ActiveAbility)
 	//{
 	//	return AbilityComponent->ActiveAbility->GetCurrentCastTime();
@@ -28,6 +36,10 @@ float const UGSAbilityCastTimeWidget::GetCurrentCastTime() const
 
 float const UGSAbilityCastTimeWidget::GetMaxCastTime() const
 {
+	if (CurrentAbilityIndex != INDEX_NONE)
+	{
+		return AbilityComponent->GetGASAbility(CurrentAbilityIndex)->CastTime;
+	}
 	//if (AbilityComponent && AbilityComponent->ActiveAbility)
 	//{
 	//	return AbilityComponent->ActiveAbility->GetMaxCastTime();
@@ -43,4 +55,9 @@ void UGSAbilityCastTimeWidget::OnAbilityCastStarted()
 void UGSAbilityCastTimeWidget::OnAbilityCastFinished()
 {
 
+}
+
+void UGSAbilityCastTimeWidget::Del_OnAbilityChangedIndex(int32 IndexIn)
+{
+	CurrentAbilityIndex = IndexIn;
 }

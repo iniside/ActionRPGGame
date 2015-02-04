@@ -68,6 +68,9 @@ public:
 	virtual void InputPressed();
 	virtual void InputReleased();
 
+	virtual void InputAltPressed();
+	virtual void InputAltReleased();
+
 	virtual void ActionBegin();
 	virtual void ActionEnd();
 	virtual void BeginCustomization();

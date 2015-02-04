@@ -30,16 +30,6 @@
 			"LoadingPhase": "Default"
 		},
 		{
-			"Name": "GameEffectSystem",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
-		},
-		{
-			"Name": "GameEffectSystemEditor",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
-		},
-		{
 			"Name": "GameAttributes",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"

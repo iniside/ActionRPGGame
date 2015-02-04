@@ -72,7 +72,7 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	Attributes->SetIsReplicated(true);
 	Attributes->SetNetAddressable();
 
-	GameEffects = ObjectInitializer.CreateDefaultSubobject<UGESEffectComponent>(this, TEXT("GameEffects"));
+	GameAttributeEffects = ObjectInitializer.CreateDefaultSubobject<UGSEffectComponent>(this, TEXT("GameAttributeEffects"));
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -109,23 +109,19 @@ class UGAAttributeComponent* AARCharacter::GetAttributeComponent()
 	return Attributes;
 }
 
-float AARCharacter::GetAttributeValue(FGAAttribute AttributeIn)
+float AARCharacter::GetAttributeValue(FGAAttribute AttributeIn) const
 {
 	return Attributes->DefaultAttributes->GetFloatValue(AttributeIn);
 }
 
 /** IIGAAttributes End */
 
-/** IIGESEffect Begin */
-class UGESEffectComponent* AARCharacter::GetEffectComponent()
+/** IIGAEffect Begin */
+class UGAEffectComponent* AARCharacter::GetEffectComponent()
 {
-	return GameEffects;
+	return GameAttributeEffects;
 }
-class UGESEffectManager* AARCharacter::GetEffectManager()
-{
-	return nullptr;
-}
-/* IIGESEffect End **/
+/* IIGAEffect End **/
 
 /** IIGTSocket Begin */
 //FVector AARCharacter::GetSocketLocation(FName SocketNameIn)
@@ -150,20 +146,20 @@ void AARCharacter::InputGetNextRightWeapon()
 
 void AARCharacter::InputUseLeftWeaponPressed()
 {
-	WeaponsEquipment->InputLeftWeaponPressed();
+	WeaponsEquipment->InputMainWeaponPressed();
 }
 void AARCharacter::InputUseLeftWeaponReleased()
 {
-	WeaponsEquipment->InputLeftWeaponReleased();
+	WeaponsEquipment->InputMainWeaponReleased();
 }
 
 void AARCharacter::InputUseRightWeaponPressed()
 {
-	WeaponsEquipment->InputRightWeaponPressed();
+	WeaponsEquipment->InputOffWeaponPressed();
 }
 void AARCharacter::InputUseRightWeaponReleased()
 {
-	WeaponsEquipment->InputRightWeaponReleased();
+	WeaponsEquipment->InputOffWeaponReleased();
 }
 
 

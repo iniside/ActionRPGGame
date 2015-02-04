@@ -23,7 +23,6 @@ public class ActionRPGGameServerTarget : TargetRules
 	{
 		OutExtraModuleNames.Add("GameInventorySystem");
 		OutExtraModuleNames.Add("GameAttributes");
-		OutExtraModuleNames.Add("GameEffectSystem");
 		OutExtraModuleNames.Add("GameAbilities");
 		OutExtraModuleNames.Add("GameSystem");
 		OutExtraModuleNames.Add("GameFloatingCombatText");

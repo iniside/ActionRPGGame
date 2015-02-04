@@ -26,24 +26,20 @@ void UGASAbilityStatePreparationWaitForInput::BeginState(UGASAbilityState* PrevS
 
 	//GetOuterUGASAbility()->AbilityPreparationStart();
 
-	//GetOuterUGASAbility()->SetActorTickEnabled(true);
-	//GetOuterUGASAbility()->RunPreparationActions();
+	GetOuterUGASAbility()->SetTickEnabled(true);
+	GetOuterUGASAbility()->RunPreparationActions();
 	//BeginActionSequence();
-	//if there is no need for something special, like display some targeting helpers
-	//we run those action and move immidietly to next state
-	//which means we would call BeginActionSequence().
-	//if otherwise we hold until player will send input again.
-	//for testing right now assume that we want player to press input twice.
 }
 void UGASAbilityStatePreparationWaitForInput::EndState()
 {
 	//clean up.
 	//GetOuterUGASAbility()->AbilityPreparationEnd();
-	//GetOuterUGASAbility()->SetActorTickEnabled(false);
+	GetOuterUGASAbility()->SetTickEnabled(false);
 }
 void UGASAbilityStatePreparationWaitForInput::BeginActionSequence()
 {
-	//GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->ActivationState);
+	GetOuterUGASAbility()->SetTickEnabled(false);
+	GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->ActivationState);
 }
 void UGASAbilityStatePreparationWaitForInput::EndActionSequence()
 {

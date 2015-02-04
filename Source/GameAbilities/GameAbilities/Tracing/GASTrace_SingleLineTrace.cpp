@@ -29,7 +29,8 @@ void UGASTrace_SingleLineTrace::TraceSingleLine()
 		//another trace this time from weapon, to impact point.
 		if (Impact.bBlockingHit)
 		{
-			GetOuterUGASAbility()->TargetData.Add(Impact);
+			//GetOuterUGASAbility()->TargetData.Add(Impact);
+			GetOuterUGASAbility()->HitTarget(Impact.Actor.Get(), Impact.Location, Impact);
 			GetOuterUGASAbility()->SetHitLocation(CorrectStart, Impact.ImpactPoint);
 		}
 		else if (!Impact.bBlockingHit)
@@ -44,7 +45,8 @@ void UGASTrace_SingleLineTrace::TraceSingleLine()
 		Impact = SingleLineRangedTrace(StartTrace, EndTrace);
 		if (Impact.bBlockingHit)
 		{
-			GetOuterUGASAbility()->TargetData.Add(Impact);
+			//GetOuterUGASAbility()->TargetData.Add(Impact);
+			GetOuterUGASAbility()->HitTarget(Impact.Actor.Get(), Impact.Location, Impact);
 			GetOuterUGASAbility()->SetHitLocation(CorrectStart, Impact.ImpactPoint);
 		}
 		else if (!Impact.bBlockingHit)
