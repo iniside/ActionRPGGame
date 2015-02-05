@@ -28,13 +28,24 @@ void SGAAttributeWidget::Construct(const FArguments& InArgs)
 			{
 				TSharedPtr<FGAAttributeNode> attributeNode = MakeShareable(new FGAAttributeNode());
 				attributeNode->Attribute = className;
+				FString Category = "";
+				FString LastCategory = "";
 				for (TFieldIterator<UProperty> PropertyIt(Class, EFieldIteratorFlags::ExcludeSuper); PropertyIt; ++PropertyIt)
 				{
 					UProperty* Prop = *PropertyIt;
-
+					Category = Prop->GetMetaData("Category");
+					
+					
+						attributeNode->AttributeNames.Add(Prop->GetName());
+					
+					//if (Category != LastCategory)
+					//{
+					//	attributeNode->CategoryNames.Add(Category);
+					//	LastCategory = Category;
+					//}
 					//I need array within array, one for list of attributes, and one for class names.
 					//	TSharedPtr<FString> attribute = MakeShareable(new FString(Prop->GetName()));
-					attributeNode->AttributeNames.Add(Prop->GetName());
+					
 					//AttributesList.Add(attribute);
 				}
 				AttributesNodes.Add(attributeNode);
@@ -78,6 +89,13 @@ TSharedRef<ITableRow> SGAAttributeWidget::OnGenerateRow(TSharedPtr<FGAAttributeN
 void SGAAttributeWidget::OnGetChildren(TSharedPtr<FGAAttributeNode> InItem, TArray< TSharedPtr<FGAAttributeNode> >& OutChildren)
 {
 	TArray<TSharedPtr<FGAAttributeNode>> Children;
+	//for (const FString& category : InItem->CategoryNames)
+	//{
+	//	TSharedPtr<FGAAttributeNode> attrNode = MakeShareable(new FGAAttributeNode());
+	//	attrNode->Attribute = category;
+	//	Children.Add(attrNode);
+
+	//}
 	for (const FString& attribute : InItem->AttributeNames)
 	{
 		TSharedPtr<FGAAttributeNode> attrNode = MakeShareable(new FGAAttributeNode());

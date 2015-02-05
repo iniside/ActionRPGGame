@@ -14,10 +14,13 @@ public:
 	//current attribute for this node);
 	FString Attribute;
 
+	TWeakPtr<FGAAttributeNode> ChildNodes;
+
 	/*
 		List of attributes containe within selected class (ParentClassName)
 	*/
 	TArray<FString> AttributeNames;
+	TArray<FString> CategoryNames;
 	FGAAttributeNode() {};
 	~FGAAttributeNode() 
 	{

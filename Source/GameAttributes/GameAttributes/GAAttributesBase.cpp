@@ -21,11 +21,26 @@ void UGAAttributesBase::InitializeAttributes()
 {
 	BP_InitializeAttributes();
 }
-void UGAAttributesBase::UpdateAttributes(const FGAAttribute& AttributeIn)
+
+void UGAAttributesBase::UpdateAttributes(const FGAEvalData& AttributeIn, float newValue)
 {
-
+	SetFloatValue(AttributeIn.Attribute, newValue);
+	PostModifyAttribute(AttributeIn);
 }
-
+bool UGAAttributesBase::PostModifyAttribute_Implementation(const FGAEvalData& AttributeMod)
+{
+	return false;
+}
+bool UGAAttributesBase::CalculateOutgoingAttributeMods_Implementation(const FGAAttributeSpec& AttributeModIn, FGAAttributeSpec& AttributeModOut)
+{
+	AttributeModOut = AttributeModIn;
+	return false;
+}
+bool UGAAttributesBase::CalculateIncomingAttributeMods_Implementation(const FGAAttributeSpec& AttributeModIn, FGAAttributeSpec& AttributeModOut)
+{
+	AttributeModOut = AttributeModIn;
+	return false;
+}
 UProperty* UGAAttributesBase::FindProperty(const FGAAttribute& AttributeIn)
 {
 	//if new attribute name is the same as last attribute name and pointer to last property
@@ -48,7 +63,7 @@ float UGAAttributesBase::GetFloatValue(const FGAAttribute& AttributeIn)
 			return CachedFloatPropety->GetFloatingPointPropertyValue(ValuePtr);
 		}
 	}
-	LastAttributeName = AttributeIn.AttributeName;
+	//LastAttributeName = AttributeIn.AttributeName;
 	UNumericProperty* NumericProperty = CastChecked<UNumericProperty>(FindProperty(AttributeIn));
 	CachedFloatPropety = NumericProperty;
 	const void* ValuePtr = NumericProperty->ContainerPtrToValuePtr<void>(this);
@@ -68,7 +83,7 @@ float UGAAttributesBase::SetFloatValue(const FGAAttribute& AttributeIn, float Va
 			return CachedFloatPropety->GetFloatingPointPropertyValue(ValuePtr);
 		}
 	}
-	LastAttributeName = AttributeIn.AttributeName;
+	//LastAttributeName = AttributeIn.AttributeName;
 	UNumericProperty* NumericProperty = CastChecked<UNumericProperty>(FindProperty(AttributeIn));
 	CachedFloatPropety = NumericProperty;
 	void* ValuePtr = CachedFloatPropety->ContainerPtrToValuePtr<void>(this);

@@ -1,7 +1,7 @@
 #pragma once
 #include "GameplayTags.h"
 #include "GameplayTagContainer.h"
-
+#include "../GAGlobalTypes.h"
 #include "GAEffectTypes.generated.h"
 
 
@@ -26,32 +26,46 @@ enum class EGAEffectStacking : uint8
 	Invalid
 };
 
-//USTRUCT()
-//struct FGESEffectSpec
-//{
-//	GENERATED_USTRUCT_BODY()
-//public:
-//	UPROPERTY()
-//		TWeakObjectPtr<AActor> Target;
-//	UPROPERTY()
-//		TWeakObjectPtr<AActor> Causer;
-//	UPROPERTY()
-//		TWeakObjectPtr<AActor> Instigator;
-//
-//	UPROPERTY()
-//		TWeakObjectPtr<class UGESEffectComponent> TargetComponent;
-//	UPROPERTY()
-//		TWeakObjectPtr<class UGESEffectComponent> InstigatorComponent;
-//
-//	UPROPERTY()
-//		TWeakObjectPtr<class UGESEffect> Effect;
-//
-//	FGESEffectSpec();
-//
-//	FGESEffectSpec(TWeakObjectPtr<AActor> TargetIn, TWeakObjectPtr<AActor> CauserIn, 
-//		TWeakObjectPtr<AActor> InstigatorIn);
-//};
+UENUM()
+enum class EGAEffectModPolicy : uint8
+{
+	Permament, //mod appilies permament changes to attribute, we will never restore value after we expire.
+	//be careful with it!
+	Restore //if/when we expire we will restore attribute by mod we modified it while
+	//we have been active.
+};
 
+USTRUCT(BlueprintType)
+struct FGAEffectPolicy
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(EditAnywhere, Category = "Policy")
+		EGAEffectModPolicy ModPolicy;
+	UPROPERTY(EditAnywhere, Category = "Policy")
+		EGAEffectType EffectType;
+	UPROPERTY(EditAnywhere, Category = "Policy")
+		EGAEffectStacking EffectStacking;
+	UPROPERTY(EditAnywhere, Category = "Policy")
+		uint32 bInstanceEffect : 1;
+};
+
+USTRUCT(BlueprintType)
+struct GAMEATTRIBUTES_API FGAEffectAttributeSpec
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	/*
+	To who we apply attribute changes.
+	*/
+	UPROPERTY()
+		FGAttributeContext AttributeContext;
+	/*
+	What attributes we will be modifying.
+	*/
+	UPROPERTY()
+		FGAAttributeSpec AttributeSpec;
+};
 USTRUCT(BlueprintType)
 struct GAMEATTRIBUTES_API FGAEffectSpec
 {
@@ -81,24 +95,15 @@ public:
 		FGameplayTag EffectTag;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Spec")
-		FGameplayTagContainer MagnitudeTags;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Spec")
-		float Magnitude;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Spec")
 		float Duration;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Spec")
 		int32 PeriodCount;
 
+	UPROPERTY()
+		TArray<FGAAttributeSpec> AttributeSpec;
+
+	FGAEffectPolicy EffectPolicy;
+
 	class UGAEffect* CreateEffect(); //template
 };
-
-//USTRUCT(BlueprintType)
-//struct GAMEEFFECTSYSTEM_API FGESEffectContext
-//{
-//	GENERATED_USTRUCT_BODY()
-//public:
-//	
-//};

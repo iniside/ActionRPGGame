@@ -1,5 +1,6 @@
 #pragma once
 #include "GameplayTagContainer.h"
+#include "../GAGlobalTypes.h"
 #include "GAEffectTypes.h"
 #include "GAEffectComponent.generated.h"
 
@@ -19,10 +20,47 @@
 	for the time they are active.
 */
 /*
+	Continuing from above...
+
+	When simple effect, is appilied we need to calculate it's mod (magnitued, whatever),
+	we will do it based on:
+	1. Base Value provided by, object who apply effect (??).
+	2. Attribute value (we will sellect which attribute).
+	3. We must decide how this attribute will modify base value (add, multiply, subtract, etc).
+	4. Should multiple attributes affect calculation (in order of being added, not in Math order).
+	(so here subtraction can happen before multiplication, just sayin).
+	5. WE can also add coefficients. Idk if that has any real point...
+
+	From this data, final attribute mod, is calculated on each tick of effect. That's the base level.
+
+	1. Should we apply, any mods (like bonus to fire damage), here or it should be deffered
+	until the damage will be appilied in AttributeComponent ?
+*/
+
+USTRUCT(BlueprintType)
+struct FGAEffectData : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+
+public:
+	/** The 'Name' column is the same as the XP Level */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LevelUp)
+		float Level;
+	/** XP to get to the given level from the previous level */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LevelUp)
+		FGAAttribute Attribute;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LevelUp)
+		TAssetPtr<UTexture> Asset;
+
+	FGAEffectData()
+	{}
+};
+/*
 	Represent handle to exactly one active effect.
 
 	Handle is generated from name of class/object. For now.
-	Since not all effects are going to be instanced, is kind of impossible to generate 
+	Since not all effects are going to be instanced, is kind of impossible to generate
 	them from memory adress.
 */
 USTRUCT()
@@ -56,6 +94,12 @@ public:
 
 	FGAEffectHandle Handle;
 
+	FGAEffectSpec Spec;
+
+	//mod value we will apply to attribute
+	//while we are active.
+	float ModValue;
+
 	FTimerHandle DurationHandle;
 protected:
 	int32 CurrentPerioCount;
@@ -65,6 +109,11 @@ public:
 	void FinishEffect();
 protected:
 	void ExecuteEffectPeriod();
+
+	void ApplyMagnitude();
+	//if we modified attribute by value
+	//we can opt to restore the mod value to attribute after we expired.
+	void RestoreAttributeValue();
 public:
 	FGAActiveEffect()
 	{

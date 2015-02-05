@@ -3,7 +3,6 @@
 #include "GAAttributeComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGAOnAttributeChanged);
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGAOnAttributeModifed, const FGAModifiedAttribute&, attr);
 
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
@@ -45,21 +44,15 @@ public:
 		class UGAAttributesBase* DefaultAttributes;
 
 	UPROPERTY(ReplicatedUsing = OnRep_AttributeChanged, RepRetry)
-		FGAModifiedAttribute ModifiedAttribute;
+		TArray<FGAModifiedAttribute> ModifiedAttribute;
 	UPROPERTY()
 		FGAOnAttributeModifed OnAttributeModifed;
 
 	UFUNCTION()
 		void OnRep_AttributeChanged();
-
-	UFUNCTION(NetMulticast, Unreliable)
-		void MulticastAttributeChanged();
-
+	
 	virtual void InitializeComponent() override;
 
-	FGAOnAttributeOutgoing OnAttributeOutgoing;
-
-	FGAOnAttributeIncoming OnAttributeIncoming;
 	/*
 		I'm not entirely sure if this should be here. Just sayin.
 	*/
@@ -73,8 +66,8 @@ public:
 		For example there might be physical armor mod, which will apply changes only
 		to attributes tagged as Damage.Physical and only if you are reciving change, not causing it.
 	*/
-	void ModifyAttributesOnSelf(UGAAttributeComponent* Causer, FGAAttributeModifier& AttributeIn);
-	void ModifyAttributesOnTarget(UGAAttributeComponent* Target, FGAAttributeModifier& AttributeIn);
+	void ModifyAttributesOnSelf(UGAAttributeComponent* Causer, FGAAttributeModData& AttributeIn);
+	void ModifyAttributesOnTarget(UGAAttributeComponent* Target, FGAAttributeModData& AttributeIn);
 
 
 	/*

@@ -19,16 +19,16 @@ UGAEffect* FGAEffectSpec::CreateEffect()
 		eff = ConstructObject<UGAEffect>(EffectClass);
 		if (eff)
 		{
-			eff->Target = Target;
-			eff->Causer = Causer;
-			eff->Instigator = Instigator;
-			eff->InstigatorEffectComponent = InstigatorEffectComp;
-			eff->TargetEffectComponent = TargetEffectComp;
-			eff->MyTag = EffectTag;
-			eff->MagnitudeTags = MagnitudeTags;
-			eff->Magnitude = Magnitude;
-			eff->Duration = Duration;
-			eff->PeriodCount = PeriodCount;
+			//eff->Target = Target;
+			//eff->Causer = Causer;
+			//eff->Instigator = Instigator;
+			//eff->InstigatorEffectComponent = InstigatorEffectComp;
+			//eff->TargetEffectComponent = TargetEffectComp;
+			//eff->MyTag = EffectTag;
+			//eff->MagnitudeTags = MagnitudeTags;
+			//eff->Magnitude = Magnitude;
+			//eff->Duration = Duration;
+			//eff->PeriodCount = PeriodCount;
 		}
 	}
 	return eff;

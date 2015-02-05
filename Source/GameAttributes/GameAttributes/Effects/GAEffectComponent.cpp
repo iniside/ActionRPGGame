@@ -25,9 +25,14 @@ void FGAActiveEffect::FinishEffect()
 		Effect->Target.Actor->GetWorldTimerManager().ClearTimer(DurationHandle);
 	}
 }
+void FGAActiveEffect::ApplyMagnitude()
+{
 
+}
 void FGAActiveEffect::ExecuteEffectPeriod()
 {
+	ApplyMagnitude();
+
 	if (Effect)
 	{
 		CurrentPerioCount++;
@@ -41,7 +46,10 @@ void FGAActiveEffect::ExecuteEffectPeriod()
 		}
 	}
 }
+void FGAActiveEffect::RestoreAttributeValue()
+{
 
+}
 UGAEffectComponent::UGAEffectComponent(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
@@ -113,8 +121,8 @@ bool UGAEffectComponent::ApplyEffectToSelf(FGAEffectSpec& SpecIn)
 				FGAActiveEffect activeEffect;
 				FGAActiveEffect& tempEff = activeEffectsCont->ActiveEffectsMap.Add(KeyIn, activeEffect);
 				tempEff.Handle = FGAEffectHandle(KeyIn, Tag);
-				tempEff.Effect = SpecIn.CreateEffect();
-				tempEff.Effect->Initialize();
+			//	tempEff.Effect = SpecIn.CreateEffect();
+			//	tempEff.Effect->Initialize();
 				tempEff.ActivateEffect();
 				
 				bEffectAppiled = true;
@@ -128,8 +136,8 @@ bool UGAEffectComponent::ApplyEffectToSelf(FGAEffectSpec& SpecIn)
 
 			FGAActiveEffect& tempEff = tempEffCont.ActiveEffectsMap.Add(KeyIn, ActEff);
 			tempEff.Handle = FGAEffectHandle(KeyIn, Tag);
-			tempEff.Effect = SpecIn.CreateEffect();
-			tempEff.Effect->Initialize();
+			//tempEff.Effect = SpecIn.CreateEffect();
+			//tempEff.Effect->Initialize();
 			tempEff.ActivateEffect();
 
 			bEffectAppiled = true;

@@ -37,90 +37,84 @@ void UGAAttributeComponent::InitializeComponent()
 		DefaultAttributes->InitializeAttributes();
 	}
 
-	if (AttributeMods.Num() > 0)
-	{
-		for (TSubclassOf<UGAAttributeMod> mod : AttributeMods)
-		{
-			UGAAttributeMod* modObj = ConstructObject<UGAAttributeMod>(mod, this);
-			modObj->BindDelegates(OnAttributeOutgoing, OnAttributeIncoming);
-			AttributeModsObj.Add(modObj);
-		}
-	}
+	//if (AttributeMods.Num() > 0)
+	//{
+	//	for (TSubclassOf<UGAAttributeMod> mod : AttributeMods)
+	//	{
+	//		UGAAttributeMod* modObj = ConstructObject<UGAAttributeMod>(mod, this);
+	//		modObj->BindDelegates(OnAttributeOutgoing, OnAttributeIncoming);
+	//		AttributeModsObj.Add(modObj);
+	//	}
+	//}
 }
 
-void UGAAttributeComponent::ModifyAttributesOnSelf(UGAAttributeComponent* Causer, FGAAttributeModifier& AttributeIn)
+void UGAAttributeComponent::ModifyAttributesOnSelf(UGAAttributeComponent* Causer, FGAAttributeModData& AttributeIn)
 {
 
 	//apply final value to attribute.
 	//after we appiled
 	ENetRole role = GetOwnerRole();
-
-	OnAttributeIncoming.Broadcast(AttributeIn, AttributeIn);
-	float newValue = DefaultAttributes->AttributeOperation(AttributeIn.Attribute, AttributeIn.Value, AttributeIn.Operation);
-	DefaultAttributes->SetFloatValue(AttributeIn.Attribute, newValue);
-
-	//check if if this actor is dead.
-	if (DefaultAttributes->GetFloatValue(DeathAttribute) <= 0)
+	ModifiedAttribute.Empty(); //don't need anything old laying around.
+	for (FGAAttributeSpec& spec : AttributeIn.AttributeModSpec)
 	{
-		if (AttributeInterface)
-		{
-			AttributeInterface->Died();
-		}
+		FGAAttributeSpec ModdedSpecOut;
+		DefaultAttributes->CalculateIncomingAttributeMods(spec, ModdedSpecOut);
+
+		float newValue = DefaultAttributes->AttributeOperation(ModdedSpecOut.Attribute, ModdedSpecOut.ModValue, ModdedSpecOut.Operation);
+		
+		FGAEvalData attrSet = FGAEvalData(AttributeIn.AttributeContext);
+		attrSet.Attribute = ModdedSpecOut.Attribute;
+		attrSet.ModValue = ModdedSpecOut.ModValue;
+		DefaultAttributes->UpdateAttributes(attrSet, newValue);
+		
+		FGAModifiedAttribute ModdedAttrRep;
+		ModdedAttrRep.Attribute = ModdedSpecOut.Attribute;
+		ModdedAttrRep.InstigatorLocation = AttributeIn.AttributeContext.Instigator->GetOwner()->GetActorLocation();
+		ModdedAttrRep.TargetLocation = AttributeIn.HitLocation;//AttributeIn.Target->GetActorLocation();
+		ModdedAttrRep.ModifiedByValue = ModdedSpecOut.ModValue;
+		ModdedAttrRep.Tags = AttributeIn.Tags;
+		ModdedAttrRep.ReplicationCounter += 1;
+		ModdedAttrRep.Causer = Causer;
+		ModifiedAttribute.Add(ModdedAttrRep);
+
+		FGAUpdatedAttribute attributeUpdate;
+		attributeUpdate.Attribute = ModdedSpecOut.Attribute;
+		attributeUpdate.NewValue = newValue;
+		OnAttributeUpdated.Broadcast(attributeUpdate);
 	}
 
-	ModifiedAttribute.Attribute = AttributeIn.Attribute;
-	ModifiedAttribute.InstigatorLocation = AttributeIn.Instigator->GetActorLocation();
-	ModifiedAttribute.TargetLocation = AttributeIn.HitTarget.Location; //AttributeIn.Target->GetActorLocation();
-	ModifiedAttribute.ModifiedByValue = AttributeIn.Value;
-	ModifiedAttribute.Tags = AttributeIn.Tags;
-	ModifiedAttribute.ReplicationCounter += 1;
-	ModifiedAttribute.Causer = Causer;
+
+	////check if if this actor is dead.
+	//if (DefaultAttributes->GetFloatValue(DeathAttribute) <= 0)
+	//{
+	//	if (AttributeInterface)
+	//	{
+	//		AttributeInterface->Died();
+	//	}
+	//}
 	if (GetNetMode() == ENetMode::NM_Standalone)
 	{
-		Causer->OnAttributeModifed.Broadcast(ModifiedAttribute);
+		for (FGAModifiedAttribute& attr : ModifiedAttribute)
+		{
+			Causer->OnAttributeModifed.Broadcast(attr);
+		}
 	}
-	FGAUpdatedAttribute attributeUpdate;
-	attributeUpdate.Attribute = AttributeIn.Attribute;
-	attributeUpdate.NewValue = newValue;
-	OnAttributeUpdated.Broadcast(attributeUpdate);
-
-	MulticastAttributeChanged();
 }
-void UGAAttributeComponent::ModifyAttributesOnTarget(UGAAttributeComponent* Target, FGAAttributeModifier& AttributeIn)
+void UGAAttributeComponent::ModifyAttributesOnTarget(UGAAttributeComponent* Target, FGAAttributeModData& AttributeIn)
 {
-	//apply possible mods from
-	//OnAttributeOutgoing.Broadcast(AttributeIn, AttributeIn); //In, Out. to Complicated.
-	Target->ModifyAttributesOnSelf(this, AttributeIn);
-
-	/*
-		So they idea is this.
-		We iterate over all mods, executing mod function.
-		Incoming attribute is moded, returned, and then moded by next object,
-		in order those objects were added.
-
-		Therepractically two ways of doing it.
-
-		Create one uber function, in C++, which will, do everything,
-		or create lots of small objects.
-
-		Uber function is probabaly better, once you figured stuff out.
-
-		In anycase there two sets of functions, for modiging outgoing changes (from Source).
-		and for modiging incoming changes (On Target).
-
-		Some things, we don't want to be appilied from Source (for example, target damage reduction by source
-		armor)
-	*/
-	for (UGAAttributeMod* mod : AttributeMods)
+	if (!DefaultAttributes)
+		return;
+	TArray<FGAAttributeSpec> ModdedSpecs;
+	for (FGAAttributeSpec& spec : AttributeIn.AttributeModSpec)
 	{
-		mod->OnAttributeModifyOut(AttributeIn, AttributeIn); //In, out, 
-		//probabaly should just do return value..
-	}
+		FGAAttributeSpec ModdedSpecOut;
+		DefaultAttributes->CalculateOutgoingAttributeMods(spec, ModdedSpecOut);
 
-	//if (GetNetMode() == ENetMode::NM_Standalone)
-	//{
-	//	OnAttributeModifed.Broadcast(ModifiedAttribute);
-	//}
+		ModdedSpecs.Add(ModdedSpecOut);
+	}
+	AttributeIn.AttributeModSpec = ModdedSpecs;
+
+	Target->ModifyAttributesOnSelf(this, AttributeIn);
 }
 
 
@@ -132,17 +126,13 @@ void UGAAttributeComponent::GetLifetimeReplicatedProps(TArray< class FLifetimePr
 	DOREPLIFETIME(UGAAttributeComponent, DefaultAttributes);
 	DOREPLIFETIME(UGAAttributeComponent, ModifiedAttribute);
 }
-void UGAAttributeComponent::MulticastAttributeChanged_Implementation()
-{
-//	if (ModifiedAttribute.Causer->OnAttributeModifed.IsBound())
-//	{
-	//	ModifiedAttribute.Causer->OnAttributeModifed.Broadcast(ModifiedAttribute);
-	//}
-	//OnAttributeModifed.Broadcast(ModifiedAttribute);
-}
+
 void UGAAttributeComponent::OnRep_AttributeChanged()
 {
-	ModifiedAttribute.Causer->OnAttributeModifed.Broadcast(ModifiedAttribute);
+	for (FGAModifiedAttribute& attr : ModifiedAttribute)
+	{
+		attr.Causer->OnAttributeModifed.Broadcast(attr);
+	}
 }
 bool UGAAttributeComponent::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
 {

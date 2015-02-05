@@ -1,4 +1,5 @@
 #pragma once
+#include "GAEffectTypes.h"
 #include "GABlueprintLibrary.generated.h"
 /*
 	Base class for effect.
@@ -29,13 +30,17 @@ public:
 		Causer - Delibetrly UObject, as causer doesn't always needs, to be actor.
 		It can be ability which is UObject (;
 		
+		Which attributes we modify,
+		how we modify.
+		On whom we modify.
+
 		Returns true if effect has been succesfully appiled to target.
 		Otherwise false;
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
 		static bool ApplyEffect(TSubclassOf<class UGAEffect> EffectClass, UObject* Causer, const FHitResult& Target, APawn* Instigator,
-			float Magnitude, float Duration, int32 PeriodCount, const FGameplayTag& EffectTag,
-			const FGameplayTagContainer& MagnitudeTags);
+		float Duration, int32 PeriodCount, const FGameplayTag& EffectTag,const FGAEffectPolicy& EffectPolicy,
+		TArray<FGAAttributeSpec> AttributesIn);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
 		static void RemoveEffects(AActor* CauserIn, AActor* TargetIn, const FGameplayTagContainer& EffectsTags, int32 EffectCount);

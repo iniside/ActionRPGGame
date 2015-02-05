@@ -29,27 +29,4 @@ UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInlineNew)
 class GAMEATTRIBUTES_API UGAAttributeMod : public UObject
 {
 	GENERATED_UCLASS_BODY()
-public:
-	UFUNCTION()
-		void OnAttributeModifyOutCheck(const FGAAttributeModifier& AttributeParam, FGAAttributeModifier& AttributeOut);
-
-	UFUNCTION()
-		void OnAttributeModifyInCheck(const FGAAttributeModifier& AttributeParam, FGAAttributeModifier& AttributeOut);
-
-	UFUNCTION(BlueprintNativeEvent)
-		void OnAttributeModifyOut(const FGAAttributeModifier& AttributeParam, FGAAttributeModifier& AttributeOut);
-	
-	UFUNCTION(BlueprintNativeEvent)
-		void OnAttributeModifyIn(const FGAAttributeModifier& AttributeParam, FGAAttributeModifier& AttributeIn);
-
-
-
-
-	/*
-		I require these tags to be present, if I'm going to apply any changes.
-	*/
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tags")
-		FGameplayTagContainer RequiredTags;
-
-	void BindDelegates(FGAOnAttributeOutgoing& Outgoing, FGAOnAttributeIncoming& Incoming);
 };

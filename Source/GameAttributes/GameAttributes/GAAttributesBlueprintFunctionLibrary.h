@@ -55,7 +55,13 @@ public:
 	*	@param Attributes - Attributes to change.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
-		static void ModifyAttributes(TArray<FGAAttributeModifier> AttributesIn);
+		static void ModifyAttributes(TArray<FGAAttributeModData> AttributesIn);
+
+	/*
+		Changes multiple attributes in one go.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
+		static float ChangeAttributes(const FHitResult& Target, AActor* Instigator, TArray<FGAAttributeSpec> AttributesIn);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 		static void DamageAttribute(FGAAttribute AttributeIn, float ModValue, const FHitResult& TargetIn, const FGameplayTagContainer& TagsIn, APawn* Instigator);

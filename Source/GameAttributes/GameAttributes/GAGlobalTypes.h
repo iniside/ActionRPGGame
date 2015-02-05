@@ -52,41 +52,99 @@ public:
 		float NewValue;
 };
 
-/**
- *	Struct defining what attribute to modify, by what value, and how.
- */
-USTRUCT(BlueprintType, meta = (DisplayName = "Attribute Modifier"))
-struct GAMEATTRIBUTES_API FGAAttributeModifier
+USTRUCT(BlueprintType)
+struct GAMEATTRIBUTES_API FGAAttributeSpec
 {
 	GENERATED_USTRUCT_BODY()
 public:
-	UPROPERTY(BlueprintReadWrite, Category = "Mod")
-		FHitResult HitTarget;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Mod")
-		TWeakObjectPtr<AActor> Instigator;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModSpec")
 		FGAAttribute Attribute;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
-		float Value;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModSpec")
+		float ModValue;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModSpec")
 		EGAAttributeOp Operation;
+	//really ?
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
+		FGameplayTagContainer Tags;
 
+	FGAAttributeSpec()
+	{
+		ModValue = 0;
+		Operation = EGAAttributeOp::Add;
+	}
+};
+
+/*
+	Contains information on who we modify attribute
+	and from who modification originated.
+*/
+USTRUCT(BlueprintType)
+struct GAMEATTRIBUTES_API FGAttributeContext
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY()
+		TWeakObjectPtr<class UGAAttributeComponent> Target;
+	UPROPERTY()
+		TWeakObjectPtr<class UGAAttributeComponent> Instigator;
+};
+
+/**
+ *	Who we modify.
+ *	Who instigated this mod.
+ *	What attributes we modify.
+ */
+USTRUCT(BlueprintType, meta = (DisplayName = "Attribute Modifier"))
+struct GAMEATTRIBUTES_API FGAAttributeModData
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY()
+		FGAttributeContext AttributeContext;
+
+	UPROPERTY()
+		FVector HitLocation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
+		TArray<FGAAttributeSpec> AttributeModSpec;
 	/**
 	 *	Tags for this modifier.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
 		FGameplayTagContainer Tags;
 
-	FGAAttributeModifier()
+	void ApplyMod();
+
+	FGAAttributeModData()
 	{
-		Value = 0;
-		Operation = EGAAttributeOp::Add;
 	};
 };
+/*
+	Final evaluated data, which contains final mod value and attribute to which it's going to be
+	appilied. As well as target context.
+*/
+USTRUCT()
+struct GAMEATTRIBUTES_API FGAEvalData
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	FGAEvalData()
+	{
+	};
+	FGAEvalData(const FGAttributeContext& AttributeContextIn)
+		: AttributeContext(AttributeContextIn)
+	{
+	};
+	UPROPERTY()
+		FGAAttribute Attribute;
+	
+	float ModValue;
+	UPROPERTY()
+		FGAttributeContext AttributeContext;
+};
+
 USTRUCT(BlueprintType)
 struct GAMEATTRIBUTES_API FGAAttributeModSelf
 {
@@ -159,6 +217,3 @@ public:
 };
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FGAOnAttributeUpdated, const FGAUpdatedAttribute&);
-
-DECLARE_MULTICAST_DELEGATE_TwoParams(FGAOnAttributeOutgoing, const FGAAttributeModifier&, FGAAttributeModifier&);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FGAOnAttributeIncoming, const FGAAttributeModifier&, FGAAttributeModifier&);

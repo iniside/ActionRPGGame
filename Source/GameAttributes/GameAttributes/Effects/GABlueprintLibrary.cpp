@@ -14,8 +14,8 @@ UGABlueprintLibrary::UGABlueprintLibrary(const FObjectInitializer& ObjectInitial
 
 
 bool UGABlueprintLibrary::ApplyEffect(TSubclassOf<class UGAEffect> EffectClass, UObject* Causer, const FHitResult& Target, APawn* Instigator,
-	float Magnitude, float Duration, int32 PeriodCount, const FGameplayTag& EffectTag,
-	const FGameplayTagContainer& MagnitudeTags)
+	float Duration, int32 PeriodCount, const FGameplayTag& EffectTag,
+	const FGAEffectPolicy& EffectPolicy, TArray<FGAAttributeSpec> AttributesIn)
 {
 	bool bEffectAppiled = false;
 	if (EffectClass && Target.Actor.IsValid() && Instigator && Causer)
@@ -36,10 +36,14 @@ bool UGABlueprintLibrary::ApplyEffect(TSubclassOf<class UGAEffect> EffectClass, 
 		EffSpec.TargetEffectComp = targetComp;
 		EffSpec.InstigatorEffectComp = instigComp;
 		EffSpec.EffectTag = EffectTag;
-		EffSpec.MagnitudeTags = MagnitudeTags;
-		EffSpec.Magnitude = Magnitude;
 		EffSpec.Duration = Duration;
 		EffSpec.PeriodCount = PeriodCount;
+		EffSpec.EffectPolicy = EffectPolicy;
+		EffSpec.AttributeSpec = AttributesIn;
+		//FGAAttributeModifier AttributeMod;
+		//AttributeMod
+
+		//EffSpec.AttributeMod = AttributeMod;
 		bEffectAppiled = instigComp->ApplyEffectToTarget(EffSpec, Target.Actor.Get());
 		return bEffectAppiled;
 	}
