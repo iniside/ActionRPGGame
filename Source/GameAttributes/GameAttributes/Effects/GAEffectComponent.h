@@ -18,6 +18,10 @@
 	though with bit simplified (ie. no real time updates, of damage from source attribute changes).
 	These effects, can't also have any logic build in using blueprints. They just change attributes,
 	for the time they are active.
+
+	3. For the sake of simplicity (??) all attribute modifications, should be routed trough effect
+	component/effect objects. This way, we can give active effects, chance to affect incoming effects.
+	(yey!).
 */
 /*
 	Continuing from above...
@@ -90,35 +94,50 @@ struct GAMEATTRIBUTES_API FGAActiveEffect
 	GENERATED_USTRUCT_BODY()
 public:
 	UPROPERTY()
-		class UGAEffect* Effect;
+		TWeakObjectPtr<class UGAEffect> Effect;
 
 	FGAEffectHandle Handle;
-
+	/*
+		Do we really need copy of spec.
+		Or it would be better to just, initialize spec once
+		and just obtain values from it ?
+	*/
 	FGAEffectSpec Spec;
-
-	//mod value we will apply to attribute
-	//while we are active.
-	float ModValue;
-
 	FTimerHandle DurationHandle;
 protected:
-	int32 CurrentPerioCount;
+	int32 CurrentPeriodCount;
+	int32 PeriodCount;
+
+	UPROPERTY()
+		TWeakObjectPtr<class UGAEffectComponent> OwningEffectComp;
 public:
 	void ActivateEffect();
 
 	void FinishEffect();
+
+	void OnEffectInitialize();
+	void OnEffectOngoing();
+	void OnEffectEnded();
+
+	//we should call it on all effects, when we add new effect.
+	//or maybe just limit ourselves to effects, which have required tags.
+	//in anycase calling this will give chance for already going effect
+	//to do something with this effect before applying, if needed.
+	void OnEffectAdded(FGAEffectSpec& EffectIn);
 protected:
 	void ExecuteEffectPeriod();
+	void ExecuteEffectDuration();
 
-	void ApplyMagnitude();
+	void ApplyAttributeMods();
 	//if we modified attribute by value
 	//we can opt to restore the mod value to attribute after we expired.
 	void RestoreAttributeValue();
 public:
 	FGAActiveEffect()
 	{
-		CurrentPerioCount = 0;
-		Effect = nullptr;
+		CurrentPeriodCount = 0;
+		PeriodCount = 0;
+		Effect.Reset();
 	}
 };
 

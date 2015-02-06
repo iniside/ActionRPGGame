@@ -29,6 +29,16 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Resources")
 		float MaxStamina;
 
+	UPROPERTY()
+		float HealthCost;
+	UPROPERTY()
+		float EnergyCost;//??
+	UPROPERTY()
+		float EnergyCostReduce;//?? precentage ?? flat number ? can have effect, which set this.
+	UPROPERTY()
+		float EnergyIncrease;//??
+	UPROPERTY()
+		float StaminaCost;
 	UPROPERTY(EditAnywhere, Category = "Base Attributes")
 		float Strenght;
 	UPROPERTY(VisibleAnywhere, Category = "Base Attributes")

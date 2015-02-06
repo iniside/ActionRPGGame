@@ -14,11 +14,12 @@ UGABlueprintLibrary::UGABlueprintLibrary(const FObjectInitializer& ObjectInitial
 
 
 bool UGABlueprintLibrary::ApplyEffect(TSubclassOf<class UGAEffect> EffectClass, UObject* Causer, const FHitResult& Target, APawn* Instigator,
-	float Duration, int32 PeriodCount, const FGameplayTag& EffectTag,
-	const FGAEffectPolicy& EffectPolicy, TArray<FGAAttributeSpec> AttributesIn)
+	const FGAEffectDuration& Duration, const FGameplayTag& EffectTag,
+	const FGAEffectPolicy& EffectPolicy, const FGAEffectAttributeSpec& AttributesIn)
 {
 	bool bEffectAppiled = false;
-	if (EffectClass && Target.Actor.IsValid() && Instigator && Causer)
+	if (EffectClass && Target.Actor.IsValid() && Instigator && Causer && AttributesIn.IsValid()
+		&& Duration.IsValid())
 	{
 		IIGAEffect* targetInt = Cast<IIGAEffect>(Target.Actor.Get());
 		IIGAEffect* instigatorInt = Cast<IIGAEffect>(Instigator);
@@ -35,12 +36,10 @@ bool UGABlueprintLibrary::ApplyEffect(TSubclassOf<class UGAEffect> EffectClass, 
 		EffSpec.Instigator = Instigator;
 		EffSpec.TargetEffectComp = targetComp;
 		EffSpec.InstigatorEffectComp = instigComp;
-		EffSpec.EffectTag = EffectTag;
 		EffSpec.Duration = Duration;
-		EffSpec.PeriodCount = PeriodCount;
+		EffSpec.EffectTag = EffectTag;
 		EffSpec.EffectPolicy = EffectPolicy;
-		EffSpec.AttributeSpec = AttributesIn;
-		//FGAAttributeModifier AttributeMod;
+		EffSpec.SetAttributeData(AttributesIn);
 		//AttributeMod
 
 		//EffSpec.AttributeMod = AttributeMod;
@@ -48,6 +47,21 @@ bool UGABlueprintLibrary::ApplyEffect(TSubclassOf<class UGAEffect> EffectClass, 
 		return bEffectAppiled;
 	}
 	return bEffectAppiled;
+}
+
+bool UGABlueprintLibrary::ApplyInstantEffect()
+{
+	return false;
+}
+
+bool UGABlueprintLibrary::ApplyPeriodicEffect()
+{
+	return false;
+}
+
+bool UGABlueprintLibrary::ApplyDurationEffect()
+{
+	return false;
 }
 
 void UGABlueprintLibrary::RemoveEffects(AActor* CauserIn, AActor* TargetIn, const FGameplayTagContainer& EffectsTags, int32 EffectCount)

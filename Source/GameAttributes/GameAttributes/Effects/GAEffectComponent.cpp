@@ -3,50 +3,94 @@
 #include "GameAttributes.h"
 #include "GAEffect.h"
 #include "IGAEffect.h"
+#include "../IGAAttributes.h"
+#include "../GAAttributeComponent.h"
 #include "GAEffectComponent.h"
 
 void FGAActiveEffect::ActivateEffect()
 {
-	if (Effect)
+	OwningEffectComp = Spec.TargetEffectComp;
+	
+	if (Spec.InitializeEffectSpecs())
 	{
-		if (Effect->EffectType == EGAEffectType::Periodic)
+		if (Spec.EffectPolicy.bInstanceEffect && Spec.EffectClass)
 		{
-			//FTimerDelegate del = FTimerDelegate::CreateUObject(Effect->TargetEffectComponent, &UGESEffectComponent::EffectDurationExpired, Handle);
-			FTimerDelegate del = FTimerDelegate::CreateRaw(this, &FGAActiveEffect::ExecuteEffectPeriod);
-			Effect->Target.Actor->GetWorldTimerManager().SetTimer(DurationHandle, del, Effect->Duration, true, 0);
+			Effect = ConstructObject<UGAEffect>(Spec.EffectClass);
+			Effect->Initialize();
 		}
+		if (Spec.EffectPolicy.EffectType == EGAEffectType::Instant)
+		{
+			OnEffectInitialize(); //that's all apply and forget.
+		}
+		else if (Spec.EffectPolicy.EffectType == EGAEffectType::Periodic)
+		{
+			float DurationMagnitude = Spec.GetDuration();
+			float PeriodMagnitude = Spec.GetPeriod();
+			PeriodCount = DurationMagnitude / PeriodMagnitude;
+
+			FTimerDelegate del = FTimerDelegate::CreateRaw(this, &FGAActiveEffect::ExecuteEffectPeriod);
+			Spec.Instigator->GetWorldTimerManager().SetTimer(DurationHandle, del, PeriodMagnitude, true, 0);
+
+		}
+		else if (Spec.EffectPolicy.EffectType == EGAEffectType::Duration)
+		{
+			float DurationMagnitude = Spec.Duration.DurationMagnitude.GetCurrentMagnitude();
+			FTimerDelegate del = FTimerDelegate::CreateRaw(this, &FGAActiveEffect::ExecuteEffectDuration);
+			Spec.Instigator->GetWorldTimerManager().SetTimer(DurationHandle, del, DurationMagnitude, false, 0);
+		}
+	}
+	else
+	{
+		OwningEffectComp->EffectDurationExpired(Handle);
 	}
 }
 void FGAActiveEffect::FinishEffect()
 {
-	CurrentPerioCount = 0;
-	if (Effect)
+	//cleanup ?
+	if (Effect.IsValid())
 	{
-		Effect->Target.Actor->GetWorldTimerManager().ClearTimer(DurationHandle);
+		Effect.Reset();
 	}
 }
-void FGAActiveEffect::ApplyMagnitude()
+void FGAActiveEffect::OnEffectInitialize()
 {
+	Spec.ApplyInitialMods();
+}
+void FGAActiveEffect::OnEffectOngoing()
+{
+	Spec.ApplyPeriodicMods();
+}
+void FGAActiveEffect::OnEffectEnded()
+{
+	Spec.ApplyEndMods();
+}
 
+void FGAActiveEffect::ApplyAttributeMods()
+{
+	Spec.ApplyPeriodicMods();
 }
 void FGAActiveEffect::ExecuteEffectPeriod()
 {
-	ApplyMagnitude();
-
-	if (Effect)
+	CurrentPeriodCount++;
+	if (CurrentPeriodCount > PeriodCount)
 	{
-		CurrentPerioCount++;
-		if (CurrentPerioCount < Effect->PeriodCount)
-		{
-			Effect->CallEffectPeriod();
-		}
-		else
-		{
-			Effect->TargetEffectComponent->EffectDurationExpired(Handle);
-		}
+		Spec.Instigator->GetWorldTimerManager().ClearTimer(DurationHandle);
+		OwningEffectComp->EffectDurationExpired(Handle);
+		CurrentPeriodCount = 0;
+		return;
 	}
+	ApplyAttributeMods();
+}
+void FGAActiveEffect::ExecuteEffectDuration()
+{
+
 }
 void FGAActiveEffect::RestoreAttributeValue()
+{
+
+}
+
+void FGAActiveEffect::OnEffectAdded(FGAEffectSpec& EffectIn)
 {
 
 }
@@ -100,9 +144,36 @@ bool UGAEffectComponent::ApplyEffectToSelf(FGAEffectSpec& SpecIn)
 		incoming effect have required tag.
 	
 	*/
+	if (SpecIn.EffectPolicy.EffectType == EGAEffectType::Instant)
+	{
+		//even if effect is instant we still want it to be modified by existing effects
+		//and we should probabaly prefilter map, to find only effects which are relevelant (have required tags).
+
+		for (auto It = ActiveEffectsContainerMap.CreateIterator(); It; ++It)
+		{
+			for (auto AIt = It->Value.ActiveEffectsMap.CreateIterator(); AIt; ++AIt)
+			{
+				AIt->Value.OnEffectAdded(SpecIn);
+			}
+		}
+		//hm we shouldn't really make new effect.
+		//we could just execute it from spec.
+		FGAActiveEffect activeEffect;
+		activeEffect.Spec = SpecIn;
+		activeEffect.ActivateEffect();
+		//return, we have nothing else to do. Instant effects are one off.
+		return true;
+	}
 	bool bEffectAppiled = false;
+	for (auto It = ActiveEffectsContainerMap.CreateIterator(); It; ++It)
+	{
+		for (auto AIt = It->Value.ActiveEffectsMap.CreateIterator(); AIt; ++AIt)
+		{
+			AIt->Value.OnEffectAdded(SpecIn);
+		}
+	}
 	//OnEffectIncoming.Broadcast(EffectIn);
-	if (SpecIn.EffectClass.GetDefaultObject()->EffectType != EGAEffectType::Instant) //add only if effect is not instant. false for now since, I have not way to check that ;)
+	if (SpecIn.EffectPolicy.EffectType != EGAEffectType::Instant) //add only if effect is not instant. false for now since, I have not way to check that ;)
 	{
 		FName Tag = SpecIn.EffectTag.GetTagName();
 		FName KeyIn = SpecIn.Causer->GetClass()->GetFName();
@@ -121,6 +192,7 @@ bool UGAEffectComponent::ApplyEffectToSelf(FGAEffectSpec& SpecIn)
 				FGAActiveEffect activeEffect;
 				FGAActiveEffect& tempEff = activeEffectsCont->ActiveEffectsMap.Add(KeyIn, activeEffect);
 				tempEff.Handle = FGAEffectHandle(KeyIn, Tag);
+				tempEff.Spec = SpecIn;
 			//	tempEff.Effect = SpecIn.CreateEffect();
 			//	tempEff.Effect->Initialize();
 				tempEff.ActivateEffect();
@@ -136,6 +208,7 @@ bool UGAEffectComponent::ApplyEffectToSelf(FGAEffectSpec& SpecIn)
 
 			FGAActiveEffect& tempEff = tempEffCont.ActiveEffectsMap.Add(KeyIn, ActEff);
 			tempEff.Handle = FGAEffectHandle(KeyIn, Tag);
+			tempEff.Spec = SpecIn;
 			//tempEff.Effect = SpecIn.CreateEffect();
 			//tempEff.Effect->Initialize();
 			tempEff.ActivateEffect();
@@ -179,11 +252,11 @@ void UGAEffectComponent::RemoveEffectFromSelf(const FGameplayTagContainer& TagsI
 				if (RemoveCounter >= ToRemove)
 					return;
 
-				if (It->Value.Effect)
-				{
-					It->Value.Effect->DestroyEffect();
-					It->Value.Effect = nullptr;
-				}
+				//if (It->Value.Effect)
+				//{
+				//	It->Value.Effect->DestroyEffect();
+				//	It->Value.Effect = nullptr;
+				//}
 				ActEffCont->ActiveEffectsMap.Remove(It.Key());
 				RemoveCounter++;
 			}

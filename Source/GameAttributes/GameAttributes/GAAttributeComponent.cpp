@@ -26,26 +26,11 @@ void UGAAttributeComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 	AttributeInterface = Cast<IIGAAttributes>(GetOwner());
-	//if (DefaultAttributesClass)
-	//{
-	//	DefaultAttributes = ConstructObject<UGAAttributesBase>(DefaultAttributesClass, this);
-	//	//DefaultAttributes->SetNetAddressable();
-	//}
 
 	if (DefaultAttributes)
 	{
 		DefaultAttributes->InitializeAttributes();
 	}
-
-	//if (AttributeMods.Num() > 0)
-	//{
-	//	for (TSubclassOf<UGAAttributeMod> mod : AttributeMods)
-	//	{
-	//		UGAAttributeMod* modObj = ConstructObject<UGAAttributeMod>(mod, this);
-	//		modObj->BindDelegates(OnAttributeOutgoing, OnAttributeIncoming);
-	//		AttributeModsObj.Add(modObj);
-	//	}
-	//}
 }
 
 void UGAAttributeComponent::ModifyAttributesOnSelf(UGAAttributeComponent* Causer, FGAAttributeModData& AttributeIn)
@@ -55,23 +40,25 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(UGAAttributeComponent* Causer
 	//after we appiled
 	ENetRole role = GetOwnerRole();
 	ModifiedAttribute.Empty(); //don't need anything old laying around.
+	TArray<FGAAttributeSpec> ModdedSpecs;
 	for (FGAAttributeSpec& spec : AttributeIn.AttributeModSpec)
 	{
 		FGAAttributeSpec ModdedSpecOut;
 		DefaultAttributes->CalculateIncomingAttributeMods(spec, ModdedSpecOut);
-
-		float newValue = DefaultAttributes->AttributeOperation(ModdedSpecOut.Attribute, ModdedSpecOut.ModValue, ModdedSpecOut.Operation);
+		ModdedSpecs.Add(ModdedSpecOut);
+		float CalculatedMag = ModdedSpecOut.GetCalculatedMagnitude();
+		float newValue = DefaultAttributes->AttributeOperation(ModdedSpecOut.Attribute, CalculatedMag, ModdedSpecOut.Operation);
 		
 		FGAEvalData attrSet = FGAEvalData(AttributeIn.AttributeContext);
 		attrSet.Attribute = ModdedSpecOut.Attribute;
-		attrSet.ModValue = ModdedSpecOut.ModValue;
+		attrSet.ModValue = ModdedSpecOut.GetCalculatedMagnitude();
 		DefaultAttributes->UpdateAttributes(attrSet, newValue);
 		
 		FGAModifiedAttribute ModdedAttrRep;
 		ModdedAttrRep.Attribute = ModdedSpecOut.Attribute;
 		ModdedAttrRep.InstigatorLocation = AttributeIn.AttributeContext.Instigator->GetOwner()->GetActorLocation();
 		ModdedAttrRep.TargetLocation = AttributeIn.HitLocation;//AttributeIn.Target->GetActorLocation();
-		ModdedAttrRep.ModifiedByValue = ModdedSpecOut.ModValue;
+		ModdedAttrRep.ModifiedByValue = ModdedSpecOut.GetCalculatedMagnitude();
 		ModdedAttrRep.Tags = AttributeIn.Tags;
 		ModdedAttrRep.ReplicationCounter += 1;
 		ModdedAttrRep.Causer = Causer;
@@ -82,7 +69,7 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(UGAAttributeComponent* Causer
 		attributeUpdate.NewValue = newValue;
 		OnAttributeUpdated.Broadcast(attributeUpdate);
 	}
-
+	AttributeIn.AttributeModSpec = ModdedSpecs;
 
 	////check if if this actor is dead.
 	//if (DefaultAttributes->GetFloatValue(DeathAttribute) <= 0)

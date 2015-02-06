@@ -20,7 +20,7 @@ enum class EGAEffectStacking : uint8
 	Replace, //will end previous effect, and replace with new one.
 	Restart, //will restart existing effect
 	Duration, //will add duration to existing effect
-	Intensity, //will add magnitued to existing effect.
+	Intensity, //will add magnitude to existing effect.
 	Add, //will simply add new effect
 
 	Invalid
@@ -51,26 +51,105 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct GAMEATTRIBUTES_API FGAEffectAttributeSpec
+struct FGAEffectAttributeSpec
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(EditAnywhere, Category = "Spec")
+		TArray<FGAAttributeSpec> InitialAttributeSpec;
+	UPROPERTY(EditAnywhere, Category = "Spec")
+		TArray<FGAAttributeSpec> PeriodicAttributeSpec;
+	UPROPERTY(EditAnywhere, Category = "Spec")
+		TArray<FGAAttributeSpec> EndAttributeSpec;
+
+	bool IsValid() const
+	{
+		for (const FGAAttributeSpec& spec : InitialAttributeSpec)
+		{
+			if (!spec.IsValid())
+				return false;
+		}
+		for (const FGAAttributeSpec& spec : PeriodicAttributeSpec)
+		{
+			if (!spec.IsValid())
+				return false;
+		}
+		for (const FGAAttributeSpec& spec : EndAttributeSpec)
+		{
+			if (!spec.IsValid())
+				return false;
+		}
+		return true;
+	}
+
+	bool InitialzeSpecs(const FGAttributeContext& Context);
+};
+
+USTRUCT(BlueprintType)
+struct FGAEffectTags
 {
 	GENERATED_USTRUCT_BODY()
 public:
 	/*
-	To who we apply attribute changes.
+		Tags owned by me.
 	*/
-	UPROPERTY()
-		FGAttributeContext AttributeContext;
+	UPROPERTY(EditAnywhere, Category = "Spec")
+		FGameplayTagContainer MyTags;
 	/*
-	What attributes we will be modifying.
+		Tags, that other effect must have, If I'm to modify it.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Spec")
+		FGameplayTagContainer RequiredTags;
+};
+
+USTRUCT(BlueprintType)
+struct FGAEffectDuration
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(EditAnywhere, Category = "Spec")
+		FGAAttributeSpec DurationMagnitude;
+
+	UPROPERTY(EditAnywhere, Category = "Spec")
+		FGAAttributeSpec PeriodMagnitude;
+
+
+	bool IsValid() const
+	{
+		return DurationMagnitude.IsValid() && PeriodMagnitude.IsValid();
+	}
+	void InitializeDuration(const FGAttributeContext& Context);
+};
+
+USTRUCT()
+struct FGAEffectAttributeMods
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY()
+		FGAAttributeModData AttributeDataInitial;
+	/*
+	This attribute spec will be applied to target on effect period.
 	*/
 	UPROPERTY()
-		FGAAttributeSpec AttributeSpec;
+		FGAAttributeModData AttributeDataPeriodic;
+	/*
+	This effect spec will be appilied to target when effects ends (for whatever reason).
+	*/
+	UPROPERTY()
+		FGAAttributeModData AttributeDataEnd;
+
+	void SetAttributeData(const FGAEffectAttributeSpec& SpecIn);
+
+	void InitializeAttributeMods(const FGAttributeContext& Context, const FHitResult& Target);
 };
+
 USTRUCT(BlueprintType)
 struct GAMEATTRIBUTES_API FGAEffectSpec
 {
 	GENERATED_USTRUCT_BODY()
 public:
+	//only used if we want to instance effect.
 	UPROPERTY(BlueprintReadOnly, Category = "Spec")
 		TSubclassOf<class UGAEffect> EffectClass;
 	UPROPERTY(BlueprintReadOnly, Category = "Spec")
@@ -84,26 +163,36 @@ public:
 	class UGAEffectComponent* TargetEffectComp;
 	UPROPERTY(BlueprintReadOnly, Category = "Spec")
 	class UGAEffectComponent* InstigatorEffectComp;
-	/*
-		This is tricky one. We can use it effect, to apply it directly to something (like damage or healing)
-		or we can use it as base of calculations.
 
-		The intended use though, is that you precalculate it in something like ability/weapon, before applying,
-		and then effect will just either just apply it directly, or overtime.
-	*/
 	UPROPERTY(BlueprintReadOnly, Category = "Spec")
 		FGameplayTag EffectTag;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Spec")
-		float Duration;
+		FGAEffectTags EffectTags;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Spec")
-		int32 PeriodCount;
-
+	//add exclusion tags ? Maybe ? First get the basics to work as intended.
 	UPROPERTY()
-		TArray<FGAAttributeSpec> AttributeSpec;
+		FGAEffectAttributeMods AttributeMods;
+	/*
+		Amount of periods (Ticks) = DurationMagnitude / PeriodMagnitude.
+	*/
+	UPROPERTY(BlueprintReadOnly, Category = "Spec")
+		FGAEffectDuration Duration;
+
+	//UPROPERTY(BlueprintReadOnly, Category = "Spec")
+	//	FGAEffectAttributeSpec EffectAttributeSpec;
 
 	FGAEffectPolicy EffectPolicy;
+
+	void ApplyInitialMods();
+	void ApplyPeriodicMods();
+	void ApplyEndMods();
+
+	float GetDuration();
+	float GetPeriod();
+
+	void SetAttributeData(const FGAEffectAttributeSpec& SpecIn);
+	bool InitializeEffectSpecs();
 
 	class UGAEffect* CreateEffect(); //template
 };

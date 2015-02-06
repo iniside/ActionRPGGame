@@ -39,8 +39,17 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
 		static bool ApplyEffect(TSubclassOf<class UGAEffect> EffectClass, UObject* Causer, const FHitResult& Target, APawn* Instigator,
-		float Duration, int32 PeriodCount, const FGameplayTag& EffectTag,const FGAEffectPolicy& EffectPolicy,
-		TArray<FGAAttributeSpec> AttributesIn);
+		const FGAEffectDuration& Duration, const FGameplayTag& EffectTag, const FGAEffectPolicy& EffectPolicy,
+		const FGAEffectAttributeSpec& AttributesIn);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
+		static bool ApplyInstantEffect();
+
+	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
+		static bool ApplyPeriodicEffect();
+
+	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
+		static bool ApplyDurationEffect();
 
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
 		static void RemoveEffects(AActor* CauserIn, AActor* TargetIn, const FGameplayTagContainer& EffectsTags, int32 EffectCount);
