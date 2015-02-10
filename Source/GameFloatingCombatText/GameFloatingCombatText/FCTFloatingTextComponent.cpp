@@ -25,7 +25,7 @@ void UFCTFloatingTextComponent::InitializeComponent()
 	for (int32 Index = 0; Index < MaximumIndicators; Index++)
 	{
 		FFCTDisplayData data;
-		data.DisplayText = "";
+		data.DisplayText = FText::FromString("");
 		data.TargetLocation = FVector::ZeroVector;
 		data.FadeTime = 0;
 

@@ -9,9 +9,18 @@ class GAMEATTRIBUTES_API UGAAttributesBlueprintFunctionLibrary : public UBluepri
 {
 	GENERATED_UCLASS_BODY()
 public:
+	UFUNCTION(BlueprintPure, meta=(FriendlyName="Equal"), Category = "GameAttributes")
+	bool EqualAttribute(const FGAAttribute& Compare, FGAAttribute Against);
+	
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
-
 	static FName GetAttribute(FGAAttribute AttributeIn);
+
+	UFUNCTION(BlueprintPure, Category = "Game Attributes")
+		static float GetFinalAttributeValue(AActor* Target, FGAAttribute Name);
+
+	UFUNCTION(BlueprintPure, Category = "Game Attributes")
+		static float GetCurrentAttributeValue(AActor* Target, FGAAttribute Name);
+
 	/**
 	*	Takes actor, and return value of specified attribute.
 	*

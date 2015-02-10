@@ -15,10 +15,27 @@ UGAAttributesBlueprintFunctionLibrary::UGAAttributesBlueprintFunctionLibrary(con
 {
 
 }
-
+bool UGAAttributesBlueprintFunctionLibrary::EqualAttribute(const FGAAttribute& Compare, FGAAttribute Against)
+{
+	return Compare == Against;
+}
 FName UGAAttributesBlueprintFunctionLibrary::GetAttribute(FGAAttribute AttributeIn)
 {
 	return AttributeIn.AttributeName;
+}
+float UGAAttributesBlueprintFunctionLibrary::GetFinalAttributeValue(AActor* Target, FGAAttribute Name)
+{
+	IIGAAttributes* attributeInt = Cast<IIGAAttributes>(Target);
+	if (!attributeInt)
+		return 0;
+	return attributeInt->GetAttributes()->GetFinalAttributeValue(Name);
+}
+float UGAAttributesBlueprintFunctionLibrary::GetCurrentAttributeValue(AActor* Target, FGAAttribute Name)
+{
+	IIGAAttributes* attributeInt = Cast<IIGAAttributes>(Target);
+	if (!attributeInt)
+		return 0;
+	return attributeInt->GetAttributes()->GetCurrentAttributeValue(Name);
 }
 float UGAAttributesBlueprintFunctionLibrary::GetAttributeFloat(AActor* Target, FGAAttribute AttributeIn)
 {
@@ -31,26 +48,23 @@ float UGAAttributesBlueprintFunctionLibrary::GetAttributeFloat(AActor* Target, F
 float UGAAttributesBlueprintFunctionLibrary::ChangeAttribute(AActor* Target, FGAAttribute AttributeIn, float ValueIn, EGAAttributeOp Operation, bool bSetAttribute)
 {
 	//check if actor have interface, if not, then this actor can't interact with attribute system.
-	//IIGAAttributes* attributeInt = Cast<IIGAAttributes>(Target);
-	//if (!attributeInt)
-	//{
+	IIGAAttributes* attributeInt = Cast<IIGAAttributes>(Target);
+	if (!attributeInt)
+	{
 	//	/*
 	//		Probabaly should print some message, like 
 	//		you need to implement proper interface to interact with this system
 	//		and add component.
 	//	*/
 	//	return 0;
-	//}
+	}
 	////shouldn't be null if we are past interface stage..
-	//UGAAttributesBase* attributes = attributeInt->GetAttributes();
-
-	//float newValue = attributes->AttributeOperation(AttributeIn, ValueIn, Operation);
-	//if (bSetAttribute)
-	//{
-	//	attributes->SetFloatValue(AttributeIn, newValue);
-	//}
-
-	//return newValue;
+	UGAAttributesBase* attributes = attributeInt->GetAttributes();
+	float newVal = attributes->AttributeOperation(AttributeIn, ValueIn, Operation);
+	FGAEvalData eval;
+	eval.Attribute = AttributeIn;
+	eval.ModValue = newVal;
+	attributes->UpdateAttributes(eval, newVal);
 	return 0;
 }
 
@@ -94,21 +108,21 @@ void UGAAttributesBlueprintFunctionLibrary::ModifyAttributes(TArray<FGAAttribute
 float UGAAttributesBlueprintFunctionLibrary::ChangeAttributes(const FHitResult& Target, AActor* Instigator, TArray<FGAAttributeSpec> AttributesIn)
 {
 	float FinalValueMod = 0;
-	IIGAAttributes* instAttr = Cast<IIGAAttributes>(Instigator);
-	IIGAAttributes* targetAttr = Cast<IIGAAttributes>(Target.Actor.Get());
+	//IIGAAttributes* instAttr = Cast<IIGAAttributes>(Instigator);
+	//IIGAAttributes* targetAttr = Cast<IIGAAttributes>(Target.Actor.Get());
 
-	if (!instAttr || !targetAttr)
-		return FinalValueMod;
+	//if (!instAttr || !targetAttr)
+	//	return FinalValueMod;
 
-	FGAAttributeModData AttMod;
-	FGAttributeContext AttrCtx;
-	AttrCtx.Target = targetAttr->GetAttributeComponent();
-	AttrCtx.Instigator = instAttr->GetAttributeComponent();
-	AttMod.AttributeContext = AttrCtx;
-	AttMod.AttributeModSpec = AttributesIn;
-	AttMod.HitLocation = Target.Location;
-	//AttMod.AttributeContext.Instigator->ModifyAttributesOnTarget(AttMod.AttributeContext.Target.Get(), AttMod);
-	AttMod.ApplyMod();
+	//FGAAttributeModData AttMod;
+	//FGAttributeContext AttrCtx;
+	//AttrCtx.Target = targetAttr->GetAttributeComponent();
+	//AttrCtx.Instigator = instAttr->GetAttributeComponent();
+	//AttMod.AttributeContext = AttrCtx;
+	//AttMod.AttributeModSpec = AttributesIn;
+	//AttMod.HitLocation = Target.Location;
+	////AttMod.AttributeContext.Instigator->ModifyAttributesOnTarget(AttMod.AttributeContext.Target.Get(), AttMod);
+	//AttMod.ApplyMod();
 	return FinalValueMod;
 }
 

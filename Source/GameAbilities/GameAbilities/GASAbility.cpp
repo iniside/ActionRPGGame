@@ -36,7 +36,8 @@ void UGASAbility::InputPressed()
 
 void UGASAbility::InputReleased()
 {
-
+	if (CurrentState)
+		CurrentState->EndActionSequence();
 }
 void UGASAbility::InputCancel()
 {

@@ -71,8 +71,6 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	Attributes = ObjectInitializer.CreateDefaultSubobject<UGAAttributeComponent>(this, TEXT("Attributes"));
 	Attributes->SetIsReplicated(true);
 	Attributes->SetNetAddressable();
-
-	GameAttributeEffects = ObjectInitializer.CreateDefaultSubobject<UGSEffectComponent>(this, TEXT("GameAttributeEffects"));
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -115,13 +113,6 @@ float AARCharacter::GetAttributeValue(FGAAttribute AttributeIn) const
 }
 
 /** IIGAAttributes End */
-
-/** IIGAEffect Begin */
-class UGAEffectComponent* AARCharacter::GetEffectComponent()
-{
-	return GameAttributeEffects;
-}
-/* IIGAEffect End **/
 
 /** IIGTSocket Begin */
 //FVector AARCharacter::GetSocketLocation(FName SocketNameIn)

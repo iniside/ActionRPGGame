@@ -10,7 +10,7 @@ UFCTHudWidget::UFCTHudWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	OnReceivedData.AddUObject(this, &UFCTHudWidget::PawnDamaged);
-	for (int32 Index = 0; Index < 10; Index++)
+	for (int32 Index = 0; Index < 30; Index++)
 	{
 		FFCTDamageHudIndicator dmgInd;
 		dmgInd.FadeTime = 0;
@@ -37,7 +37,7 @@ void UFCTHudWidget::PawnDamaged(const FFCTDisplayData& UIDamage)
 
 		int BestIndex = 0;
 		float BestTime = DamageIndicators[0].FadeTime;
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 30; i++)
 		{
 			if (DamageIndicators[i].FadeTime <= 0.0f)
 			{
@@ -89,7 +89,7 @@ void UFCTHudWidget::DrawDamageIndicators(UCanvas* CanvasIn, float DeltaTime)
 			vec2d.X = vecTemp.X + DamageIndicators[i].CurrentLocation.X;
 			vec2d.Y = vecTemp.Y + DamageIndicators[i].CurrentLocation.Y;
 			//FVector2D((Canvas->ClipX * 0.5) - Half, (Canvas->ClipY * 0.5) - Half)
-			FCanvasTextItem TextItem = FCanvasTextItem(vec2d, FText::FromString(DamageIndicators[i].DisplayText), FCTSettings.FontType, FCTSettings.FontColor);
+			FCanvasTextItem TextItem = FCanvasTextItem(vec2d, DamageIndicators[i].DisplayText, FCTSettings.FontType, FCTSettings.FontColor);
 
 			TextItem.Scale = FVector2D(FCTSettings.FontScale, FCTSettings.FontScale);
 

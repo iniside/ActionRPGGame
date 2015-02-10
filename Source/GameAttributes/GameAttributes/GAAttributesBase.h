@@ -70,14 +70,32 @@ public:
 		It can be called from PostModifyAttribute, so I actually need to figure out if it's safe to do so.
 		So we won't end up in endless loop of recursion.
 	*/
-	void UpdateAttributes(const FGAEvalData& AttributeIn, float newValue);
+	FGAAttributeDataCallback UpdateAttributes(const FGAEvalData& AttributeIn, float newValue);
 
+	/*
+		We might want todo something on attributes, when effect is applied, to us.
+		We might want to change attributes for example.
+
+		Or we might modify effect itself.
+
+		Usage. This function will call other function which must be named with this pattern:
+		OnEffectApplied_Effect_Name.
+
+		These function MUST be in category PostEffectApplied
+	*/
+	virtual void PostEffectApplied(FGAEffectBase& SpecIn) {};
+	/*
+		Usage. This function will call other function which must be named with this pattern:
+		OnEffectRemoved_Effect_Name.
+
+		These function MUST be in category PostEffectRemoved
+	*/
+	virtual void PostEffectRemoved(FGAEffectBase& SpecIn) {};
+	//probabaly doesn't need to be vritual any longer. 
 	/*
 		Impelement your custom logic how changed attribute should affect other attributes.
 	*/
-	UFUNCTION(BlueprintNativeEvent, Category = "Attributes")
-		bool PostModifyAttribute(const FGAEvalData& AttributeMod);
-	virtual bool PostModifyAttribute_Implementation(const FGAEvalData& AttributeMod);
+	virtual FGAAttributeDataCallback PostModifyAttribute(const FGAEvalData& AttributeMod);
 
 	/*
 		Calculate attribute mod, when it is outgoing from source.
@@ -87,16 +105,12 @@ public:
 
 		That's the rough idea in anycase.
 	*/
-	UFUNCTION(BlueprintNativeEvent, Category = "Attributes")
-		bool CalculateOutgoingAttributeMods(const FGAAttributeSpec& AttributeModIn, FGAAttributeSpec& AttributeModOut);
-	virtual bool CalculateOutgoingAttributeMods_Implementation(const FGAAttributeSpec& AttributeModIn, FGAAttributeSpec& AttributeModOut);
+	virtual FGAAttributeSpec CalculateOutgoingAttributeMods(const FGAAttributeSpec& AttributeModIn);
 
 	/*
 		Calculate AttributeMod, when it's incoming to target.
 	*/
-	UFUNCTION(BlueprintNativeEvent, Category = "Attributes")
-		bool CalculateIncomingAttributeMods(const FGAAttributeSpec& AttributeModIn, FGAAttributeSpec& AttributeModOut);
-	virtual bool CalculateIncomingAttributeMods_Implementation(const FGAAttributeSpec& AttributeModIn, FGAAttributeSpec& AttributeModOut);
+	virtual FGAAttributeSpec CalculateIncomingAttributeMods(const FGAAttributeSpec& AttributeModIn);
 
 	/*
 		Helper C++ functions. Shouldn't ever be exposed or called from blueprint. Also never
@@ -104,6 +118,16 @@ public:
 
 		probabaly could also add support for int32 values.
 	*/
+	/*
+		Gets pointer to compelx attribute.
+	*/
+	FGAAttributeBase* GetAttribute(const FGAAttribute& Name);
+	/*
+		Gets value from complex attribute (FGAAttributeBase).
+	*/
+	float GetFinalAttributeValue(const FGAAttribute& Name);
+	float GetCurrentAttributeValue(const FGAAttribute& Name);
+
 	float GetFloatValue(const FGAAttribute& AttributeIn);
 	float SetFloatValue(const FGAAttribute& AttributeIn, float ValueIn);
 	float AttributeOperation(const FGAAttribute& AttributeIn, float ValueIn, EGAAttributeOp Operation);

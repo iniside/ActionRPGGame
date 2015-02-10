@@ -46,7 +46,7 @@ void AARPlayerController::OnRep_Pawn()
 void AARPlayerController::OnRecivedModifiedAttribute(const FGAModifiedAttribute& AttributeModIn)
 {
 	FFCTDisplayData DisplayData;
-	DisplayData.DisplayText = FString::FormatAsNumber(AttributeModIn.ModifiedByValue);
+	DisplayData.DisplayText = FText::AsNumber(AttributeModIn.ModifiedByValue);
 	DisplayData.TargetLocation = AttributeModIn.TargetLocation;
 	DisplayData.Tags = AttributeModIn.Tags;
 	AGSHUD* gshud = Cast<AGSHUD>(GetHUD());

@@ -22,24 +22,23 @@ void UGAAttributesBase::InitializeAttributes()
 	BP_InitializeAttributes();
 }
 
-void UGAAttributesBase::UpdateAttributes(const FGAEvalData& AttributeIn, float newValue)
+FGAAttributeDataCallback UGAAttributesBase::UpdateAttributes(const FGAEvalData& AttributeIn, float newValue)
 {
 	SetFloatValue(AttributeIn.Attribute, newValue);
-	PostModifyAttribute(AttributeIn);
+	return PostModifyAttribute(AttributeIn);
 }
-bool UGAAttributesBase::PostModifyAttribute_Implementation(const FGAEvalData& AttributeMod)
+FGAAttributeDataCallback UGAAttributesBase::PostModifyAttribute(const FGAEvalData& AttributeMod)
 {
-	return false;
+	FGAAttributeDataCallback non;
+	return non;
 }
-bool UGAAttributesBase::CalculateOutgoingAttributeMods_Implementation(const FGAAttributeSpec& AttributeModIn, FGAAttributeSpec& AttributeModOut)
+FGAAttributeSpec UGAAttributesBase::CalculateOutgoingAttributeMods(const FGAAttributeSpec& AttributeModIn)
 {
-	AttributeModOut = AttributeModIn;
-	return false;
+	return AttributeModIn;
 }
-bool UGAAttributesBase::CalculateIncomingAttributeMods_Implementation(const FGAAttributeSpec& AttributeModIn, FGAAttributeSpec& AttributeModOut)
+FGAAttributeSpec UGAAttributesBase::CalculateIncomingAttributeMods(const FGAAttributeSpec& AttributeModIn)
 {
-	AttributeModOut = AttributeModIn;
-	return false;
+	return AttributeModIn;
 }
 UProperty* UGAAttributesBase::FindProperty(const FGAAttribute& AttributeIn)
 {
@@ -51,8 +50,38 @@ UProperty* UGAAttributesBase::FindProperty(const FGAAttribute& AttributeIn)
 	LastAttributeName = AttributeIn.AttributeName;
 	LastAttributeProp = FindFieldChecked<UProperty>(this->GetClass(), LastAttributeName);
 	return LastAttributeProp;
+	return nullptr;
 }
 
+FGAAttributeBase* UGAAttributesBase::GetAttribute(const FGAAttribute& Name)
+{
+	UStructProperty* tempStruct = FindField<UStructProperty>(this->GetClass(), Name.AttributeName);
+	if (tempStruct)
+	{
+		FGAAttributeBase* attr = nullptr;
+		attr = tempStruct->ContainerPtrToValuePtr<FGAAttributeBase>(this);
+		return attr;
+	}
+	return nullptr;
+}
+float UGAAttributesBase::GetFinalAttributeValue(const FGAAttribute& Name)
+{
+	FGAAttributeBase* attrPtr = GetAttribute(Name);
+	if (attrPtr)
+	{
+		return attrPtr->GetFinalValue();
+	}
+	return 0;
+}
+float UGAAttributesBase::GetCurrentAttributeValue(const FGAAttribute& Name)
+{
+	FGAAttributeBase* attrPtr = GetAttribute(Name);
+	if (attrPtr)
+	{
+		return attrPtr->GetCurrentValue();
+	}
+	return 0;
+}
 float UGAAttributesBase::GetFloatValue(const FGAAttribute& AttributeIn)
 {
 	if ((AttributeIn.AttributeName == LastAttributeName))
@@ -69,7 +98,7 @@ float UGAAttributesBase::GetFloatValue(const FGAAttribute& AttributeIn)
 	const void* ValuePtr = NumericProperty->ContainerPtrToValuePtr<void>(this);
 	return NumericProperty->GetFloatingPointPropertyValue(ValuePtr);
 
-
+	return 0;
 }
 
 float UGAAttributesBase::SetFloatValue(const FGAAttribute& AttributeIn, float ValueIn)
@@ -89,6 +118,7 @@ float UGAAttributesBase::SetFloatValue(const FGAAttribute& AttributeIn, float Va
 	void* ValuePtr = CachedFloatPropety->ContainerPtrToValuePtr<void>(this);
 	NumericProperty->SetFloatingPointPropertyValue(ValuePtr, ValueIn);
 	return CachedFloatPropety->GetFloatingPointPropertyValue(ValuePtr);
+	return 0;
 }
 
 float UGAAttributesBase::AttributeOperation(const FGAAttribute& AttributeIn, float ValueIn, EGAAttributeOp Operation)

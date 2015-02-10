@@ -6,7 +6,6 @@
 
 #include "GAAttributeComponent.h"
 #include "GISInventoryBaseComponent.h" //need for template
-#include "Effects/GSEffectComponent.h"
 
 #include "Abilities/GSAbilitiesComponent.h"
 
@@ -16,14 +15,13 @@
 #include "GISItemData.h"
 
 #include "IGAAttributes.h"
-#include "Effects/IGAEffect.h"
 #include "IGIPawn.h"
 #include "Abilities/GSAbilitiesComponent.h"
 
 #include "ARCharacter.generated.h"
 
 UCLASS(config=Game)
-class AARCharacter : public AGSCharacter, public IIGAAttributes, public IIGAEffect,
+class AARCharacter : public AGSCharacter, public IIGAAttributes,
 	public IIGIPawn
 {
 	GENERATED_BODY()
@@ -41,8 +39,6 @@ class AARCharacter : public AGSCharacter, public IIGAAttributes, public IIGAEffe
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes", meta = (AllowPrivateAccess = "true"))
 	class UGAAttributeComponent* Attributes;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Effects", meta = (AllowPrivateAccess = "true"))
-	class UGSEffectComponent* GameAttributeEffects;
 
 	UPROPERTY()
 	class AARPlayerController* ARPController;
@@ -57,11 +53,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 		virtual float GetAttributeValue(FGAAttribute AttributeIn) const;
 	/** IIGAAttributes End */
-
-	/** IGAEffect Begin */
-	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
-		virtual class UGAEffectComponent* GetEffectComponent();
-	/** IGAEffect End */
 
 	/** IIGIPawn */
 	virtual APawn* GetGamePawn() override { return this; };

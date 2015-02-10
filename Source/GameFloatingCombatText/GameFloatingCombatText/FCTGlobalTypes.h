@@ -8,7 +8,7 @@ struct FFCTDisplayData
 	GENERATED_USTRUCT_BODY()
 public:
 	UPROPERTY(BlueprintReadOnly)
-		FString DisplayText;
+		FText DisplayText;
 
 	UPROPERTY(BlueprintReadOnly)
 		FVector TargetLocation; //change to vector, we need only position.
@@ -31,7 +31,7 @@ public:
 		float RotationAngle;
 
 	UPROPERTY()
-		FString DisplayText;
+		FText DisplayText;
 
 	UPROPERTY()
 		float FadeTime;
@@ -47,7 +47,7 @@ public:
 
 	FFCTDamageHudIndicator()
 		: RotationAngle(0.0f)
-		, DisplayText("")
+		, DisplayText(FText::FromString(""))
 		, FadeTime(0.0f)
 		, Location(FVector::ZeroVector)
 	{

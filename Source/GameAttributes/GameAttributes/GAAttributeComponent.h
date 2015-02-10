@@ -17,13 +17,35 @@ public:
 		FGAAttribute DeathAttribute;
 
 
+
+	FGAOnPostModifyAttribute OnPostModifyAttribute;
+
+	FGAOnPostEffectApplied OnPostEffectApplied;
+	FGAOnPostEffectRemoved OnPostEffectRemoved;
+
+	FGAOnCalculateOutgoingAttributeMods OnCalculateOutgoingAttributeMods;
+	FGAOnCalculateIncomingAttributeMods OnCalculateIncomingAttributeMods;
+
+	TArray<TSharedPtr<FGAEffectDuration>> ActiveEffectsTest;
+
 	/*
-		Temprorary hack. Direct inline spawning of object on ActorComponents doesn't work!
+		TagName, number of tags. If Effect, provide immunity
+		and such tag exist, increment value.
+
+		If tag is removed decrement if value 0, remove entry, all togather.
+		??
 	*/
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, meta=(ExposedOnSpawn))
-	//	TSubclassOf<class UGAAttributesBase> DefaultAttributesClass;
+	TMap<FName, int32> ImmunityTags;
 
-
+	FGACountedTagContainer AppliedTags;
+	
+	FGAActiveEffectContainer ActiveEffects;
+	
+	/*
+		Tags, which are  currently applied by effects to me.
+	*/
+	//TMap<FGameplayTag, int32> AppliedTags;
+	
 	UPROPERTY(EditAnywhere, Category = "Attribute Mods")
 		TArray<TSubclassOf<class UGAAttributeMod> > AttributeMods;
 	
@@ -51,8 +73,26 @@ public:
 	UFUNCTION()
 		void OnRep_AttributeChanged();
 	
+	UFUNCTION(BlueprintCallable, Category = "Test")
+		void GetAttributeStructTest(FGAAttribute Name);
+
 	virtual void InitializeComponent() override;
 
+	/////////////////////////////////////////////////
+	//////////// EFFECTS HANDLING
+	bool ApplyEffectToSelf(FGAEffectBase& SpecIn);
+	bool ApplyEffectToTarget(FGAEffectBase& SpecIn, UGAAttributeComponent* TargetIn);
+
+	void ApplyEffectToSelf(const FGAEffectContext& SpecIn, TSubclassOf<class UGAEffect> EffectIn);
+	void ApplyEffectToTarget(const FGAEffectContext& SpecIn, TSubclassOf<class UGAEffect> EffectIn);
+
+	void EffectExpired(FGAEffectHandle& HandleIn);
+	//////////// EFFECTS HANDLING
+	/////////////////////////////////////////////////
+
+
+	/////////////////////////////////////////////////
+	//////////// ATTRIBUTES HANDLING
 	/*
 		I'm not entirely sure if this should be here. Just sayin.
 	*/
@@ -66,10 +106,10 @@ public:
 		For example there might be physical armor mod, which will apply changes only
 		to attributes tagged as Damage.Physical and only if you are reciving change, not causing it.
 	*/
-	void ModifyAttributesOnSelf(UGAAttributeComponent* Causer, FGAAttributeModData& AttributeIn);
-	void ModifyAttributesOnTarget(UGAAttributeComponent* Target, FGAAttributeModData& AttributeIn);
-
-
+	FGAAttributeDataCallback ModifyAttributesOnSelf(const FGAEffectContext& Context, const FGAEffectHandle& HandleIn, FGAAttributeModData& AttributeIn);
+	FGAAttributeDataCallback ModifyAttributesOnTarget(const FGAEffectContext& Context, const FGAEffectHandle& HandleIn, FGAAttributeModData& AttributeIn);
+	//////////// ATTRIBUTES HANDLING
+	/////////////////////////////////////////////////
 	/*
 		Attribute replication.
 	*/
