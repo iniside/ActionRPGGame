@@ -1,5 +1,6 @@
 #pragma once
 #include "GAGlobalTypes.h"
+#include "GAAttributesBase.h"
 #include "GAAttributeComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGAOnAttributeChanged);
@@ -15,18 +16,6 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, Category = "Config")
 		FGAAttribute DeathAttribute;
-
-
-
-	FGAOnPostModifyAttribute OnPostModifyAttribute;
-
-	FGAOnPostEffectApplied OnPostEffectApplied;
-	FGAOnPostEffectRemoved OnPostEffectRemoved;
-
-	FGAOnCalculateOutgoingAttributeMods OnCalculateOutgoingAttributeMods;
-	FGAOnCalculateIncomingAttributeMods OnCalculateIncomingAttributeMods;
-
-	TArray<TSharedPtr<FGAEffectDuration>> ActiveEffectsTest;
 
 	/*
 		TagName, number of tags. If Effect, provide immunity
@@ -80,11 +69,8 @@ public:
 
 	/////////////////////////////////////////////////
 	//////////// EFFECTS HANDLING
-	bool ApplyEffectToSelf(FGAEffectBase& SpecIn);
-	bool ApplyEffectToTarget(FGAEffectBase& SpecIn, UGAAttributeComponent* TargetIn);
-
-	void ApplyEffectToSelf(const FGAEffectContext& SpecIn, TSubclassOf<class UGAEffect> EffectIn);
-	void ApplyEffectToTarget(const FGAEffectContext& SpecIn, TSubclassOf<class UGAEffect> EffectIn);
+	bool ApplyEffectToSelf(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
+	bool ApplyEffectToTarget(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
 
 	void EffectExpired(FGAEffectHandle& HandleIn);
 	//////////// EFFECTS HANDLING
@@ -96,7 +82,7 @@ public:
 	/*
 		I'm not entirely sure if this should be here. Just sayin.
 	*/
-	FGAOnAttributeUpdated OnAttributeUpdated;
+	//FGAOnAttributeUpdated OnAttributeUpdated;
 
 	/*
 		Two functions, They will allow to apply any static numerical mods from player who
@@ -106,8 +92,24 @@ public:
 		For example there might be physical armor mod, which will apply changes only
 		to attributes tagged as Damage.Physical and only if you are reciving change, not causing it.
 	*/
-	FGAAttributeDataCallback ModifyAttributesOnSelf(const FGAEffectContext& Context, const FGAEffectHandle& HandleIn, FGAAttributeModData& AttributeIn);
-	FGAAttributeDataCallback ModifyAttributesOnTarget(const FGAEffectContext& Context, const FGAEffectHandle& HandleIn, FGAAttributeModData& AttributeIn);
+	void ModifyAttributesOnSelf(TArray<FGAEvalData>& EvalData, const FGAEffectContext& Context, const FGAEffectHandle& HandleIn);
+	void ModifyAttributesOnTarget(TArray<FGAEvalData>& EvalData, const FGAEffectContext& Context, const FGAEffectHandle& HandleIn);
+	
+	//////Accessors to various functions inside DefaultAttributes;
+	inline FGAAttributeBase* GetAttribute(const FGAAttribute& Name)
+	{
+		return DefaultAttributes->GetAttribute(Name);
+	}
+	
+	inline float GetFinalAttributeValue(const FGAAttribute& Name)
+	{
+		return DefaultAttributes->GetFinalAttributeValue(Name);
+	}
+	inline float GetCurrentAttributeValue(const FGAAttribute& Name)
+	{
+		return DefaultAttributes->GetCurrentAttributeValue(Name);
+	}
+
 	//////////// ATTRIBUTES HANDLING
 	/////////////////////////////////////////////////
 	/*

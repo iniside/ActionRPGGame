@@ -16,7 +16,6 @@ class GAMEATTRIBUTES_API UGAEffect : public UObject
 	GENERATED_BODY()
 public:
 	UGAEffect(const FObjectInitializer& ObjectInitializer);
-
 	UFUNCTION(BlueprintNativeEvent, Category = "Effect")
 		bool OnEffectApplied(const FGAEffectContext& Context);
 	virtual bool OnEffectApplied_Implementation(const FGAEffectContext& Context);

@@ -10,10 +10,10 @@ class GAMEATTRIBUTES_API UGAAttributesBlueprintFunctionLibrary : public UBluepri
 	GENERATED_UCLASS_BODY()
 public:
 	UFUNCTION(BlueprintPure, meta=(FriendlyName="Equal"), Category = "GameAttributes")
-	bool EqualAttribute(const FGAAttribute& Compare, FGAAttribute Against);
-	
+		static bool EqualAttribute(const FGAAttribute& Compare, FGAAttribute Against);
+
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
-	static FName GetAttribute(FGAAttribute AttributeIn);
+		static FName GetAttribute(FGAAttribute AttributeIn);
 
 	UFUNCTION(BlueprintPure, Category = "Game Attributes")
 		static float GetFinalAttributeValue(AActor* Target, FGAAttribute Name);
@@ -31,47 +31,4 @@ public:
 	*/
 	UFUNCTION(BlueprintPure, Category = "Game Attributes")
 		static float GetAttributeFloat(AActor* Target, FGAAttribute AttributeIn);
-	/**
-	 *	Takes attribute, change it and then return it's new value.
-	 *	It always Work Like Attribute + ValueIn, Attribute - ValueIn, Attribute \ ValueIn.
-	 *
-	 *	@param Target - Actor on which to change attribute
-	 *	@param AttributeIn - Attribute, To change
-	 *	@param ValueIn - Value by which change attribute
-	 *	@param Operation - type of operation to perform on attribute
-	 *
-	 *  @return value of changed attribute
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
-		static float ChangeAttribute(AActor* Target, FGAAttribute AttributeIn, float ValueIn, EGAAttributeOp Operation, bool bSetAttribute);
-	/**
-	*	Takes array attributes, change them;
-	*	It always Work Like Attribute + ValueIn, Attribute - ValueIn, Attribute \ ValueIn.
-	*	Works directly on UGAAttributesBase derived class!
-	*
-	*	@param Target - Actor on which to change attributes
-	*	@param Attributes - Attributes to change.
-	*/
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
-		static void AttributesOperation(TArray<FGAAttributeModSelf> AttributesIn);
-
-	/**
-	*	Takes array attributes, change them;
-	*	It always Work Like Attribute + ValueIn, Attribute - ValueIn, Attribute \ ValueIn.
-	*	Works on componenet, and will apply attribute mods, if there are any.
-	*
-	*	@param Target - Actor on which to change attributes
-	*	@param Attributes - Attributes to change.
-	*/
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
-		static void ModifyAttributes(TArray<FGAAttributeModData> AttributesIn);
-
-	/*
-		Changes multiple attributes in one go.
-	*/
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
-		static float ChangeAttributes(const FHitResult& Target, AActor* Instigator, TArray<FGAAttributeSpec> AttributesIn);
-
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
-		static void DamageAttribute(FGAAttribute AttributeIn, float ModValue, const FHitResult& TargetIn, const FGameplayTagContainer& TagsIn, APawn* Instigator);
 };

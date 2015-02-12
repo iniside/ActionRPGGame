@@ -40,9 +40,11 @@ void FGAAttributeDetailCustomization::CustomizeHeader(TSharedRef<IPropertyHandle
 			[
 				SNew(SComboButton)
 				.OnGetMenuContent(this, &FGAAttributeDetailCustomization::GetSocketTree)
+				.ContentPadding(FMargin(0.2))
 				.ButtonContent()
 				[
 					SNew(STextBlock)
+					.Margin(FMargin(0.3))
 					.Text(this, &FGAAttributeDetailCustomization::GetAttributeName)
 				]
 			]

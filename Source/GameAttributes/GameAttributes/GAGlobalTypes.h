@@ -2,20 +2,41 @@
 #include "GameplayTagContainer.h"
 #include "GAGlobalTypes.generated.h"
 
+/*
+	Explanation of tags from Fred K, on forums:
+	https://forums.unrealengine.com/showthread.php?57988-GameplayAbilities-questions&p=220315#post220315
+	Here are some examples to illustrate the possible results. Let's assume that our 
+	tag container contains exactly one tag, "A.B.C".
 
+	HasTag("A.B.C", Explicit, Explicit) returns true.
+	HasTag("A.B", Explicit, Explicit) returns false.
+	HasTag("A.B.C.D", Explicit, Explicit) returns false.
+	HasTag("E.B.C", Explicit, Explicit) returns false.
+	HasTag("A.B.C", IncludeParentTags, IncludeParentTags) returns true.
+	HasTag("A.B", IncludeParentTags, IncludeParentTags) returns true.
+	HasTag("A.B.C.D", IncludeParentTags, IncludeParentTags) returns true.
+	HasTag("E.B.C", IncludeParentTags, IncludeParentTags) returns false.
+	HasTag("A.B.C", IncludeParentTags, Explicit) returns true.
+	HasTag("A.B", IncludeParentTags, Explicit) returns true.
+	HasTag("A.B.C.D", IncludeParentTags, Explicit) returns false.
+	HasTag("E.B.C", IncludeParentTags, Explicit) returns false.
+	HasTag("A.B.C", Explicit, IncludeParentTags) returns true.
+	HasTag("A.B", Explicit, IncludeParentTags) returns false.
+	HasTag("A.B.C.D", Explicit, IncludeParentTags) returns true.
+	HasTag("E.B.C", Explicit, IncludeParentTags) returns false.
+*/
 /*
 	That file is veryyyy WIP. I'm refactoring entire code!
 */
 /**/
 UENUM()
-enum class EGAAttributeOp : uint8
+enum class EGAAttributeMod : uint8
 {
-	Add,
-	Subtract,
-	Multiply,
-	Divide,
-	Set,
-	Precentage,
+	Add, //Value =  Value + X
+	Subtract, //Value =  Value - X
+	Multiply, //Value =  Value * X
+	Divide,//Value =  Value / X
+	Set, //Value = X
 
 	Invalid
 };
@@ -28,6 +49,14 @@ enum class EGAAttributeSource : uint8
 };
 
 UENUM()
+enum class EGAAttributeValue : uint8
+{
+	Base,
+	Current,
+	Final,
+	Bonus
+};
+UENUM()
 enum class EGAMagnitudeOperation : uint8
 {
 	Add,
@@ -37,6 +66,82 @@ enum class EGAMagnitudeOperation : uint8
 
 	Invalid
 };
+UENUM()
+enum class EGAEffectType : uint8
+{
+	Instant,
+	Periodic,
+	Duration,
+	Infinite
+};
+
+UENUM()
+enum class EGAEffectStacking : uint8
+{
+	HighestOverride, //only one effect modiging these attributes, will be present
+	Replace, //will end previous effect, and replace with new one.
+	Restart, //will restart existing effect
+	Duration, //will add duration to existing effect
+	Intensity, //will add magnitude to existing effect.
+	Add, //will simply add new effect
+
+	Invalid
+};
+
+UENUM()
+enum class EGAAttributeMagCalc : uint8
+{
+	Add, //Value =  Value + X
+	Subtract, //Value =  Value - X
+	Multiply, //Value =  Value * X
+	Divide,//Value =  Value / X
+	PrecentageIncrease, //Value = Value + (Value * X)
+	PrecentageDecrease, //Value = Value - (Value * X)
+
+	Invalid
+};
+
+UENUM()
+enum class EGAMagnitudeCalculation : uint8
+{
+	Direct, //straight float value, no calculations.
+	AttributeBased, //calculate based on attribute Attribute * RestOfEquationToBeDecided
+	CurveBased, //Takes value of attribute, and then gets value from curve based on this attribute.
+	CustomCalculation,//uses custom object to calculate magnitude.
+
+	Invalid
+};
+/*
+Rules for where we should aggregate effects.
+Concept might look bit muddy at first look, but it is actually very simple.
+
+Let's say we have additive effect which modify Health by 50 points, and effect which modify health by 100.
+We want, to only the highest one, affect target (positive bonus). Regardless of who applied this effect.
+
+To do it we need to tell this effect, that it should be aggregated by target and set effect stacking rule to
+HighestOverride.
+
+Now say we have effect which reduce Health by 30 points, and second which reduce by 20 points.
+We might want negative effects from diffrent source to stack.
+To do this we need to aggregate those effects by Instigator.
+And then we can decide how those effects will stack within single Instigator.
+*/
+UENUM()
+enum class EGAEffectAggregation : uint8
+{
+	/*
+	Effect will be stacked/aggregated by Instigator who applied it.
+	Checking for stacking rules will be done only against other effects from the same Instigator.
+	*/
+	AggregateByInstigator,
+	/*
+	Effects will be stacked/aggregated by Target.
+	Checking for stacking rules, will be done only for effects, with the same target.
+	*/
+	AggregateByTarget
+};
+
+
 
 USTRUCT(BlueprintType)
 struct FGAttributeMagnitudeData: public FTableRowBase
@@ -57,7 +162,7 @@ struct FGAEffectHandle
 	GENERATED_USTRUCT_BODY()
 protected:
 	UPROPERTY()
-		int32 Handle;
+		int32 Handle; //Fname Guid ?
 
 public:
 	FGAEffectHandle()
@@ -91,10 +196,22 @@ public:
 /*
 	Struct representing final modifier applied to attribute.
 */
+USTRUCT(BlueprintType)
 struct FGAModifier
 {
-	EGAAttributeOp AttributeMod;
-	float Value;
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		EGAAttributeMod AttributeMod;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		float Value;
+
+	FGAModifier()
+	{};
+	FGAModifier(EGAAttributeMod ModIn, float ValueIn)
+		: AttributeMod(ModIn),
+		Value(ValueIn)
+	{};
 };
 /**
  *	Struct representing single attribute. Needed for Pin customization.
@@ -144,8 +261,6 @@ struct GAMEATTRIBUTES_API FGAAttributeBase
 {
 	GENERATED_USTRUCT_BODY()
 public:
-	UPROPERTY()
-		FName AttributeName;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Value")
 		float BaseValue;
 	/*
@@ -154,10 +269,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Value")
 		float ClampValue;
 protected:
+	/*
+		Bonus value calculated from stack of affecting effects.
+	*/
 	float BonusValue;
-	//float OldCurrentValue;
+	/*
+		Current Value. BaseValue + BonusValue - AnyDamageIhave Takend, Clamped between 0 and ClampValue.
+	*/
 	float CurrentValue;
-	float ChangedValue;
 
 	//map of modifiers.
 	//It could be TArray, but map seems easier to use in this case
@@ -166,8 +285,11 @@ protected:
 	TMap<FGAEffectHandle, FGAModifier> Modifiers;
 
 public:
-	
-	inline float GetFinalValue(){ return BaseValue + BonusValue; };
+	inline void SetBaseValue(float ValueIn){ BaseValue = ValueIn; }
+	inline float GetFinalValue()
+	{ 
+		return FMath::Clamp<float>(BaseValue + BonusValue, 0,ClampValue);
+	};
 	inline float GetCurrentValue(){ return CurrentValue; };
 	void UpdateAttribute();
 
@@ -188,44 +310,24 @@ public:
 
 	inline bool operator== (const FGAAttributeBase& OtherAttribute) const
 	{
-		return (OtherAttribute.AttributeName == AttributeName);
+		return (OtherAttribute.CurrentValue == CurrentValue);
 	}
 
 	inline bool operator!= (const FGAAttributeBase& OtherAttribute) const
 	{
-		return (OtherAttribute.AttributeName != AttributeName);
-	}
-
-	inline bool IsValid() const
-	{
-		return !AttributeName.IsNone();
+		return (OtherAttribute.CurrentValue != CurrentValue);
 	}
 
 	FGAAttributeBase()
-		: AttributeName(NAME_None),
-		BaseValue(0),
-		BonusValue(0),
-		ChangedValue(0)
+		: BaseValue(0),
+		BonusValue(0)
 	{
 	};
-	FGAAttributeBase(const FName& AttributeNameIn)
-		: AttributeName(AttributeNameIn),
-		BaseValue(0),
-		BonusValue(0),
-		ChangedValue(0)
+	FGAAttributeBase(float BaseValueIn)
+		: BaseValue(BaseValueIn),
+		BonusValue(0)
 	{
 	};
-	FGAAttributeBase(const FName& AttributeNameIn, float BaseValueIn)
-		: AttributeName(AttributeNameIn),
-		BaseValue(BaseValueIn),
-		BonusValue(0),
-		ChangedValue(0)
-	{
-	};
-	friend uint32 GetTypeHash(const FGAAttributeBase& AttributeIn)
-	{
-		return AttributeIn.AttributeName.GetComparisonIndex();
-	}
 };
 
 USTRUCT(BlueprintType)
@@ -234,15 +336,15 @@ struct FGAEffectContext
 	GENERATED_USTRUCT_BODY()
 public:
 	/**
-	 *	Target which we apply Effect;
+	 *	Where exactly we hit target.
 	 */
 	UPROPERTY(BlueprintReadOnly, Category = "Spec")
-		FHitResult Target;
+		FVector TargetHitLocation;
 	/**
 	 *	Direct Reference to TargetActor (I will possibly remove FHitResult Target!
 	 */
 	UPROPERTY(BlueprintReadOnly, Category = "Spec")
-		TWeakObjectPtr<AActor> TargetActor;
+		TWeakObjectPtr<AActor> Target;
 	/**
 	 *	Object which caused this effect. Might be ability, weapon, projectile etc.
 	 */
@@ -263,288 +365,56 @@ public:
 	 */
 	UPROPERTY(BlueprintReadOnly, Category = "Spec")
 		TWeakObjectPtr<class UGAAttributeComponent> InstigatorComp;
-};
 
-USTRUCT(BlueprintType)
-struct GAMEATTRIBUTES_API FGAUpdatedAttribute
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY(BlueprintReadOnly)
-		FGAAttribute Attribute;
+	FGAEffectContext()
+	{}
 
-	UPROPERTY(BlueprintReadOnly)
-		float NewValue;
-};
-
-/*
-	Must be blueprint type, for supporting creating PostAttribute_
-	functions;
-*/
-USTRUCT(BlueprintType)
-struct GAMEATTRIBUTES_API FGAAttributeDataCallback
-{
-	GENERATED_USTRUCT_BODY()
-public:
-
-	//attribute we changed
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Callback")
-		FGAAttribute Attribute;
-	//final mod we appilied to this attribute..
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Callback")
-	float AttributeValue;
-
-	/*
-	attribute, which Attribute modified.
-	Simply speaking if we have Modified attribute Damage by 10, target had 100 Health.
-	If damage Modify Health, then this attribute will have value
-	Health,
-	and ModifiedAttributeValue will be 90
-	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Callback")
-		FGAAttribute ModifiedAttribute;
-
-	//final value of attribute, which AttributeModified
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Callback")
-	float ModifiedAttributeValue;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Callback")
-		FGAEffectContext AttributeContext;
-	FGAAttributeDataCallback()
-	{
-	};
-	FGAAttributeDataCallback(const FGAEffectContext& AttributeContextIn)
-		: AttributeContext(AttributeContextIn)
-	{
-	};
+	FGAEffectContext(const FVector& TargetHitLocationIn, TWeakObjectPtr<AActor> TargetIn,
+					TWeakObjectPtr<UObject> CauserIn, TWeakObjectPtr<APawn> InstigatorIn,
+					TWeakObjectPtr<class UGAAttributeComponent> TargetCompIn,
+					TWeakObjectPtr<class UGAAttributeComponent> InstigatorCompIn)
+					: TargetHitLocation(TargetHitLocationIn),
+						Target(TargetIn),
+						Causer(CauserIn),
+						Instigator(InstigatorIn),
+						TargetComp(TargetCompIn),
+						InstigatorComp(InstigatorCompIn)
+	{}
 };
 
 /*
-	Ok. What I really want to achieve here is:
-	1. You get Attribute and Base value. You can make any arbitrary operation on it.
-	2. You make next set, and do the same operation and the you make operation between two sets of resulting magnitueds.
-	3. This way I would not have to deal with data tables.
-
-	Either way I still need to figure out best workflow for it.
-
-	Calculating magnitude inside Object/Actor is not that bad idea, as it cuts on huge amount of content otherwise needed
-	(separate data curves/tables for each ability, and each ability can make use of multiple of them!).
-	Once we have equation figured out in something like ability it's only matter of chaging base values, or affecting attributes in defaults.
-
-	The advantage of using data table would increased performance, since we have everything precalculated already. It
-	s simple matter of pulling right data (but we will need more memory).
-	The downside is amount of assets to manage(, and possibility of making big mistakes like plugging wrong data table into wrong ability.
-*/
-/*
-	I'm still playing around what's the best way of evaluating data here.
-	And to store it.
-*/
-
-USTRUCT(BlueprintType)
-struct FGAAttributeMagnitude
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Magnitude Calc")
-		EGAAttributeSource AttributeSource;
-	//so let say spec can contain It's own ModValue Calculations..
-	//first Attribute against which we will try to calculate:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Magnitude Calc")
-		FGAAttribute AttributeMod;
-	/*
-		Curve Handle from which we will pull value for base magnitude. 
-		Column is based of attribute value!
-	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Magnitude Calc")
-		FCurveTableRowHandle MagnitudeCurve;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Backing Attribute")
-		EGAAttributeSource BackingAttributeSource;
-
-
-	/*
-		Magnitude = Magnitude OPERATION BackingAttributeValue. 
-		OR
-		Magnitude = Magnitude OPERATION BackingAttrbuteMagnitude (from external source, like table)
-	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Backing Attribute")
-		FGAAttribute BackingAttribute;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Backing Attribute")
-		EGAMagnitudeOperation BackAttributeOperation;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Magnitude Calc")
-		FCurveTableRowHandle BackingCurve;
-
-	//condtional backing ? eee ?
-
-public:
-	FGAAttributeMagnitude()
-	{
-	}
-};
-
-USTRUCT(BlueprintType)
-struct GAMEATTRIBUTES_API FGAAttributeSpec
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModSpec")
-		FGAAttribute Attribute;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModSpec")
-		EGAAttributeOp Operation;
-	/*
-		If false, you have to type ModValue Manually.
-	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModSpec")
-		bool bUseMagnitude;
-
-	//One attribute change - one tag.
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
-		FGameplayTag AttributeTag;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (FixedIncrement = 0.1), Category = "ModSpec")
-		float ModValue;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (EditCondition = "bUseMagnitude"), Category = "ModSpec")
-		FGAAttributeMagnitude AttributeMagnitude;
-
-
-	FGAModifier FinalMod;
-	bool operator==(const FGAAttributeSpec& OtherIn) const
-	{
-		return OtherIn.Attribute == Attribute && OtherIn.ModValue == ModValue;
-	}
-
-	bool IsValid() const 
-	{
-		if (bUseMagnitude)
-			return Attribute.IsValid();
-		else
-			return true;
-	}
-	float GetCurrentMagnitude(const FGAEffectContext& Context);
-	float CalcuclateMagnitude(const FGAEffectContext& Context);
-protected:
-	float CalculatedMagnitude;
-
-public:
-	inline float GetCalculatedMagnitude(){ return CalculatedMagnitude; };
-	inline void SetCalculatedMagnitude(float ValueIn){ CalculatedMagnitude = ValueIn; };
-	FGAAttributeSpec()
-	{
-		ModValue = 0;
-		Operation = EGAAttributeOp::Add;
-		bUseMagnitude = false;
-		CalculatedMagnitude = 0;
-		FinalMod.AttributeMod = EGAAttributeOp::Add;
-		FinalMod.Value = 50;
-	}
-};
-
-
-
-/**
- *	Who we modify.
- *	Who instigated this mod.
- *	What attributes we modify.
- */
-USTRUCT(BlueprintType, meta = (DisplayName = "Attribute Modifier"))
-struct GAMEATTRIBUTES_API FGAAttributeModData
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	//UPROPERTY()
-	//	FGAttributeContext AttributeContext;
-
-	UPROPERTY()
-		FVector HitLocation;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
-		TArray<FGAAttributeSpec> AttributeModSpec;
-
-	//will cache off attribute specs here for quick look ups,
-	//so we can modify them faster.
-	//TMap<FName, FGAAttributeSpec> AttributeSpecMap;
-
-	void InitializeModData();
-	void CalculcateCurrentMods();
-	FGAAttributeDataCallback ApplyMod();
-
-	bool IsValid()
-	{
-		for (const FGAAttributeSpec& spec : AttributeModSpec)
-		{
-			if (!spec.IsValid())
-				return false;
-		}
-		return true;
-	}
-
-	FGAAttributeModData()
-	{
-	};
-};
-/*
-	Final evaluated data, which contains final mod value and attribute to which it's going to be
-	appilied. As well as target context.
+	Evaluated attribute data from effects. It can still change, at Attribute object level!.
 */
 USTRUCT(BlueprintType)
 struct GAMEATTRIBUTES_API FGAEvalData
 {
 	GENERATED_USTRUCT_BODY()
 public:
-
-
 	//attribute we changed
 	UPROPERTY(BlueprintReadOnly)
 		FGAAttribute Attribute;
-	//final mod we appilied to this attribute..
+	//How we intend to modify attribute
 	UPROPERTY(BlueprintReadOnly)
-	float ModValue;
-
+		EGAAttributeMod Mod;
+	//associated tag.
 	UPROPERTY(BlueprintReadOnly)
-		FGAEffectContext AttributeContext;
+		FGameplayTag AttributeTag;
+	//final value we will try to apply to attribute.
+	UPROPERTY(BlueprintReadOnly)
+		float Value;
 	FGAEvalData()
 	{
 	};
-	FGAEvalData(const FGAEffectContext& AttributeContextIn)
-		: AttributeContext(AttributeContextIn)
+	FGAEvalData(const FGAAttribute& AttributeIn, EGAAttributeMod ModIn,
+		const FGameplayTag& AttributeTagIn, float ValueIn)
+		: Attribute(AttributeIn),
+			Mod(ModIn),
+			AttributeTag(AttributeTagIn),
+			Value(ValueIn)
 	{
 	};
 };
 
-USTRUCT(BlueprintType)
-struct GAMEATTRIBUTES_API FGAAttributeModSelf
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY(BlueprintReadWrite, Category = "Mod")
-		TWeakObjectPtr<AActor> Target;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
-		FGAAttribute Attribute;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
-		float Value;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
-		EGAAttributeOp Operation;
-
-	/**
-	*	Tags for this modifier.
-	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mod")
-		FGameplayTagContainer Tags;
-
-	FGAAttributeModSelf()
-	{
-		Value = 0;
-		Operation = EGAAttributeOp::Add;
-	};
-};
-/*
-	It's going to be helper replication struct
-	mainly used to communicate changes to UI, so you can decide to what do with them.
-*/
 USTRUCT(BlueprintType)
 struct GAMEATTRIBUTES_API FGAModifiedAttribute
 {
@@ -583,38 +453,252 @@ public:
 		TWeakObjectPtr<class UGAAttributeComponent> Causer;
 };
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FGAOnAttributeUpdated, const FGAUpdatedAttribute&);
-
-
-
-UENUM()
-enum class EGAEffectType : uint8
+/*
+	Base concept behind those attributes calculations (not sure if these are any good solutions
+	/performance firendly but:
+	1. Prefer getting values directly of attributes (GetBaseValue(), GetFinalValue(), GetBonus() etc),
+	as attributes can track their own state, we don't need any sophisticated way to access them and calculate bonuses).
+	2. Prefer simple and direct formulas (either evaluate from CurveTable, just plain add, Multiply various numbers, 
+	or get value directly).
+	3. This system is not inteded, to calculate absolute final value on effect, before that effect is applied.
+	It will calculate absolute maximum value from the informations it have access to.
+	Further modifications like increasing specific damage type value, or reducing damage by value, are done
+	on AttributeComponent, by implementing approperiate functions, or by existing effects, which happen to intercept
+	incoming effect.
+	This might change in future though. But even if, I still prefer the magnitude calculations to be simple,
+	and we will add needed buffs/debuffs as we progress trough execution chain.
+	4. All calculations are linear.
+*/
+//EGAMagnitudeCalculation::Direct
+USTRUCT(BlueprintType)
+struct FGADirectModifier
 {
-	Instant,
-	Periodic,
-	Duration,
-	Infinite
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(EditAnywhere)
+		float Value;
+
+	inline float GetValue(){ return Value; };
+};
+//EGAMagnitudeCalculation::AttributeBased
+USTRUCT(BlueprintType)
+struct FGAAttributeBasedModifier
+{
+	/*
+		We also need to add concept of backing attributes, 
+		though I'm not sure how I want to handle them at this point.
+	*/
+	GENERATED_USTRUCT_BODY()
+public:
+	/*
+		Source of Attribute for this calculation.
+	*/
+	UPROPERTY(EditAnywhere)
+		EGAAttributeSource Source;
+	/*
+		Name of attribute Used for calculation.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGAAttribute Attribute;
+
+	UPROPERTY(EditAnywhere, meta = (FixedIncrement = "0.01"))
+		float Coefficient;
+	UPROPERTY(EditAnywhere, meta = (FixedIncrement = "0.01"))
+		float PreMultiply;
+	UPROPERTY(EditAnywhere, meta = (FixedIncrement = "0.01"))
+		float PostMultiply;
+	UPROPERTY(EditAnywhere, meta = (FixedIncrement = "0.01"))
+		float PostCoefficient;
+	/*
+		Should we use secondary attribute for this ecalculation ?
+	*/
+	UPROPERTY(EditAnywhere)
+		bool bUseSecondaryAttribute;
+	/*
+		Source for secondary attribute
+	*/
+	UPROPERTY(EditAnywhere)
+		EGAAttributeSource SecondarySource;
+	/*
+		Name of secondary attribute used in calculation.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGAAttribute SecondaryAttribute;
+	/*
+		What shouldd we do with secondary attribute ?
+
+		case EGAAttributeMagCalc::Add:
+			return BaseResult + attrValue;
+		case EGAAttributeMagCalc::Subtract:
+			return BaseResult - attrValue;
+		case EGAAttributeMagCalc::Multiply:
+			return BaseResult * attrValue;
+		case EGAAttributeMagCalc::Divide:
+			return BaseResult / attrValue;
+		case EGAAttributeMagCalc::PrecentageIncrease:
+			return BaseResult + (BaseResult * attrValue);
+		case EGAAttributeMagCalc::PrecentageDecrease:
+			return BaseResult - (BaseResult * attrValue);
+	*/
+	UPROPERTY(EditAnywhere)
+		EGAAttributeMagCalc SecondaryMod;
+
+	FGAAttributeBasedModifier()
+		: Source(EGAAttributeSource::Instigator),
+			Coefficient(1),
+			PreMultiply(0),
+			PostMultiply(0),
+			PostCoefficient(1),
+			bUseSecondaryAttribute(false)
+	{}
+
+	float GetValue(const FGAEffectContext& Context);
+};
+//EGAMagnitudeCalculation::CurveBased
+USTRUCT(BlueprintType)
+struct FGACurveBasedModifier
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	/*
+		Source of Attribute for this calculation.
+	*/
+	UPROPERTY(EditAnywhere)
+		EGAAttributeSource Source;
+	/*
+		Name of attribute from which we will take XValue for Curve
+	*/
+	UPROPERTY(EditAnywhere)
+		FGAAttribute Attribute;
+	/*
+		Curve and row from which we will take YValue.
+	*/
+	UPROPERTY(EditAnywhere)
+		FCurveTableRowHandle CurveTable;
+
+	float GetValue(const FGAEffectContext& ContextIn);
+};
+//EGAMagnitudeCalculation::CustomCalculation
+USTRUCT(BlueprintType)
+struct FGACustomCalculationModifier
+{
+	GENERATED_USTRUCT_BODY()
+		//TSubclassOf<UGACustomCalculation> CalcClass;
+};
+/*
+	It will somehow calculcate magnitude out of something.
+*/
+USTRUCT(BlueprintType)
+struct FGAModifierMagnitude
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	/*
+		Source of Attribute for this calculation.
+	*/
+	UPROPERTY(EditAnywhere)
+		EGAAttributeSource Source;
+	/*
+		Name of attribute used in calculation.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGAAttribute Attribute;
+	/*
+		Curve we will use for calculation.
+	*/
+	UPROPERTY(EditAnywhere)
+		FCurveTableRowHandle CurveTable;
+
+	float GetMagnitude(const FGAEffectContext& Context);
 };
 
-UENUM()
-enum class EGAEffectStacking : uint8
+USTRUCT(BlueprintType)
+struct FGAAttributeModifier
 {
-	Replace, //will end previous effect, and replace with new one.
-	Restart, //will restart existing effect
-	Duration, //will add duration to existing effect
-	Intensity, //will add magnitude to existing effect.
-	Add, //will simply add new effect
+	GENERATED_USTRUCT_BODY()
+public:
+	/*
+		Type of calculation we want to perform for this Magnitude.
+	*/
+	UPROPERTY(EditAnywhere)
+		EGAMagnitudeCalculation CalculationType;
+		
+	/*
+		Attribute which will be modified.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGAAttribute Attribute;
+	/*
+		How Attribute Will be modified
+	*/
+	UPROPERTY(EditAnywhere)
+		EGAAttributeMod Mod;
+	/*
+		Tag for this attribute. Something like Damage.Fire, Damage.Condition.Bleed, Boon.SpeedBonus,
+		Damage.Condition.Burning.
 
-	Invalid
+		These tags are used to check if this modifier can be modified by other effects.
+		
+		I still need to figure out exactly to handle "targeted" bonuses like +20% damage against Undead.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGameplayTag AttributeTag;
+
+	UPROPERTY(EditAnywhere)
+		FGADirectModifier DirectModifier;
+	/*
+		Simple calculation based on attribute:
+		(Coefficient * (PreMultiply + AttributeValue) + PostMultiply) * PostCoefficient
+
+		There is no any magic manipulation, it straight off pull attribute from selected source, 
+		and make this operation on it.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGAAttributeBasedModifier AttributeBased;
+	/*
+		Get value from selected CurveTable, based on selected attribute value.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGACurveBasedModifier CurveBased;
+	/*
+		Provide custom calculation class.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGACustomCalculationModifier Custom;
+
+	/*
+		Currently evaluated magnitude. Figured I should store it here, so it can be further modified
+		by other effects, or something.
+	*/
+	FGAEvalData EvalData;
+
+	FGAEvalData GetModifier(const FGAEffectContext& ContextIn);
 };
 
-UENUM()
-enum class EGAEffectModPolicy : uint8
+/*
+	Contains definitions for specific modifer we want to override;
+*/
+USTRUCT(BlueprintType)
+struct FGAModifierOverride
 {
-	Permament, //mod appilies permament changes to attribute, we will never restore value after we expire.
-	//be careful with it!
-	Restore //if/when we expire we will restore attribute by mod we modified it while
-	//we have been active.
+	GENERATED_USTRUCT_BODY()
+public:
+	/*
+		Attribute associated with modifier.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FGAAttribute Attribute;
+	/*
+		New modifier we want to apply.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FGAAttributeModifier Modifier;
+};
+
+USTRUCT(BlueprintType)
+struct FGAEffectDuration
+{
+	GENERATED_USTRUCT_BODY()
 };
 
 USTRUCT(BlueprintType)
@@ -622,286 +706,111 @@ struct FGAEffectPolicy
 {
 	GENERATED_USTRUCT_BODY()
 public:
-	UPROPERTY(EditAnywhere, Category = "Policy")
-		EGAEffectModPolicy ModPolicy;
-	UPROPERTY(EditAnywhere, Category = "Policy")
-		EGAEffectType EffectType;
-	UPROPERTY(EditAnywhere, Category = "Policy")
-		EGAEffectStacking EffectStacking;
-	UPROPERTY(EditAnywhere, Category = "Policy")
-		uint32 bInstanceEffect : 1;
+	UPROPERTY(EditAnywhere)
+		EGAEffectType Type;
+	UPROPERTY(EditAnywhere)
+		EGAEffectStacking Stacking;
+	UPROPERTY(EditAnywhere)
+		EGAEffectAggregation Aggregation;
 };
-
-UENUM()
-enum class EGAEffectModType : uint8
+/*
+	1. If spec is instant application, we will try to apply it directly without any fuss.
+	2. If it have duration (or is infinite), we will create FGAActiveEffect out of it.
+*/
+USTRUCT(BlueprintType)
+struct FGAEffectSpec
 {
-	Add, //flat add mod
-	Multiply, //Multiply by mod
-	Subtract, //subtract mod
-	Divide, //Divide mod
-	PrecentageReduce, //calculate prcentage from base value and add it
-	PrecentageIncrease,
+	GENERATED_USTRUCT_BODY()
+public:
+	FGAEffectSpec() {};
+	FGAEffectSpec(const FGAEffectContext& ContextIn) 
+		: Context(ContextIn)
+	{};
+
+	FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn, const FGAEffectContext& ContextIn);
+	/*
+		These constructors are used with conjuction with static functions,
+		to easily alter parts of effect spec, without spawning/chagning 
+		UGAEffectSpecification, which can provide some defaults.
+	*/
+	/*
+		Constructor which will override duration.
+	*/
+	FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn,
+		FGAEffectDuration DurationIn, const FGAEffectContext& ContextIn);
+	/*
+		Constructor which will override entire stack of modifiers.
+	*/
+	FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn,
+		TArray<FGAAttributeModifier> ModifiersIn, const FGAEffectContext& ContextIn);
+	/*
+		Constructor which will override only specific modifiers.
+	*/
+	FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn,
+		TArray<FGAModifierOverride> OverridesIn, const FGAEffectContext& ContextIn);
+	
+	UPROPERTY()
+		const UGAEffectSpecification* EffectSpec;
+
+	/*
+		These properties will mirror the ones in GAEffectSpecification.
+		We use GAEffectSpecification as template, which is used to initialize, those properties
+		and then we can override them using various static functions.
+
+		Or we can just apply them directly.
+
+		EditAnywhere, so we can create an inline spec, when we need it.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
+		FGAEffectPolicy Policy;
+
+	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
+		TArray<FGAAttributeModifier> AttributeModifiers;
+
+	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
+		FGAEffectDuration EffectDuration;
+
+	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTag MyTag;
+	/*
+		I require these tags on target to be applied.
+		If this is empty I will ignore it.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTagContainer RequiredTags;
+	/*
+		I will apply these tags, to target if I'm applied.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTagContainer GrantedTags;
+	/*
+		I will add these immunity tags, to target if I'm applied.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTagContainer GrantedImmunityTags;
+	/*
+		I require any of these tags, on other effect
+		to be able to modify it.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTagContainer OtherEffectRequire;
+
+
+
+	UPROPERTY()
+		FGAEffectContext Context;
+
+	TArray<FGAEvalData> GetModifiers();
+
+	TArray<FGAEvalData> EvalModifiers;
 };
 
 
 /*
-I needed dedicated effect struct, which will support at least some
-basic polymorphism.
-
-I need some simple build in effects,
-and ability to easily extends.
-
-These structs are not going to be expsed to blueprint directly,
-instead we will expose "configuration" structs, and we will construct proper
-struct using correct static function.
-
-1. No hard references *.
+	Struct representing currently active effect.
 */
-USTRUCT(BlueprintType)
-struct GAMEATTRIBUTES_API FGAEffectBase
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	/*
-		Provide effect class, if you need more complicated conditional execution path.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Spec")
-		TSubclassOf<class UGAEffect> EffectClass;
-	/*
-		Create new instance of EffectClass ?
-		If false, only default class object will be provieded.
-		If true, there will be new effect instance created, which have access to event graph executions.
-
-		Either way, instanced effect is never replicated back to clients (might change it, but dunno).
-	*/
-	UPROPERTY(EditAnywhere, Category = "Spec")
-		bool bInstanceEffect;
-
-	UPROPERTY()
-		TWeakObjectPtr<class UGAEffect> EffectInstance;
-
-	/*
-		Contains Information About Target/Instigator
-	*/
-	UPROPERTY(BlueprintReadOnly, Category = "Spec")
-		FGAEffectContext EffectContext;
-
-	/*
-		Who appilied me ? Might be for example tag of ability Ability.Fireball, Ability.WallOfFire.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Tags")
-		FGameplayTag CauserTag;
-	/*
-		My tag. For example Hex, Enchatment, Condition.Weakness, Condition.Bleed, Condition.Burning etc.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Tags")
-		FGameplayTag MyTag;
-	/*
-		I will apply these immunit tags, to target.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Tags")
-		FGameplayTagContainer ImmunityTags;
-	/*
-		These tags must be present on actor, if I'm to take any effect.
-
-		If empty I will be applied regardless of tags owned by target.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Tags")
-		FGameplayTagContainer RequiredTags;
-	/*
-		I will add these tags, to target, when I'm applied.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Tags")
-		FGameplayTagContainer ApplyTags;
-	//prevention tags ? if target have ny of these teg this effect would not apply
-	//it would essentially work like immunity tag, just from effect side, not from target.
-	FGAEffectHandle Handle;
 
 
-	inline TWeakObjectPtr<UGAAttributeComponent> GetTargetComp()
-	{
-		return EffectContext.TargetComp;
-	}
-	inline TWeakObjectPtr<UGAAttributeComponent> GetInstigatorComp()
-	{
-		return EffectContext.InstigatorComp;
-	}
-	inline TWeakObjectPtr<AActor> GetTarget()
-	{
-		return EffectContext.Target.Actor;
-	}
-	inline TWeakObjectPtr<APawn> GetInstigator()
-	{
-		return EffectContext.Instigator;
-	}
-	inline FVector GetTargetLocation()
-	{
-		return EffectContext.Target.Location;
-	}
-	FGAEffectBase()
-	{
-
-	}
-
-	static const int32 EffectID = 0;
-	virtual int32 GetEffectID() const { return FGAEffectBase::EffectID; };
-	virtual bool IsOfType(int32 IDIn) const { return FGAEffectBase::EffectID == IDIn; }
-};
-
-DECLARE_MULTICAST_DELEGATE_TwoParams(FGAOnPostModifyAttribute, const FGAEvalData&, FGAAttributeDataCallback&);
-DECLARE_MULTICAST_DELEGATE_OneParam(FGAOnPostEffectApplied, FGAEffectBase&);
-DECLARE_MULTICAST_DELEGATE_OneParam(FGAOnPostEffectRemoved, FGAEffectBase&);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FGAOnCalculateOutgoingAttributeMods, const FGAAttributeSpec&, FGAAttributeSpec&);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FGAOnCalculateIncomingAttributeMods, const FGAAttributeSpec&, FGAAttributeSpec&);
-
-USTRUCT(BlueprintType)
-struct GAMEATTRIBUTES_API FGAEffectInstant : public FGAEffectBase
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	/*
-		Tag, associated with attribute.
-		For example, Damage.Fire, Damage.Shadow, Damage.Ice
-		Health.ReducePrecentage, Health.Exaustion.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Tags")
-		FGameplayTag AttributeTag;
-
-	UPROPERTY(EditAnywhere, Category = "Spec")
-		FGAAttributeModData AttributeData;
-
-	static const int32 EffectID = 1;
-
-	void CalculateMagnitude();
-
-	//I actually need to route it trough something like
-	//effect container.
-	//to give existing effect chance to modify this effect.
-	//same thing will apply for all other effects.
-	void ApplyInstantEffect();
-
-	FGAEffectInstant()
-	{
-
-	}
-
-
-	virtual int32 GetEffectID() const override { return FGAEffectInstant::EffectID; };
-	virtual bool IsOfType(int32 IDIn) const override { return FGAEffectInstant::EffectID == IDIn; }
-};
-
-USTRUCT(BlueprintType)
-struct FGAEffectAttributeSpec
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY(EditAnywhere, Category = "Spec")
-		FGAAttributeModData OnAppliedSpec;
-	UPROPERTY(EditAnywhere, Category = "Spec")
-		FGAAttributeModData OnContiniousSpec;
-	UPROPERTY(EditAnywhere, Category = "Spec")
-		FGAAttributeModData OnRemovedSpec;
-	UPROPERTY(EditAnywhere, Category = "Spec")
-		FGAAttributeModData OnExpiredSpec;
-	bool IsValid()
-	{
-		if (!OnAppliedSpec.IsValid())
-			return false;
-		if (!OnContiniousSpec.IsValid())
-			return false;
-		if (!OnRemovedSpec.IsValid())
-			return false;
-		if (!OnExpiredSpec.IsValid())
-			return false;
-		return true;
-	}
-};
-
-USTRUCT(BlueprintType)
-struct FGAEffectDurationSpec
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY(EditAnywhere, Category = "Spec")
-		FGAAttributeSpec DurationMagnitude;
-
-	UPROPERTY(EditAnywhere, Category = "Spec")
-		FGAAttributeSpec PeriodMagnitude;
-
-
-	bool IsValid() const
-	{
-		return DurationMagnitude.IsValid() && PeriodMagnitude.IsValid();
-	}
-};
-
-USTRUCT(BlueprintType)
-struct FGAEffectModiferSpec
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	/*
-		Incoming attribute spec, must match any of these tags,
-		if I'm to modify it.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Mod")
-		FGameplayTagContainer RequiredTags;
-
-	UPROPERTY(EditAnywhere, Category = "Mod")
-		EGAEffectModType ModType;
-	/*
-	falt out modifier value.
-
-	Later we probabaly want to pull it from data table
-	and/or add more options.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Mod")
-		float ModValue;
-
-
-	void ModifySpec(FGAAttributeSpec& SpecIn);
-};
-
-USTRUCT(BlueprintType)
-struct GAMEATTRIBUTES_API FGAEffectDuration : public FGAEffectBase
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY(EditAnywhere, Category = "Duration Spec")
-		FGAEffectDurationSpec DurationSpec;
-
-	UPROPERTY(EditAnywhere, Category = "Attribute Spec")
-		FGAEffectAttributeSpec AttributeSpec;
-
-	UPROPERTY(EditAnywhere, Category = "Attribute Spec")
-		FGAEffectModiferSpec ModifierSpec;
-
-
-	FTimerHandle DurationHandle;
-	
-	void ApplyEffect();
-	void EffecExpired();
-	void RegisterDelegates(FGAOnPostEffectApplied& PostEffectApplied, FGAOnPostEffectRemoved& PostEffectRemoved);
-
-	void OnPostEffectApplied(FGAEffectBase& EffectIn);
-	void OnPostEffectRemoved(FGAEffectBase& EffectIn);
-
-	//effect has been succeefully applied to target;
-	void OnApllied();
-	//effect has continous effect(?) on target, like dot damage.
-	void OnContinious(); //calculate magnitude on each "tick" or just once ?
-	//effect has been prematurly removed by other offect or other means.
-	void OnRemoved();
-	//effect naturally expired (reached max duration).
-	void OnExpired();
-
-	void ModifyAttributeSpec(FGAAttributeSpec& SpecIn);
-
-	static const int32 EffectID = 2;
-
-	virtual int32 GetEffectID() const override { return FGAEffectDuration::EffectID; };
-	virtual bool IsOfType(int32 IDIn) const override { return FGAEffectDuration::EffectID == IDIn; }
-};
 USTRUCT()
 struct FGACountedTagContainer
 {
@@ -930,6 +839,30 @@ public:
 };
 
 USTRUCT()
+struct FGAEffectInstant
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	FGAEffectInstant()
+	{}
+	FGAEffectInstant(const FGAEffectSpec& SpecIn, const FGAEffectContext ContextIn);
+
+	TArray<FGAEvalData> Modifiers;
+	//FGAEffectContext Context;
+	/*
+		In't not going to look like that, but the general idea, that this container
+		is goint to have all accumulated tags, from spec, and also from Causer, Instigator, Target
+	*/
+	FGameplayTagContainer AccumulatedTags;
+};
+
+USTRUCT()
+struct FGAActiveEffect
+{
+	GENERATED_USTRUCT_BODY()
+};
+
+USTRUCT()
 struct FGAEffectContainer
 {
 	GENERATED_USTRUCT_BODY()
@@ -941,9 +874,27 @@ struct FGAActiveEffectContainer
 {
 	GENERATED_USTRUCT_BODY()
 public:
-	void ApplyEffect(const FGAEffectContext& Ctx, FGAAttributeModData& SpecModifiers);
+	void ApplyEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Ctx);
 
-	TMap<FGAEffectHandle, TSharedPtr<FGAEffectDuration>> Effects;
+	void HandleInstantEffect(FGAEffectInstant& SpecIn, const FGAEffectContext& Ctx);
+
+	/*
+		map of active effects, with limited duration.
+	*/
+	TMap<FGAEffectHandle, TSharedPtr<FGAActiveEffect>> ActiveEffects;
+
+	/*
+		Maps effect handles grouped by explicit tag.
+		Damage.Fire, have it's own handles
+		Damage it's own (these can be duplicated)
+		etc.
+	*/
+	TMap<FGameplayTag, TArray<FGAEffectHandle>> TaggedEffects;
+
+	/*
+		Map grouping effect handles from instigators (???)
+	*/
+	TMap<TWeakObjectPtr<class UGAAttributeComponent>, TArray<FGAEffectHandle>> InstigatorEffects;
 };
 
 

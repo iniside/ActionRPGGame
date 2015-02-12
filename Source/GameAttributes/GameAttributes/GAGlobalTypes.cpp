@@ -5,6 +5,7 @@
 #include "GAAttributesBase.h"
 #include "IGAAttributes.h"
 #include "Effects/GAEffect.h"
+#include "Effects/GAEffectSpecification.h"
 #include "GAGlobalTypes.h"
 
 FGAEffectHandle FGAEffectHandle::GenerateHandle()
@@ -34,7 +35,7 @@ void FGAAttributeBase::CalculateBonus()
 	{
 		switch (ModIt->Value.AttributeMod)
 		{
-		case EGAAttributeOp::Add:
+		case EGAAttributeMod::Add:
 			AdditiveBonus += ModIt->Value.Value;
 				break;
 			default:
@@ -93,285 +94,176 @@ void FGAAttributeBase::CalculateBonus()
 }
 void FGAAttributeBase::UpdateAttribute()
 {
-	//float Val = CurrentValue - (OldCurrentValue + ChangedValue); //either add or subtract
-	//CurrentValue -= Val;
-	//CurrentValue = FMath::Clamp<float>(CurrentValue, 0, BaseValue);
-	//ChangedValue = 0;
+
 }
 void FGAAttributeBase::Add(float ValueIn)
 {
 	float OldCurrentValue = CurrentValue;
-	ChangedValue += ValueIn;
-	float Val = CurrentValue - (OldCurrentValue + ChangedValue); //either add or subtract
+	float Val = CurrentValue - (OldCurrentValue + ValueIn);
 	CurrentValue -= Val;
 	CurrentValue = FMath::Clamp<float>(CurrentValue, 0, BaseValue);
-	ChangedValue = 0;
-	//UpdateAttribute(); //probabaly need separate function.
 }
 void FGAAttributeBase::Subtract(float ValueIn)
 {
 	float OldCurrentValue = CurrentValue;
-	ChangedValue -= ValueIn;
-	float Val = CurrentValue - (OldCurrentValue + ChangedValue); //either add or subtract
+	float Val = CurrentValue - (OldCurrentValue - ValueIn);
 	CurrentValue -= Val;
-	CurrentValue = FMath::Clamp<float>(CurrentValue, 0, BaseValue);
-	ChangedValue = 0;
-	//UpdateAttribute();
+	CurrentValue = FMath::Clamp<float>(CurrentValue, 0, GetFinalValue());
 }
 
 void FGAAttributeBase::InitializeAttribute()
 {
+	CurrentValue = GetFinalValue();
 	CalculateBonus();
 }
-float FGAAttributeSpec::CalcuclateMagnitude(const FGAEffectContext& Context)
-{
-	float Result = 0;
 
-	float BaseValue = -1;
-	switch (AttributeMagnitude.AttributeSource)
+float FGAModifierMagnitude::GetMagnitude(const FGAEffectContext& Context)
+{
+	FGAAttributeBase* attr = nullptr;
+	switch (Source)
 	{
 	case EGAAttributeSource::Instigator:
-		BaseValue = Context.InstigatorComp->DefaultAttributes->GetFloatValue(AttributeMagnitude.AttributeMod);
+		attr = Context.InstigatorComp->GetAttribute(Attribute);
 		break;
 	case EGAAttributeSource::Target:
-		BaseValue = Context.TargetComp->DefaultAttributes->GetFloatValue(AttributeMagnitude.AttributeMod);
+		attr = Context.TargetComp->GetAttribute(Attribute);
 		break;
 	default:
-		break;
+		return 0;
 	}
-	if (AttributeMagnitude.MagnitudeCurve.IsValid())
-	{
-		Result = AttributeMagnitude.MagnitudeCurve.Eval(BaseValue);
-	}
-	if (AttributeMagnitude.BackingAttribute.IsValid())
-	{
-		float AttributeValue = 0;
-		switch (AttributeMagnitude.AttributeSource)
-		{
-		case EGAAttributeSource::Instigator:
-			AttributeValue = Context.InstigatorComp->DefaultAttributes->GetFloatValue(AttributeMagnitude.BackingAttribute);
-			break;
-		case EGAAttributeSource::Target:
-			AttributeValue = Context.TargetComp->DefaultAttributes->GetFloatValue(AttributeMagnitude.BackingAttribute);
-			break;
-		default:
-			break;
-		}
-		switch (AttributeMagnitude.BackAttributeOperation)
-		{
-			case EGAMagnitudeOperation::Add:
-				Result = Result + AttributeValue;
-				break;
-			case EGAMagnitudeOperation::Subtract:
-				Result = Result - AttributeValue;
-				break;
-			case EGAMagnitudeOperation::Multiply:
-				Result = Result * AttributeValue;
-				break;
-			case EGAMagnitudeOperation::Divide:
-				Result = Result / AttributeValue;
-				break;
-			default:
-				break;
-		}
-	}
+	float Result = CurveTable.Eval(attr->GetFinalValue());
 
 	return Result;
 }
-float FGAAttributeSpec::GetCurrentMagnitude(const FGAEffectContext& Context)
+
+float FGAAttributeBasedModifier::GetValue(const FGAEffectContext& Context)
 {
-	if (bUseMagnitude)
+	FGAAttributeBase* attr = nullptr;
+	switch (Source)
 	{
-		CalculatedMagnitude = CalcuclateMagnitude(Context);
-		return CalculatedMagnitude;
+	case EGAAttributeSource::Instigator:
+		attr = Context.InstigatorComp->GetAttribute(Attribute);
+		break;
+	case EGAAttributeSource::Target:
+		attr = Context.TargetComp->GetAttribute(Attribute);
+		break;
+	default:
+		return 0;
 	}
-	else
+	float Result = (Coefficient * (PreMultiply + attr->GetFinalValue()) + PostMultiply) * PostCoefficient;
+	if (attr && !bUseSecondaryAttribute)
+		return Result;
+
+	switch (SecondarySource)
 	{
-		CalculatedMagnitude = ModValue;
-		return CalculatedMagnitude;
+	case EGAAttributeSource::Instigator:
+		attr = Context.InstigatorComp->GetAttribute(SecondaryAttribute);
+		break;
+	case EGAAttributeSource::Target:
+		attr = Context.TargetComp->GetAttribute(SecondaryAttribute);
+		break;
+	default:
+		return Result;
 	}
+
+	float attrValue = attr->GetFinalValue();
+	switch (SecondaryMod)
+	{
+	case EGAAttributeMagCalc::Add:
+		return Result + attrValue;
+	case EGAAttributeMagCalc::Subtract:
+		return Result - attrValue;
+	case EGAAttributeMagCalc::Multiply:
+		return Result * attrValue;
+	case EGAAttributeMagCalc::Divide:
+		return Result / attrValue;
+	case EGAAttributeMagCalc::PrecentageIncrease:
+		return Result + (Result * attrValue);
+	case EGAAttributeMagCalc::PrecentageDecrease:
+		return Result - (Result * attrValue);
+	default:
+		return Result;
+	}
+
 	return 0;
-}
-void FGAAttributeModData::InitializeModData()
-{
-	//for (FGAAttributeSpec& spec : AttributeModSpec)
-	//{
-	//	//if (spec.bUseMagnitude)
-	//	//{
-	//		spec.AttributeMagnitude.AttributeContext = AttributeContext;
-	//	//}
-	//}
+
 }
 
-void FGAAttributeModData::CalculcateCurrentMods()
+float FGACurveBasedModifier::GetValue(const FGAEffectContext& ContextIn)
 {
-	//for (FGAAttributeSpec& spec : AttributeModSpec)
-	//{
-	//	spec.GetCurrentMagnitude();
-	//}
-}
-
-FGAAttributeDataCallback FGAAttributeModData::ApplyMod()
-{
-	//if (!AttributeContext.Instigator.IsValid())
-		return FGAAttributeDataCallback();
-	//CalculcateCurrentMods();
-
-	//return AttributeContext.Instigator->ModifyAttributesOnTarget(AttributeContext.Target.Get(), *this);
-}
-
-void FGAEffectInstant::CalculateMagnitude()
-{
-	for (FGAAttributeSpec& spec : AttributeData.AttributeModSpec)
+	FGAAttributeBase* attr = nullptr;
+	switch (Source)
 	{
-		spec.GetCurrentMagnitude(EffectContext);
-	}
-}
-void FGAEffectInstant::ApplyInstantEffect()
-{
-//	CalculateMagnitude();
-	if (bInstanceEffect)
-	{
-		EffectInstance = ConstructObject<UGAEffect>(EffectClass); //no outer, fire and forget.
-	}
-	//we still want to execute CDO, even if not object is explicitly instanced ?
-	if (EffectClass)
-	{
-	//	EffectClass.GetDefaultObject()->OnEffectApplied(*this);
-	}
-	if (EffectInstance.IsValid())
-	{
-		EffectInstance->OnEffectInstanceApplied();
-		EffectInstance->MarkPackageDirty(); //mark for GC.
-		EffectInstance.Reset(); //reset pointer, we no longer need it any references.
+	case EGAAttributeSource::Instigator:
+		attr = ContextIn.InstigatorComp->GetAttribute(Attribute);
+		break;
+	case EGAAttributeSource::Target:
+		attr = ContextIn.TargetComp->GetAttribute(Attribute);
+		break;
+	default:
+		return 0;
 	}
 
-	GetInstigatorComp()->ModifyAttributesOnTarget(EffectContext, Handle, AttributeData);
+	float Result = CurveTable.Eval(attr->GetFinalValue());
+	return Result;
 }
 
-void FGAEffectModiferSpec::ModifySpec(FGAAttributeSpec& SpecIn)
+FGAEvalData FGAAttributeModifier::GetModifier(const FGAEffectContext& ContextIn)
 {
-	float tempMag = 0;
-	switch (ModType)
+	switch (CalculationType)
 	{
-	case EGAEffectModType::Add:
-		//not ideal, I have to think of something better.
-		tempMag = SpecIn.GetCalculatedMagnitude();
-		tempMag += ModValue;
-		SpecIn.SetCalculatedMagnitude(tempMag);
-		break;
-	case EGAEffectModType::Multiply:
-		break;
-	case EGAEffectModType::Subtract:
-		break;
-	case EGAEffectModType::Divide:
-		break;
-	case EGAEffectModType::PrecentageReduce:
-		break;
-	case EGAEffectModType::PrecentageIncrease:
+	case EGAMagnitudeCalculation::Direct:
+		return FGAEvalData(Attribute, Mod, AttributeTag, DirectModifier.GetValue());
+	case EGAMagnitudeCalculation::AttributeBased:
+		return FGAEvalData(Attribute, Mod, AttributeTag, AttributeBased.GetValue(ContextIn));
+	case EGAMagnitudeCalculation::CurveBased:
+		return FGAEvalData(Attribute, Mod, AttributeTag, CurveBased.GetValue(ContextIn));;
+	case EGAMagnitudeCalculation::CustomCalculation:
 		break;
 	default:
 		break;
 	}
+	return FGAEvalData(FGAAttribute(NAME_None), EGAAttributeMod::Invalid, FGameplayTag(AttributeTag), -1);
 }
 
-void FGAEffectDuration::RegisterDelegates(FGAOnPostEffectApplied& PostEffectApplied, FGAOnPostEffectRemoved& PostEffectRemoved)
+FGAEffectSpec::FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn, const FGAEffectContext& ContextIn)
 {
-	if (PostEffectApplied.IsBoundToObject(this) ||
-		PostEffectRemoved.IsBoundToObject(this))
-		return;
 
-	PostEffectApplied.AddRaw(this, &FGAEffectDuration::OnPostEffectApplied);
-	PostEffectRemoved.AddRaw(this, &FGAEffectDuration::OnPostEffectRemoved);
 }
-
-void FGAEffectDuration::OnPostEffectApplied(FGAEffectBase& EffectIn)
+FGAEffectSpec::FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn,
+	FGAEffectDuration DurationIn, const FGAEffectContext& ContextIn)
 {
-	//what happens if EffectIn is applied ?
-	//should I do something about it ?
+	EffectDuration = DurationIn;
 }
-void FGAEffectDuration::OnPostEffectRemoved(FGAEffectBase& EffectIn)
+FGAEffectSpec::FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn,
+	TArray<FGAAttributeModifier> ModifiersIn, const FGAEffectContext& ContextIn)
 {
-	//what happens when EffectIn is removed ?
-	//should I take any actions ?
+	AttributeModifiers = ModifiersIn;
 }
-
-//effect has been succeefully applied to target;
-void FGAEffectDuration::OnApllied()
+/*
+Constructor which will override only specific modifiers.
+*/
+FGAEffectSpec::FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn,
+	TArray<FGAModifierOverride> OverridesIn, const FGAEffectContext& ContextIn)
 {
-	if (bInstanceEffect)
+	for (const FGAModifierOverride& mo : OverridesIn)
 	{
-		EffectInstance = ConstructObject<UGAEffect>(EffectClass); //no outer, fire and forget.
-	}
-	//if (EffectClass)
-	//{
-	//	EffectClass.GetDefaultObject()->OnEffectApplied(*this);
-	//}
-	if (EffectInstance.IsValid())
-	{
-		EffectInstance->OnEffectInstanceApplied();
-	}
-}
-//effect has continous effect(?) on target, like dot damage.
-void FGAEffectDuration::OnContinious()
-{
-	if (EffectInstance.IsValid())
-	{
-		EffectInstance->OnEffectInstanceContinious();
-	}
-}
-//effect has been prematurly removed by other offect or other means.
-void FGAEffectDuration::OnRemoved()
-{
-	if (EffectInstance.IsValid())
-	{
-		EffectInstance->OnEffectInstanceRemoved();
-		EffectInstance->MarkPackageDirty(); //mark for GC.
-		EffectInstance.Reset(); //reset pointer, we no longer need it any references.
-	}
-}
-//effect naturally expired (reached max duration).
-void FGAEffectDuration::OnExpired()
-{
-	if (EffectInstance.IsValid())
-	{
-		EffectInstance->OnEffectInstanceExpired();
-		EffectInstance->MarkPackageDirty(); //mark for GC.
-		EffectInstance.Reset(); //reset pointer, we no longer need it any references.
-	}
-}
-
-void FGAEffectDuration::ModifyAttributeSpec(FGAAttributeSpec& SpecIn)
-{
-	ModifierSpec.ModifySpec(SpecIn);
-}
-
-void FGAEffectDuration::ApplyEffect()
-{
-	for (FGAAttributeSpec& spec : AttributeSpec.OnAppliedSpec.AttributeModSpec)
-	{
-		spec.GetCurrentMagnitude(EffectContext);
-	}
-	FTimerDelegate del = FTimerDelegate::CreateRaw(this, &FGAEffectDuration::EffecExpired);
-	EffectContext.TargetComp->GetWorld()->GetTimerManager().SetTimer(DurationHandle, del, 10, false);
-
-	GetInstigatorComp()->ModifyAttributesOnTarget(EffectContext, Handle, AttributeSpec.OnAppliedSpec);
-}
-void FGAEffectDuration::EffecExpired()
-{
-	EffectContext.TargetComp->GetWorld()->GetTimerManager().ClearTimer(DurationHandle);
-	for (const FGAAttributeSpec& spec : AttributeSpec.OnAppliedSpec.AttributeModSpec)
-	{
-		FGAAttributeBase* attr = EffectContext.TargetComp->DefaultAttributes->GetAttribute(spec.Attribute);
-		if (attr)
+		for (FGAAttributeModifier& am : AttributeModifiers)
 		{
-			attr->RemoveBonus(Handle);
+			if (mo.Attribute == am.Attribute)
+			{
+				am = mo.Modifier;
+			}
 		}
 	}
-
-	//we need to notify attributes we have modified..
-	EffectContext.TargetComp->EffectExpired(Handle);
-	//EffectContext.TargetComp->ActiveEffects.Effects.Remove(Handle);
+}
+TArray<FGAEvalData> FGAEffectSpec::GetModifiers()
+{
+	for (FGAAttributeModifier& mod : AttributeModifiers)
+	{
+		EvalModifiers.Add(mod.GetModifier(Context));
+	}
+	return EvalModifiers;
 }
 
 void FGACountedTagContainer::AddTag(const FGameplayTag& TagIn)
@@ -427,24 +319,48 @@ bool FGACountedTagContainer::HasAnyTags(const FGameplayTagContainer& TagsIn, boo
 	return AllTags.MatchesAny(TagsIn, bCountEmptyAsMatch);
 }
 
-
-void FGAActiveEffectContainer::ApplyEffect(const FGAEffectContext& Ctx, FGAAttributeModData& SpecModifiers)
+FGAEffectInstant::FGAEffectInstant(const FGAEffectSpec& SpecIn, const FGAEffectContext ContextIn)
 {
-	for (FGAAttributeSpec& spec : SpecModifiers.AttributeModSpec)
-	{
-		spec.GetCurrentMagnitude(Ctx);
-		float tempMag = 0;
-		tempMag = spec.GetCalculatedMagnitude();
-		tempMag += 10;
-		spec.SetCalculatedMagnitude(tempMag);
-	}
+	Modifiers = SpecIn.EvalModifiers;
+}
+
+void FGAActiveEffectContainer::ApplyEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Ctx)
+{
 	/*
-		So the idea is, that we don't really care from which effect, this modifier spec has come.
-		At this point we only care what type of modifer it is (determined by tag).
+		Instant effects, are just applied and forggoten.
+		Duration effects, are applied, and tracked (most complicated case).
+		Infinite effects are applied, and tracked. It's slightly less complicated than Duration,
+		since they leave as long as player decide to remove them explicitly, for example, by removing item.
 
-		We then should find all effects which can somehow modify this spec (change magnitude)
-		We let each effect process spec linearlly (in order from newest to oldest)
-
-		After all modifications has been applied, we should apply this spec to target as normal.
+		Before we will apply any effects, though we need to accumulate tags.
+		From instigator, from target, from effect spec, from Causer, into single container.
 	*/
+	switch (SpecIn.Policy.Type)
+	{
+		case EGAEffectType::Instant:
+		{
+			FGAEffectInstant instntEffect(SpecIn, Ctx);
+			HandleInstantEffect(instntEffect, Ctx);
+			break;
+		}
+		case EGAEffectType::Duration:
+		{
+			break;
+		}
+		case EGAEffectType::Infinite:
+		{
+			break;
+		}
+		default:
+		{
+			return;
+		}
+	}
+}
+void FGAActiveEffectContainer::HandleInstantEffect(FGAEffectInstant& SpecIn, const FGAEffectContext& Ctx)
+{
+	/*
+		We need to check against existing effects.
+	*/
+	Ctx.InstigatorComp->ModifyAttributesOnTarget(SpecIn.Modifiers, Ctx, FGAEffectHandle());
 }

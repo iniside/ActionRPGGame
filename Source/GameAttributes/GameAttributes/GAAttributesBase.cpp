@@ -22,24 +22,15 @@ void UGAAttributesBase::InitializeAttributes()
 	BP_InitializeAttributes();
 }
 
-FGAAttributeDataCallback UGAAttributesBase::UpdateAttributes(const FGAEvalData& AttributeIn, float newValue)
+void UGAAttributesBase::UpdateAttributes(const FGAEvalData& AttributeIn, float newValue)
 {
 	SetFloatValue(AttributeIn.Attribute, newValue);
 	return PostModifyAttribute(AttributeIn);
 }
-FGAAttributeDataCallback UGAAttributesBase::PostModifyAttribute(const FGAEvalData& AttributeMod)
+void UGAAttributesBase::PostModifyAttribute(const FGAEvalData& AttributeMod)
 {
-	FGAAttributeDataCallback non;
-	return non;
 }
-FGAAttributeSpec UGAAttributesBase::CalculateOutgoingAttributeMods(const FGAAttributeSpec& AttributeModIn)
-{
-	return AttributeModIn;
-}
-FGAAttributeSpec UGAAttributesBase::CalculateIncomingAttributeMods(const FGAAttributeSpec& AttributeModIn)
-{
-	return AttributeModIn;
-}
+
 UProperty* UGAAttributesBase::FindProperty(const FGAAttribute& AttributeIn)
 {
 	//if new attribute name is the same as last attribute name and pointer to last property
@@ -121,19 +112,19 @@ float UGAAttributesBase::SetFloatValue(const FGAAttribute& AttributeIn, float Va
 	return 0;
 }
 
-float UGAAttributesBase::AttributeOperation(const FGAAttribute& AttributeIn, float ValueIn, EGAAttributeOp Operation)
+float UGAAttributesBase::AttributeOperation(const FGAAttribute& AttributeIn, float ValueIn, EGAAttributeMod Operation)
 {
 	switch (Operation)
 	{
-	case EGAAttributeOp::Add:
+	case EGAAttributeMod::Add:
 		return AddAttributeFloat(GetFloatValue(AttributeIn), ValueIn); //don't want to set.
-	case EGAAttributeOp::Subtract:
+	case EGAAttributeMod::Subtract:
 		return SubtractAttributeFloat(GetFloatValue(AttributeIn), ValueIn);
-	case EGAAttributeOp::Multiply:
+	case EGAAttributeMod::Multiply:
 		return MultiplyAttributeFloat(GetFloatValue(AttributeIn), ValueIn);
-	case EGAAttributeOp::Divide:
+	case EGAAttributeMod::Divide:
 		return DivideAttributeFloat(GetFloatValue(AttributeIn), ValueIn);
-	case EGAAttributeOp::Set:
+	case EGAAttributeMod::Set:
 		return SetFloatValue(AttributeIn, ValueIn);
 	default:
 		return 0;

@@ -9,17 +9,6 @@ DECLARE_CYCLE_STAT_EXTERN(TEXT("GameAttributesPostEffectApplied"), STAT_PostEffe
 DECLARE_CYCLE_STAT_EXTERN(TEXT("GameAttributesOutgoingAttribute"), STAT_OutgoingAttribute, STATGROUP_GameAttributes, );
 DECLARE_CYCLE_STAT_EXTERN(TEXT("GameAttributesIncomingAttribute"), STAT_IncomingAttribute, STATGROUP_GameAttributes, );
 
-USTRUCT()
-struct FGAAttributeNode
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	int32 AttributeIndex;
-	FName AttributeName;
-
-	UPROPERTY()
-		TWeakObjectPtr<UFunction> AttributeFunction;
-};
 /*
 
 	Execute effmod object linearlly in single iteration every time appropertiate attribute is modified.
@@ -30,8 +19,6 @@ class ACTIONRPGGAME_API UARCharacterAttributes : public UGAAttributesBase
 	GENERATED_BODY()
 public:
 	UARCharacterAttributes(const FObjectInitializer& ObjectInitializer);
-	UPROPERTY()
-		TArray<FGAAttributeNode> AttributeNodes;
 	//UPROPERTY(EditAnywhere, Category = "Tags Configuration")
 	//	FGameplayTagContainer FireDamageTag;
 
@@ -45,32 +32,10 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
 		FGAAttributeBase Health;
-
-	UPROPERTY()
-		float BaseHealth;
-	/*
-		Health = Clamp(BaseHealth + BonusHealth, MaxHealth)
-	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
-		float HealthBak;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Resources")
-		float MaxHealthBak; //max value is the absolute maximum value, that is callculate from 
-	//all bonuses, it is never changed unless affecting bonuses changes.
-	/*
-		Current bonus health, from various effects.
-	*/
-	UPROPERTY()
-		float BonusHealth;
-		
+		FGAAttributeBase Energy;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
-		float Energy;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Resources")
-		float MaxEnergy;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
-		float Stamina;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Resources")
-		float MaxStamina;
+		FGAAttributeBase Stamina;
 
 	UPROPERTY()
 		float HealthCost;
@@ -88,40 +53,46 @@ public:
 
 	UPROPERTY()
 		float StaminaCost;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		float Strenght;
+		FGAAttributeBase Strenght;
+	/*
+		Strenght mod is directly dependand on strenght.
+		How should we handle this depedency ? On attribute level, on here on
+		attribute object ?
+	*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		float StrenghtMod; //like in Dnd = (Strenght - 10) /2 - no clamp, can be negative!
+		FGAAttributeBase StrenghtMod; //like in Dnd = (Strenght - 10) /2 - no clamp, can be negative!
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		float Endurance;
+		FGAAttributeBase Endurance;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		float EnduranceMod;
+		FGAAttributeBase EnduranceMod;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		float Agility;
+		FGAAttributeBase Agility;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		float AgilityMod;
+		FGAAttributeBase AgilityMod;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		float Intelligence;
+		FGAAttributeBase Intelligence;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		float IntelligenceMod;
+		FGAAttributeBase IntelligenceMod;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		float Magic;
+		FGAAttributeBase Magic;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		float MagicMod;
+		FGAAttributeBase MagicMod;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		float WillPower;
+		FGAAttributeBase WillPower;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		float WillPowerMod;
+		FGAAttributeBase WillPowerMod;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		float Wisdom; 
+		FGAAttributeBase Wisdom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		float WisdomMod;
+		FGAAttributeBase WisdomMod;
 	/*
 		Helper attributes, which are used to apply different types of damage. Ahoy!
 	*/
@@ -149,14 +120,13 @@ public:
 		Total number of conditions.
 	*/
 	UPROPERTY()
-		float ConditionCount;
+		FGAAttributeBase ConditionCount;
 	UPROPERTY()
-		float HexesCount;
+		FGAAttributeBase HexesCount;
 	UPROPERTY()
-		float CursesCount;
-
+		FGAAttributeBase CursesCount;
 	UPROPERTY()
-		float EnchatmentsCount;
+		FGAAttributeBase EnchatmentsCount;
 
 	/*
 		Because Why not ?
@@ -183,36 +153,36 @@ public:
 		otherwise attribute specific to damage type is used.
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
-		float BonusDamage;
+		FGAAttributeBase BonusDamage;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
-		float BonusPhysicalDamage;
+		FGAAttributeBase BonusPhysicalDamage;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
-		float BonusMagicalDamage;
+		FGAAttributeBase BonusMagicalDamage;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
-		float BonusFireDamage;
+		FGAAttributeBase BonusFireDamage;
 	//because why not ?
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
-		float OutgoingDamageReduction;
+		FGAAttributeBase OutgoingDamageReduction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
-		float FireDamageDefense;
+		FGAAttributeBase FireDamageDefense;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
-		float SpellCastingSpeed;
+		FGAAttributeBase SpellCastingSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
-		float AttackSpeed;
+		FGAAttributeBase AttackSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
-		float SpellCostMultiplier;
+		FGAAttributeBase SpellCostMultiplier;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
-		float PhysicalAttackCostMultiplier;
+		FGAAttributeBase PhysicalAttackCostMultiplier;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
-		float RunningMovementSpeed;
+		FGAAttributeBase RunningMovementSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
-		float WalkingMovementSpeed;
+		FGAAttributeBase WalkingMovementSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weight")
-		float CurrentWeight;
+		FGAAttributeBase CurrentWeight;
 protected:
 	TMap<FName, TWeakObjectPtr<UFunction>> PostModifyAttributeFunctions;
 	TMap<FName, TWeakObjectPtr<UFunction>> IncomingModifyAttributeFunctions;
@@ -224,130 +194,35 @@ public:
 	virtual void InitializeAttributes() override;
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = AttributeTags, meta = (BlueprintInternalUseOnly = "true"))
-		FGAAttributeDataCallback InternalEffectParams(FGAEffectBase& SpecIn);
+		void InternalEffectParams();
 
-	virtual void PostEffectApplied(FGAEffectBase& SpecIn) override;
-	virtual void PostEffectRemoved(FGAEffectBase& SpecIn) override;
+	virtual void PostEffectApplied() override;
+	virtual void PostEffectRemoved() override;
+
+	/*
+		This need simpler data structure for modification in blueprint.
+	*/
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = AttributeTags, meta = (BlueprintInternalUseOnly = "true"))
+		void InternalPostModifyAttribute(const FGAEvalData& AttributeMod);
+	virtual void PostModifyAttribute(const FGAEvalData& AttributeMod) override;
+
+
+	virtual void CalculateOutgoingAttributeMods() override;
+	virtual void CalculateIncomingAttributeMods() override;
+
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = AttributeTags, meta = (BlueprintInternalUseOnly = "true"))
-		FGAAttributeDataCallback InternalPostModifyAttribute(const FGAEvalData& AttributeMod);
-	virtual FGAAttributeDataCallback PostModifyAttribute(const FGAEvalData& AttributeMod) override;
-
-
-	virtual FGAAttributeSpec CalculateOutgoingAttributeMods(const FGAAttributeSpec& AttributeModIn) override;
-	virtual FGAAttributeSpec CalculateIncomingAttributeMods(const FGAAttributeSpec& AttributeModIn) override;
-
-
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = AttributeTags, meta = (BlueprintInternalUseOnly = "true"))
-		FGAAttributeSpec InternalIncomingAttributeMod(const FGAAttributeSpec& AttributeModIn);
-
-	UFUNCTION(Category = "Incoming")
-		FGAAttributeSpec Incoming_Damage_Fire(const FGAAttributeSpec& AttributeModIn);
-	UFUNCTION(Category = "Outgoing")
-		FGAAttributeSpec Outgoing_Damage_Fire(const FGAAttributeSpec& AttributeModIn);
+		void InternalIncomingAttributeMod();
 
 	//UFUNCTION(Category = "PostAttribute")
 	//	FGAAttributeDataCallback PostAttribute_Health(const FGAEvalData& AttributeMod);
 	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_Damage(const FGAEvalData& AttributeMod);
+		void PostAttribute_Damage(const FGAEvalData& AttributeMod);
 	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_LifeStealDamage(const FGAEvalData& AttributeMod);
+		void PostAttribute_LifeStealDamage(const FGAEvalData& AttributeMod);
 	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_HealthBakPrecentageReduction(const FGAEvalData& AttributeMod);
+		void PostAttribute_HealthBakPrecentageReduction(const FGAEvalData& AttributeMod);
 	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_Magic(const FGAEvalData& AttributeMod);
-
-	//ignore it. I'm just profiling performance of PostModifyAttributeFunctions map
-	//with lots of entries.
-	//this technically could be just as well dont using switch/if/else if neede but.
-	//using map, allow for far easier extending in blueprints... as long as your functions
-	//have right name.
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_Strenght(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_Endurance(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_Intelligence(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_WillPower(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_Wisdom(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_ConditionDamage(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_ConditionFireDamage(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_ConditionBleedDamage(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_ConditionPoisonDamage(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_BonusDamage(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_BonusPhysicalDamage(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_BonusMagicalDamage(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_FireDamageDefense(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_SpellCastingSpeed(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_AttackSpeed(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_SpellCostMultiplier(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_PhysicalAttackCostMultiplier(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_EnergyStealDamage(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_StaminaStealDamage(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_RunningMovementSpeed(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_WalkingMovementSpeed(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_PhysicalDamage(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_MagicalDamage(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_FireDamage(const FGAEvalData& AttributeMod);
-
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_Hex(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_Somg(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_Ehehehhee(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_AnotherAttribute(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_Zomg(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_Dunno(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_Moar(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_Roflolamo(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_EvenMoreFunction(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_Notsogood(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_postpooasd(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_uahskjd(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_kjashkd(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		FGAAttributeDataCallback PostAttribute_uayskahsd(const FGAEvalData& AttributeMod);
-
-	UFUNCTION(Category = "PostEffectApplied")
-		void OnEffectApplied_Hex(const FGAEffectBase& AttributeMod);
-	UFUNCTION(Category = "PostEffectRemoved")
-		void OnEffectRemoved_Hex(const FGAEffectBase& AttributeMod);
-
-	UFUNCTION(Category = "PostEffectApplied")
-		void OnEffectApplied_Condition_Weakness(const FGAEffectBase& AttributeMod);
-	UFUNCTION(Category = "PostEffectRemoved")
-		void OnEffectRemoved_Condition_Weakness(const FGAEffectBase& AttributeMod);
+		void PostAttribute_Magic(const FGAEvalData& AttributeMod);
 
 };
