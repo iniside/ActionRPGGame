@@ -3,6 +3,7 @@
 #include "GASAbilitiesComponent.h"
 #include "GSAbilitiesComponent.generated.h"
 
+
 /*
 	Struct representing available abilities to this component.
 	It does not represent abilities which are Instanced (ActiveAbilities array).
@@ -40,10 +41,10 @@ public:
 		int32 SetIndex;
 
 	FGSAbilitySlot()
+		: AbilityIndex(INDEX_NONE),
+			SlotIndex(INDEX_NONE),
+			SetIndex(INDEX_NONE)
 	{
-		AbilityIndex = INDEX_NONE;
-		SlotIndex = INDEX_NONE;
-		SetIndex = INDEX_NONE;
 	}
 };
 USTRUCT()
@@ -72,6 +73,8 @@ public:
 DECLARE_DELEGATE(FGSOnAbilityAddedToSet);
 DECLARE_DELEGATE_OneParam(FGSOnGetAbilityIndex, int32);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGSOnAbilityPressedIndex, int32, Index);
+
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
 class GAMESYSTEM_API UGSAbilitiesComponent : public UGASAbilitiesComponent
 {
@@ -83,6 +86,10 @@ public:
 		TArray<FGSAvailableAbilities> OwnedAbilities;
 	UFUNCTION()
 		void OnRep_OwnedAbilities();
+
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Abilities")
+		FGSOnAbilityPressedIndex OnAbilityPressedIndex;
+
 	/*
 		Contains list of abilities which can be activated trough
 		input binding or UI.
@@ -132,7 +139,15 @@ protected:
 	int32 CurrentAbility;
 public:
 	virtual void InitializeComponent() override;
-	inline class UGSAbility* GetGSAbility(int32 IndexIn);
+	class UGSAbility* GetGSAbility(int32 IndexIn);
+
+	UFUNCTION(BlueprintCallable, Category = "Ability System")
+		void GiveAbilityAndInsert(TSubclassOf<class  UGSAbility> AbilityIn);
+
+	UFUNCTION(BlueprintPure, Category = "Ability System|UI")
+		float GetCurrentCastTime();
+	UFUNCTION(BlueprintPure, Category = "Ability System|UI")
+		float GetCastTime();
 	/*
 		Another variant of Input for activating abilities.
 	*/

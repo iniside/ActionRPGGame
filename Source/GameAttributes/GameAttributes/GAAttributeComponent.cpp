@@ -14,6 +14,8 @@
 
 #include "GAAttributeComponent.h"
 
+DEFINE_STAT(STAT_ApplyEffect);
+DEFINE_STAT(STAT_ModifyAttribute);
 //will have single struct param, with data about how attribute changed.
 
 
@@ -27,38 +29,93 @@ void UGAAttributeComponent::GetAttributeStructTest(FGAAttribute Name)
 {
 	DefaultAttributes->GetAttribute(Name);
 }
+
+void UGAAttributeComponent::UninitializeComponent()
+{
+	Super::UninitializeComponent();
+	ActiveEffects.Clean();
+	OnAttributeModifed.Clear();
+}
 void UGAAttributeComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 	if (DefaultAttributes)
 	{
+		DefaultAttributes->OwningAttributeComp = this;
 		DefaultAttributes->InitializeAttributes();
 	}
-	
-	
+	AppliedTags.AddTagContainer(DefaultTags);
 }
 
-bool UGAAttributeComponent::ApplyEffectToSelf(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context)
+FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context)
 {
-	ActiveEffects.ApplyEffect(SpecIn, Context);
-	return false;
+	return ActiveEffects.ApplyEffect(SpecIn, Context);
 }
-bool UGAAttributeComponent::ApplyEffectToTarget(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context)
+FGAEffectHandle UGAAttributeComponent::ApplyEffectToTarget(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context)
 {
-	Context.TargetComp->ApplyEffectToSelf(SpecIn, Context);
-	return false;
-}
-
-void UGAAttributeComponent::EffectExpired(FGAEffectHandle& HandleIn)
-{
-
-}
-
-void UGAAttributeComponent::ModifyAttributesOnSelf(TArray<FGAEvalData>& EvalData, const FGAEffectContext& Context, const FGAEffectHandle& HandleIn)
-{
-	ModifiedAttribute.Empty();
-	for (FGAEvalData& eval : EvalData)
+	SCOPE_CYCLE_COUNTER(STAT_ApplyEffect);
+	//ActiveEffects.ApplyEffectToTarget(SpecIn, Context);
+	if (Context.TargetComp.IsValid()
+		&& Context.InstigatorComp.IsValid())
 	{
+		return Context.TargetComp->ApplyEffectToSelf(SpecIn, Context);
+	}
+	return FGAEffectHandle();
+}
+
+FGAEffectHandle UGAAttributeComponent::ApplySelfEffect(AActor* Target, APawn* Instigator,
+	UObject* Causer, FGAEffectSpec SpecIn)
+{
+	IIGAAttributes* targetAttr = Cast<IIGAAttributes>(Target);
+	IIGAAttributes* instiAttr = Cast<IIGAAttributes>(Instigator);
+	if (!targetAttr || !instiAttr)
+		return FGAEffectHandle();
+
+	UGAAttributeComponent* targetComp = targetAttr->GetAttributeComponent();
+	UGAAttributeComponent* instiComp = instiAttr->GetAttributeComponent();
+	FGAEffectContext context(Target->GetActorLocation(), Target, Causer,
+		Instigator, targetComp, instiComp);
+
+	SpecIn.Context = context;
+
+	SpecIn.GetModifiers();
+	return ActiveEffects.ApplyEffect(SpecIn, context);
+}
+
+void UGAAttributeComponent::RemoveInfiniteEffect(const FGAEffectHandle& HandleIn)
+{
+	ActiveEffects.RemoveInfiniteEffect(HandleIn);
+}
+
+FGAEffectInstant UGAAttributeComponent::MakeOutgoingInstantEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context)
+{
+	FGAEffectInstant InstatnEffect;
+	//ApplyEffectToTarget(SpecIn, Context);
+	return InstatnEffect;
+}
+void UGAAttributeComponent::MakeOutgoingPeriodicEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context)
+{
+
+}
+
+void UGAAttributeComponent::EffectExpired(const FGAEffectHandle& HandleIn)
+{
+	ActiveEffects.RemoveActiveEffect(HandleIn);
+}
+
+void UGAAttributeComponent::ExecuteModifiers(FGAAttributeData& ModifierIn, const FGAEffectContext Context)
+{
+	ActiveEffects.ExecuteEffectModifier(ModifierIn, Context);
+}
+
+void UGAAttributeComponent::ModifyAttributesOnSelf(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, const FGAEffectHandle& HandleIn)
+{
+	//incoming
+	ModifiedAttribute.Empty();
+	for (FGAAttributeData& eval : EvalData)
+	{
+		eval.ModDirection = EGAModifierDirection::Incoming;
+		ExecuteModifiers(eval, Context);
 		FGAAttributeBase* attr = DefaultAttributes->GetAttribute(eval.Attribute);
 		float newValue = 0;
 		if (attr)
@@ -70,7 +127,8 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(TArray<FGAEvalData>& EvalData
 		{
 			newValue = DefaultAttributes->AttributeOperation(eval.Attribute, eval.Value, eval.Mod);
 		}
-		DefaultAttributes->UpdateAttributes(eval, newValue);
+		FGAEvalData evalData(eval.Attribute, eval.Mod, FGameplayTag(), newValue);
+		DefaultAttributes->UpdateAttributes(evalData, newValue);
 		FGAModifiedAttribute ModdedAttrRep;
 		ModdedAttrRep.Attribute = eval.Attribute;
 		ModdedAttrRep.InstigatorLocation = Context.Instigator->GetActorLocation();
@@ -90,9 +148,20 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(TArray<FGAEvalData>& EvalData
 	}
 	
 }
-void UGAAttributeComponent::ModifyAttributesOnTarget(TArray<FGAEvalData>& EvalData, const FGAEffectContext& Context, const FGAEffectHandle& HandleIn)
+void UGAAttributeComponent::ModifyAttributesOnTarget(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, const FGAEffectHandle& HandleIn)
 {
+	SCOPE_CYCLE_COUNTER(STAT_ModifyAttribute);
+	//outgoing 
+	//if (Context.TargetComp.IsValid()
+	//	&& Context.InstigatorComp.IsValid())
+	//{
+	for (FGAAttributeData& eval : EvalData)
+	{
+		ExecuteModifiers(eval, Context);
+		eval.ModDirection = EGAModifierDirection::Incoming;
+	}
 	Context.TargetComp->ModifyAttributesOnSelf(EvalData, Context, HandleIn);
+	//}
 }
 
 void UGAAttributeComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const

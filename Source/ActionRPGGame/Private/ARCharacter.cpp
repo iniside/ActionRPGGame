@@ -354,3 +354,11 @@ void AARCharacter::ShowHideAbilityBook()
 }
 APlayerController* AARCharacter::GetGamePlayerController()
 { return ARPController; }
+
+float AARCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
+{
+	ReceiveAnyDamage(DamageAmount, nullptr, EventInstigator, DamageCauser);
+	OnTakeAnyDamage.Broadcast(DamageAmount, nullptr, EventInstigator, DamageCauser);
+	OnCharacterDied();
+	return 0;
+}

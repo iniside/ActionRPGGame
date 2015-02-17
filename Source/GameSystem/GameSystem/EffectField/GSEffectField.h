@@ -18,7 +18,7 @@
 */
 
 UCLASS(BlueprintType, Blueprintable)
-class GAMESYSTEM_API AGSEffectField : public AActor, public IGameplayTagAssetInterface, public IIGAAttributes
+class GAMESYSTEM_API AGSEffectField : public AActor, public IGameplayTagAssetInterface//, public IIGAAttributes
 {
 	GENERATED_UCLASS_BODY()
 
@@ -128,9 +128,9 @@ public:
 	void BP_OnOtherFieldOverlap(AGSEffectField* OtherField);
 
 	/** IIIGAAttributes overrides */
-	virtual class UGAAttributesBase* GetAttributes() override;
-	virtual class UGAAttributeComponent* GetAttributeComponent() override;
-	virtual void Died() override;
+	//virtual class UGAAttributesBase* GetAttributes() override;
+	//virtual class UGAAttributeComponent* GetAttributeComponent() override;
+	//virtual void Died() override;
 	/* IIIGAAttributes overrides **/
 
 	/** IGameplayTagAssetInterface overrides */

@@ -34,6 +34,7 @@ void UGASAbilitiesComponent::InitializeComponent()
 
 	InitializeInstancedAbilities();
 }
+
 void UGASAbilitiesComponent::InputPressed(int32 AbilityId)
 {
 	//if we can't activate ability there is no reason to go further.
@@ -94,12 +95,12 @@ void UGASAbilitiesComponent::BP_AddAbility(TSubclassOf<class UGASAbility> Abilit
 {
 	AddAbilityToActiveList(AbilityClass);
 }
-void UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbility> AbilityClass)
+int32 UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbility> AbilityClass)
 {
 	if (AbilityClass)
 	{
 		UGASAbility* ability = ConstructObject<UGASAbility>(AbilityClass, GetOwner());
-		
+		int32 slotCounter = 0;
 		for (FGASActiveAbilitySlot& ab : InstancedAbilities)
 		{
 			if (ab.ActiveAbility == nullptr)
@@ -113,10 +114,12 @@ void UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbilit
 				}
 				ability->Initialize();
 				ab.ActiveAbility = ability;
-				return;
+				return slotCounter;
 			}
+			slotCounter++;
 		}
 	}
+	return -1;
 }
 
 void UGASAbilitiesComponent::BP_GiveAbility(TSubclassOf<class UGASAbility> AbilityClass)

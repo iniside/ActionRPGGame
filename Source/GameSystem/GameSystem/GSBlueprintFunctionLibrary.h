@@ -9,12 +9,12 @@ class GAMESYSTEM_API UGSBlueprintFunctionLibrary : public UBlueprintFunctionLibr
 {
 	GENERATED_UCLASS_BODY()
 public:
-	UFUNCTION(BlueprintCallable, Category = "Game Ability System", meta = (UnsafeDuringActorConstruction = "true", BlueprintInternalUseOnly = "true"))
+	UFUNCTION(BlueprintCallable, Category = "Game System", meta = (UnsafeDuringActorConstruction = "true", BlueprintInternalUseOnly = "true"))
 		static class AGSEffectField* BeginCreateEffectField(TSubclassOf<class AGSEffectField> EffectFieldClass
 		, const FVector& Location
 		, class AActor* FieldInstigator);
 
-	UFUNCTION(BlueprintCallable, Category = "Game Ability System", meta = (UnsafeDuringActorConstruction = "true", BlueprintInternalUseOnly = "true"))
+	UFUNCTION(BlueprintCallable, Category = "Game System", meta = (UnsafeDuringActorConstruction = "true", BlueprintInternalUseOnly = "true"))
 		static class AGSEffectField* FinishCreateEffectField(class AGSEffectField* EffectField);
 
 

@@ -13,6 +13,7 @@ UGSAbilitiesComponent::UGSAbilitiesComponent(const FObjectInitializer& ObjectIni
 	: Super(ObjectInitializer)
 {
 	bWantsInitializeComponent = true;
+	CurrentAbility = -1;
 }
 
 void UGSAbilitiesComponent::InitializeComponent()
@@ -48,6 +49,22 @@ void UGSAbilitiesComponent::OnRep_OwnedAbilities()
 {
 	OnAbilityAddedToSet.ExecuteIfBound();
 }
+float UGSAbilitiesComponent::GetCurrentCastTime()
+{
+	if (CurrentAbility > -1)
+	{
+		return GetGSAbility(CurrentAbility)->CurrentCastTime;
+	}
+	return 0;
+}
+float UGSAbilitiesComponent::GetCastTime()
+{
+	if (CurrentAbility > -1)
+	{
+		return GetGSAbility(CurrentAbility)->CastTime;
+	}
+	return 0;
+}
 void UGSAbilitiesComponent::InputPressed(int32 SetIndex, int32 SlotIndex)
 {
 	CurrentAbility = AbilitySets[SetIndex].AbilitySlots[SlotIndex].AbilityIndex;
@@ -55,6 +72,7 @@ void UGSAbilitiesComponent::InputPressed(int32 SetIndex, int32 SlotIndex)
 		return;
 	UGASAbilitiesComponent::InputPressed(CurrentAbility);
 	OnGetAbilityIndex.ExecuteIfBound(CurrentAbility);
+	OnAbilityPressedIndex.Broadcast(CurrentAbility);
 	if (InstancedAbilities[CurrentAbility].ActiveAbility
 		&& !InstancedAbilities[CurrentAbility].ActiveAbility->OnAbilityCastedDel.IsBound())
 	{
@@ -65,6 +83,29 @@ void UGSAbilitiesComponent::InputReleased(int32 SetIndex, int32 SlotIndex)
 {
 	UGASAbilitiesComponent::InputReleased(AbilitySets[SetIndex].AbilitySlots[SlotIndex].AbilityIndex);
 }
+
+void UGSAbilitiesComponent::GiveAbilityAndInsert(TSubclassOf<class  UGSAbility> AbilityIn)
+{
+	int32 abIndex = AddAbilityToActiveList(AbilityIn);
+
+	if (abIndex != -1)
+	{
+		for (FGSAbilitiesSets& set : AbilitySets)
+		{
+			for (FGSAbilitySlot& slot : set.AbilitySlots)
+			{
+				if (slot.AbilityIndex == -1)
+				{
+					slot.AbilityIndex = abIndex;
+					OnAbilityAddedToSet.ExecuteIfBound();
+					return;
+				}
+			}
+		}
+	}
+	
+}
+
 void UGSAbilitiesComponent::BP_AddAbilityToSlot(int32 TargetSetIndex, int32 TargetSlotIndex, int32 AbilityIndex)
 {
 	AddAbilityToSlot(TargetSetIndex, TargetSlotIndex, AbilityIndex);

@@ -106,6 +106,9 @@ public:
 		float FireDamage;
 
 	UPROPERTY()
+		float Heal;
+
+	UPROPERTY()
 		float ConditionDamage;
 	UPROPERTY()
 		float ConditionFireDamage;
@@ -189,8 +192,6 @@ protected:
 	TMap<FName, TWeakObjectPtr<UFunction>> OutgoingModifyAttributeFunctions;
 
 public:
-	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
-
 	virtual void InitializeAttributes() override;
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = AttributeTags, meta = (BlueprintInternalUseOnly = "true"))
@@ -218,6 +219,8 @@ public:
 	//	FGAAttributeDataCallback PostAttribute_Health(const FGAEvalData& AttributeMod);
 	UFUNCTION(Category = "PostAttribute")
 		void PostAttribute_Damage(const FGAEvalData& AttributeMod);
+	UFUNCTION(Category = "PostAttribute")
+		void PostAttribute_Heal(const FGAEvalData& AttributeMod);
 	UFUNCTION(Category = "PostAttribute")
 		void PostAttribute_LifeStealDamage(const FGAEvalData& AttributeMod);
 	UFUNCTION(Category = "PostAttribute")

@@ -29,40 +29,42 @@ void UARCharacterAttributes::InitializeAttributes()
 	OutgoingModifyAttributeFunctions.Empty();
 	for (TFieldIterator<UFunction> FuncIt(GetClass(), EFieldIteratorFlags::IncludeSuper); FuncIt; ++FuncIt)
 	{
-		if (FuncIt->GetMetaData("Category") == "PostAttribute")
+		int32 FoundIndex = -1;
+		FoundIndex = FuncIt->GetName().Find("PostAttribute");
+		if (FoundIndex > -1)
 		{
-			FString name = FuncIt->GetName();
-			name = name.RightChop(14);
-			FName keyIn = *name;
+			FString postName = FuncIt->GetName();
+			postName = postName.RightChop(14);
+			FName keyIn = *postName;
 			PostModifyAttributeFunctions.Add(keyIn, *FuncIt);
 		}
 	}
-	for (TFieldIterator<UFunction> FuncIt(GetClass(), EFieldIteratorFlags::IncludeSuper); FuncIt; ++FuncIt)
-	{
-		if (FuncIt->GetMetaData("Category") == "Outgoing")
-		{
-			FString name = FuncIt->GetName();
-			name = name.RightChop(9);
-			//attempt to add function like Condition.Hex, which might happen to exist in blueprint.
-			FName keyIn = *name;
-			OutgoingModifyAttributeFunctions.Add(keyIn, *FuncIt);
-			//then we will look for functions in C++.
-			name = name.Replace(TEXT("_"), TEXT("."));
-			keyIn = *name;
-			OutgoingModifyAttributeFunctions.Add(keyIn, *FuncIt);
-		}
-	}
-	for (TFieldIterator<UFunction> FuncIt(GetClass(), EFieldIteratorFlags::IncludeSuper); FuncIt; ++FuncIt)
-	{
-		if (FuncIt->GetMetaData("Category") == "Incoming")
-		{
-			FString name = FuncIt->GetName();
-			name = name.RightChop(9);
-			name = name.Replace(TEXT("_"), TEXT("."));
-			FName keyIn = *name;
-			IncomingModifyAttributeFunctions.Add(keyIn, *FuncIt);
-		}
-	}
+	//for (TFieldIterator<UFunction> FuncIt(GetClass(), EFieldIteratorFlags::IncludeSuper); FuncIt; ++FuncIt)
+	//{
+	//	if (FuncIt->GetMetaData("Category") == "Outgoing")
+	//	{
+	//		FString name = FuncIt->GetName();
+	//		name = name.RightChop(9);
+	//		//attempt to add function like Condition.Hex, which might happen to exist in blueprint.
+	//		FName keyIn = *name;
+	//		OutgoingModifyAttributeFunctions.Add(keyIn, *FuncIt);
+	//		//then we will look for functions in C++.
+	//		name = name.Replace(TEXT("_"), TEXT("."));
+	//		keyIn = *name;
+	//		OutgoingModifyAttributeFunctions.Add(keyIn, *FuncIt);
+	//	}
+	//}
+	//for (TFieldIterator<UFunction> FuncIt(GetClass(), EFieldIteratorFlags::IncludeSuper); FuncIt; ++FuncIt)
+	//{
+	//	if (FuncIt->GetMetaData("Category") == "Incoming")
+	//	{
+	//		FString name = FuncIt->GetName();
+	//		name = name.RightChop(9);
+	//		name = name.Replace(TEXT("_"), TEXT("."));
+	//		FName keyIn = *name;
+	//		IncomingModifyAttributeFunctions.Add(keyIn, *FuncIt);
+	//	}
+	//}
 
 	for (TFieldIterator<UStructProperty> StrIt(GetClass(), EFieldIteratorFlags::IncludeSuper); StrIt; ++StrIt)
 	{
@@ -72,16 +74,6 @@ void UARCharacterAttributes::InitializeAttributes()
 			attr->InitializeAttribute();
 		}
 	}
-}
-void UARCharacterAttributes::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-
-	float finalValue = 0;
-	finalValue = Magic.GetCurrentValue();
-	finalValue = (finalValue - 10) / 2;
-	MagicMod.SetBaseValue(finalValue);
-
 }
 
 void UARCharacterAttributes::PostEffectApplied()
@@ -128,6 +120,26 @@ void UARCharacterAttributes::PostAttribute_Damage(const FGAEvalData& AttributeMo
 {
 	Health.Subtract(Damage);
 	Damage = 0;
+
+	if (Health.GetCurrentValue() <= 0)
+	{
+		if (OwningAttributeComp)
+		{
+			//not best solution
+			//but Damage system is so tighly ingrained into
+			//engine, that we can just as well take advantage of build in events
+			//for some stuff.
+			FDamageEvent goAway;
+			OwningAttributeComp->GetOwner()->TakeDamage(Damage, goAway, nullptr, nullptr);
+		}
+		//handle death/
+	}
+
+}
+void UARCharacterAttributes::PostAttribute_Heal(const FGAEvalData& AttributeMod)
+{
+	Health.Add(Heal);
+	Heal = 0;
 }
 void UARCharacterAttributes::PostAttribute_LifeStealDamage(const FGAEvalData& AttributeMod)
 {

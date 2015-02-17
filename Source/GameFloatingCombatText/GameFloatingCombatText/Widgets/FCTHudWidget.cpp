@@ -10,7 +10,7 @@ UFCTHudWidget::UFCTHudWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	OnReceivedData.AddUObject(this, &UFCTHudWidget::PawnDamaged);
-	for (int32 Index = 0; Index < 30; Index++)
+	for (int32 Index = 0; Index < 100; Index++)
 	{
 		FFCTDamageHudIndicator dmgInd;
 		dmgInd.FadeTime = 0;
@@ -37,7 +37,7 @@ void UFCTHudWidget::PawnDamaged(const FFCTDisplayData& UIDamage)
 
 		int BestIndex = 0;
 		float BestTime = DamageIndicators[0].FadeTime;
-		for (int i = 0; i < 30; i++)
+		for (int i = 0; i < 100; i++)
 		{
 			if (DamageIndicators[i].FadeTime <= 0.0f)
 			{

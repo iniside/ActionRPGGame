@@ -40,8 +40,6 @@ UBPNode_SpawnEffectField::UBPNode_SpawnEffectField(const FObjectInitializer& Obj
 //Adds default pins to node. These Pins (inputs ?) are always displayed.
 void UBPNode_SpawnEffectField::AllocateDefaultPins()
 {
-	UK2Node::AllocateDefaultPins();
-
 	const UEdGraphSchema_K2* K2Schema = GetDefault<UEdGraphSchema_K2>();
 	// Add execution pins
 	CreatePin(EGPD_Input, K2Schema->PC_Exec, TEXT(""), NULL, false, false, K2Schema->PN_Execute);
@@ -55,12 +53,59 @@ void UBPNode_SpawnEffectField::AllocateDefaultPins()
 	K2Schema->ConstructBasicPinTooltip(*LocationPin, LOCTEXT("LocationPinTooltip", "Location at which Effect Field will be spawned"), LocationPin->PinToolTip);
 
 	UEdGraphPin* InstigatorPin = CreatePin(EGPD_Input, K2Schema->PC_Object, TEXT(""), AActor::StaticClass(), false, false, FBPNode_SpawnEffectFieldHelper::InstigatorPinName);
-	K2Schema->ConstructBasicPinTooltip(*InstigatorPin, LOCTEXT("InstigatorPinTooltip", "Actor which spawned this field. Must implement IIGSEffectField Interface."), InstigatorPin->PinToolTip);
+	K2Schema->ConstructBasicPinTooltip(*InstigatorPin, LOCTEXT("InstigatorPinTooltip", "Actor which spawned this field."), InstigatorPin->PinToolTip);
 
 	UEdGraphPin* ResultPin = CreatePin(EGPD_Output, K2Schema->PC_Object, TEXT(""), AGSEffectField::StaticClass(), false, false, K2Schema->PN_ReturnValue);
 	K2Schema->ConstructBasicPinTooltip(*ResultPin, LOCTEXT("ResultPinDescription", "The  spawned Effect Field"), ResultPin->PinToolTip);
 
+	UK2Node::AllocateDefaultPins();
+}
 
+void UBPNode_SpawnEffectField::CreatePinsForClass(UClass* InClass)
+{
+	check(InClass != NULL);
+
+	const UEdGraphSchema_K2* K2Schema = GetDefault<UEdGraphSchema_K2>();
+
+	const UObject* const ClassDefaultObject = InClass->GetDefaultObject(false);
+
+	for (TFieldIterator<UProperty> PropertyIt(InClass, EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
+	{
+		UProperty* Property = *PropertyIt;
+		UClass* PropertyClass = CastChecked<UClass>(Property->GetOuter());
+		const bool bIsDelegate = Property->IsA(UMulticastDelegateProperty::StaticClass());
+		const bool bIsExposedToSpawn = UEdGraphSchema_K2::IsPropertyExposedOnSpawn(Property);
+		const bool bIsSettableExternally = !Property->HasAnyPropertyFlags(CPF_DisableEditOnInstance);
+
+		if (bIsExposedToSpawn &&
+			!Property->HasAnyPropertyFlags(CPF_Parm) &&
+			bIsSettableExternally &&
+			Property->HasAllPropertyFlags(CPF_BlueprintVisible) &&
+			!bIsDelegate &&
+			(NULL == FindPin(Property->GetName())))
+		{
+			UEdGraphPin* Pin = CreatePin(EGPD_Input, TEXT(""), TEXT(""), NULL, false, false, Property->GetName());
+			const bool bPinGood = (Pin != NULL) && K2Schema->ConvertPropertyToPinType(Property, /*out*/ Pin->PinType);
+
+			if (ClassDefaultObject && K2Schema->PinDefaultValueIsEditable(*Pin))
+			{
+				FString DefaultValueAsString;
+				const bool bDefaultValueSet = FBlueprintEditorUtils::PropertyValueToString(Property, reinterpret_cast<const uint8*>(ClassDefaultObject), DefaultValueAsString);
+				check(bDefaultValueSet);
+				K2Schema->TrySetDefaultValue(*Pin, DefaultValueAsString);
+			}
+
+			// Copy tooltip from the property.
+			if (Pin != nullptr)
+			{
+				K2Schema->ConstructBasicPinTooltip(*Pin, Property->GetToolTipText(), Pin->PinToolTip);
+			}
+		}
+	}
+
+	// Change class of output pin
+	UEdGraphPin* ResultPin = GetResultPin();
+	ResultPin->PinType.PinSubCategoryObject = InClass;
 }
 
 bool UBPNode_SpawnEffectField::IsSpawnVarPin(UEdGraphPin* Pin)
@@ -108,6 +153,16 @@ UClass* UBPNode_SpawnEffectField::GetClassToSpawn(const TArray<UEdGraphPin*>* In
 	}
 
 	return UseSpawnClass;
+}
+
+void UBPNode_SpawnEffectField::ReallocatePinsDuringReconstruction(TArray<UEdGraphPin*>& OldPins)
+{
+	AllocateDefaultPins();
+	UClass* UseSpawnClass = GetClassToSpawn(&OldPins);
+	if (UseSpawnClass != NULL)
+	{
+		CreatePinsForClass(UseSpawnClass);
+	}
 }
 
 void UBPNode_SpawnEffectField::OnClassPinChanged()
@@ -195,6 +250,14 @@ FText UBPNode_SpawnEffectField::GetNodeTitle(ENodeTitleType::Type TitleType) con
 	}
 	return NodeTitle;
 }
+
+bool UBPNode_SpawnEffectField::IsCompatibleWithGraph(const UEdGraph* TargetGraph) const
+{
+	//UBlueprint* Blueprint = FBlueprintEditorUtils::FindBlueprintForGraph(TargetGraph);
+	//return Super::IsCompatibleWithGraph(TargetGraph) && (!Blueprint || FBlueprintEditorUtils::FindUserConstructionScript(Blueprint) != TargetGraph);
+	return true;
+}
+
 FText UBPNode_SpawnEffectField::GetTooltipText() const
 {
 	return FText::FromString("Create new Effect Field");
@@ -322,7 +385,7 @@ void UBPNode_SpawnEffectField::ExpandNode(class FKismetCompilerContext& Compiler
 	//////////////////////////////////////////////////////////////////////////
 	// create 'UWidgetBlueprintLibrary::Create' call node
 	UK2Node_CallFunction* CallBeginCreateNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(CreateEffectNode, SourceGraph);
-	CallBeginCreateNode->FunctionReference.SetExternalMember(BeginSpawn_FunctionName, UBlueprintFunctionLibrary::StaticClass());
+	CallBeginCreateNode->FunctionReference.SetExternalMember(BeginSpawn_FunctionName, UGSBlueprintFunctionLibrary::StaticClass());
 	CallBeginCreateNode->AllocateDefaultPins();
 
 	//allocate nodes for created widget.
@@ -349,7 +412,7 @@ void UBPNode_SpawnEffectField::ExpandNode(class FKismetCompilerContext& Compiler
 	CompilerContext.MovePinLinksToIntermediate(*SpawnInstigatorPin, *CallBeginInstigatorPin);
 
 	UK2Node_CallFunction* CallFinishSpawnNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(CreateEffectNode, SourceGraph);
-	CallFinishSpawnNode->FunctionReference.SetExternalMember(FinishSpawn_FunctionName, UBlueprintFunctionLibrary::StaticClass());
+	CallFinishSpawnNode->FunctionReference.SetExternalMember(FinishSpawn_FunctionName, UGSBlueprintFunctionLibrary::StaticClass());
 	CallFinishSpawnNode->AllocateDefaultPins();
 
 	UEdGraphPin* CallFinishExec = CallFinishSpawnNode->GetExecPin();

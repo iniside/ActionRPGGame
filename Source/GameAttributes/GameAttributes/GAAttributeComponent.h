@@ -3,6 +3,10 @@
 #include "GAAttributesBase.h"
 #include "GAAttributeComponent.generated.h"
 
+DECLARE_STATS_GROUP(TEXT("AttributeComponent"), STATGROUP_AttributeComponent, STATCAT_Advanced);
+DECLARE_CYCLE_STAT_EXTERN(TEXT("AttributeComponentApplyEffect"), STAT_ApplyEffect, STATGROUP_AttributeComponent, );
+DECLARE_CYCLE_STAT_EXTERN(TEXT("AttributeComponentModifyAttribute"), STAT_ModifyAttribute, STATGROUP_AttributeComponent, );
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGAOnAttributeChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGAOnAttributeModifed, const FGAModifiedAttribute&, attr);
 
@@ -11,35 +15,20 @@ class GAMEATTRIBUTES_API UGAAttributeComponent : public UActorComponent
 {
 	GENERATED_UCLASS_BODY()
 public:
+	UPROPERTY(EditAnywhere, Category = "Test")
+		FGameplayTag TagTest;
 	/*
 		Set attribute which will be considered for indicating whether or not actor is dead.
 	*/
 	UPROPERTY(EditAnywhere, Category = "Config")
 		FGAAttribute DeathAttribute;
 
-	/*
-		TagName, number of tags. If Effect, provide immunity
-		and such tag exist, increment value.
-
-		If tag is removed decrement if value 0, remove entry, all togather.
-		??
-	*/
-	TMap<FName, int32> ImmunityTags;
+	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTagContainer DefaultTags;
 
 	FGACountedTagContainer AppliedTags;
 	
 	FGAActiveEffectContainer ActiveEffects;
-	
-	/*
-		Tags, which are  currently applied by effects to me.
-	*/
-	//TMap<FGameplayTag, int32> AppliedTags;
-	
-	UPROPERTY(EditAnywhere, Category = "Attribute Mods")
-		TArray<TSubclassOf<class UGAAttributeMod> > AttributeMods;
-	
-	UPROPERTY(VisibleAnywhere, Category = "Attribute Mods")
-		TArray<class UGAAttributeMod*> AttributeModsObj;
 
 	/*
 		Could make it array. But realistically. How many times do you really need more, than one
@@ -67,16 +56,38 @@ public:
 
 	virtual void InitializeComponent() override;
 
+	virtual void UninitializeComponent() override;
+public:
 	/////////////////////////////////////////////////
 	//////////// EFFECTS HANDLING
-	bool ApplyEffectToSelf(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
-	bool ApplyEffectToTarget(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
+	/*
+		Apply to self probabaly shouldn't take Spec.
+	*/
+	FGAEffectHandle ApplyEffectToSelf(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
+	/*
+		As matter of fact I'm no sure if apply to target should either.
+	*/
+	FGAEffectHandle ApplyEffectToTarget(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
 
-	void EffectExpired(FGAEffectHandle& HandleIn);
+	void RemoveInfiniteEffect(const FGAEffectHandle& HandleIn);
+
+	FGAEffectInstant MakeOutgoingInstantEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
+	void MakeOutgoingPeriodicEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
+
+	void EffectExpired(const FGAEffectHandle& HandleIn);
+
+
+	UFUNCTION(BlueprintCallable, Category = "Attribute Tests")
+		FGAEffectHandle ApplySelfEffect(AActor* Target, APawn* Instigator,
+		UObject* Causer, FGAEffectSpec SpecIn);
+
+protected:
+	void ExecuteModifiers(FGAAttributeData& ModifierIn, const FGAEffectContext Context);
+
 	//////////// EFFECTS HANDLING
 	/////////////////////////////////////////////////
 
-
+public:
 	/////////////////////////////////////////////////
 	//////////// ATTRIBUTES HANDLING
 	/*
@@ -92,8 +103,8 @@ public:
 		For example there might be physical armor mod, which will apply changes only
 		to attributes tagged as Damage.Physical and only if you are reciving change, not causing it.
 	*/
-	void ModifyAttributesOnSelf(TArray<FGAEvalData>& EvalData, const FGAEffectContext& Context, const FGAEffectHandle& HandleIn);
-	void ModifyAttributesOnTarget(TArray<FGAEvalData>& EvalData, const FGAEffectContext& Context, const FGAEffectHandle& HandleIn);
+	void ModifyAttributesOnSelf(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, const FGAEffectHandle& HandleIn);
+	void ModifyAttributesOnTarget(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, const FGAEffectHandle& HandleIn);
 	
 	//////Accessors to various functions inside DefaultAttributes;
 	inline FGAAttributeBase* GetAttribute(const FGAAttribute& Name)
@@ -109,7 +120,6 @@ public:
 	{
 		return DefaultAttributes->GetCurrentAttributeValue(Name);
 	}
-
 	//////////// ATTRIBUTES HANDLING
 	/////////////////////////////////////////////////
 	/*

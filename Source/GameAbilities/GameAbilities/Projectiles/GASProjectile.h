@@ -12,7 +12,11 @@ public:
 		UProjectileMovementComponent* Projectile;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Projectile")
 		USphereComponent* CollisionSphere;
-
+	
+	UPROPERTY(EditAnywhere, Category = "Config")
+		bool bSetProjectileHiddenAfterHit;
+	UPROPERTY(EditAnywhere, Category = "Config")
+		float LifeAfterHit;
 public:
 	AGASProjectile(const FObjectInitializer& ObjectInitializer);
 

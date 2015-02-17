@@ -59,7 +59,8 @@ public:
 		I have yet to fully figure out how do I want it to work. But one thing for certain is
 		that it must be fully functional from within blueprint.
 	*/
-	
+	UPROPERTY()
+	class UGAAttributeComponent* OwningAttributeComp;
 protected:
 	UProperty* FindProperty(const FGAAttribute& AttributeIn);
 

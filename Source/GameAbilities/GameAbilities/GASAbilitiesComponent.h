@@ -73,7 +73,9 @@ public:
 
 	inline class UGASAbility* GetGASAbility(int32 IndexIn)
 	{
-		return InstancedAbilities[IndexIn].ActiveAbility;
+		if (InstancedAbilities.IsValidIndex(IndexIn))
+			return InstancedAbilities[IndexIn].ActiveAbility;
+		return nullptr;
 	}
 
 	void InputPressed(int32 AbilityId);
@@ -94,10 +96,12 @@ public:
 		Should be called on server.
 		Adds new ability to ActiveAbilities;
 	*/
-	void AddAbilityToActiveList(TSubclassOf<class UGASAbility> AbilityClass);
+	int32 AddAbilityToActiveList(TSubclassOf<class UGASAbility> AbilityClass);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
 		void BP_GiveAbility(TSubclassOf<class UGASAbility> AbilityClass);
+
+
 
 	void GiveAbility(TSubclassOf<class UGASAbility> AbilityClass);
 

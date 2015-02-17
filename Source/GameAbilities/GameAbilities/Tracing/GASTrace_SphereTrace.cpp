@@ -72,7 +72,6 @@ void UGASTrace_SphereTrace::SphereTrace()
 	Params.bTraceComplex = false;
 	Params.bTraceAsyncScene = false;
 	Params.bReturnPhysicalMaterial = true;
-
 	Params.AddIgnoredActor(TraceInterface->GetGamePawn());
 	Params.bFindInitialOverlaps = true;
 

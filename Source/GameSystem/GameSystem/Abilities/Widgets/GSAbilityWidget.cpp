@@ -13,13 +13,17 @@ UGSAbilityWidget::UGSAbilityWidget(const FObjectInitializer& ObjectInitializer)
 void UGSAbilityWidget::UpdateWidgetData()
 {
 	if (AbilityIndex != INDEX_NONE)
-		AbilityPtrCache = AbilityComponent->GetGSAbility(AbilityIndex);
+	{
+		if (AbilityComponent)
+			AbilityPtrCache = AbilityComponent->GetGSAbility(AbilityIndex);
+	}
 }
 float UGSAbilityWidget::GetAbilityCooldown() const
 {
 	if (AbilityIndex != INDEX_NONE)
 	{
-		return AbilityComponent->GetGASAbility(AbilityIndex)->CurrentRechargeTime;
+		if (AbilityComponent)
+			return AbilityComponent->GetGASAbility(AbilityIndex)->CurrentRechargeTime;
 	}
 	return 0;
 }

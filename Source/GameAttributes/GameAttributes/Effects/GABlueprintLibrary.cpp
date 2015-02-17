@@ -33,6 +33,35 @@ void UGABlueprintLibrary::ApplyEffect(const FHitResult& Target, APawn* Instigato
 	instiComp->ApplyEffectToTarget(SpecIn, context);
 }
 
+FGAEffectHandle UGABlueprintLibrary::ApplyEffectActor(AActor* Target, APawn* Instigator,
+	UObject* Causer, FGAEffectSpec SpecIn)
+{
+	IIGAAttributes* targetAttr = Cast<IIGAAttributes>(Target);
+	IIGAAttributes* instiAttr = Cast<IIGAAttributes>(Instigator);
+	if (!targetAttr || !instiAttr)
+		return FGAEffectHandle();
+
+	UGAAttributeComponent* targetComp = targetAttr->GetAttributeComponent();
+	UGAAttributeComponent* instiComp = instiAttr->GetAttributeComponent();
+	FGAEffectContext context(Target->GetActorLocation(), Target, Causer,
+		Instigator, targetComp, instiComp);
+
+	SpecIn.Context = context;
+
+	SpecIn.GetModifiers();
+	return instiComp->ApplyEffectToTarget(SpecIn, context);
+}
+
+void UGABlueprintLibrary::RemoveInfiniteEffect(AActor* Target, const FGAEffectHandle& HandleIn)
+{
+	IIGAAttributes* targetAttr = Cast<IIGAAttributes>(Target);
+	if (!targetAttr)
+		return;
+
+	UGAAttributeComponent* targetComp = targetAttr->GetAttributeComponent();
+	targetComp->RemoveInfiniteEffect(HandleIn);
+}
+
 void UGABlueprintLibrary::OverrideEffectDuration(TSubclassOf<class UGAEffectSpecification> SpecIn)
 {
 }

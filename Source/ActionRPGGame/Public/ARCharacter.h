@@ -148,6 +148,10 @@ protected:
 
 	void ShowHideAbilityBook();
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Character Death")
+		void OnCharacterDied();
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;

@@ -24,14 +24,19 @@ class AGSEffectField* UGSBlueprintFunctionLibrary::BeginCreateEffectField(TSubcl
 
 	if (FieldInstigator)
 	{
+		
 		FRotator Rotation = FRotator::ZeroRotator;
-		Rotation = FieldInstigator->GetActorRotation();
 		Rotation.Pitch = 0;
-		effectField = FieldInstigator->GetWorld()->SpawnActorDeferred<AGSEffectField>(EffectFieldClass,
-			Location, Rotation, FieldInstigator, FieldInstigator->Instigator, true); //change to get pawn
+		//effectField = FieldInstigator->GetWorld()->SpawnActor<AGSEffectField>(EffectFieldClass,
+		//	Location, Rotation, FieldInstigator, FieldInstigator->Instigator, true); //change to get pawn
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.bNoCollisionFail = true;
+		SpawnParams.Instigator = FieldInstigator->Instigator;
+		FieldInstigator->GetWorld()->SpawnActor<AGSEffectField>(EffectFieldClass, Location, Rotation, SpawnParams);
 		if (effectField)
 		{
 			effectField->EffectFieldInstigator = FieldInstigator;
+			effectField->SetActorLocation(Location);
 		}
 	}
 
@@ -43,8 +48,9 @@ class AGSEffectField* UGSBlueprintFunctionLibrary::FinishCreateEffectField(class
 {
 	if (EffectField)
 	{
-		FTransform Trans;
-		EffectField->FinishSpawning(Trans);
+		//FTransform Trans;
+		//Trans.SetLocation(EffectField->GetActorLocation());
+		//EffectField->FinishSpawning(Trans);
 		EffectField->InitializeEffectField();
 	}
 	return EffectField;

@@ -31,17 +31,17 @@ void AGSEffectField::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	CurrentLifetime += DeltaSeconds;
-	//if lifetime is less than zero, it means that this actor should
-	//live until manually removed from world.
-	if ((LifeTime > 0) && (CurrentLifetime > LifeTime))
-	{
-		DestroyField();
-	}
-	for (auto It = OverlapingActors.CreateIterator(); It; ++It)
-	{
-		OnActorHit(OverlapingActors[It.GetIndex()]);
-	}
+	//CurrentLifetime += DeltaSeconds;
+	////if lifetime is less than zero, it means that this actor should
+	////live until manually removed from world.
+	//if ((LifeTime > 0) && (CurrentLifetime > LifeTime))
+	//{
+	//	DestroyField();
+	//}
+	//for (auto It = OverlapingActors.CreateIterator(); It; ++It)
+	//{
+	//	OnActorHit(OverlapingActors[It.GetIndex()]);
+	//}
 }
 
 void AGSEffectField::PreInitializeComponents()
@@ -50,38 +50,38 @@ void AGSEffectField::PreInitializeComponents()
 	if (!RootComponent)
 		return;
 
-	if (!FieldSize.IsZero())
-	{
-		UBoxComponent* BoxComp = Cast<UBoxComponent>(RootComponent);
-		if (BoxComp)
-		{
-			//BoxComp->InitBoxExtent(FieldSize);
-			BoxComp->SetBoxExtent(FieldSize);
+	//if (!FieldSize.IsZero())
+	//{
+	//	UBoxComponent* BoxComp = Cast<UBoxComponent>(RootComponent);
+	//	if (BoxComp)
+	//	{
+	//		//BoxComp->InitBoxExtent(FieldSize);
+	//		BoxComp->SetBoxExtent(FieldSize);
 
-		}
-		else if (USphereComponent* SphereComp = Cast<USphereComponent>(RootComponent))
-		{
-			if (FieldSize.X > 0)
-			{
-				SphereComp->SetSphereRadius(FieldSize.X);
-			}
-			else if (FieldSize.Y > 0)
-			{
-				SphereComp->SetSphereRadius(FieldSize.X);
-			}
-			else if (FieldSize.Z > 0)
-			{
-				SphereComp->SetSphereRadius(FieldSize.X);
-			}
-		}
-		else if (UCapsuleComponent* CapsuleComp = Cast<UCapsuleComponent>(RootComponent))
-		{
-			CapsuleComp->SetCapsuleSize(FieldSize.X, FieldSize.Y);
-		}
-	}
-	FVector ActorLocation = GetActorLocation();
-	ActorLocation.Z += FieldSize.Z;
-	RootComponent->SetRelativeLocation(ActorLocation);
+	//	}
+	//	else if (USphereComponent* SphereComp = Cast<USphereComponent>(RootComponent))
+	//	{
+	//		if (FieldSize.X > 0)
+	//		{
+	//			SphereComp->SetSphereRadius(FieldSize.X);
+	//		}
+	//		else if (FieldSize.Y > 0)
+	//		{
+	//			SphereComp->SetSphereRadius(FieldSize.X);
+	//		}
+	//		else if (FieldSize.Z > 0)
+	//		{
+	//			SphereComp->SetSphereRadius(FieldSize.X);
+	//		}
+	//	}
+	//	else if (UCapsuleComponent* CapsuleComp = Cast<UCapsuleComponent>(RootComponent))
+	//	{
+	//		CapsuleComp->SetCapsuleSize(FieldSize.X, FieldSize.Y);
+	//	}
+	//}
+	//FVector ActorLocation = GetActorLocation();
+	//ActorLocation.Z += FieldSize.Z;
+	//RootComponent->SetRelativeLocation(ActorLocation);
 }
 
 void AGSEffectField::BeginDestroy()
@@ -164,21 +164,22 @@ void AGSEffectField::OnOtherFieldOverlap(AGSEffectField* OtherField)
 {
 	BP_OnOtherFieldOverlap(OtherField);
 }
-
-class UGAAttributesBase* AGSEffectField::GetAttributes()
-{
-	return Attributes->DefaultAttributes;
-}
-
-class UGAAttributeComponent* AGSEffectField::GetAttributeComponent()
-{
-	return Attributes;
-}
-
-void AGSEffectField::Died()
-{
-	DestroyField();
-}
+/** IIIGAAttributes overrides */
+//class UGAAttributesBase* AGSEffectField::GetAttributes()
+//{
+//	return Attributes->DefaultAttributes;
+//}
+//
+//class UGAAttributeComponent* AGSEffectField::GetAttributeComponent()
+//{
+//	return Attributes;
+//}
+//
+//void AGSEffectField::Died()
+//{
+//	DestroyField();
+//}
+/* IIIGAAttributes overrides **/
 
 void AGSEffectField::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {

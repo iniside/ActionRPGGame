@@ -26,7 +26,7 @@
 	HasTag("E.B.C", Explicit, IncludeParentTags) returns false.
 */
 /*
-	That file is veryyyy WIP. I'm refactoring entire code!
+	I seriosuly need to clean this shit up.
 */
 /**/
 UENUM()
@@ -56,16 +56,7 @@ enum class EGAAttributeValue : uint8
 	Final,
 	Bonus
 };
-UENUM()
-enum class EGAMagnitudeOperation : uint8
-{
-	Add,
-	Subtract,
-	Multiply,
-	Divide,
 
-	Invalid
-};
 UENUM()
 enum class EGAEffectType : uint8
 {
@@ -108,9 +99,19 @@ enum class EGAMagnitudeCalculation : uint8
 	AttributeBased, //calculate based on attribute Attribute * RestOfEquationToBeDecided
 	CurveBased, //Takes value of attribute, and then gets value from curve based on this attribute.
 	CustomCalculation,//uses custom object to calculate magnitude.
-
 	Invalid
 };
+/*
+	hmmm ? Idk,  but I need some way, to determine, if this modifier from stack
+	should affect, incoming effect or not.
+*/
+UENUM()
+enum class EGAModifierDirection : uint8
+{
+	Incoming,
+	Outgoing
+};
+
 /*
 Rules for where we should aggregate effects.
 Concept might look bit muddy at first look, but it is actually very simple.
@@ -366,6 +367,8 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Spec")
 		TWeakObjectPtr<class UGAAttributeComponent> InstigatorComp;
 
+	void Reset();
+
 	FGAEffectContext()
 	{}
 
@@ -380,6 +383,8 @@ public:
 						TargetComp(TargetCompIn),
 						InstigatorComp(InstigatorCompIn)
 	{}
+
+	~FGAEffectContext();
 };
 
 /*
@@ -396,21 +401,97 @@ public:
 	//How we intend to modify attribute
 	UPROPERTY(BlueprintReadOnly)
 		EGAAttributeMod Mod;
+	UPROPERTY(BlueprintReadOnly)
+		EGAModifierDirection ModDirection;
 	//associated tag.
 	UPROPERTY(BlueprintReadOnly)
 		FGameplayTag AttributeTag;
 	//final value we will try to apply to attribute.
 	UPROPERTY(BlueprintReadOnly)
 		float Value;
+
 	FGAEvalData()
 	{
 	};
 	FGAEvalData(const FGAAttribute& AttributeIn, EGAAttributeMod ModIn,
 		const FGameplayTag& AttributeTagIn, float ValueIn)
 		: Attribute(AttributeIn),
+		Mod(ModIn),
+		ModDirection(EGAModifierDirection::Outgoing),
+		AttributeTag(AttributeTagIn),
+		Value(ValueIn)
+	{
+	};
+	FGAEvalData(const FGAAttribute& AttributeIn, EGAAttributeMod ModIn,
+		EGAModifierDirection ModDirectionIn, const FGameplayTag& AttributeTagIn, float ValueIn)
+		: Attribute(AttributeIn),
 			Mod(ModIn),
+			ModDirection(ModDirectionIn),
 			AttributeTag(AttributeTagIn),
 			Value(ValueIn)
+	{
+	};
+};
+
+/*
+	Evaluated, attribute data, containing tags, atribute name, mod type etc.
+	We use it, to apply attribute change, and to verify if this data can be modified on the
+	way by other effects.
+*/
+USTRUCT(BlueprintType)
+struct GAMEATTRIBUTES_API FGAAttributeData
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	//attribute we changed
+	UPROPERTY(BlueprintReadOnly)
+		FGAAttribute Attribute;
+	//How we intend to modify attribute
+	UPROPERTY(BlueprintReadOnly)
+		EGAAttributeMod Mod;
+	UPROPERTY(BlueprintReadOnly)
+		EGAModifierDirection ModDirection;
+	/*
+		Tag for this Attribute.
+	*/
+	UPROPERTY(BlueprintReadOnly)
+		FGameplayTagContainer AttributeTags;
+	/*
+		These tags, are must be present on target.
+		Ignored if empty.
+	*/
+	UPROPERTY(BlueprintReadOnly)
+		FGameplayTagContainer TargetTagsRequiared;
+	/*
+		These tags, are must be present on target.
+		Ignored if empty.
+	*/
+	UPROPERTY(BlueprintReadOnly)
+		FGameplayTagContainer InstigatorTagsRequiared;
+
+	//final value we will try to apply to attribute.
+	UPROPERTY(BlueprintReadOnly)
+		float Value;
+
+	FGAAttributeData()
+	{
+	};
+	FGAAttributeData(const FGAAttribute& AttributeIn, EGAAttributeMod ModIn,
+		const FGameplayTagContainer& AttributeTagsIn, float ValueIn)
+		: Attribute(AttributeIn),
+		Mod(ModIn),
+		ModDirection(EGAModifierDirection::Outgoing),
+		AttributeTags(AttributeTagsIn),
+		Value(ValueIn)
+	{
+	};
+	FGAAttributeData(const FGAAttribute& AttributeIn, EGAAttributeMod ModIn,
+		EGAModifierDirection ModDirectionIn, const FGameplayTagContainer& AttributeTagsIn, float ValueIn)
+		: Attribute(AttributeIn),
+		Mod(ModIn),
+		ModDirection(ModDirectionIn),
+		AttributeTags(AttributeTagsIn),
+		Value(ValueIn)
 	{
 	};
 };
@@ -633,6 +714,8 @@ public:
 	*/
 	UPROPERTY(EditAnywhere)
 		EGAAttributeMod Mod;
+
+	EGAModifierDirection ModDirection;
 	/*
 		Tag for this attribute. Something like Damage.Fire, Damage.Condition.Bleed, Boon.SpeedBonus,
 		Damage.Condition.Burning.
@@ -640,9 +723,14 @@ public:
 		These tags are used to check if this modifier can be modified by other effects.
 		
 		I still need to figure out exactly to handle "targeted" bonuses like +20% damage against Undead.
+		
+		Deprecated use AttributeTags
 	*/
 	UPROPERTY(EditAnywhere)
 		FGameplayTag AttributeTag;
+
+	UPROPERTY(EditAnywhere)
+		FGameplayTagContainer AttributeTags;
 
 	UPROPERTY(EditAnywhere)
 		FGADirectModifier DirectModifier;
@@ -670,9 +758,105 @@ public:
 		Currently evaluated magnitude. Figured I should store it here, so it can be further modified
 		by other effects, or something.
 	*/
-	FGAEvalData EvalData;
+	FGAAttributeData EvalData;
 
-	FGAEvalData GetModifier(const FGAEffectContext& ContextIn);
+	FGAAttributeData GetModifier(const FGAEffectContext& ContextIn);
+	FGAAttributeModifier()
+		: ModDirection(EGAModifierDirection::Outgoing)
+	{}
+};
+
+
+/*
+	This struct contains information needed for effect, to modify attribute
+	on other effects,
+*/
+USTRUCT(BlueprintType)
+struct FGAEffectModifier
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	/*
+		How this modifier should stack.
+	*/
+	UPROPERTY(EditAnywhere)
+		EGAEffectStacking Stacking;
+	/*
+		Where is should stack (currently have no effect).
+	*/
+	UPROPERTY(EditAnywhere)
+		EGAEffectAggregation Aggregation;
+	/*
+		What kind of modifier, we are going to apply.
+	*/
+	UPROPERTY(EditAnywhere)
+		EGAAttributeMod Mod;
+	/*
+		Should this modifier, modify incoming, or outgoing effects (if applicable).
+		I should probabaly move effect modification into separate struct. We don't really need it here.
+		and It can encapsluate more than simple mods. but for testing..
+	*/
+	UPROPERTY(EditAnywhere)
+		EGAModifierDirection ModDirection;
+	/*
+		Kind of calculation, we will use to determine this modifier.
+	*/
+	UPROPERTY(EditAnywhere)
+		EGAMagnitudeCalculation CalculationType;
+
+	UPROPERTY(EditAnywhere)
+		FGADirectModifier DirectModifier;
+
+	/*
+		I require all of these tags, on effect to be applied to it.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTagContainer RequiredTags;
+	/*
+		All of these tags must be present actor target, which will be affected, by
+		this modified effect (these tags, are not going to be checked directly
+		against effect itself, only against effect target).
+	*/
+	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTagContainer TargetRequiredTags;
+	/*
+		All of these tags must be present on instigator target, which will be affected, by
+		this modified effect (these tags, are not going to be checked directly
+		against effect itself, only against effect target).
+	*/
+	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTagContainer InstigatorRequiredTags;
+
+	float GetFinalValue();
+};
+
+/*
+	Group modifiers, for this attribute and this Tag in single struct.
+*/
+USTRUCT(BlueprintType)
+struct FGEffectModifierGroup
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	/*
+		Attribute other effect modify, which we will modify on this effect.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGAAttribute Attribute;
+	/*
+		Only one tag, per one modifier, so we have EXACT match.
+		If you want more generic modifier, you just need to use Tag higher in hierarchy.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGameplayTag AttributeTag;
+	UPROPERTY(EditAnywhere)
+		TArray<FGAEffectModifier> Modifiers;
+
+};
+USTRUCT()
+struct FGACalculatedEffectModifier
+{
+	GENERATED_USTRUCT_BODY()
 };
 
 /*
@@ -767,6 +951,29 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
 		TArray<FGAAttributeModifier> AttributeModifiers;
 
+	/*
+		Modifiers which will be applied on effect period.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
+		TArray<FGAAttributeModifier> PeriodModifiers;
+	/*
+		Modifiers which will be applied when effect is prematurly removed
+	*/
+	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
+		TArray<FGAAttributeModifier> RemovedModifiers;
+	/*
+		Modifiers which will be applied when effect naturally expired.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
+		TArray<FGAAttributeModifier> ExpiredModifiers;
+
+	/*
+		If I have duration, I will modify other effects, attribute modifiers,
+		if those effects meet these requirements.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
+		TArray<FGEffectModifierGroup> EffectModifiers;
+
 	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
 		FGAEffectDuration EffectDuration;
 
@@ -796,20 +1003,27 @@ public:
 		FGameplayTagContainer OtherEffectRequire;
 
 
+	/*
+		I will do something when I expire, If target have these tags.
+		
+		Ok. It's kind of dumb, I should do it differently, we need more data
+		about who is target (target doesn't need to be actor, to which
+		effect is applied, but for example, actor, who hit actor with this effect.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTagContainer ExpiredRequireTags;
 
 	UPROPERTY()
 		FGAEffectContext Context;
 
-	TArray<FGAEvalData> GetModifiers();
+	TArray<FGAAttributeData> GetModifiers();
 
-	TArray<FGAEvalData> EvalModifiers;
+	TArray<FGAAttributeData> EvalModifiers;
+
+	TArray<FGAAttributeData> GetPeriodModifiers();
+
+	TArray<FGAAttributeData> PeriodMods;
 };
-
-
-/*
-	Struct representing currently active effect.
-*/
-
 
 USTRUCT()
 struct FGACountedTagContainer
@@ -845,9 +1059,9 @@ struct FGAEffectInstant
 public:
 	FGAEffectInstant()
 	{}
-	FGAEffectInstant(const FGAEffectSpec& SpecIn, const FGAEffectContext ContextIn);
+	FGAEffectInstant(const FGAEffectSpec& SpecIn, const FGAEffectContext& ContextIn);
 
-	TArray<FGAEvalData> Modifiers;
+	TArray<FGAAttributeData> Modifiers;
 	//FGAEffectContext Context;
 	/*
 		In't not going to look like that, but the general idea, that this container
@@ -857,9 +1071,170 @@ public:
 };
 
 USTRUCT()
-struct FGAActiveEffect
+struct FGAActiveBase
 {
 	GENERATED_USTRUCT_BODY()
+	FGAEffectHandle MyHandle;
+	UPROPERTY()
+	FGAEffectContext Context;
+
+	TArray<FGameplayTag> AttributeEffectModifiers;
+
+	TArray<FGEffectModifierGroup> EffectModifiers;
+public:
+	virtual void ActivateEffect() {};
+	virtual void FinishEffect() {};
+};
+
+USTRUCT()
+struct FGAActiveDuration : public FGAActiveBase
+{
+	GENERATED_USTRUCT_BODY()
+
+	void OnApplied() {};
+	void OnRemoved() {};
+	void OnEnded() {};
+protected:
+	FTimerHandle DurationTimerHandle;
+};
+
+USTRUCT()
+struct FGAActivePeriodic : public FGAActiveDuration
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	void OnPeriod();
+	void OnApplied() {};
+	void OnRemoved() {};
+	void OnEnded();
+protected:
+	FTimerHandle PeriodTimerHandle;
+
+	TArray<FGAAttributeData> PeriodModifiers;
+
+public:
+	virtual void ActivateEffect() override;
+	virtual void FinishEffect() override;
+	FGAActivePeriodic()
+	{}
+
+	FGAActivePeriodic(const FGAEffectContext& ContextIn)
+	//:	Context(ContextIn)
+	{
+		Context = ContextIn;
+	}
+	FGAActivePeriodic(const FGAEffectContext& ContextIn, FGAEffectSpec& SpecIn, 
+		const FGAEffectHandle& HandleIn);
+
+	~FGAActivePeriodic();
+};
+
+USTRUCT()
+struct FGAActiveInfinite : public FGAActiveBase
+{
+	GENERATED_USTRUCT_BODY()
+public:
+};
+
+
+USTRUCT()
+struct FGACalculatedModifier
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	float OutgoingAddtiveMod;
+	float OutgoingSubtractMod;
+	float OutgoingMultiplyMod;
+	float OutgoingDivideMod;
+
+	float IncomingAddtiveMod;
+	float IncomingSubtractMod;
+	float IncomingMultiplyMod;
+	float IncomingDivideMod;
+};
+
+USTRUCT()
+struct FGATaggedModifiers
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	FGameplayTagContainer RequiredTargetTags;
+	FGameplayTagContainer RequiredInstigatorTags;
+
+	TMap<FGAEffectHandle, TArray<FGAEvalData>> EffectMods;
+	void CalculateNewModifierStack();
+	void AddModifierEffect(const FGAEffectHandle& HandleIn, const FGAEvalData& Eval);
+	void RemoveModifierEffect(const FGAEffectHandle& HandleIn);
+	int32 GetModifierCount();
+	float OutgoingAddtiveMod;
+	float OutgoingSubtractMod;
+	float OutgoingMultiplyMod;
+	float OutgoingDivideMod;
+
+	float IncomingAddtiveMod;
+	float IncomingSubtractMod;
+	float IncomingMultiplyMod;
+	float IncomingDivideMod;
+};
+
+/*
+	Group modifiers for single attribute tag by:
+	1. Just attribute. No special requriments.
+	2. By tags. 
+*/
+USTRUCT()
+struct FGAActiveEffectsModifiers
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	FGAActiveEffectsModifiers()
+		: OutgoingAddtiveMod(0),
+		OutgoingSubtractMod(0),
+		OutgoingMultiplyMod(0),
+		OutgoingDivideMod(1)
+	{}
+	//Modifiers, which have tag requirments
+	TArray<FGATaggedModifiers> TaggedModifiers;
+protected:
+	/*
+		Group array of modifiers, by handle to effect,
+		so we know, which modifier were applied by which effect
+		so we can easily remove them along effect.
+	*/
+	TMap<FGAEffectHandle, TArray<FGAEvalData>> EffectMods;
+	//requiredTag, Mods
+	TMap<FGameplayTag, FGATaggedModifiers> mods;
+
+	//TMap<FGAEffectHandle, TArray<FGATaggedModifiers>> TaggedEffectMods;
+	/*
+		Base mods applicable to everything.
+	*/
+	/**/
+	float OutgoingAddtiveMod;
+	float OutgoingSubtractMod;
+	float OutgoingMultiplyMod;
+	float OutgoingDivideMod;
+
+	float IncomingAddtiveMod;
+	float IncomingSubtractMod;
+	float IncomingMultiplyMod;
+	float IncomingDivideMod;
+
+public:
+	
+	//FGameplayTagContainer RequiredTargetTags;
+	//FGameplayTagContainer RequiredInstigatorTags;
+	void AddTaggedModifier(const FGameplayTagContainer& RequiredTargetTags,
+		const FGameplayTagContainer& RequiredInstigatorTags,
+		const FGAEffectHandle& HandleIn, const FGAEvalData& Eval);
+	void ApplyModifiers(FGAAttributeData& EvalData, const FGAEffectContext& Ctx);
+	void AddModifierEffect(const FGAEffectHandle& HandleIn, const FGAEvalData& Eval);
+	void RemoveModifierEffect(const FGAEffectHandle& HandleIn);
+
+	int32 GetModifierCount();
+	//recalculates entire stack, every time effect is added/or removed.
+	void CalculateNewModifierStack();
+
 };
 
 USTRUCT()
@@ -874,22 +1249,77 @@ struct FGAActiveEffectContainer
 {
 	GENERATED_USTRUCT_BODY()
 public:
-	void ApplyEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Ctx);
+	FGAActiveEffectContainer()
+	{}
+	FGAEffectHandle ApplyEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Ctx);
 
-	void HandleInstantEffect(FGAEffectInstant& SpecIn, const FGAEffectContext& Ctx);
+	void RemoveActiveEffect(const FGAEffectHandle& HandleIn);
+
+	void ApplyEffectModifiers(FGAAttributeData& DataIn, const FGAEffectContext& Ctx);
+
+	/*
+		Execute modifiers from existing effect, spec on incoming effect.
+	*/
+	void ExecuteEffectModifier(FGAAttributeData& ModifierIn, const FGAEffectContext& Ctx);
+
+	FGAEffectHandle HandleInstantEffect(FGAEffectInstant& SpecIn, const FGAEffectContext& Ctx);
+
+	FGAEffectHandle HandlePeriodicEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+
+	FGAEffectHandle HandleDurationEffect(FGAActiveBase& EffectIn, const FGAEffectContext& Ctx);
+
+	FGAEffectHandle HandleInfiniteEffect(const FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+
+	void RemoveInfiniteEffect(const FGAEffectHandle& HandleIn);
+
+	void Clean();
 
 	/*
 		map of active effects, with limited duration.
+		Store as shared pointers, so we can have some basic polymorphism.
+
+		Not, extremly important and might change later!
 	*/
-	TMap<FGAEffectHandle, TSharedPtr<FGAActiveEffect>> ActiveEffects;
+	TMap<FGAEffectHandle, TSharedPtr<FGAActiveBase>> ActiveEffects;
+
 
 	/*
-		Maps effect handles grouped by explicit tag.
-		Damage.Fire, have it's own handles
-		Damage it's own (these can be duplicated)
-		etc.
+		Modifiers, from effects, grouped by Handle.
 	*/
-	TMap<FGameplayTag, TArray<FGAEffectHandle>> TaggedEffects;
+	TMap<FGAEffectHandle, TArray<FGAEffectModifier>> EffectModifiers;
+
+	/*
+		Use it to store modifier tags (tags, from effects which modify other effect),
+	*/
+	FGACountedTagContainer ActiveModifierTags;
+	/*
+		Active modifiers for this tag.
+		Hm. Name is misleading, since, those modifiers, are able, to only 
+		modify, attribute modifiers inside effect.
+
+		If effect have any special logic, it's unmoddable.
+
+		We need mechanism, which will let as mute effects (to some degree).
+		By that I mean replace tags and/or change affected attribute.
+
+		For example we might want to change damage type from Damage.Fire to Damage.Ice
+		(for whatever reason).
+
+		Or we might want to change attribute from Damage, To healing (so all incoming damage
+		will heal us instead). Etc.
+		
+		We are grouping active modifiers, by AttributeTag.
+
+		Like Damage.Fire, Damage.Ice,
+		Downside. if incoming tag is Damage it will not modify Damage.Fire, while it should.
+	*/
+	TMap<FGameplayTag, FGAActiveEffectsModifiers> Modifiers;
+	/*
+		Group modifiers, of single attribute into Array.
+	*/
+	TMap<FGameplayTag, TArray<FGAActiveEffectsModifiers>> AttributeModifiers;
+
+	TMap<FGAEffectHandle, TSharedPtr<FGAActiveInfinite>> InfiniteEffects;
 
 	/*
 		Map grouping effect handles from instigators (???)

@@ -10,6 +10,8 @@ AGASProjectile::AGASProjectile(const FObjectInitializer& ObjectInitializer)
 	bReplicates = true;
 	//bReplicateInstigator = true;
 	bReplicateMovement = true;
+	bSetProjectileHiddenAfterHit = false;
+	LifeAfterHit = 4;
 	CurrentBounces = 0;
 	CollisionSphere = ObjectInitializer.CreateDefaultSubobject<USphereComponent>(this, TEXT("CollisionSphere"));
 	RootComponent = CollisionSphere;
@@ -67,8 +69,9 @@ void AGASProjectile::OnProjectileStop(const FHitResult& ImpactResult)
 	/*
 		Hide actor, and begin count to destroy iy.
 	*/
-	SetActorHiddenInGame(true); 
-	SetLifeSpan(2.0f);
+	CollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetActorHiddenInGame(bSetProjectileHiddenAfterHit);
+	SetLifeSpan(LifeAfterHit);
 }
 
 void AGASProjectile::OnProjectileBounce(const struct FHitResult& ImpactResult, const FVector& ImpactVelocity)
