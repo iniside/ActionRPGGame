@@ -4,6 +4,12 @@
 
 #include "GASAbilitiesComponent.h"
 #include "States/GASAbilityState.h"
+
+#include "States/GASAbilityStateActive.h"
+#include "States/GASAbilityStateCooldown.h"
+#include "States/GASAbilityStatePreparationNoPrep.h"
+#include "States/GASAbilityStateCasting.h"
+
 #include "Tracing/GASTrace.h"
 
 #include "Net/UnrealNetwork.h"
@@ -17,7 +23,11 @@ UGASAbility::UGASAbility(const FObjectInitializer& ObjectInitializer)
 	bIsNameStable = false;
 	bShouldTick = false;
 	bIsOnCooldown = false;
-
+	ActiveState = ObjectInitializer.CreateDefaultSubobject<UGASAbilityStateActive>(this, TEXT("ActiveState"));
+	CooldownState = ObjectInitializer.CreateDefaultSubobject<UGASAbilityStateCooldown>(this, TEXT("CooldownState"));
+	PreparationState = ObjectInitializer.CreateDefaultSubobject<UGASAbilityStatePreparationNoPrep>(this, TEXT("PreparationState"));
+	ActivationState = ObjectInitializer.CreateDefaultSubobject<UGASAbilityStateCasting>(this, TEXT("ActivationState"));
+	
 	bUpdateHitLocationEveryFrame = false;
 }
 void UGASAbility::Initialize()

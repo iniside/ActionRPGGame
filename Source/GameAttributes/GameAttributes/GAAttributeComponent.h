@@ -1,5 +1,7 @@
 #pragma once
 #include "GAGlobalTypes.h"
+#include "GAAttributes.h"
+#include "GAEffects.h"
 #include "GAAttributesBase.h"
 #include "GAAttributeComponent.generated.h"
 
@@ -103,8 +105,8 @@ public:
 		For example there might be physical armor mod, which will apply changes only
 		to attributes tagged as Damage.Physical and only if you are reciving change, not causing it.
 	*/
-	void ModifyAttributesOnSelf(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, const FGAEffectHandle& HandleIn);
-	void ModifyAttributesOnTarget(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, const FGAEffectHandle& HandleIn);
+	void ModifyAttributesOnSelf(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, FGAEffectHandle& HandleIn);
+	void ModifyAttributesOnTarget(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, FGAEffectHandle& HandleIn);
 	
 	//////Accessors to various functions inside DefaultAttributes;
 	inline FGAAttributeBase* GetAttribute(const FGAAttribute& Name)

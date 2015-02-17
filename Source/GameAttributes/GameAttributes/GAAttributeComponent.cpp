@@ -108,7 +108,7 @@ void UGAAttributeComponent::ExecuteModifiers(FGAAttributeData& ModifierIn, const
 	ActiveEffects.ExecuteEffectModifier(ModifierIn, Context);
 }
 
-void UGAAttributeComponent::ModifyAttributesOnSelf(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, const FGAEffectHandle& HandleIn)
+void UGAAttributeComponent::ModifyAttributesOnSelf(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, FGAEffectHandle& HandleIn)
 {
 	//incoming
 	ModifiedAttribute.Empty();
@@ -120,23 +120,25 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(TArray<FGAAttributeData>& Eva
 		float newValue = 0;
 		if (attr)
 		{
-			attr->AddBonus(FGAModifier(eval.Mod, eval.Value), HandleIn);
+			if (HandleIn.IsValid())
+				attr->AddBonus(FGAModifier(eval.Mod, eval.Value), HandleIn);
 		}
 		//and for now forget about other cases.
 		else
 		{
 			newValue = DefaultAttributes->AttributeOperation(eval.Attribute, eval.Value, eval.Mod);
+			FGAEvalData evalData(eval.Attribute, eval.Mod, FGameplayTag(), newValue);
+			DefaultAttributes->UpdateAttributes(evalData, newValue);
+			FGAModifiedAttribute ModdedAttrRep;
+			ModdedAttrRep.Attribute = eval.Attribute;
+			ModdedAttrRep.InstigatorLocation = Context.Instigator->GetActorLocation();
+			ModdedAttrRep.TargetLocation = Context.TargetHitLocation;//AttributeIn.Target->GetActorLocation();
+			ModdedAttrRep.ModifiedByValue = eval.Value;
+			ModdedAttrRep.ReplicationCounter += 1;
+			ModdedAttrRep.Causer = Context.InstigatorComp;
+			ModifiedAttribute.Add(ModdedAttrRep);
 		}
-		FGAEvalData evalData(eval.Attribute, eval.Mod, FGameplayTag(), newValue);
-		DefaultAttributes->UpdateAttributes(evalData, newValue);
-		FGAModifiedAttribute ModdedAttrRep;
-		ModdedAttrRep.Attribute = eval.Attribute;
-		ModdedAttrRep.InstigatorLocation = Context.Instigator->GetActorLocation();
-		ModdedAttrRep.TargetLocation = Context.TargetHitLocation;//AttributeIn.Target->GetActorLocation();
-		ModdedAttrRep.ModifiedByValue = eval.Value;
-		ModdedAttrRep.ReplicationCounter += 1;
-		ModdedAttrRep.Causer = Context.InstigatorComp;
-		ModifiedAttribute.Add(ModdedAttrRep);
+
 	}
 
 	if (GetNetMode() == ENetMode::NM_Standalone)
@@ -146,9 +148,8 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(TArray<FGAAttributeData>& Eva
 			Context.InstigatorComp->OnAttributeModifed.Broadcast(attr);
 		}
 	}
-	
 }
-void UGAAttributeComponent::ModifyAttributesOnTarget(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, const FGAEffectHandle& HandleIn)
+void UGAAttributeComponent::ModifyAttributesOnTarget(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, FGAEffectHandle& HandleIn)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ModifyAttribute);
 	//outgoing 

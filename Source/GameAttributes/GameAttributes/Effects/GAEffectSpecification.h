@@ -1,6 +1,8 @@
 #pragma once
 #include "GameplayTagContainer.h"
 #include "GAGlobalTypes.h"
+#include "GAAttributes.h"
+#include "GAEffects.h"
 #include "GAEffectSpecification.generated.h"
 /*
 	Class which is used as default template for effects. 
