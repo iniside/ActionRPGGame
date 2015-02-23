@@ -19,9 +19,6 @@ public:
 		UObject* Causer, FGAEffectSpec SpecIn);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
-		static void RemoveInfiniteEffect(AActor* Target, const FGAEffectHandle& HandleIn);
-
-	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
 		static void OverrideEffectDuration(TSubclassOf<class UGAEffectSpecification> SpecIn);
 
 	/*

@@ -66,14 +66,14 @@ void UARCharacterAttributes::InitializeAttributes()
 	//	}
 	//}
 
-	for (TFieldIterator<UStructProperty> StrIt(GetClass(), EFieldIteratorFlags::IncludeSuper); StrIt; ++StrIt)
-	{
-		FGAAttributeBase* attr = StrIt->ContainerPtrToValuePtr<FGAAttributeBase>(this);
-		if (attr)
-		{
-			attr->InitializeAttribute();
-		}
-	}
+	//for (TFieldIterator<UStructProperty> StrIt(GetClass(), EFieldIteratorFlags::IncludeSuper); StrIt; ++StrIt)
+	//{
+	//	FGAAttributeBase* attr = StrIt->ContainerPtrToValuePtr<FGAAttributeBase>(this);
+	//	if (attr)
+	//	{
+	//		attr->InitializeAttribute();
+	//	}
+	//}
 }
 
 void UARCharacterAttributes::PostEffectApplied()
@@ -95,7 +95,7 @@ void UARCharacterAttributes::PostEffectRemoved()
 }
 
 
-void UARCharacterAttributes::PostModifyAttribute(const FGAEvalData& AttributeMod)
+float UARCharacterAttributes::PostModifyAttribute(const FGAEvalData& AttributeMod)
 {
 	SCOPE_CYCLE_COUNTER(STAT_PostModifyAttribute);
 
@@ -112,13 +112,18 @@ void UARCharacterAttributes::PostModifyAttribute(const FGAEvalData& AttributeMod
 	if (NativeFunc.IsValid())
 	{
 		ProcessEvent(NativeFunc.Get(), &params);
+		return params.ReturnValue;
 	}
+	return 0;
 }
 
 
-void UARCharacterAttributes::PostAttribute_Damage(const FGAEvalData& AttributeMod)
+float UARCharacterAttributes::PostAttribute_Damage(const FGAEvalData& AttributeMod)
 {
+	Damage = (Damage + DamageBonus.GetAdditiveBonus() - DamageBonus.GetSubtractBonus());
+	Damage = Damage + (Damage * DamageBonus.GetMultiplyBonus()) / DamageBonus.GetDivideBonus();
 	Health.Subtract(Damage);
+	float finalDamage = Damage;
 	Damage = 0;
 
 	if (Health.GetCurrentValue() <= 0)
@@ -134,29 +139,58 @@ void UARCharacterAttributes::PostAttribute_Damage(const FGAEvalData& AttributeMo
 		}
 		//handle death/
 	}
-
+	return finalDamage;
 }
-void UARCharacterAttributes::PostAttribute_Heal(const FGAEvalData& AttributeMod)
+float UARCharacterAttributes::PostAttribute_FireDamage(const FGAEvalData& AttributeMod)
+{
+	float AddtiveBonus = DamageBonus.GetAdditiveBonus() + FireDamageBonus.GetAdditiveBonus();
+	float SubtractBonus = DamageBonus.GetSubtractBonus() + FireDamageBonus.GetSubtractBonus();
+	float MultiplyBonus = DamageBonus.GetMultiplyBonus() + FireDamageBonus.GetMultiplyBonus();
+	float DivideBonus = DamageBonus.GetDivideBonus() + FireDamageBonus.GetDivideBonus();
+	FireDamage = (FireDamage + AddtiveBonus - SubtractBonus);
+	FireDamage = (FireDamage * MultiplyBonus) / DivideBonus;
+	Health.Subtract(FireDamage);
+	float finalDamage = FireDamage;
+	FireDamage = 0;
+
+	if (Health.GetCurrentValue() <= 0)
+	{
+		if (OwningAttributeComp)
+		{
+			//not best solution
+			//but Damage system is so tighly ingrained into
+			//engine, that we can just as well take advantage of build in events
+			//for some stuff.
+			FDamageEvent goAway;
+			OwningAttributeComp->GetOwner()->TakeDamage(FireDamage, goAway, nullptr, nullptr);
+		}
+		//handle death/
+	}
+	return finalDamage;
+}
+float UARCharacterAttributes::PostAttribute_Heal(const FGAEvalData& AttributeMod)
 {
 	Health.Add(Heal);
 	Heal = 0;
+	return Heal;
 }
-void UARCharacterAttributes::PostAttribute_LifeStealDamage(const FGAEvalData& AttributeMod)
+float UARCharacterAttributes::PostAttribute_LifeStealDamage(const FGAEvalData& AttributeMod)
 {
-
+	return 0;
 }
 
-void UARCharacterAttributes::PostAttribute_HealthBakPrecentageReduction(const FGAEvalData& AttributeMod)
+float UARCharacterAttributes::PostAttribute_HealthBakPrecentageReduction(const FGAEvalData& AttributeMod)
 {
-
+	return 0;
 }
 
-void UARCharacterAttributes::PostAttribute_Magic(const FGAEvalData& AttributeMod)
+float UARCharacterAttributes::PostAttribute_Magic(const FGAEvalData& AttributeMod)
 {
 	float finalValue = 0;
 	finalValue = Magic.GetCurrentValue();
 	finalValue = (finalValue - 10) / 2;
 	MagicMod.SetBaseValue(finalValue);
+	return finalValue;
 }
 
 

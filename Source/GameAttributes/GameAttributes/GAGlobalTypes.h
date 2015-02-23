@@ -69,9 +69,8 @@ enum class EGAEffectType : uint8
 UENUM()
 enum class EGAEffectStacking : uint8
 {
-	HighestOverride, //only one effect modiging these attributes, will be present
-	Replace, //will end previous effect, and replace with new one.
-	Restart, //will restart existing effect
+	StrongerOverride, //only one effect modifing these attributes, will be present
+	Override, //will end previous effect, and replace with new one.
 	Duration, //will add duration to existing effect
 	Intensity, //will add magnitude to existing effect.
 	Add, //will simply add new effect
@@ -113,6 +112,24 @@ enum class EGAModifierDirection : uint8
 };
 
 /*
+	CanStackSameType - will check effects, for their types.
+	If matching effect is found, the one with higher modifiers will remain on stack
+	and the other one will be removed.
+
+	SameTypeOverride - will check for existing effect modifier.
+	If found it will simply override it. No checks performed.
+
+	StackAll. No checks performed. Everything is stacked as is.
+*/
+UENUM()
+enum class EGAModifierEffectStacking : uint8
+{
+	CantStackSameType,
+	SameTypeOverride,
+	StackAll,
+};
+
+/*
 Rules for where we should aggregate effects.
 Concept might look bit muddy at first look, but it is actually very simple.
 
@@ -142,21 +159,6 @@ enum class EGAEffectAggregation : uint8
 	AggregateByTarget
 };
 
-
-
-USTRUCT(BlueprintType)
-struct FGAttributeMagnitudeData: public FTableRowBase
-{
-	GENERATED_USTRUCT_BODY()
-
-public:
-	/** Preculculated magnitude associated with this attribite level. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Magnitude)
-		float Magnitude;
-
-	FGAttributeMagnitudeData()
-	{}
-};
 USTRUCT(BlueprintType)
 struct FGAEffectHandle
 {

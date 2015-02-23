@@ -73,7 +73,7 @@ public:
 		It can be called from PostModifyAttribute, so I actually need to figure out if it's safe to do so.
 		So we won't end up in endless loop of recursion.
 	*/
-	void UpdateAttributes(const FGAEvalData& AttributeIn, float newValue);
+	float UpdateAttributes(const FGAEvalData& AttributeIn, float newValue);
 
 	/*
 		We might want todo something on attributes, when effect is applied, to us.
@@ -98,7 +98,7 @@ public:
 	/*
 		Impelement your custom logic how changed attribute should affect other attributes.
 	*/
-	virtual void PostModifyAttribute(const FGAEvalData& AttributeMod);
+	virtual float PostModifyAttribute(const FGAEvalData& AttributeMod);
 
 	/*
 		Calculate attribute mod, when it is outgoing from source.
@@ -121,10 +121,13 @@ public:
 
 		probabaly could also add support for int32 values.
 	*/
+	UStructProperty* GetStructAttribute(const FGAAttribute& Name);
 	/*
 		Gets pointer to compelx attribute.
 	*/
 	FGAAttributeBase* GetAttribute(const FGAAttribute& Name);
+	void SetAttribute(const FGAAttribute& NameIn, FGAAttributeBase* NewVal);
+	
 	/*
 		Gets value from complex attribute (FGAAttributeBase).
 	*/

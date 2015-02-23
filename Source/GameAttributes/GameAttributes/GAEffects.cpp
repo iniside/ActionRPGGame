@@ -75,75 +75,77 @@ TArray<FGAAttributeData> FGAEffectSpec::GetOnRemovedModifiers()
 	}
 	return returnValue;
 }
-
+void FGAActiveBase::OnApplied()
+{
+	TArray<FGAAttributeData> data = OnAppliedModifiers;
+	if (Context.InstigatorComp.IsValid())
+		Context.InstigatorComp->ModifyAttributesOnTarget(data, Context, OwnedTags, MyHandle);
+}
 FGAEffectInstant::FGAEffectInstant(const FGAEffectSpec& SpecIn, const FGAEffectContext& ContextIn)
 {
-	Modifiers = SpecIn.EvalModifiers;
+	OnAppliedModifiers = SpecIn.EvalModifiers;
+}
+void FGAActiveDuration::OnPeriod()
+{
+	TArray<FGAAttributeData> data = PeriodModifiers;
+	if (Context.InstigatorComp.IsValid())
+		Context.InstigatorComp->ModifyAttributesOnTarget(data, Context, OwnedTags, MyHandle);
 }
 
-
+void FGAActiveDuration::OnEnded()
+{
+	Context.TargetComp->EffectExpired(MyHandle);
+}
+void FGAActiveDuration::RestartTimer(float NewDuration)
+{
+	Context.Target->GetWorldTimerManager().ClearTimer(DurationTimerHandle);
+	FTimerDelegate durationDel = FTimerDelegate::CreateRaw(this, &FGAActiveDuration::OnEnded);;
+	Context.Target->GetWorldTimerManager().SetTimer(DurationTimerHandle, durationDel, NewDuration, false);
+}
 void FGAActiveDuration::ActivateEffect()
 {
+	FTimerDelegate periodDel = FTimerDelegate::CreateRaw(this, &FGAActiveDuration::OnPeriod);
+	Context.Target->GetWorldTimerManager().SetTimer(PeriodTimerHandle, periodDel, Period, true);
+
 	FTimerDelegate durationDel = FTimerDelegate::CreateRaw(this, &FGAActiveDuration::OnEnded);;
-	Context.Target->GetWorldTimerManager().SetTimer(DurationTimerHandle, durationDel, 10, false);
+	Context.Target->GetWorldTimerManager().SetTimer(DurationTimerHandle, durationDel, Duration, false);
+
+	OnApplied();
 }
 void FGAActiveDuration::FinishEffect()
 {
 	if (Context.Target.IsValid())
-		Context.Target->GetWorldTimerManager().ClearTimer(DurationTimerHandle);
-}
-FGAActiveDuration::FGAActiveDuration(const FGAEffectContext& ContextIn, FGAEffectSpec& SpecIn,
-	const FGAEffectHandle& HandleIn)
-{
-	MyHandle = HandleIn;
-	Context = ContextIn;
-	OnAppliedModifiers = SpecIn.GetModifiers();
-	OnEndedModifiers = SpecIn.GetOnEndedModifiers();
-	OnRemovedModifiers = SpecIn.GetOnRemovedModifiers();
-}
-FGAActiveDuration::~FGAActiveDuration()
-{
-	FinishEffect();
-	Context.Reset();
-}
-
-void FGAActivePeriodic::OnPeriod()
-{
-	if (Context.TargetComp.IsValid() && Context.InstigatorComp.IsValid())
-		Context.InstigatorComp->ModifyAttributesOnTarget(PeriodModifiers, Context, MyHandle);
-}
-void FGAActivePeriodic::OnApplied()
-{
-	if (Context.TargetComp.IsValid() && Context.InstigatorComp.IsValid())
-		Context.InstigatorComp->ModifyAttributesOnTarget(OnAppliedModifiers, Context, MyHandle);
-}
-void FGAActivePeriodic::OnEnded()
-{
-	Context.TargetComp->EffectExpired(MyHandle);
-}
-void FGAActivePeriodic::ActivateEffect()
-{
-	FTimerDelegate periodDel = FTimerDelegate::CreateRaw(this, &FGAActivePeriodic::OnPeriod);
-	Context.Target->GetWorldTimerManager().SetTimer(PeriodTimerHandle, periodDel, 1, true, 0);
-
-	FTimerDelegate durationDel = FTimerDelegate::CreateRaw(this, &FGAActivePeriodic::OnEnded);;
-	Context.Target->GetWorldTimerManager().SetTimer(DurationTimerHandle, durationDel, 10, false);
-}
-void FGAActivePeriodic::FinishEffect()
-{
-	if (Context.Target.IsValid())
 	{
+		OnAppliedModifiers.Empty();
+		OnEndedModifiers.Empty();
+		OnRemovedModifiers.Empty();
+		PeriodModifiers.Empty();
 		Context.Target->GetWorldTimerManager().ClearTimer(PeriodTimerHandle);
 		Context.Target->GetWorldTimerManager().ClearTimer(DurationTimerHandle);
 	}
 }
-
-FGAActivePeriodic::FGAActivePeriodic(const FGAEffectContext& ContextIn, FGAEffectSpec& SpecIn,
+bool FGAActiveDuration::ComparePeriodModifiers(const FGAAttributeData& OtherIn)
+{
+	TArray<FGAAttributeData> allMods;
+	allMods.Append(OnEndedModifiers);
+	allMods.Append(OnRemovedModifiers);
+	allMods.Append(PeriodModifiers);
+	for (const FGAAttributeData& data : allMods)
+	{
+		if (OtherIn > data)
+			return true;
+	}
+	return false;
+}
+FGAActiveDuration::FGAActiveDuration(const FGAEffectContext& ContextIn, FGAEffectSpec& SpecIn,
 	const FGAEffectHandle& HandleIn)
 	//	: Context(ContextIn)
 {
+	Duration = SpecIn.EffectDuration.Duration;
+	Period = SpecIn.EffectDuration.Period;
 	MyHandle = HandleIn;
 	Context = ContextIn;
+	OwnedTags = SpecIn.EffectTags;
 	PeriodModifiers = SpecIn.GetPeriodModifiers(); //we probabaly want to recalculate it on every tick
 	//if effect.
 	OnAppliedModifiers = SpecIn.GetModifiers();
@@ -151,7 +153,7 @@ FGAActivePeriodic::FGAActivePeriodic(const FGAEffectContext& ContextIn, FGAEffec
 	OnRemovedModifiers = SpecIn.GetOnRemovedModifiers();
 }
 
-FGAActivePeriodic::~FGAActivePeriodic()
+FGAActiveDuration::~FGAActiveDuration()
 {
 	FinishEffect();
 	Context.Reset();
@@ -177,112 +179,6 @@ float FGAEffectModifier::GetFinalValue()
 	return 0;
 }
 
-void FGATaggedModifiers::CalculateNewModifierStack()
-{
-	OutgoingAddtiveMod = 0;
-	OutgoingSubtractMod = 0;
-	OutgoingMultiplyMod = 0;
-	OutgoingDivideMod = 1;
-
-	IncomingAddtiveMod = 0;
-	IncomingSubtractMod = 0;
-	IncomingMultiplyMod = 0;
-	IncomingDivideMod = 1;
-
-	auto ModIt = EffectMods.CreateIterator();
-	//we will just accumulate mods on stack.
-	//we don't do anything special with them.
-	for (ModIt; ModIt; ++ModIt)
-	{
-		for (FGAEvalData& eval : ModIt->Value)
-		{
-			switch (eval.ModDirection)
-			{
-			case EGAModifierDirection::Incoming:
-			{
-				switch (eval.Mod)
-				{
-				case EGAAttributeMod::Add:
-					IncomingAddtiveMod += eval.Value;
-					break;
-				case EGAAttributeMod::Subtract:
-					IncomingSubtractMod += eval.Value;
-					break;
-				case EGAAttributeMod::Multiply:
-					IncomingMultiplyMod += eval.Value;
-					break;
-				case EGAAttributeMod::Divide:
-					IncomingDivideMod += eval.Value;
-					break;
-				case EGAAttributeMod::Set:
-					break;
-				case EGAAttributeMod::Invalid:
-					break;
-				}
-			}
-			case EGAModifierDirection::Outgoing:
-			{
-				switch (eval.Mod)
-				{
-				case EGAAttributeMod::Add:
-					OutgoingAddtiveMod += eval.Value;
-					break;
-				case EGAAttributeMod::Subtract:
-					OutgoingSubtractMod += eval.Value;
-					break;
-				case EGAAttributeMod::Multiply:
-					OutgoingMultiplyMod += eval.Value;
-					break;
-				case EGAAttributeMod::Divide:
-					OutgoingDivideMod += eval.Value;
-					break;
-				case EGAAttributeMod::Set:
-					break;
-				case EGAAttributeMod::Invalid:
-					break;
-				}
-			}
-			default:
-				break;
-			}
-
-		}
-	}
-}
-void FGATaggedModifiers::AddModifierEffect(const FGAEffectHandle& HandleIn, const FGAEvalData& Eval)
-{
-	TArray<FGAEvalData>& EvalData = EffectMods.FindOrAdd(HandleIn);
-	EvalData.Add(Eval);
-	CalculateNewModifierStack();
-}
-void FGAActiveEffectsModifiers::AddTaggedModifier(const FGameplayTagContainer& RequiredTargetTags,
-	const FGameplayTagContainer& RequiredInstigatorTags,
-	const FGAEffectHandle& HandleIn, const FGAEvalData& Eval)
-{
-	for (FGATaggedModifiers& tagMod : TaggedModifiers)
-	{
-		if (tagMod.RequiredTargetTags.MatchesAll(RequiredTargetTags, true)
-			&& tagMod.RequiredInstigatorTags.MatchesAll(RequiredInstigatorTags, true))
-		{
-			tagMod.AddModifierEffect(HandleIn, Eval);
-			return;
-		}
-	}
-	FGATaggedModifiers tagMod;
-	tagMod.RequiredTargetTags = RequiredTargetTags;
-	tagMod.RequiredInstigatorTags = RequiredTargetTags;
-	tagMod.AddModifierEffect(HandleIn, Eval);
-	TaggedModifiers.Add(tagMod);
-}
-void FGATaggedModifiers::RemoveModifierEffect(const FGAEffectHandle& HandleIn)
-{
-	EffectMods.Remove(HandleIn);
-	CalculateNewModifierStack();
-}
-int32 FGATaggedModifiers::GetModifierCount()
-{
-	return EffectMods.Num();
-}
 void FGAActiveEffectsModifiers::ApplyModifiers(FGAAttributeData& EvalData, const FGAEffectContext& Ctx)
 {
 	switch (EvalData.ModDirection)
@@ -301,32 +197,6 @@ void FGAActiveEffectsModifiers::ApplyModifiers(FGAAttributeData& EvalData, const
 	}
 	default:
 		break;
-	}
-
-	//check tagged modifiers, if we can apply them.
-	for (FGATaggedModifiers& tag : TaggedModifiers)
-	{
-		if (Ctx.InstigatorComp->AppliedTags.HasAllTags(tag.RequiredInstigatorTags, true)
-			&& Ctx.TargetComp->AppliedTags.HasAllTags(tag.RequiredTargetTags, true))
-		{
-			switch (EvalData.ModDirection)
-			{
-			case EGAModifierDirection::Incoming:
-			{
-				EvalData.Value = EvalData.Value + (((EvalData.Value * tag.IncomingMultiplyMod)
-					+ tag.IncomingAddtiveMod - tag.IncomingSubtractMod) / tag.IncomingDivideMod);
-				break;
-			}
-			case EGAModifierDirection::Outgoing:
-			{
-				EvalData.Value = EvalData.Value + (((EvalData.Value * tag.OutgoingMultiplyMod)
-					+ tag.OutgoingAddtiveMod - tag.OutgoingSubtractMod) / tag.OutgoingDivideMod);
-				break;
-			}
-			default:
-				break;
-			}
-		}
 	}
 	//EvalData.Value = ((EvalData.Value * MultiplyMod) + AddtiveMod - SubtractMod) / DivideMod;
 }
@@ -422,6 +292,228 @@ void FGAActiveEffectsModifiers::CalculateNewModifierStack()
 		}
 	}
 }
+void FGAEffectModifierHandles::AddMod(const FGAEffectModifier& ModIn)
+{
+	Modifiers.Add(ModIn);
+}
+
+void FGAEffectModifiersContainer::AddMods(const FGAEffectHandle& HandleIn, 
+	const TArray<FGAEffectModifier>& ModsIn)
+{
+	TArray<FGAEffectModifier>& found = AllModifiers.FindOrAdd(HandleIn);
+	found.Append(ModsIn);
+	//if (ModsIn.Num() > 0)
+	//{
+	//	for (const FGEffectModifierGroup& group : ModsIn)
+	//	{
+	//		//TArray<FGAEffectModifier>& found = AllModifiers.FindOrAdd(HandleIn);
+	//		//found.Append(group.Modifiers);
+	//		FGAEffectModifiersCont& attributeHandles = Modifiers.FindOrAdd(group.AttributeTag);
+	//		FGAEffectModifierHandles mods(HandleIn, group.Modifiers);
+	//		attributeHandles.Modifiers.Add(mods);
+	//	}
+	//}
+}
+void FGAEffectModifiersContainer::RemoveMods(const FGAEffectHandle& HandleIn)
+{
+	AllModifiers.Remove(HandleIn);
+	//for (auto ModIt = Modifiers.CreateIterator(); ModIt; ++ModIt)
+	//{
+	//	for (auto HanIt = ModIt->Value.Modifiers.CreateIterator(); HanIt; ++HanIt)
+	//	{
+	//		if (HanIt->Handle == HandleIn)
+	//		{
+	//			ModIt->Value.Modifiers.RemoveAtSwap(HanIt.GetIndex());
+	//		}
+	//	}
+	//}
+}
+void FGAEffectModifiersContainer::RemoveMod(const FGAEffectHandle& HandleIn, FGameplayTagContainer& ModTags)
+{
+	TArray<FGAEffectModifier>* found = AllModifiers.Find(HandleIn);
+	if (found)
+	{
+		for (auto ModIt = found->CreateIterator(); ModIt; ++ModIt)
+		{
+			if (ModIt->RequiredTags.MatchesAll(ModTags, false))
+			{
+				found->RemoveAtSwap(ModIt.GetIndex());
+			}
+				
+		}
+	}
+}
+void FGAEffectModifiersContainer::StackModifiers(FGAEffectSpec& SpecIn)
+{
+	//for (FGAEffectModifier& mod : SpecIn.EffectModifiers)
+	//{
+	//	FGAActiveEffectModifier& activeMod = Modifiers.FindOrAdd(mod.AttributeTag);
+
+	//	//this really should be global rule
+	//	//not per effect ?
+	//	switch (mod.ModStacking)
+	//	{
+	//		case EGAModifierEffectStacking::CantStackSameType:
+	//		{
+	//			SpecIn.EffectTags.MatchesAny(activeMod.AffectingEffectsTags, false);
+	//			break;
+	//		}
+	//		case EGAModifierEffectStacking::SameTypeOverride:
+	//		{
+	//			SpecIn.EffectTags.MatchesAny(activeMod.AffectingEffectsTags, false);
+	//			break;
+	//		}
+	//		case EGAModifierEffectStacking::StackAll:
+	//		{
+	//			break;
+	//		}
+	//	}
+	//	
+	//	//find this effect, and compare it to new one.
+
+	//}
+}
+void FGAEffectModifiersContainer::ApplyModifiersToEffect(FGAAttributeData& EffectIn, const FGameplayTagContainer& EffectTags
+	, const FGAEffectContext& Ctx)
+{
+	FGameplayTagContainer tranAttr = EffectIn.AttributeTags.GetGameplayTagParents();
+	TArray<FGAEffectModifier> QualifiedMods;
+	FGACountedTagContainer& instigatorTags = Ctx.InstigatorComp->AppliedTags;
+	FGACountedTagContainer& targetTags = Ctx.TargetComp->AppliedTags;
+	//for (const FGameplayTag& attr : tranAttr)
+	//{
+	//	/*
+	//		If highest override
+	//		and Damage.Fire is higher than Damage, we need to only take damage.
+	//		So we need to discard rest.
+	//	*/
+	//	FGAEffectModifiersCont& attributeHandles = Modifiers.FindOrAdd(attr);
+	//	auto HanIt = attributeHandles.Modifiers.CreateConstIterator();
+	//	for (HanIt; HanIt; ++HanIt)
+	//	{
+	//		auto AtrIt = HanIt->Modifiers.CreateConstIterator();
+	//		for (AtrIt; AtrIt; ++AtrIt)
+	//		{
+	//			if (EffectTags.MatchesAll(AtrIt->RequiredTags, true)
+	//				&& instigatorTags.HasAllTags(AtrIt->InstigatorRequiredTags, true)
+	//				&& targetTags.HasAllTags(AtrIt->TargetRequiredTags, true))
+	//			{
+	//				QualifiedMods.Add(*AtrIt);
+	//			}
+	//		}
+	//	}
+	//}
+
+	//auto ModIt = AllModifiers.CreateIterator();
+	//for (ModIt; ModIt; ++ModIt)
+	//{
+	//	/*
+	//		Say incoming effect have Hex, Damage.Fire tags.
+	//		We have mod, which Require Damage.Fire,
+	//		Hit! We have a match.
+
+	//		Say we have mod which Require. Conjuration, Damage.Fire
+	//		Miss! All tags, must much and we miss on Conjuration.
+	//	*/
+	//	/*
+	//		This way we gather all qualifable mods, including spec mods like +20% damage vs undead
+	//		while holding one Handed sword.
+
+	//		Of course. We might want, to gather those mods in separate pass, and add them on top.. Or something.
+	//	*/
+	//	/*
+	//		Do we need stacking rules checking here, or we can assume 
+	//		that it was checked on effect application ?
+	//		We need some checking here to determine what takes precedence Damage or Damage.Fire (for example)
+	//	*/
+	auto MoIt = AllModifiers.CreateIterator();
+	for (MoIt; MoIt; ++MoIt)
+	{
+		for (FGAEffectModifier& mod : MoIt->Value)
+		{
+			if (mod.Attribute == EffectIn.Attribute) //move to map, with more specialize attributes ?
+			{
+				if (EffectTags.MatchesAll(mod.RequiredTags, true)
+					&& instigatorTags.HasAllTags(mod.InstigatorRequiredTags, true)
+					&& targetTags.HasAllTags(mod.TargetRequiredTags, true))
+				{
+					QualifiedMods.Add(mod);
+				}
+			}
+		}
+	}
+	
+	float OutgoingAddtiveMod = 0;
+	float OutgoingSubtractMod = 0;
+	float OutgoingMultiplyMod = 0;
+	float OutgoingDivideMod = 1;
+
+	float IncomingAddtiveMod = 0;
+	float IncomingSubtractMod = 0;
+	float IncomingMultiplyMod = 0;
+	float IncomingDivideMod = 1;
+	//calculate magnitude from QualifiedMods
+	for (FGAEffectModifier& mod : QualifiedMods)
+	{
+		switch (mod.ModDirection)
+		{
+			case EGAModifierDirection::Outgoing:
+			{
+				switch (mod.Mod)
+				{
+				case EGAAttributeMod::Add:
+					OutgoingAddtiveMod += mod.DirectModifier.Value;
+					break;
+				case EGAAttributeMod::Subtract:
+					OutgoingSubtractMod += mod.DirectModifier.Value;
+					break;
+				case EGAAttributeMod::Multiply:
+					OutgoingMultiplyMod += mod.DirectModifier.Value;
+					break;
+				case EGAAttributeMod::Divide:
+					OutgoingDivideMod += mod.DirectModifier.Value;
+					break;
+				}
+			}
+			case EGAModifierDirection::Incoming:
+			{
+				switch (mod.Mod)
+				{
+				case EGAAttributeMod::Add:
+					IncomingAddtiveMod += mod.DirectModifier.Value;
+					break;
+				case EGAAttributeMod::Subtract:
+					IncomingSubtractMod += mod.DirectModifier.Value;
+					break;
+				case EGAAttributeMod::Multiply:
+					IncomingMultiplyMod += mod.DirectModifier.Value;
+					break;
+				case EGAAttributeMod::Divide:
+					IncomingDivideMod += mod.DirectModifier.Value;
+					break;
+				}
+			}
+		}
+	}
+
+	switch (EffectIn.ModDirection)
+	{
+	case EGAModifierDirection::Incoming:
+	{
+		EffectIn.Value = (EffectIn.Value + IncomingAddtiveMod - IncomingSubtractMod);
+		EffectIn.Value = (EffectIn.Value + (EffectIn.Value * IncomingMultiplyMod)) / IncomingDivideMod;
+		break;
+	}
+	case EGAModifierDirection::Outgoing:
+	{
+		EffectIn.Value = (EffectIn.Value + OutgoingAddtiveMod - OutgoingSubtractMod);
+		EffectIn.Value = (EffectIn.Value + (EffectIn.Value * OutgoingMultiplyMod)) / OutgoingDivideMod;
+		break;
+	}
+	default:
+		break;
+	}
+}
 FGAEffectHandle FGAActiveEffectContainer::ApplyEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Ctx)
 {
 	switch (SpecIn.Policy.Type)
@@ -432,10 +524,9 @@ FGAEffectHandle FGAActiveEffectContainer::ApplyEffect(const FGAEffectSpec& SpecI
 		return HandleInstantEffect(instntEffect, Ctx);
 	}
 	case EGAEffectType::Periodic:
-	{
-		//from that point on, we don't really want const.
+	{	
 		FGAEffectSpec& nonConst = const_cast<FGAEffectSpec&>(SpecIn);
-		return HandlePeriodicEffect(nonConst, Ctx);
+		return HandleDurationEffect(nonConst, Ctx);
 	}
 	case EGAEffectType::Duration:
 	{
@@ -444,150 +535,65 @@ FGAEffectHandle FGAActiveEffectContainer::ApplyEffect(const FGAEffectSpec& SpecI
 	}
 	case EGAEffectType::Infinite:
 	{
-		return HandleInfiniteEffect(SpecIn, Ctx);
+		break;
 	}
 	default:
 	{
 		return FGAEffectHandle();
 	}
 	}
+	return FGAEffectHandle();
 }
 
-void FGAActiveEffectContainer::ApplyEffectModifiers(FGAAttributeData& DataIn, const FGAEffectContext& Ctx)
+void FGAActiveEffectContainer::ExecuteEffectModifier(FGAAttributeData& ModifierIn,
+	const FGameplayTagContainer& EffectTags, const FGAEffectContext& Ctx)
 {
-	//if(Ctx.TargetComp->MyTags.MatchesAll(DataIn.TargetTagsRequiared, true)) 
-	//{
-	//ok, target have required tags
-	//figure out which attribute this is modifing.
-	//}
-}
-/*
-Assuming we have effect +30% dmage to zombies, this implies:
-1. It increase damage only if target, is of type zombie (like PawnType.Zombie tag).
-2. It's modified as an outgoing effect (because WE instigator have it).
-3. Before modifications will applied, we need to get owned tags from target.
-4. We need to check if target have all required tags, for this modification.
-5. If not we discard this effect.
-
-Problems:
-How do I check if this effect can modify outgoing effect ?
-Simplest solution is to simply, brute force iterate over all active effects, while checking for their tags,
-and discard all unfit effects.
-*/
-void FGAActiveEffectContainer::ExecuteEffectModifier(FGAAttributeData& ModifierIn, const FGAEffectContext& Ctx)
-{
-	/*
-	Concept:
-	1. Assuming Modifier in is coming with Damage.Fire tag (specialized);
-	2. We have Damage.Ice bonus and Damage.Fire Bonus,
-	3. Then only Damage.Fire bonus will be applied.
-	Else
-	2. We have Damage.Ice, Damage.Fire, and Damage bonus.
-	3. In this case Damage.Fire, and Damage bonuses will be applied,
-	since Damage.Fire can be split into two tags (Damage and Damage.Fire).
-	Bonuses are applied in order they exist in in map.
-	It would probabal best to sort it, from most generic to most specialized.
-	*/
-
-	//first we need to find attributes
-	FGameplayTagContainer tags = ModifierIn.AttributeTags.GetGameplayTagParents();
-	auto TagIt = tags.CreateConstIterator();
-	for (TagIt; TagIt; ++TagIt)
-	{
-		//and we modify them.
-		FGAActiveEffectsModifiers* mods = Modifiers.Find(*TagIt);
-		if (mods)
-			mods->ApplyModifiers(ModifierIn, Ctx);
-	}
-
-	//secons tep, would be to find attributes with associated requriment tags.
-	//we get already calculated modifier, and modify by those more, specialized
-	//modifier effects.
-
-	//FGameplayTagContainer tags = ModifierIn.AttributeTags.GetGameplayTagParents();
-	//auto TagIt = tags.CreateConstIterator();
-	//for (TagIt; TagIt; ++TagIt)
-	//{
-	//	TArray<FGAActiveEffectsModifiers>* mods = AttributeModifiers.Find(*TagIt);
-	//	if (mods)
-	//	{
-	//		//undeterministic behaviour
-	//		//very narrow bonuses like +30 against creature type, might be applied, before or after
-	//		//very problematic in case of percentages!
-	//		for (FGAActiveEffectsModifiers& mod : *mods)
-	//		{
-	//			if (Ctx.TargetComp->AppliedTags.HasAllTags(mod.RequiredTargetTags, true)
-	//				&& Ctx.InstigatorComp->AppliedTags.HasAllTags(mod.RequiredInstigatorTags, true))
-	//			{
-	//				mod.ApplyModifiers(ModifierIn);
-	//			}
-	//		}
-	//	}
-	//}
-
-	//if (Modifiers.Num() > 0)
-	//{
-	//FGAActiveEffectsModifiers* mods = Modifiers.Find(ModifierIn.AttributeTag);
-	//if (mods)
-	//	mods->ApplyModifiers(ModifierIn);
-	//}
+	EffectMods.ApplyModifiersToEffect(ModifierIn, EffectTags, Ctx);
 }
 void FGAActiveEffectContainer::RemoveActiveEffect(const FGAEffectHandle& HandleIn)
 {
-	TSharedPtr<FGAActiveBase> removedEffect;
+	TSharedPtr<FGAActiveDuration> removedEffect;
 	ActiveEffects.RemoveAndCopyValue(HandleIn, removedEffect);
 	if (removedEffect.IsValid())
 	{
-		//uhhhuuhu, we need to clean up all handles from attributes as well
-		for (FGAAttributeData& data : removedEffect->OnAppliedModifiers)
-		{
-			FGAAttributeBase* attr = removedEffect->Context.TargetComp->GetAttribute(data.Attribute);
-			if (attr)
-			{
-				attr->RemoveBonus(HandleIn);
-			}
-		}
-		for (FGameplayTag& attrTag : removedEffect->AttributeEffectModifiers)
-		{
-			FGAActiveEffectsModifiers* mod = Modifiers.Find(attrTag);
-			mod->RemoveModifierEffect(HandleIn);
-			//dat is terrible!
-			for (FGATaggedModifiers& tag : mod->TaggedModifiers)
-			{
-				for (const FGEffectModifierGroup& modG : removedEffect->EffectModifiers)
-				{
-					for (const FGAEffectModifier& effMod : modG.Modifiers)
-					{
-						if (tag.RequiredInstigatorTags.MatchesAll(effMod.InstigatorRequiredTags, true)
-							&& tag.RequiredTargetTags.MatchesAll(effMod.TargetRequiredTags, true))
-						{
-							tag.RemoveModifierEffect(HandleIn);
-							if (tag.GetModifierCount() <= 0)
-							{
-
-							}
-						}
-					}
-				}
-			}
-			if (mod->GetModifierCount() <= 0)
-			{
-				AttributeModifiers.Remove(attrTag);
-			}
-		}
+		//EffectMods.RemoveMods(removedEffect->MyHandle);
+		////uhhhuuhu, we need to clean up all handles from attributes as well
+		//for (FGAAttributeData& data : removedEffect->OnAppliedModifiers)
+		//{
+		//	FGAAttributeBase* attr = removedEffect->Context.TargetComp->GetAttribute(data.Attribute);
+		//	if (attr)
+		//	{
+		//		attr->RemoveBonus(HandleIn);
+		//	}
+		//}
+		
 		removedEffect->FinishEffect();
 	}
 }
+
+FGAEffectHandle FGAActiveEffectContainer::AddActiveEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
+{
+	FGAEffectHandle handle = FGAEffectHandle::GenerateHandle();
+	TSharedPtr<FGAActiveDuration> tempPeriodic = MakeShareable(new FGAActiveDuration(Ctx, EffectIn, handle));
+	tempPeriodic->ActivateEffect();
+
+	EffectMods.AddMods(handle, EffectIn.EffectModifiers);
+	
+	ActiveEffects.Add(handle, tempPeriodic);
+
+	return handle;
+}
+
 FGAEffectHandle FGAActiveEffectContainer::HandleInstantEffect(FGAEffectInstant& SpecIn, const FGAEffectContext& Ctx)
 {
 	if (Ctx.TargetComp.IsValid() && Ctx.InstigatorComp.IsValid())
 	{
 		FGAEffectHandle handle;
-		Ctx.InstigatorComp->ModifyAttributesOnTarget(SpecIn.Modifiers, Ctx, handle);
+		//Ctx.InstigatorComp->ModifyAttributesOnTarget(SpecIn.Modifiers, Ctx, handle);
 	}
 	return FGAEffectHandle();
 }
-FGAEffectHandle FGAActiveEffectContainer::HandlePeriodicEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
+FGAEffectHandle FGAActiveEffectContainer::HandleDurationEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
 	//TODO::
 	//1. Comment this.
@@ -597,128 +603,261 @@ FGAEffectHandle FGAActiveEffectContainer::HandlePeriodicEffect(FGAEffectSpec& Ef
 	// stages at which additonal effects can be applied, and only those effects can know when to do it.
 	//5. Add support for UObject effect extensions which are instanced per application, for special logic.
 
-	FGAEffectHandle handle = FGAEffectHandle::GenerateHandle();
-	TSharedPtr<FGAActivePeriodic> tempPeriodic = MakeShareable(new FGAActivePeriodic(Ctx, EffectIn, handle));
-	tempPeriodic->ActivateEffect();
+	/*
+		Determine against whom we should check stacking rules.
+		Idea is, if effect is grouped by Instigator, stacking rules are checked ONLY
+		against other effects from the same instigator, and never checked against anything else.
+		If effect is grouped by target, stacking rules, are checked ONLY against other effects, grouped
+		by target.
+		
+		The two of them never talk to each other, and never check for each other effects.
+		So you must be careful, when setting up effects, and stacking rules!.
 
-	for (const FGEffectModifierGroup& mod : EffectIn.EffectModifiers)
+		A good example, would Bleed Condition effect, and simple Corruption spell (which just deals damage over time).
+		Bleed condition, would be aggregated by target. So who applied it wouldn't matter.
+		Stacking rules, would be check for all existing bleed condition on target. So for example,
+		we can set that there can only be ever ONE bleed condition on target, and strongest one
+		will always override anything that is on target.
+
+		Corruption would be stacked by Instigator. This means, that if two players attack one enemy, and
+		they both apply Corruption to it, target will have TWO Corruption effects applied.
+		Neither Corruption effect, cares, about the other. If one  player apply Corruption again,
+		it will just check stacking rules against corruption, applied by the same player.
+
+		If you want to make non stackable buffs (like +50hp, +100 mana etc), you should always aggregate
+		aggregate them by Target.
+		If you aggregate them by Instigator, various buffs, from various instigator will stack, togather.
+		If one player will apply +50hp and other +100hp, in this case you will end up with +150HP buff.
+
+		If you group by target, and set to Highest Override, only +100HP buff will be applied, and all
+		others will be removed from target.
+	*/
+	switch (EffectIn.Policy.Aggregation)
 	{
-		FGAActiveEffectsModifiers& aem = Modifiers.FindOrAdd(mod.AttributeTag);
-		for (const FGAEffectModifier& effMod : mod.Modifiers)
-		{
-			FGAEvalData data(mod.Attribute, effMod.Mod, effMod.ModDirection, mod.AttributeTag, effMod.DirectModifier.Value);
-			if (effMod.TargetRequiredTags.Num() > 0
-				|| effMod.InstigatorRequiredTags.Num() > 0)
-			{
-				aem.AddTaggedModifier(effMod.TargetRequiredTags, effMod.InstigatorRequiredTags,
-					handle, data);
-			}
-			else
-				aem.AddModifierEffect(handle, data);
-		}
-		tempPeriodic->AttributeEffectModifiers.Add(mod.AttributeTag);
+	case EGAEffectAggregation::AggregateByInstigator:
+	{
+		return HandleInstigatorAggregationEffect(EffectIn, Ctx);
+		break;
+	}
+	case EGAEffectAggregation::AggregateByTarget:
+	{
+		return HandleTargetAggregationEffect(EffectIn, Ctx);
+		break;
+	}
+	default:
+		break;
 	}
 
-	ActiveEffects.Add(handle, tempPeriodic);
+	//we got to this point, it should be safe to generate handle.
 
-	return handle;
-}
-FGAEffectHandle FGAActiveEffectContainer::HandleDurationEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
-{
 	return FGAEffectHandle();
 }
-FGAEffectHandle FGAActiveEffectContainer::HandleInfiniteEffect(const FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
+
+FGAEffectHandle FGAActiveEffectContainer::HandleInstigatorAggregationEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
-	FGAEffectHandle handle = FGAEffectHandle::GenerateHandle();
-	//repro, press M, and Y,Y 
-	TSharedPtr<FGAActiveInfinite> tempInfinite = MakeShareable(new FGAActiveInfinite());
-	tempInfinite->MyHandle = handle;
-	tempInfinite->Context = Ctx;
-	tempInfinite->EffectModifiers = EffectIn.EffectModifiers;
-	for (const FGEffectModifierGroup& mod : EffectIn.EffectModifiers)
+	/*
+		1. StrongerOverride - if incoming effect of the same type as existing one (have the same
+		EffectIn.MyTag), is stronger than existing one it will override it.
+		Other wise existing effect, will remain unchanged on target.
+		2. Override - Effect will simplt override existing effect on the same type.
+		3. Duration - will take remaning duration of existing effect, and add it's duration to stack.
+		Nothing else is changed.
+		4. Inensity - Will add existing attribute modifiers, with the new one.
+		Technically it might look like StackCount*Magnitude.
+		5. Add - Adds new effect to stack. Check for nothing, and change nothing.
+	*/
+	switch (EffectIn.Policy.Stacking)
 	{
-
-		FGAActiveEffectsModifiers& aem = Modifiers.FindOrAdd(mod.AttributeTag);
-		for (const FGAEffectModifier& effMod : mod.Modifiers)
+		case EGAEffectStacking::StrongerOverride:
 		{
-			FGAEvalData data(mod.Attribute, effMod.Mod, effMod.ModDirection, mod.AttributeTag, effMod.DirectModifier.Value);
-
-			if (effMod.TargetRequiredTags.Num() > 0
-				|| effMod.InstigatorRequiredTags.Num() > 0)
-			{
-				aem.AddTaggedModifier(effMod.TargetRequiredTags, effMod.InstigatorRequiredTags,
-					handle, data);
-			}
-			else
-				aem.AddModifierEffect(handle, data);
+			HandleInstigatorEffectStrongerOverride(EffectIn, Ctx);
+			break;
 		}
-		tempInfinite->AttributeEffectModifiers.Add(mod.AttributeTag);
-
-		//TArray<FGAActiveEffectsModifiers>& mods = AttributeModifiers.FindOrAdd(mod.AttributeTag);
-		//TArray<FGAActiveEffectsModifiers> tempAEM;
-		//for (const FGAEffectModifier& effMod : mod.Modifiers)
-		//{
-		//	FGAEvalData data(mod.Attribute, effMod.Mod, effMod.ModDirection, mod.AttributeTag, effMod.DirectModifier.Value);
-		//	FGAActiveEffectsModifiers actMod;
-		//	actMod.RequiredTargetTags.AppendTags(effMod.TargetRequiredTags);
-		//	actMod.RequiredInstigatorTags.AppendTags(effMod.InstigatorRequiredTags);
-		//	actMod.AddModifierEffect(handle, data);
-		//	tempAEM.Add(actMod);
-		//}
-		//AttributeModifiers.Add(mod.AttributeTag, tempAEM);
-		//tempInfinite->AttributeEffectModifiers.Add(mod.AttributeTag);
+		case EGAEffectStacking::Override:
+		{
+			return HandleInstigatorEffectOverride(EffectIn, Ctx);
+			break;
+		}
+		case EGAEffectStacking::Duration:
+		{
+			return HandleInstigatorEffectDuration(EffectIn, Ctx);
+			break;
+		}
+		case EGAEffectStacking::Intensity:
+		{
+			break;
+		}
+		case EGAEffectStacking::Add:
+		{
+			return HandleInstigatorEffectAdd(EffectIn, Ctx);
+			break;
+		}
+		default:
+			break;
 	}
+	return FGAEffectHandle();
+}
+FGAEffectHandle	FGAActiveEffectContainer::HandleInstigatorEffectStrongerOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
+{
+	/*
+		Highest override, should override all other effects,
+		which modify the same attribute (AttributeTag).
 
-	InfiniteEffects.Add(handle, tempInfinite);
+		If we have Effect which modify Damage.Fire by 20%
+		and then we apply another effect with 30%,
+		second one, should override the first one.
+
+		Problems:
+		1. Effects, are split into essentialy five parts:
+		OnApply
+		OnPeriod
+		OnRemoved
+		OnExpired
+		EffectModifier.
+
+		First four modify attributes directly on character.
+		EffectModifier, modify attributes on other effects within OnApply(...)OnExpired.
+
+		So if effect A have higher bonus to the same attribute than effect B,
+		should we remove effect B entirely, or should we just remove it's EffectModifers.
+
+		Modifiers, are still part of effect, but they modify other effects, are stored differently.
+		More over what If one effect apply multiple modifiers, and only one of them is higher ?
+	*/
+	FGAInstigatorEffectContainer& instCont = InstigatorEffects.FindOrAdd(Ctx.InstigatorComp);
+	FGAEffectHandle foundHandle;
+	for (FGAEffectTagHandle& eff : instCont.Effects)
+	{
+		if (eff.EffectName == EffectIn.EffectName)
+		{
+			foundHandle = eff.Handle;
+			break;
+		}
+	}
+	TSharedPtr<FGAActiveDuration> effect = ActiveEffects.FindRef(foundHandle);
+	bool bIsStronger = false;
+	if (effect.IsValid())
+	{
+		TArray<FGAAttributeData> data;
+		data.Append(EffectIn.GetPeriodModifiers());
+		data.Append(EffectIn.GetOnRemovedModifiers());
+		data.Append(EffectIn.GetOnEndedModifiers());
+		for (FGAAttributeData& am : data)
+		{
+			if (effect->ComparePeriodModifiers(am))
+			{
+				bIsStronger = true;
+				break;
+			}
+		}
+	}
+	
+	//for (FGEffectModifierGroup& group : EffectIn.EffectModifierGroups)
+	//{
+	//	FGAEffectModifiersCont* efModHan = EffectMods.Modifiers.Find(group.AttributeTag);
+	//	if (efModHan)
+	//	{
+	//		for (FGAEffectModifierHandles& modHan : efModHan->Modifiers)
+	//		{
+	//			for (auto MoIt = modHan.Modifiers.CreateIterator(); MoIt; ++MoIt)
+	//			{
+	//				for (FGAEffectModifier& grMod : group.Modifiers)
+	//				{
+	//					if (MoIt->ModDirection == grMod.ModDirection
+	//						&& MoIt->Mod == grMod.Mod
+	//						&& grMod.DirectModifier.Value > MoIt->DirectModifier.Value)
+	//					{
+	//						modHan.Modifiers.RemoveAtSwap(MoIt.GetIndex());
+	//					}
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
+	RemoveActiveEffect(foundHandle);
+	FGAEffectHandle handle = AddActiveEffect(EffectIn, Ctx);
+
+	FGAEffectTagHandle nameHandle(EffectIn.EffectName, handle);
+	instCont.Effects.Add(nameHandle);
 
 	return handle;
 }
-
-void FGAActiveEffectContainer::RemoveInfiniteEffect(const FGAEffectHandle& HandleIn)
+FGAEffectHandle FGAActiveEffectContainer::HandleInstigatorEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
-	TSharedPtr<FGAActiveInfinite> removedEffect; // InfiniteEffects.FindAndRemoveChecked(HandleIn);
-	InfiniteEffects.RemoveAndCopyValue(HandleIn, removedEffect);
-	if (removedEffect.IsValid())
+	FGAInstigatorEffectContainer& instCont = InstigatorEffects.FindOrAdd(Ctx.InstigatorComp);
+	FGAEffectHandle foundHandle;
+	for (FGAEffectTagHandle& eff : instCont.Effects)
 	{
-		for (FGameplayTag& attrTag : removedEffect->AttributeEffectModifiers)
+		if (eff.EffectName == EffectIn.EffectName)
 		{
-			FGAActiveEffectsModifiers* mod = Modifiers.Find(attrTag);
-			mod->RemoveModifierEffect(HandleIn);
-			//dat is terrible!
-			for (FGATaggedModifiers& tag : mod->TaggedModifiers)
-			{
-				for (const FGEffectModifierGroup& modG : removedEffect->EffectModifiers)
-				{
-					for (const FGAEffectModifier& effMod : modG.Modifiers)
-					{
-						if (tag.RequiredInstigatorTags.MatchesAll(effMod.InstigatorRequiredTags, true)
-							&& tag.RequiredTargetTags.MatchesAll(effMod.TargetRequiredTags, true))
-						{
-							tag.RemoveModifierEffect(HandleIn);
-							if (tag.GetModifierCount() <= 0)
-							{
-
-							}
-						}
-					}
-				}
-			}
-			if (mod->GetModifierCount() <= 0)
-			{
-				AttributeModifiers.Remove(attrTag);
-			}
+			foundHandle = eff.Handle;
+			break;
 		}
 	}
+
+	RemoveActiveEffect(foundHandle);
+	FGAEffectHandle handle = AddActiveEffect(EffectIn, Ctx);
+
+	FGAEffectTagHandle nameHandle(EffectIn.EffectName, handle);
+	instCont.Effects.Add(nameHandle);
+	
+	return handle;
 }
+FGAEffectHandle	FGAActiveEffectContainer::HandleInstigatorEffectAdd(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
+{
+	FGAEffectHandle handle = AddActiveEffect(EffectIn, Ctx);
+	return handle;
+}
+FGAEffectHandle	FGAActiveEffectContainer::HandleInstigatorEffectDuration(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
+{
+	FGAEffectHandle foundHandle;
+	return foundHandle;
+}
+FGAEffectHandle FGAActiveEffectContainer::HandleTargetAggregationEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
+{
+	switch (EffectIn.Policy.Stacking)
+	{
+	case EGAEffectStacking::StrongerOverride:
+	{
+		return HandleTargetEffectStrongerOverride(EffectIn, Ctx);
+		break;
+	}
+	case EGAEffectStacking::Override:
+	{
+		return CheckTargetEffectOverride(EffectIn, Ctx);
+		break;
+	}
+	case EGAEffectStacking::Duration:
+	{
+		break;
+	}
+	case EGAEffectStacking::Intensity:
+	{
+		break;
+	}
+	case EGAEffectStacking::Add:
+	{
+		break;
+	}
+	default:
+		break;
+	}
+	return FGAEffectHandle();
+}
+FGAEffectHandle	FGAActiveEffectContainer::HandleTargetEffectStrongerOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
+{
+
+	return FGAEffectHandle();
+}
+FGAEffectHandle FGAActiveEffectContainer::CheckTargetEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
+{
+	FGAEffectHandle foundHandle;
+	return foundHandle;
+}
+
 
 void FGAActiveEffectContainer::Clean()
 {
-	Modifiers.Empty();
 
-	auto efIt = ActiveEffects.CreateIterator();
-	//for (efIt; efIt; ++efIt)
-	//	{
-	//		efIt->Value.Get()->FinishEffect();
-	//	}
 	ActiveEffects.Empty();
 }

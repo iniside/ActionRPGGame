@@ -22,13 +22,14 @@ void UGAAttributesBase::InitializeAttributes()
 	BP_InitializeAttributes();
 }
 
-void UGAAttributesBase::UpdateAttributes(const FGAEvalData& AttributeIn, float newValue)
+float UGAAttributesBase::UpdateAttributes(const FGAEvalData& AttributeIn, float newValue)
 {
 	SetFloatValue(AttributeIn.Attribute, newValue);
 	return PostModifyAttribute(AttributeIn);
 }
-void UGAAttributesBase::PostModifyAttribute(const FGAEvalData& AttributeMod)
+float UGAAttributesBase::PostModifyAttribute(const FGAEvalData& AttributeMod)
 {
+	return 0;
 }
 
 UProperty* UGAAttributesBase::FindProperty(const FGAAttribute& AttributeIn)
@@ -43,17 +44,39 @@ UProperty* UGAAttributesBase::FindProperty(const FGAAttribute& AttributeIn)
 	return LastAttributeProp;
 	return nullptr;
 }
-
+UStructProperty* UGAAttributesBase::GetStructAttribute(const FGAAttribute& Name)
+{
+	return FindField<UStructProperty>(this->GetClass(), Name.AttributeName);
+}
 FGAAttributeBase* UGAAttributesBase::GetAttribute(const FGAAttribute& Name)
 {
 	UStructProperty* tempStruct = FindField<UStructProperty>(this->GetClass(), Name.AttributeName);
+
+	FGAAttributeBase* attr = nullptr;
 	if (tempStruct)
 	{
-		FGAAttributeBase* attr = nullptr;
 		attr = tempStruct->ContainerPtrToValuePtr<FGAAttributeBase>(this);
 		return attr;
+	} 
+	return attr;
+}
+void UGAAttributesBase::SetAttribute(const FGAAttribute& NameIn, FGAAttributeBase* NewVal)
+{
+	UStructProperty* tempStruct = FindField<UStructProperty>(this->GetClass(), NameIn.AttributeName);
+	FGAAttributeBase* attr = nullptr;
+	if (tempStruct)
+	{
+		attr = tempStruct->ContainerPtrToValuePtr<FGAAttributeBase>(this);
 	}
-	return nullptr;
+	if (attr)
+	{
+		if (tempStruct->Struct == FGAAttributeBase::StaticStruct())
+		{
+			tempStruct->Struct->CopyScriptStruct()
+			float lol = 10;
+		}
+		tempStruct->CopyCompleteValue(attr, NewVal);
+	}
 }
 float UGAAttributesBase::GetFinalAttributeValue(const FGAAttribute& Name)
 {

@@ -71,8 +71,6 @@ public:
 	*/
 	FGAEffectHandle ApplyEffectToTarget(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
 
-	void RemoveInfiniteEffect(const FGAEffectHandle& HandleIn);
-
 	FGAEffectInstant MakeOutgoingInstantEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
 	void MakeOutgoingPeriodicEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
 
@@ -84,7 +82,8 @@ public:
 		UObject* Causer, FGAEffectSpec SpecIn);
 
 protected:
-	void ExecuteModifiers(FGAAttributeData& ModifierIn, const FGAEffectContext Context);
+	void ExecuteModifiers(FGAAttributeData& ModifierIn, const FGameplayTagContainer& EffectTags, 
+		const FGAEffectContext Context);
 
 	//////////// EFFECTS HANDLING
 	/////////////////////////////////////////////////
@@ -105,8 +104,10 @@ public:
 		For example there might be physical armor mod, which will apply changes only
 		to attributes tagged as Damage.Physical and only if you are reciving change, not causing it.
 	*/
-	void ModifyAttributesOnSelf(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, FGAEffectHandle& HandleIn);
-	void ModifyAttributesOnTarget(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, FGAEffectHandle& HandleIn);
+	void ModifyAttributesOnSelf(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, 
+		const FGameplayTagContainer& EffectTags, FGAEffectHandle& HandleIn);
+	void ModifyAttributesOnTarget(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, 
+		const FGameplayTagContainer& EffectTags, FGAEffectHandle& HandleIn);
 	
 	//////Accessors to various functions inside DefaultAttributes;
 	inline FGAAttributeBase* GetAttribute(const FGAAttribute& Name)

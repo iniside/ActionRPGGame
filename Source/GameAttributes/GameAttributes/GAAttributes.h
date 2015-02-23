@@ -17,12 +17,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Value")
 		float ClampValue;
 protected:
+	float AdditiveBonus = 0;
+	float SubtractBonus = 0;
+	float MultiplyBonus = 0;
+	float DivideBonus = 1;
 	/*
-	Bonus value calculated from stack of affecting effects.
+		Bonus value calculated from stack of affecting effects.
 	*/
 	float BonusValue;
 	/*
-	Current Value. BaseValue + BonusValue - AnyDamageIhave Takend, Clamped between 0 and ClampValue.
+		Current Value. BaseValue + BonusValue - AnyDamageIhave Takend, Clamped between 0 and ClampValue.
 	*/
 	float CurrentValue;
 
@@ -35,6 +39,23 @@ protected:
 	TMap<FGAEffectHandle, TArray<FGAModifier>> Modifiers;
 
 public:
+	/*
+		Return value of additive bonus, without BaseValue.
+	*/
+	inline float GetAdditiveBonus() { return AdditiveBonus; }
+	/*
+		Return value of subtract bonus, without BaseValue.
+	*/
+	inline float GetSubtractBonus() { return SubtractBonus; }
+	/*
+		Return value of Multiply bonus, without BaseValue.
+	*/
+	inline float GetMultiplyBonus() { return MultiplyBonus; }
+	/*
+		Return value of Divide bonus, without BaseValue.
+	*/
+	inline float GetDivideBonus() { return DivideBonus; }
+
 	inline void SetBaseValue(float ValueIn){ BaseValue = ValueIn; }
 	inline float GetFinalValue()
 	{
@@ -144,20 +165,22 @@ public:
 		EGAAttributeMod Mod;
 	UPROPERTY(BlueprintReadOnly)
 		EGAModifierDirection ModDirection;
+	UPROPERTY(BlueprintReadOnly)
+		FGameplayTag AttributeTag;
 	/*
-	Tag for this Attribute.
+		Tag for this Attribute.
 	*/
 	UPROPERTY(BlueprintReadOnly)
 		FGameplayTagContainer AttributeTags;
 	/*
-	These tags, are must be present on target.
-	Ignored if empty.
+		These tags, are must be present on target.
+		Ignored if empty.
 	*/
 	UPROPERTY(BlueprintReadOnly)
 		FGameplayTagContainer TargetTagsRequiared;
 	/*
-	These tags, are must be present on target.
-	Ignored if empty.
+		These tags, are must be present on target.
+		Ignored if empty.
 	*/
 	UPROPERTY(BlueprintReadOnly)
 		FGameplayTagContainer InstigatorTagsRequiared;
@@ -165,6 +188,15 @@ public:
 	//final value we will try to apply to attribute.
 	UPROPERTY(BlueprintReadOnly)
 		float Value;
+
+	inline bool operator>(const FGAAttributeData& OtherIn) const
+	{
+		return OtherIn.Value > Value;
+	}
+	inline bool operator<(const FGAAttributeData& OtherIn) const
+	{
+		return OtherIn.Value < Value;
+	}
 
 	FGAAttributeData()
 	{
@@ -184,6 +216,15 @@ public:
 		Mod(ModIn),
 		ModDirection(ModDirectionIn),
 		AttributeTags(AttributeTagsIn),
+		Value(ValueIn)
+	{
+	};
+	FGAAttributeData(const FGAAttribute& AttributeIn, EGAAttributeMod ModIn,
+		EGAModifierDirection ModDirectionIn, const FGameplayTag& AttributeTagIn, float ValueIn)
+		: Attribute(AttributeIn),
+		Mod(ModIn),
+		ModDirection(ModDirectionIn),
+		AttributeTag(AttributeTagIn),
 		Value(ValueIn)
 	{
 	};
@@ -410,18 +451,21 @@ public:
 
 	EGAModifierDirection ModDirection;
 	/*
-	Tag for this attribute. Something like Damage.Fire, Damage.Condition.Bleed, Boon.SpeedBonus,
-	Damage.Condition.Burning.
+		Tag for this attribute. Something like Damage.Fire, Damage.Condition.Bleed, Boon.SpeedBonus,
+		Damage.Condition.Burning.
 
-	These tags are used to check if this modifier can be modified by other effects.
+		These tags are used to check if this modifier can be modified by other effects.
 
-	I still need to figure out exactly to handle "targeted" bonuses like +20% damage against Undead.
+		I still need to figure out exactly to handle "targeted" bonuses like +20% damage against Undead.
 
-	Deprecated use AttributeTags
+		Deprecated use AttributeTags
 	*/
 	UPROPERTY(EditAnywhere)
 		FGameplayTag AttributeTag;
 
+	/*
+		Don't use this at all.. Have another idea!
+	*/
 	UPROPERTY(EditAnywhere)
 		FGameplayTagContainer AttributeTags;
 

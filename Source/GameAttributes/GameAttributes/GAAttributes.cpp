@@ -23,7 +23,10 @@ void FGAAttributeBase::RemoveBonus(const FGAEffectHandle& Handle)
 }
 void FGAAttributeBase::CalculateBonus()
 {
-	float AdditiveBonus = 0;
+	AdditiveBonus = 0;
+	SubtractBonus = 0;
+	MultiplyBonus = 0;
+	DivideBonus = 1;
 	auto ModIt = Modifiers.CreateConstIterator();
 	for (ModIt; ModIt; ++ModIt)
 	{
@@ -34,6 +37,15 @@ void FGAAttributeBase::CalculateBonus()
 			case EGAAttributeMod::Add:
 				AdditiveBonus += mod.Value;
 				break;
+			case EGAAttributeMod::Subtract:
+				SubtractBonus += mod.Value;
+				break;
+			case EGAAttributeMod::Multiply:
+				MultiplyBonus += mod.Value;
+				break;
+			case EGAAttributeMod::Divide:
+				DivideBonus += mod.Value;
+				break;
 			default:
 				break;
 			}
@@ -42,7 +54,7 @@ void FGAAttributeBase::CalculateBonus()
 	float OldBonus = BonusValue;
 	//calculate final bonus from modifiers values.
 	//we don't handle stacking here. It's checked and handled before effect is added.
-	BonusValue = AdditiveBonus;
+	BonusValue = ((AdditiveBonus - SubtractBonus) * MultiplyBonus) / DivideBonus;
 	//this is absolute maximum (not clamped right now).
 	float addValue = BonusValue - OldBonus;
 	//reset to max = 200
@@ -117,6 +129,7 @@ void FGAAttributeBase::InitializeAttribute()
 float FGAModifierMagnitude::GetMagnitude(const FGAEffectContext& Context)
 {
 	FGAAttributeBase* attr = nullptr;
+	float Result = 0;
 	switch (Source)
 	{
 	case EGAAttributeSource::Instigator:
@@ -128,14 +141,14 @@ float FGAModifierMagnitude::GetMagnitude(const FGAEffectContext& Context)
 	default:
 		return 0;
 	}
-	float Result = CurveTable.Eval(attr->GetFinalValue());
-
+	Result = CurveTable.Eval(attr->GetFinalValue());
 	return Result;
 }
 
 float FGAAttributeBasedModifier::GetValue(const FGAEffectContext& Context)
 {
 	FGAAttributeBase* attr = nullptr;
+	float Result = 0;
 	switch (Source)
 	{
 	case EGAAttributeSource::Instigator:
@@ -147,8 +160,8 @@ float FGAAttributeBasedModifier::GetValue(const FGAEffectContext& Context)
 	default:
 		return 0;
 	}
-	float Result = (Coefficient * (PreMultiply + attr->GetFinalValue()) + PostMultiply) * PostCoefficient;
-	if (attr && !bUseSecondaryAttribute)
+	//float Result = (Coefficient * (PreMultiply + attr->GetFinalValue()) + PostMultiply) * PostCoefficient;
+	if (!bUseSecondaryAttribute)
 		return Result;
 
 	switch (SecondarySource)
@@ -180,7 +193,7 @@ float FGAAttributeBasedModifier::GetValue(const FGAEffectContext& Context)
 			return Result - (Result * attrValue);
 		default:
 			return Result;
-		}
+	}
 
 	return 0;
 
@@ -189,6 +202,7 @@ float FGAAttributeBasedModifier::GetValue(const FGAEffectContext& Context)
 float FGACurveBasedModifier::GetValue(const FGAEffectContext& ContextIn)
 {
 	FGAAttributeBase* attr = nullptr;
+	float Result = 0;
 	switch (Source)
 	{
 	case EGAAttributeSource::Instigator:
@@ -200,8 +214,7 @@ float FGACurveBasedModifier::GetValue(const FGAEffectContext& ContextIn)
 	default:
 		return 0;
 	}
-
-	float Result = CurveTable.Eval(attr->GetFinalValue());
+	Result = CurveTable.Eval(attr->GetFinalValue());
 	return Result;
 }
 
@@ -210,11 +223,11 @@ FGAAttributeData FGAAttributeModifier::GetModifier(const FGAEffectContext& Conte
 	switch (CalculationType)
 	{
 	case EGAMagnitudeCalculation::Direct:
-		return FGAAttributeData(Attribute, Mod, AttributeTags, DirectModifier.GetValue());
+		return FGAAttributeData(Attribute, Mod, AttributeTag, DirectModifier.GetValue());
 	case EGAMagnitudeCalculation::AttributeBased:
-		return FGAAttributeData(Attribute, Mod, AttributeTags, AttributeBased.GetValue(ContextIn));
+		return FGAAttributeData(Attribute, Mod, AttributeTag, AttributeBased.GetValue(ContextIn));
 	case EGAMagnitudeCalculation::CurveBased:
-		return FGAAttributeData(Attribute, Mod, AttributeTags, CurveBased.GetValue(ContextIn));;
+		return FGAAttributeData(Attribute, Mod, AttributeTag, CurveBased.GetValue(ContextIn));;
 	case EGAMagnitudeCalculation::CustomCalculation:
 		break;
 	default:

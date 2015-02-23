@@ -37,23 +37,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
 		FGAAttributeBase Stamina;
 
-	UPROPERTY()
-		float HealthCost;
-	UPROPERTY()
-		float EnergyCost;//??
-	UPROPERTY()
-		float EnergyCostReduce;//?? precentage ?? flat number ? can have effect, which set this.
-	UPROPERTY()
-		float EnergyIncrease;//??
-
-	UPROPERTY()
-		float PrecentageDamage;
-	UPROPERTY()
-		float HealthBakPrecentageReduction;
-
-	UPROPERTY()
-		float StaminaCost;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
 		FGAAttributeBase Strenght;
 	/*
@@ -69,6 +52,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
 		FGAAttributeBase EnduranceMod;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
+		FGAAttributeBase Constitution;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
+		FGAAttributeBase ConstitutionMod;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
 		FGAAttributeBase Agility;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
@@ -93,6 +81,38 @@ public:
 		FGAAttributeBase Wisdom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
 		FGAAttributeBase WisdomMod;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
+		FGAAttributeBase Armor;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
+		FGAAttributeBase MagicResitance;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
+		FGAAttributeBase FireResistance;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
+		FGAAttributeBase IceResistance;
+
+	UPROPERTY()
+		float HealthPercentageDamage;
+	UPROPERTY()
+		float EnergyPercentageDamage;
+	UPROPERTY()
+		float StaminaPercentageDamage;
+
+	UPROPERTY()
+		float HealthCost;
+	UPROPERTY()
+		float EnergyCost;//??
+	UPROPERTY()
+		float EnergyCostReduce;//?? precentage ?? flat number ? can have effect, which set this.
+	UPROPERTY()
+		float EnergyIncrease;//??
+
+	UPROPERTY()
+		float PercentageDamage;
+
+	UPROPERTY()
+		float StaminaCost;
+
 	/*
 		Helper attributes, which are used to apply different types of damage. Ahoy!
 	*/
@@ -104,6 +124,20 @@ public:
 		float MagicalDamage;
 	UPROPERTY()
 		float FireDamage;
+	UPROPERTY()
+		float IceDamage;
+	UPROPERTY()
+		float WaterDamage;
+	UPROPERTY()
+		float AirDamage;
+	UPROPERTY()
+		float ElectricityDamage;
+	UPROPERTY()
+		float EarthDamage;
+	UPROPERTY()
+		float ShadowDamage;
+	UPROPERTY()
+		float NecroticDamage;
 
 	UPROPERTY()
 		float Heal;
@@ -119,6 +153,13 @@ public:
 
 	UPROPERTY()
 		float WeaknessCondition; //0-1, precentage. always appilied on Source, reduce damage.
+
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
+		FGAAttributeBase DamageBonus;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
+		FGAAttributeBase FireDamageBonus;
+
 	/*
 		Total number of conditions.
 	*/
@@ -204,8 +245,8 @@ public:
 		This need simpler data structure for modification in blueprint.
 	*/
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = AttributeTags, meta = (BlueprintInternalUseOnly = "true"))
-		void InternalPostModifyAttribute(const FGAEvalData& AttributeMod);
-	virtual void PostModifyAttribute(const FGAEvalData& AttributeMod) override;
+		float InternalPostModifyAttribute(const FGAEvalData& AttributeMod);
+	virtual float PostModifyAttribute(const FGAEvalData& AttributeMod) override;
 
 
 	virtual void CalculateOutgoingAttributeMods() override;
@@ -218,14 +259,16 @@ public:
 	//UFUNCTION(Category = "PostAttribute")
 	//	FGAAttributeDataCallback PostAttribute_Health(const FGAEvalData& AttributeMod);
 	UFUNCTION(Category = "PostAttribute")
-		void PostAttribute_Damage(const FGAEvalData& AttributeMod);
+		float PostAttribute_Damage(const FGAEvalData& AttributeMod);
 	UFUNCTION(Category = "PostAttribute")
-		void PostAttribute_Heal(const FGAEvalData& AttributeMod);
+		float PostAttribute_FireDamage(const FGAEvalData& AttributeMod);
 	UFUNCTION(Category = "PostAttribute")
-		void PostAttribute_LifeStealDamage(const FGAEvalData& AttributeMod);
+		float PostAttribute_Heal(const FGAEvalData& AttributeMod);
 	UFUNCTION(Category = "PostAttribute")
-		void PostAttribute_HealthBakPrecentageReduction(const FGAEvalData& AttributeMod);
+		float PostAttribute_LifeStealDamage(const FGAEvalData& AttributeMod);
 	UFUNCTION(Category = "PostAttribute")
-		void PostAttribute_Magic(const FGAEvalData& AttributeMod);
+		float PostAttribute_HealthBakPrecentageReduction(const FGAEvalData& AttributeMod);
+	UFUNCTION(Category = "PostAttribute")
+		float PostAttribute_Magic(const FGAEvalData& AttributeMod);
 
 };
