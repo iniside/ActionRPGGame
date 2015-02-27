@@ -1,7 +1,7 @@
 #pragma once
 #include "GameplayTagContainer.h"
 #include "GAGlobalTypes.h"
-#include "GAAttributes.h"
+#include "GAAttributeBase.h"
 #include "GAEffects.h"
 #include "GAEffectSpecification.generated.h"
 /*

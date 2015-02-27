@@ -55,35 +55,46 @@ FGAAttributeBase* UGAAttributesBase::GetAttribute(const FGAAttribute& Name)
 	FGAAttributeBase* attr = nullptr;
 	if (tempStruct)
 	{
-		attr = tempStruct->ContainerPtrToValuePtr<FGAAttributeBase>(this);
+		FGAAttributeBase* attr = tempStruct->ContainerPtrToValuePtr<FGAAttributeBase>(this);
 		return attr;
 	} 
 	return attr;
 }
-void UGAAttributesBase::SetAttribute(const FGAAttribute& NameIn, FGAAttributeBase* NewVal)
+void UGAAttributesBase::SetAttribute(const FGAAttribute& NameIn, UObject* NewVal)
+{
+	//UStructProperty* tempStruct = FindField<UStructProperty>(this->GetClass(), NameIn.AttributeName);
+}
+void UGAAttributesBase::SetAttributeAdditiveBonus(const FGAAttribute& NameIn, float NewValue)
 {
 	UStructProperty* tempStruct = FindField<UStructProperty>(this->GetClass(), NameIn.AttributeName);
-	FGAAttributeBase* attr = nullptr;
-	if (tempStruct)
-	{
-		attr = tempStruct->ContainerPtrToValuePtr<FGAAttributeBase>(this);
-	}
-	if (attr)
-	{
-		if (tempStruct->Struct == FGAAttributeBase::StaticStruct())
-		{
-			tempStruct->Struct->CopyScriptStruct()
-			float lol = 10;
-		}
-		tempStruct->CopyCompleteValue(attr, NewVal);
-	}
+	UScriptStruct* scriptStruct = tempStruct->Struct;
+
+	uint8* StructData = tempStruct->ContainerPtrToValuePtr<uint8>(this);
+	
+	//omg figured it out!
+	//for (TFieldIterator<UProperty> It(scriptStruct); It; ++It)
+	//{
+	//	if (UProperty* Prop = *It)
+	//	{
+	//		if (Prop->GetFName() == "AdditiveBonus")
+	//		{
+	//			if (Prop->IsA(UFloatProperty::StaticClass()))
+	//			{
+	//				float testValue = NewValue;
+	//				Cast<UFloatProperty>(Prop)->SetPropertyValue_InContainer(StructData, testValue);
+	//				break;
+	//			}
+	//		}
+	//	}
+	//}
 }
+
 float UGAAttributesBase::GetFinalAttributeValue(const FGAAttribute& Name)
 {
 	FGAAttributeBase* attrPtr = GetAttribute(Name);
 	if (attrPtr)
 	{
-		return attrPtr->GetFinalValue();
+		//return attrPtr->GetFinalValue();
 	}
 	return 0;
 }
@@ -92,7 +103,7 @@ float UGAAttributesBase::GetCurrentAttributeValue(const FGAAttribute& Name)
 	FGAAttributeBase* attrPtr = GetAttribute(Name);
 	if (attrPtr)
 	{
-		return attrPtr->GetCurrentValue();
+		//return attrPtr->GetCurrentValue();
 	}
 	return 0;
 }

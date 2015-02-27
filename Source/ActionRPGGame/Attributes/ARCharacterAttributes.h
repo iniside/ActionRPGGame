@@ -155,14 +155,14 @@ public:
 		float WeaknessCondition; //0-1, precentage. always appilied on Source, reduce damage.
 
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
 		FGAAttributeBase DamageBonus;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
 		FGAAttributeBase FireDamageBonus;
 
-	/*
-		Total number of conditions.
-	*/
+	///*
+	//	Total number of conditions.
+	//*/
 	UPROPERTY()
 		FGAAttributeBase ConditionCount;
 	UPROPERTY()
@@ -239,7 +239,7 @@ public:
 		void InternalEffectParams();
 
 	virtual void PostEffectApplied() override;
-	virtual void PostEffectRemoved() override;
+	virtual void PostEffectRemoved(const FGAEffectHandle& HandleIn, const FGAEffectSpec& SpecIn) override;
 
 	/*
 		This need simpler data structure for modification in blueprint.

@@ -1,6 +1,6 @@
 #pragma once
 #include "GAGlobalTypes.h"
-#include "GAAttributes.h"
+#include "GAAttributeBase.h"
 #include "GAEffects.h"
 #include "GAAttributesBase.h"
 #include "GAAttributeComponent.generated.h"

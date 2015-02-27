@@ -7,9 +7,13 @@
 #include "IGAAttributes.h"
 #include "Effects/GAEffect.h"
 #include "Effects/GAEffectSpecification.h"
-#include "GAAttributes.h"
+#include "GAAttributeBase.h"
 
-
+//UGAAttributeBase::UGAAttributeBase(const FObjectInitializer& ObjectInitializer)
+//	: Super(ObjectInitializer)
+//{
+//
+//}
 void FGAAttributeBase::AddBonus(const FGAModifier& ModifiersIn, const FGAEffectHandle& Handle)
 {
 	TArray<FGAModifier>& modsTemp = Modifiers.FindOrAdd(Handle);
@@ -160,21 +164,21 @@ float FGAAttributeBasedModifier::GetValue(const FGAEffectContext& Context)
 	default:
 		return 0;
 	}
-	//float Result = (Coefficient * (PreMultiply + attr->GetFinalValue()) + PostMultiply) * PostCoefficient;
+	Result = (Coefficient * (PreMultiply + attr->GetFinalValue()) + PostMultiply) * PostCoefficient;
 	if (!bUseSecondaryAttribute)
 		return Result;
 
-	switch (SecondarySource)
-	{
-		case EGAAttributeSource::Instigator:
-			attr = Context.InstigatorComp->GetAttribute(SecondaryAttribute);
-			break;
-		case EGAAttributeSource::Target:
-			attr = Context.TargetComp->GetAttribute(SecondaryAttribute);
-			break;
-		default:
-			return Result;
-	}
+	//switch (SecondarySource)
+	//{
+	//	case EGAAttributeSource::Instigator:
+	//		attr = Context.InstigatorComp->GetAttribute(SecondaryAttribute);
+	//		break;
+	//	case EGAAttributeSource::Target:
+	//		attr = Context.TargetComp->GetAttribute(SecondaryAttribute);
+	//		break;
+	//	default:
+	//		return Result;
+	//}
 
 	float attrValue = attr->GetFinalValue();
 	switch (SecondaryMod)

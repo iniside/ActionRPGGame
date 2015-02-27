@@ -1,6 +1,6 @@
 #pragma once
 #include "GAGlobalTypes.h"
-#include "GAAttributes.h"
+#include "GAAttributeBase.h"
 #include "GAEffects.h"
 #include "GAAttributesBase.generated.h"
 
@@ -93,7 +93,7 @@ public:
 
 		These function MUST be in category PostEffectRemoved
 	*/
-	virtual void PostEffectRemoved() {};
+	virtual void PostEffectRemoved(const FGAEffectHandle& HandleIn, const FGAEffectSpec& SpecIn) {};
 	//probabaly doesn't need to be vritual any longer. 
 	/*
 		Impelement your custom logic how changed attribute should affect other attributes.
@@ -126,8 +126,13 @@ public:
 		Gets pointer to compelx attribute.
 	*/
 	FGAAttributeBase* GetAttribute(const FGAAttribute& Name);
-	void SetAttribute(const FGAAttribute& NameIn, FGAAttributeBase* NewVal);
+	/*
+		Deprecated. I'm going to remove it, since it does not work as intended!
+	*/
+	void SetAttribute(const FGAAttribute& NameIn, UObject* NewVal);
 	
+	void SetAttributeAdditiveBonus(const FGAAttribute& NameIn, float NewValue);
+
 	/*
 		Gets value from complex attribute (FGAAttributeBase).
 	*/

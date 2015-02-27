@@ -18,12 +18,7 @@ UARCharacterAttributes::UARCharacterAttributes(const FObjectInitializer& ObjectI
 void UARCharacterAttributes::InitializeAttributes()
 {
 
-	//construct array of all attributes, and assign indexes for them.
-	//it should be done only once upon initialization!
-	//actually we could filter out attributes per group
-	//we are going to cache all functions.
-	//that's realll bad, for now
-	//because you have to name your functions in very specific way.
+	
 	PostModifyAttributeFunctions.Empty();
 	IncomingModifyAttributeFunctions.Empty();
 	OutgoingModifyAttributeFunctions.Empty();
@@ -85,13 +80,16 @@ void UARCharacterAttributes::PostEffectApplied()
 	//nam = nam.Append(Tag.ToString());
 	//UFunction* ModifyAttrFunc = GetClass()->FindFunctionByName(*nam);
 }
-void UARCharacterAttributes::PostEffectRemoved()
+void UARCharacterAttributes::PostEffectRemoved(const FGAEffectHandle& HandleIn, const FGAEffectSpec& SpecIn)
 {
-	//FName Tag = SpecIn.MyTag.GetTagName();
-	//FString nam = "OnEffectApplied_";
-	//Tag = *Tag.ToString().Replace(TEXT("."), TEXT("_"));
-	//nam = nam.Append(Tag.ToString());
-	//UFunction* ModifyAttrFunc = GetClass()->FindFunctionByName(*nam);
+	for (const FGAAttributeModifier& mod : SpecIn.AttributeModifiers)
+	{
+		FName Tag = mod.Attribute.AttributeName;
+		FString nam = "OnEffectApplied_";
+		Tag = *Tag.ToString().Replace(TEXT("."), TEXT("_"));
+		nam = nam.Append(Tag.ToString());
+		UFunction* ModifyAttrFunc = GetClass()->FindFunctionByName(*nam);
+	}
 }
 
 
@@ -123,7 +121,7 @@ float UARCharacterAttributes::PostAttribute_Damage(const FGAEvalData& AttributeM
 	Damage = (Damage + DamageBonus.GetAdditiveBonus() - DamageBonus.GetSubtractBonus());
 	Damage = Damage + (Damage * DamageBonus.GetMultiplyBonus()) / DamageBonus.GetDivideBonus();
 	Health.Subtract(Damage);
-	float finalDamage = Damage;
+	float finalDamage = Damage;// Damage;
 	Damage = 0;
 
 	if (Health.GetCurrentValue() <= 0)
@@ -135,7 +133,7 @@ float UARCharacterAttributes::PostAttribute_Damage(const FGAEvalData& AttributeM
 			//engine, that we can just as well take advantage of build in events
 			//for some stuff.
 			FDamageEvent goAway;
-			OwningAttributeComp->GetOwner()->TakeDamage(Damage, goAway, nullptr, nullptr);
+			OwningAttributeComp->GetOwner()->TakeDamage(finalDamage, goAway, nullptr, nullptr);
 		}
 		//handle death/
 	}
@@ -150,7 +148,7 @@ float UARCharacterAttributes::PostAttribute_FireDamage(const FGAEvalData& Attrib
 	FireDamage = (FireDamage + AddtiveBonus - SubtractBonus);
 	FireDamage = (FireDamage * MultiplyBonus) / DivideBonus;
 	Health.Subtract(FireDamage);
-	float finalDamage = FireDamage;
+	float finalDamage = FireDamage;// FireDamage;
 	FireDamage = 0;
 
 	if (Health.GetCurrentValue() <= 0)
@@ -162,7 +160,7 @@ float UARCharacterAttributes::PostAttribute_FireDamage(const FGAEvalData& Attrib
 			//engine, that we can just as well take advantage of build in events
 			//for some stuff.
 			FDamageEvent goAway;
-			OwningAttributeComp->GetOwner()->TakeDamage(FireDamage, goAway, nullptr, nullptr);
+			OwningAttributeComp->GetOwner()->TakeDamage(finalDamage, goAway, nullptr, nullptr);
 		}
 		//handle death/
 	}
@@ -170,7 +168,7 @@ float UARCharacterAttributes::PostAttribute_FireDamage(const FGAEvalData& Attrib
 }
 float UARCharacterAttributes::PostAttribute_Heal(const FGAEvalData& AttributeMod)
 {
-	Health.Add(Heal);
+	//Health.Add(Heal);
 	Heal = 0;
 	return Heal;
 }
@@ -187,9 +185,9 @@ float UARCharacterAttributes::PostAttribute_HealthBakPrecentageReduction(const F
 float UARCharacterAttributes::PostAttribute_Magic(const FGAEvalData& AttributeMod)
 {
 	float finalValue = 0;
-	finalValue = Magic.GetCurrentValue();
-	finalValue = (finalValue - 10) / 2;
-	MagicMod.SetBaseValue(finalValue);
+	//finalValue = Magic.GetCurrentValue();
+	//finalValue = (finalValue - 10) / 2;
+	//MagicMod.SetBaseValue(finalValue);
 	return finalValue;
 }
 

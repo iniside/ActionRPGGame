@@ -43,11 +43,21 @@ FGAEffectSpec::FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn,
 }
 TArray<FGAAttributeData> FGAEffectSpec::GetModifiers()
 {
+	TArray<FGAAttributeData> temp;
 	for (FGAAttributeModifier& mod : AttributeModifiers)
 	{
-		EvalModifiers.Add(mod.GetModifier(Context));
+		temp.Add(mod.GetModifier(Context));
 	}
-	return EvalModifiers;
+	return temp;
+}
+TArray<FGAAttributeData> FGAEffectSpec::GetAttributeModifiers()
+{
+	TArray<FGAAttributeData> temp;
+	for (FGAAttributeModifier& mod : AttributeModifiers)
+	{
+		temp.Add(mod.GetModifier(Context));
+	}
+	return temp;
 }
 TArray<FGAAttributeData> FGAEffectSpec::GetPeriodModifiers()
 {
@@ -116,6 +126,7 @@ void FGAActiveDuration::FinishEffect()
 {
 	if (Context.Target.IsValid())
 	{
+		AttributeModifiers.Empty();
 		OnAppliedModifiers.Empty();
 		OnEndedModifiers.Empty();
 		OnRemovedModifiers.Empty();
@@ -146,6 +157,7 @@ FGAActiveDuration::FGAActiveDuration(const FGAEffectContext& ContextIn, FGAEffec
 	MyHandle = HandleIn;
 	Context = ContextIn;
 	OwnedTags = SpecIn.EffectTags;
+	AttributeModifiers = SpecIn.GetAttributeModifiers();
 	PeriodModifiers = SpecIn.GetPeriodModifiers(); //we probabaly want to recalculate it on every tick
 	//if effect.
 	OnAppliedModifiers = SpecIn.GetModifiers();
@@ -179,341 +191,6 @@ float FGAEffectModifier::GetFinalValue()
 	return 0;
 }
 
-void FGAActiveEffectsModifiers::ApplyModifiers(FGAAttributeData& EvalData, const FGAEffectContext& Ctx)
-{
-	switch (EvalData.ModDirection)
-	{
-	case EGAModifierDirection::Incoming:
-	{
-		EvalData.Value = EvalData.Value + (((EvalData.Value * IncomingMultiplyMod)
-			+ IncomingAddtiveMod - IncomingSubtractMod) / IncomingDivideMod);
-		break;
-	}
-	case EGAModifierDirection::Outgoing:
-	{
-		EvalData.Value = EvalData.Value + (((EvalData.Value * OutgoingMultiplyMod)
-			+ OutgoingAddtiveMod - OutgoingSubtractMod) / OutgoingDivideMod);
-		break;
-	}
-	default:
-		break;
-	}
-	//EvalData.Value = ((EvalData.Value * MultiplyMod) + AddtiveMod - SubtractMod) / DivideMod;
-}
-
-void FGAActiveEffectsModifiers::AddModifierEffect(const FGAEffectHandle& HandleIn, const FGAEvalData& Eval)
-{
-	TArray<FGAEvalData>& EvalData = EffectMods.FindOrAdd(HandleIn);
-	EvalData.Add(Eval);
-
-	//EffectMods.Add(HandleIn, Eval);
-	CalculateNewModifierStack();
-}
-
-void FGAActiveEffectsModifiers::RemoveModifierEffect(const FGAEffectHandle& HandleIn)
-{
-	EffectMods.Remove(HandleIn);
-	CalculateNewModifierStack();
-}
-int32 FGAActiveEffectsModifiers::GetModifierCount()
-{
-	return EffectMods.Num();
-}
-void FGAActiveEffectsModifiers::CalculateNewModifierStack()
-{
-	//reset modifiers we have right now.
-	OutgoingAddtiveMod = 0;
-	OutgoingSubtractMod = 0;
-	OutgoingMultiplyMod = 0;
-	OutgoingDivideMod = 1;
-
-	IncomingAddtiveMod = 0;
-	IncomingSubtractMod = 0;
-	IncomingMultiplyMod = 0;
-	IncomingDivideMod = 1;
-
-	auto ModIt = EffectMods.CreateIterator();
-	//we will just accumulate mods on stack.
-	//we don't do anything special with them.
-	for (ModIt; ModIt; ++ModIt)
-	{
-		for (FGAEvalData& eval : ModIt->Value)
-		{
-			switch (eval.ModDirection)
-			{
-			case EGAModifierDirection::Incoming:
-			{
-				switch (eval.Mod)
-				{
-				case EGAAttributeMod::Add:
-					IncomingAddtiveMod += eval.Value;
-					break;
-				case EGAAttributeMod::Subtract:
-					IncomingSubtractMod += eval.Value;
-					break;
-				case EGAAttributeMod::Multiply:
-					IncomingMultiplyMod += eval.Value;
-					break;
-				case EGAAttributeMod::Divide:
-					IncomingDivideMod += eval.Value;
-					break;
-				case EGAAttributeMod::Set:
-					break;
-				case EGAAttributeMod::Invalid:
-					break;
-				}
-			}
-			case EGAModifierDirection::Outgoing:
-			{
-				switch (eval.Mod)
-				{
-				case EGAAttributeMod::Add:
-					OutgoingAddtiveMod += eval.Value;
-					break;
-				case EGAAttributeMod::Subtract:
-					OutgoingSubtractMod += eval.Value;
-					break;
-				case EGAAttributeMod::Multiply:
-					OutgoingMultiplyMod += eval.Value;
-					break;
-				case EGAAttributeMod::Divide:
-					OutgoingDivideMod += eval.Value;
-					break;
-				case EGAAttributeMod::Set:
-					break;
-				case EGAAttributeMod::Invalid:
-					break;
-				}
-			}
-			default:
-				break;
-			}
-
-		}
-	}
-}
-void FGAEffectModifierHandles::AddMod(const FGAEffectModifier& ModIn)
-{
-	Modifiers.Add(ModIn);
-}
-
-void FGAEffectModifiersContainer::AddMods(const FGAEffectHandle& HandleIn, 
-	const TArray<FGAEffectModifier>& ModsIn)
-{
-	TArray<FGAEffectModifier>& found = AllModifiers.FindOrAdd(HandleIn);
-	found.Append(ModsIn);
-	//if (ModsIn.Num() > 0)
-	//{
-	//	for (const FGEffectModifierGroup& group : ModsIn)
-	//	{
-	//		//TArray<FGAEffectModifier>& found = AllModifiers.FindOrAdd(HandleIn);
-	//		//found.Append(group.Modifiers);
-	//		FGAEffectModifiersCont& attributeHandles = Modifiers.FindOrAdd(group.AttributeTag);
-	//		FGAEffectModifierHandles mods(HandleIn, group.Modifiers);
-	//		attributeHandles.Modifiers.Add(mods);
-	//	}
-	//}
-}
-void FGAEffectModifiersContainer::RemoveMods(const FGAEffectHandle& HandleIn)
-{
-	AllModifiers.Remove(HandleIn);
-	//for (auto ModIt = Modifiers.CreateIterator(); ModIt; ++ModIt)
-	//{
-	//	for (auto HanIt = ModIt->Value.Modifiers.CreateIterator(); HanIt; ++HanIt)
-	//	{
-	//		if (HanIt->Handle == HandleIn)
-	//		{
-	//			ModIt->Value.Modifiers.RemoveAtSwap(HanIt.GetIndex());
-	//		}
-	//	}
-	//}
-}
-void FGAEffectModifiersContainer::RemoveMod(const FGAEffectHandle& HandleIn, FGameplayTagContainer& ModTags)
-{
-	TArray<FGAEffectModifier>* found = AllModifiers.Find(HandleIn);
-	if (found)
-	{
-		for (auto ModIt = found->CreateIterator(); ModIt; ++ModIt)
-		{
-			if (ModIt->RequiredTags.MatchesAll(ModTags, false))
-			{
-				found->RemoveAtSwap(ModIt.GetIndex());
-			}
-				
-		}
-	}
-}
-void FGAEffectModifiersContainer::StackModifiers(FGAEffectSpec& SpecIn)
-{
-	//for (FGAEffectModifier& mod : SpecIn.EffectModifiers)
-	//{
-	//	FGAActiveEffectModifier& activeMod = Modifiers.FindOrAdd(mod.AttributeTag);
-
-	//	//this really should be global rule
-	//	//not per effect ?
-	//	switch (mod.ModStacking)
-	//	{
-	//		case EGAModifierEffectStacking::CantStackSameType:
-	//		{
-	//			SpecIn.EffectTags.MatchesAny(activeMod.AffectingEffectsTags, false);
-	//			break;
-	//		}
-	//		case EGAModifierEffectStacking::SameTypeOverride:
-	//		{
-	//			SpecIn.EffectTags.MatchesAny(activeMod.AffectingEffectsTags, false);
-	//			break;
-	//		}
-	//		case EGAModifierEffectStacking::StackAll:
-	//		{
-	//			break;
-	//		}
-	//	}
-	//	
-	//	//find this effect, and compare it to new one.
-
-	//}
-}
-void FGAEffectModifiersContainer::ApplyModifiersToEffect(FGAAttributeData& EffectIn, const FGameplayTagContainer& EffectTags
-	, const FGAEffectContext& Ctx)
-{
-	FGameplayTagContainer tranAttr = EffectIn.AttributeTags.GetGameplayTagParents();
-	TArray<FGAEffectModifier> QualifiedMods;
-	FGACountedTagContainer& instigatorTags = Ctx.InstigatorComp->AppliedTags;
-	FGACountedTagContainer& targetTags = Ctx.TargetComp->AppliedTags;
-	//for (const FGameplayTag& attr : tranAttr)
-	//{
-	//	/*
-	//		If highest override
-	//		and Damage.Fire is higher than Damage, we need to only take damage.
-	//		So we need to discard rest.
-	//	*/
-	//	FGAEffectModifiersCont& attributeHandles = Modifiers.FindOrAdd(attr);
-	//	auto HanIt = attributeHandles.Modifiers.CreateConstIterator();
-	//	for (HanIt; HanIt; ++HanIt)
-	//	{
-	//		auto AtrIt = HanIt->Modifiers.CreateConstIterator();
-	//		for (AtrIt; AtrIt; ++AtrIt)
-	//		{
-	//			if (EffectTags.MatchesAll(AtrIt->RequiredTags, true)
-	//				&& instigatorTags.HasAllTags(AtrIt->InstigatorRequiredTags, true)
-	//				&& targetTags.HasAllTags(AtrIt->TargetRequiredTags, true))
-	//			{
-	//				QualifiedMods.Add(*AtrIt);
-	//			}
-	//		}
-	//	}
-	//}
-
-	//auto ModIt = AllModifiers.CreateIterator();
-	//for (ModIt; ModIt; ++ModIt)
-	//{
-	//	/*
-	//		Say incoming effect have Hex, Damage.Fire tags.
-	//		We have mod, which Require Damage.Fire,
-	//		Hit! We have a match.
-
-	//		Say we have mod which Require. Conjuration, Damage.Fire
-	//		Miss! All tags, must much and we miss on Conjuration.
-	//	*/
-	//	/*
-	//		This way we gather all qualifable mods, including spec mods like +20% damage vs undead
-	//		while holding one Handed sword.
-
-	//		Of course. We might want, to gather those mods in separate pass, and add them on top.. Or something.
-	//	*/
-	//	/*
-	//		Do we need stacking rules checking here, or we can assume 
-	//		that it was checked on effect application ?
-	//		We need some checking here to determine what takes precedence Damage or Damage.Fire (for example)
-	//	*/
-	auto MoIt = AllModifiers.CreateIterator();
-	for (MoIt; MoIt; ++MoIt)
-	{
-		for (FGAEffectModifier& mod : MoIt->Value)
-		{
-			if (mod.Attribute == EffectIn.Attribute) //move to map, with more specialize attributes ?
-			{
-				if (EffectTags.MatchesAll(mod.RequiredTags, true)
-					&& instigatorTags.HasAllTags(mod.InstigatorRequiredTags, true)
-					&& targetTags.HasAllTags(mod.TargetRequiredTags, true))
-				{
-					QualifiedMods.Add(mod);
-				}
-			}
-		}
-	}
-	
-	float OutgoingAddtiveMod = 0;
-	float OutgoingSubtractMod = 0;
-	float OutgoingMultiplyMod = 0;
-	float OutgoingDivideMod = 1;
-
-	float IncomingAddtiveMod = 0;
-	float IncomingSubtractMod = 0;
-	float IncomingMultiplyMod = 0;
-	float IncomingDivideMod = 1;
-	//calculate magnitude from QualifiedMods
-	for (FGAEffectModifier& mod : QualifiedMods)
-	{
-		switch (mod.ModDirection)
-		{
-			case EGAModifierDirection::Outgoing:
-			{
-				switch (mod.Mod)
-				{
-				case EGAAttributeMod::Add:
-					OutgoingAddtiveMod += mod.DirectModifier.Value;
-					break;
-				case EGAAttributeMod::Subtract:
-					OutgoingSubtractMod += mod.DirectModifier.Value;
-					break;
-				case EGAAttributeMod::Multiply:
-					OutgoingMultiplyMod += mod.DirectModifier.Value;
-					break;
-				case EGAAttributeMod::Divide:
-					OutgoingDivideMod += mod.DirectModifier.Value;
-					break;
-				}
-			}
-			case EGAModifierDirection::Incoming:
-			{
-				switch (mod.Mod)
-				{
-				case EGAAttributeMod::Add:
-					IncomingAddtiveMod += mod.DirectModifier.Value;
-					break;
-				case EGAAttributeMod::Subtract:
-					IncomingSubtractMod += mod.DirectModifier.Value;
-					break;
-				case EGAAttributeMod::Multiply:
-					IncomingMultiplyMod += mod.DirectModifier.Value;
-					break;
-				case EGAAttributeMod::Divide:
-					IncomingDivideMod += mod.DirectModifier.Value;
-					break;
-				}
-			}
-		}
-	}
-
-	switch (EffectIn.ModDirection)
-	{
-	case EGAModifierDirection::Incoming:
-	{
-		EffectIn.Value = (EffectIn.Value + IncomingAddtiveMod - IncomingSubtractMod);
-		EffectIn.Value = (EffectIn.Value + (EffectIn.Value * IncomingMultiplyMod)) / IncomingDivideMod;
-		break;
-	}
-	case EGAModifierDirection::Outgoing:
-	{
-		EffectIn.Value = (EffectIn.Value + OutgoingAddtiveMod - OutgoingSubtractMod);
-		EffectIn.Value = (EffectIn.Value + (EffectIn.Value * OutgoingMultiplyMod)) / OutgoingDivideMod;
-		break;
-	}
-	default:
-		break;
-	}
-}
 FGAEffectHandle FGAActiveEffectContainer::ApplyEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Ctx)
 {
 	switch (SpecIn.Policy.Type)
@@ -548,7 +225,6 @@ FGAEffectHandle FGAActiveEffectContainer::ApplyEffect(const FGAEffectSpec& SpecI
 void FGAActiveEffectContainer::ExecuteEffectModifier(FGAAttributeData& ModifierIn,
 	const FGameplayTagContainer& EffectTags, const FGAEffectContext& Ctx)
 {
-	EffectMods.ApplyModifiersToEffect(ModifierIn, EffectTags, Ctx);
 }
 void FGAActiveEffectContainer::RemoveActiveEffect(const FGAEffectHandle& HandleIn)
 {
@@ -558,14 +234,14 @@ void FGAActiveEffectContainer::RemoveActiveEffect(const FGAEffectHandle& HandleI
 	{
 		//EffectMods.RemoveMods(removedEffect->MyHandle);
 		////uhhhuuhu, we need to clean up all handles from attributes as well
-		//for (FGAAttributeData& data : removedEffect->OnAppliedModifiers)
-		//{
-		//	FGAAttributeBase* attr = removedEffect->Context.TargetComp->GetAttribute(data.Attribute);
-		//	if (attr)
-		//	{
-		//		attr->RemoveBonus(HandleIn);
-		//	}
-		//}
+		for (FGAAttributeData& data : removedEffect->AttributeModifiers)
+		{
+			FGAAttributeBase* attr = removedEffect->Context.TargetComp->GetAttribute(data.Attribute);
+			if (attr)
+			{
+				attr->RemoveBonus(HandleIn);
+			}
+		}
 		
 		removedEffect->FinishEffect();
 	}
@@ -577,9 +253,17 @@ FGAEffectHandle FGAActiveEffectContainer::AddActiveEffect(FGAEffectSpec& EffectI
 	TSharedPtr<FGAActiveDuration> tempPeriodic = MakeShareable(new FGAActiveDuration(Ctx, EffectIn, handle));
 	tempPeriodic->ActivateEffect();
 
-	EffectMods.AddMods(handle, EffectIn.EffectModifiers);
 	
 	ActiveEffects.Add(handle, tempPeriodic);
+
+	for (FGAAttributeData& data : EffectIn.GetAttributeModifiers())
+	{
+		FGAAttributeBase* attr = Ctx.TargetComp->GetAttribute(data.Attribute);
+		if (attr)
+		{
+			attr->AddBonus(FGAModifier(data.Mod, data.Value), handle);
+		}
+	}
 
 	return handle;
 }
@@ -786,18 +470,9 @@ FGAEffectHandle FGAActiveEffectContainer::HandleInstigatorEffectOverride(FGAEffe
 {
 	FGAInstigatorEffectContainer& instCont = InstigatorEffects.FindOrAdd(Ctx.InstigatorComp);
 	FGAEffectHandle foundHandle;
-	for (FGAEffectTagHandle& eff : instCont.Effects)
-	{
-		if (eff.EffectName == EffectIn.EffectName)
-		{
-			foundHandle = eff.Handle;
-			break;
-		}
-	}
 
 	RemoveActiveEffect(foundHandle);
 	FGAEffectHandle handle = AddActiveEffect(EffectIn, Ctx);
-
 	FGAEffectTagHandle nameHandle(EffectIn.EffectName, handle);
 	instCont.Effects.Add(nameHandle);
 	
@@ -852,6 +527,9 @@ FGAEffectHandle	FGAActiveEffectContainer::HandleTargetEffectStrongerOverride(FGA
 FGAEffectHandle FGAActiveEffectContainer::CheckTargetEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
 	FGAEffectHandle foundHandle;
+
+	foundHandle = AddActiveEffect(EffectIn, Ctx);
+
 	return foundHandle;
 }
 

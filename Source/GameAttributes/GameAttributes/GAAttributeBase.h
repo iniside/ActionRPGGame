@@ -1,11 +1,11 @@
 #pragma once
 #include "GAGlobalTypes.h"
-#include "GAAttributes.generated.h"
+#include "GAAttributeBase.generated.h"
 
 
 
 USTRUCT(BlueprintType)
-struct GAMEATTRIBUTES_API FGAAttributeBase
+struct GAMEATTRIBUTES_API FGAAttributeBase // : public UObject
 {
 	GENERATED_USTRUCT_BODY()
 public:
@@ -16,11 +16,16 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Value")
 		float ClampValue;
+
 protected:
-	float AdditiveBonus = 0;
-	float SubtractBonus = 0;
-	float MultiplyBonus = 0;
-	float DivideBonus = 1;
+	UPROPERTY()
+		float AdditiveBonus;
+	UPROPERTY()
+		float SubtractBonus;
+	UPROPERTY()
+		float MultiplyBonus;
+	UPROPERTY()
+		float DivideBonus;
 	/*
 		Bonus value calculated from stack of affecting effects.
 	*/
@@ -79,24 +84,32 @@ public:
 
 	void CalculateBonus();
 
-	inline bool operator== (const FGAAttributeBase& OtherAttribute) const
-	{
-		return (OtherAttribute.CurrentValue == CurrentValue);
-	}
+	//inline bool operator== (const FGAAttributeBase& OtherAttribute) const
+	//{
+	//	return (OtherAttribute.CurrentValue == CurrentValue);
+	//}
 
-	inline bool operator!= (const FGAAttributeBase& OtherAttribute) const
-	{
-		return (OtherAttribute.CurrentValue != CurrentValue);
-	}
+	//inline bool operator!= (const FGAAttributeBase& OtherAttribute) const
+	//{
+	//	return (OtherAttribute.CurrentValue != CurrentValue);
+	//}
 
 	FGAAttributeBase()
 		: BaseValue(0),
-		BonusValue(0)
+		BonusValue(0),
+		AdditiveBonus(0),
+		SubtractBonus(0),
+		MultiplyBonus(0),
+		DivideBonus(1)
 	{
 	};
 	FGAAttributeBase(float BaseValueIn)
 		: BaseValue(BaseValueIn),
-		BonusValue(0)
+		BonusValue(0),
+		AdditiveBonus(0),
+		SubtractBonus(0),
+		MultiplyBonus(0),
+		DivideBonus(1)
 	{
 	};
 };

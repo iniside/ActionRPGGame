@@ -1,6 +1,6 @@
 #pragma once
 #include "GAGlobalTypes.h"
-#include "GAAttributes.h"
+#include "GAAttributeBase.h"
 #include "GAEffects.generated.h"
 /*
 This struct contains information needed for effect, to modify attributes
@@ -266,22 +266,37 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
 		FGAEffectPolicy Policy;
-
+	/*
+		Modifiers applied to attribute for duration of effect.
+		Should only be really used with complex Attributes!
+	*/
 	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
 		TArray<FGAAttributeModifier> AttributeModifiers;
+	/*
+		Modifiers, to attributes applied when this effect applied to target.
 
+		Should only be used with float attributes!
+	*/
+	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
+		TArray<FGAAttributeModifier> AppliedModifiers;
 	/*
 		Modifiers which will be applied on effect period.
+
+		Should only be used with float attributes!
 	*/
 	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
 		TArray<FGAAttributeModifier> PeriodModifiers;
 	/*
-		Modifiers which will be applied when effect is prematurly removed
+		Modifiers which will be applied when effect is prematurly removed.
+
+		Should only be used with float attributes!
 	*/
 	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
 		TArray<FGAAttributeModifier> RemovedModifiers;
 	/*
 		Modifiers which will be applied when effect naturally expired.
+
+		Should only be used with float attributes!
 	*/
 	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
 		TArray<FGAAttributeModifier> ExpiredModifiers;
@@ -355,6 +370,7 @@ public:
 		FGAEffectContext Context;
 
 	TArray<FGAAttributeData> GetModifiers();
+	TArray<FGAAttributeData> GetAttributeModifiers();
 	TArray<FGAAttributeData> GetPeriodModifiers();
 	TArray<FGAAttributeData> GetOnEndedModifiers();
 	TArray<FGAAttributeData> GetOnRemovedModifiers();
@@ -399,6 +415,7 @@ USTRUCT()
 struct FGAActiveDuration : public FGAActiveBase
 {
 	GENERATED_USTRUCT_BODY()
+		friend struct FGAActiveEffectContainer;
 public:
 	void OnPeriod();
 	void OnRemoved() {};
@@ -408,7 +425,7 @@ protected:
 	FTimerHandle DurationTimerHandle;
 	
 	TArray<FGEffectModifierGroup> EffectModifiers;
-
+	TArray<FGAAttributeData> AttributeModifiers;
 	TArray<FGAAttributeData> OnEndedModifiers;
 	TArray<FGAAttributeData> OnRemovedModifiers;
 	TArray<FGAAttributeData> PeriodModifiers;
@@ -443,59 +460,6 @@ struct FGAActiveInfinite : public FGAActiveBase
 {
 	GENERATED_USTRUCT_BODY()
 public:
-};
-
-/*
-Group modifiers for single attribute tag by:
-1. Just attribute. No special requriments.
-2. By tags.
-*/
-USTRUCT()
-struct FGAActiveEffectsModifiers
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	FGAActiveEffectsModifiers()
-		: OutgoingAddtiveMod(0),
-		OutgoingSubtractMod(0),
-		OutgoingMultiplyMod(0),
-		OutgoingDivideMod(1),
-		IncomingAddtiveMod(0),
-		IncomingSubtractMod(0),
-		IncomingMultiplyMod(0),
-		IncomingDivideMod(1)
-	{}
-protected:
-	/*
-	Group array of modifiers, by handle to effect,
-	so we know, which modifier were applied by which effect
-	so we can easily remove them along effect.
-	*/
-	TMap<FGAEffectHandle, TArray<FGAEvalData>> EffectMods;
-	//requiredTag, Mods
-	/*
-	Base mods applicable to everything.
-	*/
-	/**/
-	float OutgoingAddtiveMod;
-	float OutgoingSubtractMod;
-	float OutgoingMultiplyMod;
-	float OutgoingDivideMod;
-
-	float IncomingAddtiveMod;
-	float IncomingSubtractMod;
-	float IncomingMultiplyMod;
-	float IncomingDivideMod;
-
-public:
-	void ApplyModifiers(FGAAttributeData& EvalData, const FGAEffectContext& Ctx);
-	void AddModifierEffect(const FGAEffectHandle& HandleIn, const FGAEvalData& Eval);
-	void RemoveModifierEffect(const FGAEffectHandle& HandleIn);
-
-	int32 GetModifierCount();
-	//recalculates entire stack, every time effect is added/or removed.
-	void CalculateNewModifierStack();
-
 };
 
 USTRUCT()
@@ -549,168 +513,6 @@ public:
 	*/
 	TMap<FGameplayTag, TArray<FGAEffectHandle>> EffectsByTag;
 };
-/*
-	Struct containg information about which effects, currently affect,
-	this particular attribute tag.
-*/
-USTRUCT()
-struct FGAActiveEffectModifier
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	FGAActiveEffectModifier()
-		: OutgoingAddtiveMod(0),
-		OutgoingSubtractMod(0),
-		OutgoingMultiplyMod(0),
-		OutgoingDivideMod(1),
-		IncomingAddtiveMod(0),
-		IncomingSubtractMod(0),
-		IncomingMultiplyMod(0),
-		IncomingDivideMod(1)
-	{}
-protected:
-
-	/*
-		Group array of modifiers, by handle to effect,
-		so we know, which modifier were applied by which effect
-		so we can easily remove them along effect.
-	*/
-	TMap<FGAEffectHandle, TArray<FGAEvalData>> EffectMods;
-
-	/*
-		What type of effects, currently affect this stack.
-	*/
-	FGameplayTagContainer AffectingEffectsTags;
-
-	/*
-		Base mods applicable to everything.
-	*/
-	/**/
-	float OutgoingAddtiveMod;
-	float OutgoingSubtractMod;
-	float OutgoingMultiplyMod;
-	float OutgoingDivideMod;
-
-	float IncomingAddtiveMod;
-	float IncomingSubtractMod;
-	float IncomingMultiplyMod;
-	float IncomingDivideMod;
-};
-/*
-	Contains array of effects, associated with this particular effect (by Handle);
-*/
-USTRUCT()
-struct FGAEffectModifierHandles
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	FGAEffectHandle Handle;
-	TArray<FGAEffectModifier> Modifiers;
-	void AddMod(const FGAEffectModifier& ModIn);
-	FGAEffectModifierHandles()
-	{}
-	FGAEffectModifierHandles(const FGAEffectHandle& HandleIn, const TArray<FGAEffectModifier>& ModsIn)
-		:	Handle(HandleIn),
-			Modifiers(ModsIn)
-	{}
-};
-
-USTRUCT()
-struct FGAEffectModifiersCont
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	TArray<FGAEffectModifierHandles> Modifiers;
-};
-
-USTRUCT()
-struct FGAEffectModifiersContainer
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	/*
-		Treat is as map of transient attributes.
-		These attributes are created at runtime, using specific tags.
-
-		This should support:
-		1. Stacking rules. Internally. Example
-		Assume we have two tags Damage and Damage.Fire.
-		Damage = +40%
-		Damage.Fire = +30%
-		Incoming attribute tag Damage.Fire
-		Stacking rule: StrongestOverride.
-
-		In this Damage, should take precedence since, it's highest value and
-		most universal.
-		Damage.Fire should be discarded.
-
-		In case of:
-		Damage = +20%
-		Damage.Fire = +40%
-		Incoming attribute tag Damage.Ice
-		Stacking rule: StrongestOverride.
-		Damage again will take preedence. Damage.Ice is not compatibile with Damage.Fire
-		And highest available bonus is Damage.
-
-		Assuming bonuses stack..
-
-		Since each bonus lives within it's own tag, and it's not simple percentage
-		(it's calculated magnitude or add, subtract, multiply, divide)
-		we can't just linearlly go trough everything and add one after another.
-		It will create unpredictable behaviour, which will entirely depend on order
-		in which bonuses exist on actor.
-
-		1. Stacking rules:
-		a). Set global stacking rule, which will be simply applied to everything.
-		b). Set stacking rule per tag, and aggregate bonuses based on it.
-		
-		If we have global rule we:
-		1. Find highest applicable value, modify by it and go on.
-		2. Find all applicable values, sum them, then apply, and go on.
-
-		If we have rule per attribute:
-		1. Find applicable tags. 
-		2. Check their stacking rules.
-		3. Decide which rule have percedence.
-		4. If one tag is HighestOverride and there are two other mods with Stack Intensity we:
-		a). Stack two latter effects to calculate their magnitude.
-		b). Compare to HighestOverride.
-		c). Take Highest from two results.
-		Kind of crap. I probabaly should not do this.
-
-		Another option.
-		Stacking handled per modifier type. Modifier type is tag. Damage, Damge.Fire. Etc.
-		1. We check if it can stack before we apply this.
-		2. Then internally we use one global rule. Either stack or don't stack, 
-		depending on hierarchy.
-		3. How to handle stacking between different Effect Types ?
-		Effect Type is different, we want to set rules
-		if this effect can stack with other effects, which improve the same AttributeTag
-		If we have two effect which improve Damage.Fire one of type Boon and one of type
-		Enchantment, how do we decide if they can stack ?
-		Add tag container indicated, that it can stack with ?
-	*/
-public:
-	/*
-		Damage
-		Damage.Fire
-		Problem.
-	*/
-	TMap<FGameplayTag, FGAEffectModifiersCont> Modifiers;
-
-	TMap<FGAEffectHandle, TArray<FGAEffectModifier>> AllModifiers;
-public:
-	void AddMods(const FGAEffectHandle& HandleIn, const TArray<FGAEffectModifier>& ModsIn);
-
-	void RemoveMods(const FGAEffectHandle& HandleIn);
-	void RemoveMod(const FGAEffectHandle& HandleIn, FGameplayTagContainer& ModTags);
-	void ApplyModifiersToEffect(FGAAttributeData& EffectIn, const FGameplayTagContainer& EffectTags
-		,const FGAEffectContext& Ctx);
-
-	void StackModifiers(FGAEffectSpec& SpecIn);
-};
-
-
 
 USTRUCT()
 struct FGAActiveEffectContainer
@@ -753,7 +555,6 @@ public:
 	FGAEffectHandle CheckTargetEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
 	
 	void Clean();
-	FGAEffectModifiersContainer EffectMods;
 	/*
 		Map of all Active effects.
 		Store as shared pointers, so we can have some basic polymorphism.

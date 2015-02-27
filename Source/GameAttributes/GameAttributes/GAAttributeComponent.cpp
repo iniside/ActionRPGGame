@@ -111,33 +111,15 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(TArray<FGAAttributeData>& Eva
 	ModifiedAttribute.Empty();
 	for (FGAAttributeData& eval : EvalData)
 	{
-		//eval.ModDirection = EGAModifierDirection::Incoming;
-		//ExecuteModifiers(eval, EffectTags, Context);
-		UStructProperty* attrStr = DefaultAttributes->GetStructAttribute(eval.Attribute);
 		FGAAttributeBase* attr = DefaultAttributes->GetAttribute(eval.Attribute);
 		float newValue = 0;
-		if (attr && attrStr)
+		if (attr)
 		{
 			if (HandleIn.IsValid())
 			{
-				
-				attr->AddBonus(FGAModifier(eval.Mod, eval.Value), HandleIn);
-				//attrStr->Struct->CopyScriptStruct(attrStr, attr);
-				//attrStr->CopyCompleteValue(attrStr, attr);
-				DefaultAttributes->SetAttribute(eval.Attribute, attr);
+				DefaultAttributes->SetAttributeAdditiveBonus(eval.Attribute, eval.Value);
 			}
 		}
-		//FGAAttributeBase* attr = this->DefaultAttributes->GetAttribute(eval.Attribute);
-		//float newValue = 0;
-		//if (attr)
-		//{
-		//	if (HandleIn.IsValid())
-		//	{
-		//		attr->AddBonus(FGAModifier(eval.Mod, eval.Value), HandleIn);
-		//		DefaultAttributes->SetAttribute(eval.Attribute, attr);
-		//	}
-		//}
-		//and for now forget about other cases.
 		else
 		{
 			newValue = DefaultAttributes->AttributeOperation(eval.Attribute, eval.Value, eval.Mod);
