@@ -152,6 +152,8 @@ FGAActiveDuration::FGAActiveDuration(const FGAEffectContext& ContextIn, FGAEffec
 	const FGAEffectHandle& HandleIn)
 	//	: Context(ContextIn)
 {
+	AggregationType = SpecIn.Policy.Aggregation;
+	EffectName = SpecIn.EffectName;
 	Duration = SpecIn.EffectDuration.Duration;
 	Period = SpecIn.EffectDuration.Period;
 	MyHandle = HandleIn;
@@ -232,8 +234,19 @@ void FGAActiveEffectContainer::RemoveActiveEffect(const FGAEffectHandle& HandleI
 	ActiveEffects.RemoveAndCopyValue(HandleIn, removedEffect);
 	if (removedEffect.IsValid())
 	{
-		//EffectMods.RemoveMods(removedEffect->MyHandle);
-		////uhhhuuhu, we need to clean up all handles from attributes as well
+		switch (removedEffect->AggregationType)
+		{
+		case EGAEffectAggregation::AggregateByInstigator:
+			RemoveInstigatorAggregation(removedEffect);
+			break;
+		case EGAEffectAggregation::AggregateByTarget:
+			RemoveTargetAggregation(removedEffect);
+			break;
+		}
+
+		/*
+			Clear modifiers, applied directly to attributes (if any).
+		*/
 		for (FGAAttributeData& data : removedEffect->AttributeModifiers)
 		{
 			FGAAttributeBase* attr = removedEffect->Context.TargetComp->GetAttribute(data.Attribute);
@@ -243,10 +256,36 @@ void FGAActiveEffectContainer::RemoveActiveEffect(const FGAEffectHandle& HandleI
 			}
 		}
 		
+
 		removedEffect->FinishEffect();
 	}
 }
+void FGAActiveEffectContainer::RemoveTargetAggregation(TSharedPtr<FGAActiveDuration> EffectIn)
+{
+	TArray<FGAEffectHandle>* handles;
+	handles = MyEffects.Find(EffectIn->EffectName);
 
+	for (auto It = handles->CreateIterator(); It; ++It)
+	{
+		if (*It == EffectIn->MyHandle)
+		{
+			handles->RemoveAtSwap(It.GetIndex());
+		}
+	}
+}
+void FGAActiveEffectContainer::RemoveInstigatorAggregation(TSharedPtr<FGAActiveDuration> EffectIn)
+{
+	FGAInstigatorEffectContainer& instCont = InstigatorEffects.FindOrAdd(EffectIn->Context.InstigatorComp);
+
+	for (auto It = instCont.Effects.CreateIterator(); It; ++It)
+	{
+		if (It->Handle == EffectIn->MyHandle)
+		{
+			instCont.Effects.RemoveAtSwap(It.GetIndex());
+		}
+	}
+
+}
 FGAEffectHandle FGAActiveEffectContainer::AddActiveEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
 	FGAEffectHandle handle = FGAEffectHandle::GenerateHandle();
@@ -469,6 +508,7 @@ FGAEffectHandle	FGAActiveEffectContainer::HandleInstigatorEffectStrongerOverride
 FGAEffectHandle FGAActiveEffectContainer::HandleInstigatorEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
 	FGAInstigatorEffectContainer& instCont = InstigatorEffects.FindOrAdd(Ctx.InstigatorComp);
+	
 	FGAEffectHandle foundHandle;
 
 	RemoveActiveEffect(foundHandle);
@@ -486,6 +526,33 @@ FGAEffectHandle	FGAActiveEffectContainer::HandleInstigatorEffectAdd(FGAEffectSpe
 FGAEffectHandle	FGAActiveEffectContainer::HandleInstigatorEffectDuration(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
 	FGAEffectHandle foundHandle;
+	FGAInstigatorEffectContainer& instCont = InstigatorEffects.FindOrAdd(Ctx.InstigatorComp);
+
+	for (FGAEffectTagHandle& eff : instCont.Effects)
+	{
+		if (EffectIn.EffectName == eff.EffectName)
+		{
+			foundHandle = eff.Handle;
+			break;
+		}
+	}
+	
+	if (foundHandle.IsValid())
+	{
+		TSharedPtr<FGAActiveDuration> durationEffect = ActiveEffects.FindRef(foundHandle);
+		if (durationEffect.IsValid())
+		{
+			durationEffect->RestartTimer(EffectIn.EffectDuration.Duration);
+		}
+	}
+	else
+	{
+		//if handle is not valid, it means there is no effect,
+		//and this means we have to add new effect.
+		foundHandle = AddActiveEffect(EffectIn, Ctx);
+		instCont.Effects.Add(FGAEffectTagHandle(EffectIn.EffectName, foundHandle));
+	}
+	
 	return foundHandle;
 }
 FGAEffectHandle FGAActiveEffectContainer::HandleTargetAggregationEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
@@ -495,12 +562,10 @@ FGAEffectHandle FGAActiveEffectContainer::HandleTargetAggregationEffect(FGAEffec
 	case EGAEffectStacking::StrongerOverride:
 	{
 		return HandleTargetEffectStrongerOverride(EffectIn, Ctx);
-		break;
 	}
 	case EGAEffectStacking::Override:
 	{
-		return CheckTargetEffectOverride(EffectIn, Ctx);
-		break;
+		return HandleTargetEffectOverride(EffectIn, Ctx);
 	}
 	case EGAEffectStacking::Duration:
 	{
@@ -512,7 +577,7 @@ FGAEffectHandle FGAActiveEffectContainer::HandleTargetAggregationEffect(FGAEffec
 	}
 	case EGAEffectStacking::Add:
 	{
-		break;
+		return HandleTargetEffectAdd(EffectIn, Ctx);
 	}
 	default:
 		break;
@@ -524,15 +589,33 @@ FGAEffectHandle	FGAActiveEffectContainer::HandleTargetEffectStrongerOverride(FGA
 
 	return FGAEffectHandle();
 }
-FGAEffectHandle FGAActiveEffectContainer::CheckTargetEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
+FGAEffectHandle FGAActiveEffectContainer::HandleTargetEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
-	FGAEffectHandle foundHandle;
+	TArray<FGAEffectHandle> handles;
+	handles = MyEffects.FindRef(EffectIn.EffectName);
 
-	foundHandle = AddActiveEffect(EffectIn, Ctx);
+	for (const FGAEffectHandle& hand : handles)
+	{
+		RemoveActiveEffect(hand);
+	}
 
-	return foundHandle;
+	FGAEffectHandle newHandle = AddActiveEffect(EffectIn, Ctx);
+
+	TArray<FGAEffectHandle>& addedHandle = MyEffects.FindOrAdd(EffectIn.EffectName);
+	addedHandle.Add(newHandle);
+
+	return newHandle;
 }
 
+FGAEffectHandle FGAActiveEffectContainer::HandleTargetEffectAdd(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
+{
+	FGAEffectHandle newHandle = AddActiveEffect(EffectIn, Ctx);
+
+	TArray<FGAEffectHandle>& addedHandle = MyEffects.FindOrAdd(EffectIn.EffectName);
+	addedHandle.Add(newHandle);
+
+	return newHandle;
+}
 
 void FGAActiveEffectContainer::Clean()
 {

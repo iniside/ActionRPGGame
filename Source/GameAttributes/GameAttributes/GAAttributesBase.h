@@ -94,6 +94,14 @@ public:
 		These function MUST be in category PostEffectRemoved
 	*/
 	virtual void PostEffectRemoved(const FGAEffectHandle& HandleIn, const FGAEffectSpec& SpecIn) {};
+	/*
+		Called before attribute will be modified.
+		On both instigator (first, as an outgoing),
+		and on target (second, as an incoming).
+
+		Intentionally non const. Attribute is in and out.
+	*/
+	virtual float PreModifyAttribute(FGAAttributeData& AttributeMod, EGAModifierDirection Direction) { return 0; };
 	//probabaly doesn't need to be vritual any longer. 
 	/*
 		Impelement your custom logic how changed attribute should affect other attributes.

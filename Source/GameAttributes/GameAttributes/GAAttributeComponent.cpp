@@ -111,6 +111,7 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(TArray<FGAAttributeData>& Eva
 	ModifiedAttribute.Empty();
 	for (FGAAttributeData& eval : EvalData)
 	{
+		DefaultAttributes->PreModifyAttribute(eval, EGAModifierDirection::Incoming);
 		FGAAttributeBase* attr = DefaultAttributes->GetAttribute(eval.Attribute);
 		float newValue = 0;
 		if (attr)
@@ -153,11 +154,10 @@ void UGAAttributeComponent::ModifyAttributesOnTarget(TArray<FGAAttributeData>& E
 	//if (Context.TargetComp.IsValid()
 	//	&& Context.InstigatorComp.IsValid())
 	//{
-	//for (FGAAttributeData& eval : EvalData)
-	//{
-	//	ExecuteModifiers(eval, EffectTags, Context);
-	//	eval.ModDirection = EGAModifierDirection::Incoming;
-	//}
+	for (FGAAttributeData& eval : EvalData)
+	{
+		DefaultAttributes->PreModifyAttribute(eval, EGAModifierDirection::Outgoing);
+	}
 	Context.TargetComp->ModifyAttributesOnSelf(EvalData, Context, EffectTags, HandleIn);
 	//}
 }

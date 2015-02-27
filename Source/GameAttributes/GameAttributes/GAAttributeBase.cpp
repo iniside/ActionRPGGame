@@ -227,11 +227,11 @@ FGAAttributeData FGAAttributeModifier::GetModifier(const FGAEffectContext& Conte
 	switch (CalculationType)
 	{
 	case EGAMagnitudeCalculation::Direct:
-		return FGAAttributeData(Attribute, Mod, AttributeTag, DirectModifier.GetValue());
+		return FGAAttributeData(Attribute, Mod, DirectModifier.GetValue());
 	case EGAMagnitudeCalculation::AttributeBased:
-		return FGAAttributeData(Attribute, Mod, AttributeTag, AttributeBased.GetValue(ContextIn));
+		return FGAAttributeData(Attribute, Mod, AttributeBased.GetValue(ContextIn));
 	case EGAMagnitudeCalculation::CurveBased:
-		return FGAAttributeData(Attribute, Mod, AttributeTag, CurveBased.GetValue(ContextIn));;
+		return FGAAttributeData(Attribute, Mod, CurveBased.GetValue(ContextIn));;
 	case EGAMagnitudeCalculation::CustomCalculation:
 		break;
 	default:

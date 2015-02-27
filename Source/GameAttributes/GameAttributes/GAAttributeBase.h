@@ -241,6 +241,12 @@ public:
 		Value(ValueIn)
 	{
 	};
+	FGAAttributeData(const FGAAttribute& AttributeIn, EGAAttributeMod ModIn, float ValueIn)
+		: Attribute(AttributeIn),
+		Mod(ModIn),
+		Value(ValueIn)
+	{
+	};
 };
 
 USTRUCT(BlueprintType)
@@ -463,24 +469,6 @@ public:
 		EGAAttributeMod Mod;
 
 	EGAModifierDirection ModDirection;
-	/*
-		Tag for this attribute. Something like Damage.Fire, Damage.Condition.Bleed, Boon.SpeedBonus,
-		Damage.Condition.Burning.
-
-		These tags are used to check if this modifier can be modified by other effects.
-
-		I still need to figure out exactly to handle "targeted" bonuses like +20% damage against Undead.
-
-		Deprecated use AttributeTags
-	*/
-	UPROPERTY(EditAnywhere)
-		FGameplayTag AttributeTag;
-
-	/*
-		Don't use this at all.. Have another idea!
-	*/
-	UPROPERTY(EditAnywhere)
-		FGameplayTagContainer AttributeTags;
 
 	UPROPERTY(EditAnywhere)
 		FGADirectModifier DirectModifier;

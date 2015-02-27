@@ -92,6 +92,10 @@ void UARCharacterAttributes::PostEffectRemoved(const FGAEffectHandle& HandleIn, 
 	}
 }
 
+float UARCharacterAttributes::PreModifyAttribute(FGAAttributeData& AttributeMod, EGAModifierDirection Direction)
+{
+	return 0;
+}
 
 float UARCharacterAttributes::PostModifyAttribute(const FGAEvalData& AttributeMod)
 {

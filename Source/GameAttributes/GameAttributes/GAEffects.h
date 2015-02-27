@@ -398,6 +398,9 @@ struct FGAActiveBase
 {
 	GENERATED_USTRUCT_BODY()
 		FGAEffectHandle MyHandle;
+	FGAEffectName EffectName;
+
+	EGAEffectAggregation AggregationType;
 	UPROPERTY()
 		FGAEffectContext Context;
 	TArray<FGAAttributeData> OnAppliedModifiers;
@@ -521,40 +524,61 @@ struct FGAActiveEffectContainer
 public:
 	FGAActiveEffectContainer()
 	{}
-	FGAEffectHandle ApplyEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Ctx);
+	
 
+	/*
+		Both functions are only for internal use!
+		These are not safe to use outside of EffectContainer.
+	*/
+	/*
+		Generic function, which will remove effect, given handle.
+		Does not perform any checks.
+	*/
 	void RemoveActiveEffect(const FGAEffectHandle& HandleIn);
+protected:
+	void RemoveTargetAggregation(TSharedPtr<FGAActiveDuration> EffectIn);
+	void RemoveInstigatorAggregation(TSharedPtr<FGAActiveDuration> EffectIn);
+	/*
+		Generic function, which will add any effect.
 
+		It does not perform any checks.
+	*/
+	FGAEffectHandle AddActiveEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+public:
+	FGAEffectHandle ApplyEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Ctx);
+	void Clean();
 	/*
 		Execute modifiers from existing effect, spec on incoming effect.
 	*/
 	void ExecuteEffectModifier(FGAAttributeData& ModifierIn, 
 		const FGameplayTagContainer& EffectTags, const FGAEffectContext& Ctx);
-
+protected:
 	FGAEffectHandle HandleInstantEffect(FGAEffectInstant& SpecIn, const FGAEffectContext& Ctx);
 
 	//merge duration and periodic.
 	FGAEffectHandle HandleDurationEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
-
-	
-	FGAEffectHandle AddActiveEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
-
 	FGAEffectHandle HandleInstigatorAggregationEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
 	FGAEffectHandle	HandleInstigatorEffectStrongerOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
 	FGAEffectHandle HandleInstigatorEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
-
 	FGAEffectHandle	HandleInstigatorEffectAdd(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
 	/*
 		If existing effect has been found, it will simply return handle to existing effect.
 		If new effect has been added return handle to new effect.
 	*/
 	FGAEffectHandle	HandleInstigatorEffectDuration(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
-
 	FGAEffectHandle HandleTargetAggregationEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
 	FGAEffectHandle	HandleTargetEffectStrongerOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
-	FGAEffectHandle CheckTargetEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+	/*
+		Simply find existing effect of the same type on target.
+		Remove it.
+		Apply new one.
+
+		Does not check for anything.
+	*/
+	FGAEffectHandle HandleTargetEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+	FGAEffectHandle HandleTargetEffectAdd(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+
 	
-	void Clean();
 	/*
 		Map of all Active effects.
 		Store as shared pointers, so we can have some basic polymorphism.
