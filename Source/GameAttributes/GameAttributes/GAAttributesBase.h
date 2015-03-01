@@ -36,9 +36,6 @@
 	myriads of possible combinations of those tree systems. We would need to mix some instanced/non-instanced UObjects
 	along with plain structs. Which is probabaly going to be total mess.
 */
-/*
-	Execute effmod object linearlly in single iteration every time appropertiate attribute is modified.
-*/
 UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInlineNew)
 class GAMEATTRIBUTES_API UGAAttributesBase : public UObject
 {

@@ -108,8 +108,6 @@ float UARCharacterAttributes::PostModifyAttribute(const FGAEvalData& AttributeMo
 	prefix.Append(attribute.ToString());
 
 	TWeakObjectPtr<UFunction> NativeFunc = PostModifyAttributeFunctions.FindRef(attribute);// GetClass()->FindFunctionByName(*prefix);
-	//if (!NativeFunc)
-	//	return Callback;
 
 	if (NativeFunc.IsValid())
 	{

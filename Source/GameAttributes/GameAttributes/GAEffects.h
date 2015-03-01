@@ -307,17 +307,16 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
 		TArray<FGAEffectModifier> EffectModifiers;
-	
+	/*
+		Duration of effect. Separate for Period duration, and total duration.
+
+		Right now you type, values directly.
+	*/
 	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
 		FGAEffectDuration EffectDuration;
 
 	/*
-		Tags, which describe this effect. Please, refrain
-		from using more than one tag! 
-		Like Condition, Condition.Bleed, Boon, Enchatment,
-		Hex, Status, whatever.
-		If you use more than one tag, it might and will produce
-		unpredictable results, which are going to be hard to balance out.
+		Tags, which describe this effect. 
 	*/
 	UPROPERTY(EditAnywhere, Category = "Tags")
 		FGameplayTagContainer EffectTags;

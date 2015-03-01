@@ -17,6 +17,20 @@ void SGAAttributeWidget::Construct(const FArguments& InArgs)
 	AttributesNodes.Empty();
 	OnAttributeSelected = InArgs._OnAttributeSelectedIn;
 
+	/*
+		Intended look:
+		ClassName
+		--CategoryName
+		----AttributeName
+
+		Or:
+		ClassName
+		--CategoryName
+		----AttributeType
+		------AttributeName
+
+		+ search. We really need search!
+	*/
 	for (TObjectIterator<UClass> ClassIt; ClassIt; ++ClassIt)
 	{
 		UClass* Class = *ClassIt;
@@ -26,29 +40,70 @@ void SGAAttributeWidget::Construct(const FArguments& InArgs)
 			FString className = Class->GetName();
 			if (!className.Contains(TEXT("REINST_")))
 			{
-				TSharedPtr<FGAAttributeNode> attributeNode = MakeShareable(new FGAAttributeNode());
-				attributeNode->Attribute = className;
-				FString Category = "";
-				FString LastCategory = "";
+				TSharedPtr<FGAAttributeNode> classRootNode = MakeShareable(new FGAAttributeNode());
+				classRootNode->Attribute = className;
+				//first let's find root of tree, which is class name
+				classRootNode->NodeName = className;
+				FString Category;
+				//now let's categories as childs
 				for (TFieldIterator<UProperty> PropertyIt(Class, EFieldIteratorFlags::ExcludeSuper); PropertyIt; ++PropertyIt)
 				{
 					UProperty* Prop = *PropertyIt;
 					Category = Prop->GetMetaData("Category");
-					
-					
-						attributeNode->AttributeNames.Add(Prop->GetName());
-					
-					//if (Category != LastCategory)
-					//{
-					//	attributeNode->CategoryNames.Add(Category);
-					//	LastCategory = Category;
-					//}
-					//I need array within array, one for list of attributes, and one for class names.
-					//	TSharedPtr<FString> attribute = MakeShareable(new FString(Prop->GetName()));
-					
-					//AttributesList.Add(attribute);
+
+					//check if we already have this category added..
+					bool bFoundExistingCategory = false;
+					if (!Category.IsEmpty())
+					{
+						for (TSharedPtr<FGAAttributeNode> childNode : classRootNode->ChildNodes)
+						{
+							if (childNode->NodeName == Category)
+							{
+								bFoundExistingCategory = true;
+								TSharedPtr<FGAAttributeNode> attrNode = MakeShareable(new FGAAttributeNode());
+								attrNode->NodeName = Prop->GetName();
+								attrNode->ParentNode = childNode;
+								childNode->ChildNodes.Add(attrNode);
+							}
+						}
+						if (!bFoundExistingCategory)
+						{
+							TSharedPtr<FGAAttributeNode> categoryNode = MakeShareable(new FGAAttributeNode());
+							categoryNode->NodeName = Category;
+							categoryNode->ParentNode = classRootNode;
+							classRootNode->ChildNodes.Add(categoryNode);
+
+							TSharedPtr<FGAAttributeNode> attrNode = MakeShareable(new FGAAttributeNode());
+							attrNode->NodeName = Prop->GetName();
+							attrNode->ParentNode = categoryNode;
+							categoryNode->ChildNodes.Add(attrNode);
+						}
+						//if (childNode->NodeName == Category)
+						//{
+						//	//if we have, add new attribute node
+						//	TSharedPtr<FGAAttributeNode> attrNode = MakeShareable(new FGAAttributeNode());
+						//	attrNode->NodeName = Prop->GetName();
+						//	attrNode->ParentNode = childNode;
+						//	childNode->ChildNodes.Add(attrNode);
+						//}
+						if (classRootNode->ChildNodes.Num() <= 0)
+						{
+							//add first category
+							TSharedPtr<FGAAttributeNode> categoryNode = MakeShareable(new FGAAttributeNode());
+							categoryNode->NodeName = Category;
+							categoryNode->ParentNode = classRootNode;
+							classRootNode->ChildNodes.Add(categoryNode);
+							//and first attribute from category.
+							TSharedPtr<FGAAttributeNode> attrNode = MakeShareable(new FGAAttributeNode());
+							attrNode->NodeName = Prop->GetName();
+							attrNode->ParentNode = categoryNode;
+							categoryNode->ChildNodes.Add(attrNode);
+						}
+					}
+
+					//classRootNode->AttributeNames.Add(Prop->GetName());
 				}
-				AttributesNodes.Add(attributeNode);
+				AttributesNodes.Add(classRootNode);
 			}
 		}
 	}
@@ -71,9 +126,12 @@ SGAAttributeWidget::~SGAAttributeWidget()
 
 void SGAAttributeWidget::OnItemSelected(TSharedPtr<FGAAttributeNode> SelectedItem, ESelectInfo::Type SelectInfo)
 {
-	if (OnAttributeSelected.IsBound())
+	if (SelectedItem.IsValid())
 	{
-		OnAttributeSelected.Execute(SelectedItem->Attribute);
+		if (OnAttributeSelected.IsBound())
+		{
+			OnAttributeSelected.Execute(SelectedItem->NodeName);
+		}
 	}
 }
 
@@ -82,27 +140,29 @@ TSharedRef<ITableRow> SGAAttributeWidget::OnGenerateRow(TSharedPtr<FGAAttributeN
 	return SNew(STableRow< TSharedPtr<FGAAttributeNode> >, OwnerTable)
 		[
 			SNew(STextBlock)
-			.Text(FText::FromString(InItem->Attribute))
+			.Text(FText::FromString(InItem->NodeName))
 		];
 }
 
 void SGAAttributeWidget::OnGetChildren(TSharedPtr<FGAAttributeNode> InItem, TArray< TSharedPtr<FGAAttributeNode> >& OutChildren)
 {
 	TArray<TSharedPtr<FGAAttributeNode>> Children;
-	//for (const FString& category : InItem->CategoryNames)
-	//{
-	//	TSharedPtr<FGAAttributeNode> attrNode = MakeShareable(new FGAAttributeNode());
-	//	attrNode->Attribute = category;
-	//	Children.Add(attrNode);
 
-	//}
+	TArray<TSharedPtr<FGAAttributeNode>> Children2;
+
 	for (const FString& attribute : InItem->AttributeNames)
 	{
 		TSharedPtr<FGAAttributeNode> attrNode = MakeShareable(new FGAAttributeNode());
 		attrNode->Attribute = attribute;
 		Children.Add(attrNode);
 	}
-	OutChildren = Children;
+
+	for (TSharedPtr<FGAAttributeNode> childs : InItem->ChildNodes)
+	{
+		Children2.Add(childs);
+	}
+
+	OutChildren += Children2;
 }
 
 

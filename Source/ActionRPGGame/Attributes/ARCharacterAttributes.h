@@ -10,8 +10,40 @@ DECLARE_CYCLE_STAT_EXTERN(TEXT("GameAttributesOutgoingAttribute"), STAT_Outgoing
 DECLARE_CYCLE_STAT_EXTERN(TEXT("GameAttributesIncomingAttribute"), STAT_IncomingAttribute, STATGROUP_GameAttributes, );
 
 /*
+	The basic workflow idea:
 
-	Execute effmod object linearlly in single iteration every time appropertiate attribute is modified.
+	1. Create scalar(float) attributes, which are transient. They should never be saved and
+	always initialized to 0. For example, attributes like Damage, FireDamage, Heal, EnergyCost,
+	PercentageDamage.
+	For most of games, these will be attributes, which simply modify other non-transient attributes.
+	
+	2. Use FGAAttributeBase or derived from, to create normal attributes, like Health,
+	Energy, DamageBonus, FireDamageBonus etc. 
+	These attributes can be safely serialized, and are able to track their own state
+	(what are my modifiers, who modify me etc).
+
+	3. When scalar attribute is modified, it will go trough two functions:
+	PreModifyAttribute, PostModifyAttribute.
+	You should implement functions named PostAttribute_AttributeName
+	and PreAttribute_AttributeName
+
+	PreModifyAttribute is called, before attribtue is being applied to target, and it
+	is called on both instigator and target.
+
+	PostModifyAttribute is called only on target, and in general you should use it to handle, 
+	basic interaction between attributes, not to calculate attribute values.
+
+	You probabaly will want to split PreAttribute functions into two parts. Outgoing and Incoming.
+	You don't want Instigator armor, to reduce Outgoing damage, applied to target.
+	But you probabaly want, target armor to reduce incoming damage.
+	There might be a better way to handle it.
+
+	The upside of this approach is the fact, that we have very fine controll, over
+	what exactly affect attribute, and how it will stack (DamageBonus, for 
+	example might not affect FireDamage).
+
+	The downside is that, we have to maintain long list of functions, which
+	must fallow very specific pattern of naming.
 */
 UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInlineNew)
 class ACTIONRPGGAME_API UARCharacterAttributes : public UGAAttributesBase
@@ -98,7 +130,7 @@ public:
 	UPROPERTY()
 		float StaminaPercentageDamage;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Resource|Cost")
 		float HealthCost;
 	UPROPERTY()
 		float EnergyCost;//??
@@ -116,9 +148,9 @@ public:
 	/*
 		Helper attributes, which are used to apply different types of damage. Ahoy!
 	*/
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float Damage;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float PhysicalDamage;
 	UPROPERTY()
 		float MagicalDamage;
@@ -241,6 +273,7 @@ public:
 	virtual void PostEffectApplied() override;
 	virtual void PostEffectRemoved(const FGAEffectHandle& HandleIn, const FGAEffectSpec& SpecIn) override;
 
+	virtual float PreModifyAttribute(FGAAttributeData& AttributeMod, EGAModifierDirection Direction) override;
 	/*
 		This need simpler data structure for modification in blueprint.
 	*/
