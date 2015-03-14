@@ -14,6 +14,28 @@
 //{
 //
 //}
+
+void FGAAttributeBase::InstantApplication(const FGAModifier& ModifierIn)
+{
+	switch (ModifierIn.AttributeMod)
+	{
+	case EGAAttributeMod::Add:
+		CurrentValue += ModifierIn.Value;
+		break;
+	case EGAAttributeMod::Subtract:
+		CurrentValue -= ModifierIn.Value;
+		break;
+	case EGAAttributeMod::Multiply:
+		CurrentValue *= ModifierIn.Value;
+		break;
+	case EGAAttributeMod::Divide:
+		CurrentValue /= ModifierIn.Value;
+		break;
+	default:
+		break;
+	}
+}
+
 void FGAAttributeBase::AddBonus(const FGAModifier& ModifiersIn, const FGAEffectHandle& Handle)
 {
 	TArray<FGAModifier>& modsTemp = Modifiers.FindOrAdd(Handle);

@@ -76,6 +76,11 @@ public:
 	//{
 	//	return FMath::Clamp<float>(BaseValue + BonusValue + AccumulatedBonus, 0, GetFinalValue());;
 	//}
+	/*
+		Use it to apply instant, permament change to attribute.
+		Don't use it with multiply/Divide!
+	*/
+	void InstantApplication(const FGAModifier& ModifierIn);
 
 	void AddBonus(const FGAModifier& ModifiersIn, const FGAEffectHandle& Handle);
 	void RemoveBonus(const FGAEffectHandle& Handle);
@@ -136,6 +141,15 @@ public:
 	//final value we will try to apply to attribute.
 	UPROPERTY(BlueprintReadOnly)
 		float Value;
+	/*
+		Useful for calculating final bonuses, in attribute class, where we can easily
+		get all modifiers from causer and target.
+	*/
+	/*
+		Who caused, to whom.
+	*/
+	UPROPERTY()
+		FGAEffectContext Context;
 
 	FGAEvalData()
 	{
@@ -155,6 +169,17 @@ public:
 		Mod(ModIn),
 		ModDirection(ModDirectionIn),
 		AttributeTag(AttributeTagIn),
+		Value(ValueIn)
+	{
+	};
+	FGAEvalData(const FGAAttribute& AttributeIn, EGAAttributeMod ModIn,
+		EGAModifierDirection ModDirectionIn, const FGameplayTag& AttributeTagIn,
+		const FGAEffectContext& ContextIn, float ValueIn)
+		: Attribute(AttributeIn),
+		Mod(ModIn),
+		ModDirection(ModDirectionIn),
+		AttributeTag(AttributeTagIn),
+		Context(ContextIn),
 		Value(ValueIn)
 	{
 	};
