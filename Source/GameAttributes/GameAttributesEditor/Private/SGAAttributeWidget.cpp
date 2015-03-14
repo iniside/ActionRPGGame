@@ -78,30 +78,7 @@ void SGAAttributeWidget::Construct(const FArguments& InArgs)
 							attrNode->ParentNode = categoryNode;
 							categoryNode->ChildNodes.Add(attrNode);
 						}
-						//if (childNode->NodeName == Category)
-						//{
-						//	//if we have, add new attribute node
-						//	TSharedPtr<FGAAttributeNode> attrNode = MakeShareable(new FGAAttributeNode());
-						//	attrNode->NodeName = Prop->GetName();
-						//	attrNode->ParentNode = childNode;
-						//	childNode->ChildNodes.Add(attrNode);
-						//}
-						if (classRootNode->ChildNodes.Num() <= 0)
-						{
-							//add first category
-							TSharedPtr<FGAAttributeNode> categoryNode = MakeShareable(new FGAAttributeNode());
-							categoryNode->NodeName = Category;
-							categoryNode->ParentNode = classRootNode;
-							classRootNode->ChildNodes.Add(categoryNode);
-							//and first attribute from category.
-							TSharedPtr<FGAAttributeNode> attrNode = MakeShareable(new FGAAttributeNode());
-							attrNode->NodeName = Prop->GetName();
-							attrNode->ParentNode = categoryNode;
-							categoryNode->ChildNodes.Add(attrNode);
-						}
 					}
-
-					//classRootNode->AttributeNames.Add(Prop->GetName());
 				}
 				AttributesNodes.Add(classRootNode);
 			}
