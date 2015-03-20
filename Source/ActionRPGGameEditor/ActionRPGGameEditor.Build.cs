@@ -22,18 +22,15 @@ public class ActionRPGGameEditor : ModuleRules
 		);
         PublicDependencyModuleNames.AddRange(new string[] 
 		{ 
+            "GameplayTags",
+            "GameplayTagsEditor",
             "ActionRPGGame",
             "GameInventorySystem",
             "GameInventorySystemEditor",
             "GameAttributes",
             "GameAttributesEditor",
-            "GameplayTags",
             "GameplayAbilitiesEditor",
-            "AssetTools",
-            "GameplayTags",
-            "GameplayTagsEditor",
-            "GameplayTags",
-            "AssetTools",
+
             
 		});
         PrivateDependencyModuleNames.AddRange(new string[] 
@@ -45,8 +42,8 @@ public class ActionRPGGameEditor : ModuleRules
 			"SlateCore",
 			"Engine",
             "InputCore",
-			"AssetTools",
 			"UnrealEd", // for FAssetEditorManager
+            "AssetTools",
 			"KismetWidgets",
 			"GraphEditor",
 			"Kismet",  // for FWorkflowCentricApplication
