@@ -4,8 +4,8 @@ using UnrealBuildTool;
 
 public class ActionRPGGame : ModuleRules
 {
-	public ActionRPGGame(TargetInfo Target)
-	{
+    public ActionRPGGame(TargetInfo Target)
+    {
         PublicIncludePaths.AddRange(
             new string[] {
                     "GameInterfaces",
@@ -37,8 +37,8 @@ public class ActionRPGGame : ModuleRules
 					// ... add other private include paths required here ...
 				}
             );
-		PublicDependencyModuleNames.AddRange(
-			new string[] { 
+        PublicDependencyModuleNames.AddRange(
+            new string[] { 
 				"Core", 
 				"CoreUObject", 
 				"Engine", 
@@ -48,16 +48,23 @@ public class ActionRPGGame : ModuleRules
                 "SlateCore",
                 "GameplayTags",
                 "GameInventorySystem", 
-				"GameAttributes",
+                "GameAttributes",
                 "GameFloatingCombatText",
                 "GameAbilities",
+                "GameWeapons",
                 "GameSystem",
                 "GameInterfaces"
 				});
-		if (Target.Type == TargetRules.TargetType.Editor)
+        PrivateDependencyModuleNames.AddRange(
+        new string[]
+				    {
+					    // ... add private dependencies that you statically link with here ...
+				    }
+        );
+        if (Target.Type == TargetRules.TargetType.Editor)
         {
-            PublicDependencyModuleNames.AddRange(new string[] { "UnrealEd", "PropertyEditor", "GameAttributesEditor"});
+            PublicDependencyModuleNames.AddRange(new string[] { "UnrealEd", "PropertyEditor" });
         }
-	}
+    }
 
 }

@@ -34,7 +34,7 @@ FString FBPNode_SpawnEffectFieldHelper::InstigatorPinName(TEXT("FieldInstigator"
 UBPNode_SpawnEffectField::UBPNode_SpawnEffectField(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	NodeTooltip = LOCTEXT("NodeTooltip", "Create new effect field from ability");
+	//NodeTooltip = LOCTEXT("NodeTooltip", "Create new effect field from ability");
 }
 
 //Adds default pins to node. These Pins (inputs ?) are always displayed.

@@ -52,4 +52,6 @@ class GAMESYSTEMEDITOR_API UBPNode_SpawnEffectField : public UK2Node_SpawnActorF
 	UEdGraphPin* GetInstigatorPin() const;
 protected:
 	void OnClassPinChanged();
+private:
+	FNodeTextCache CachedNodeTitle;
 };

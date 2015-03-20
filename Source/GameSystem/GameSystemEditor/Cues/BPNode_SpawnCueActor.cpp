@@ -34,7 +34,7 @@ FString FBPNode_SpawnCueActorHelper::InstigatorPinName(TEXT("CueInstigator"));
 UBPNode_SpawnCueActor::UBPNode_SpawnCueActor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	NodeTooltip = LOCTEXT("NodeTooltip", "Create visual cue actor.");
+	//NodeTooltip = LOCTEXT("NodeTooltip", "Create visual cue actor.");
 }
 
 //Adds default pins to node. These Pins (inputs ?) are always displayed.

@@ -25,6 +25,7 @@ public class ActionRPGGameTarget : TargetRules
 		OutExtraModuleNames.Add("GameInventorySystem");
 		OutExtraModuleNames.Add("GameAttributes");
 		OutExtraModuleNames.Add("GameAbilities");
+        OutExtraModuleNames.Add("GameSystem");
 		OutExtraModuleNames.Add("GameSystem");
 		OutExtraModuleNames.Add("GameFloatingCombatText");
         OutExtraModuleNames.Add("ActionRPGGame");
@@ -35,6 +36,7 @@ public class ActionRPGGameTarget : TargetRules
 			OutExtraModuleNames.Add("GameAttributesEditor");
 			OutExtraModuleNames.Add("GameAbilitiesEditor");
 			OutExtraModuleNames.Add("GameFloatingCombatTextEditor");
+            OutExtraModuleNames.Add("GameSystemEditor");
 			OutExtraModuleNames.Add("GameSystemEditor");
             OutExtraModuleNames.Add("ActionRPGGameEditor");
         }

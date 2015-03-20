@@ -30,8 +30,6 @@ public class ActionRPGGameEditor : ModuleRules
             "GameAttributes",
             "GameAttributesEditor",
             "GameplayAbilitiesEditor",
-
-            
 		});
         PrivateDependencyModuleNames.AddRange(new string[] 
 		{
@@ -62,7 +60,6 @@ public class ActionRPGGameEditor : ModuleRules
 
         PrivateIncludePathModuleNames.AddRange(
          new string[] {
-				"Settings"
 			}
 		);
     }

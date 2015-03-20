@@ -33,6 +33,7 @@ namespace UnrealBuildTool.Rules
                     "Slate",
                     "SlateCore",
                     "GameplayTags"
+                    //
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);
@@ -44,6 +45,7 @@ namespace UnrealBuildTool.Rules
 				new string[]
 				{
 					// ... add private dependencies that you statically link with here ...
+                    
 				}
 				);
 
@@ -51,6 +53,7 @@ namespace UnrealBuildTool.Rules
 				new string[]
 				{
 					// ... add any modules that your module loads dynamically here ...
+                    
 				}
 				);
 		}

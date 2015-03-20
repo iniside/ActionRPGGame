@@ -3,8 +3,7 @@ Hello and welcome to ActionRPG Game project for Unreal Engine 4.
 
 INSTALLATION:
 1. Clone or download repository.
-2. Project should compile with latest binary version or latest release version from github. Also I only tested it
-using Visual Studio 2013.
+2. Project Will only compile against full source from GitHub. Tested on 4.7.
 3. If VC++ complains about "Project not selected to build for this solution configuration", right click on solution in
 Visual Studio, go to properties, then Configuration, and on ActionRPGGame, check Build.
 Alternatively, you can just right click on ActionRPGGame project in VS and click build.

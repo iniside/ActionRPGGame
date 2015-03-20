@@ -46,4 +46,6 @@ class GAMESYSTEMEDITOR_API UBPNode_SpawnCueActor : public UK2Node_SpawnActorFrom
 	UEdGraphPin* GetInstigatorPin() const;
 protected:
 	void OnClassPinChanged();
+private:
+	FNodeTextCache CachedNodeTitle;
 };

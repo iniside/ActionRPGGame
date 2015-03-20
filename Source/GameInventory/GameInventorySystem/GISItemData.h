@@ -1,5 +1,5 @@
 #pragma once
-#include "GameplayTags.h"
+#include "GameplayTagContainer.h"
 #include "GameplayTagAssetInterface.h"
 #include "GISItemData.generated.h"
 /*

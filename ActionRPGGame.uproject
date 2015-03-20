@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "4.7",
+	"EngineAssociation": "{14CB0F28-4327-2032-BC9A-DC9B80BD680F}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -76,7 +76,7 @@
 		},
 		{
 			"Name": "ActionRPGGameEditor",
-			"Type": "Developer",
+			"Type": "Editor",
 			"LoadingPhase": "Default"
 		}
 	],
