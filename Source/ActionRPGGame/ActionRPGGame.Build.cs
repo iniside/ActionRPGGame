@@ -49,7 +49,6 @@ public class ActionRPGGame : ModuleRules
                 "GameInventorySystem", 
 				"GameAttributes",
 				"GameplayTags",
-                "GameplayAbilities",
                 "GameFloatingCombatText",
                 "GameAbilities",
                 "GameSystem",

@@ -11,10 +11,5 @@
 #include "Runtime/UMG/Public/IUMGModule.h"
 #include "Runtime/UMG/Public/Blueprint/UserWidget.h"
 
-#include "AbilitySystemGlobals.h"
-#include "AbilitySystemComponent.h"
-#include "GameplayEffectTypes.h"
-#include "GameplayEffect.h"
-
 #endif
 

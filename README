@@ -1,6 +1,20 @@
 Hello and welcome to ActionRPG Game project for Unreal Engine 4.
 
 
+INSTALLATION:
+1. Clone or download repository.
+2. Project should compile with latest binary version or latest release version from github. Also I only tested it
+using Visual Studio 2013.
+3. If VC++ complains about "Project not selected to build for this solution configuration", right click on solution in
+Visual Studio, go to properties, then Configuration, and on ActionRPGGame, check Build.
+Alternatively, you can just right click on ActionRPGGame project in VS and click build.
+4. I do not recommend dropping this code to your project. At least at first ;). Build it as standalone first, 
+to check if everything works, and then just copy modules, you think you might need. If you don't know
+how to configure modules, look at this project for reference.
+5. Ok everything have build. To make it work, you will need content from ThirdPersonGameTemplate, StarterContent, and AnimStarterPack.
+Most blueprint should work, but references to content might be broken right now. It should be easy to fix though.
+
+
 Goal of this project is to provide sample game framework for creating RPG game elements in any type of game.
 There is also sample implementation of how you can intergate modules, to make them work togather, inside
 GameSystem module. 
