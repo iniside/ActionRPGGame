@@ -172,8 +172,7 @@ struct FGAEffectName
 {
 	GENERATED_USTRUCT_BODY()
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		FName EffectName;
+	FName EffectName;
 
 	FGAEffectName()
 		: EffectName(NAME_None)
@@ -253,7 +252,18 @@ public:
 
 	UPROPERTY()
 		TSubclassOf<class UGAEffectSpecification> EffectSpec;
-	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
+	/*
+		Name of the effect. 
+
+		Name of effect is derived from object which apply this effect, be it ability, character,
+		projectile, weapon etc.
+
+		If you have blueprint ability called Fireball, name of effect will be Fireball_C.
+
+		It's used internally to track effects, from different abilities, as effect on it's own, does
+		not have any real meaning.
+	*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attribute Modifiers")
 		FGAEffectName EffectName;
 	/*
 		These properties will mirror the ones in GAEffectSpecification.

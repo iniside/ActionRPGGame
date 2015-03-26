@@ -34,7 +34,7 @@ protected:
 		Current Value. BaseValue + BonusValue - AnyDamageIhave Takend, Clamped between 0 and ClampValue.
 	*/
 	float CurrentValue;
-
+public:
 	//map of modifiers.
 	//It could be TArray, but map seems easier to use in this case
 	//we need to keep track of added/removed effects, and see 

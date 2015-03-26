@@ -586,7 +586,33 @@ FGAEffectHandle FGAActiveEffectContainer::HandleTargetAggregationEffect(FGAEffec
 }
 FGAEffectHandle	FGAActiveEffectContainer::HandleTargetEffectStrongerOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
-
+	for (FGAAttributeModifier& attr : EffectIn.AttributeModifiers)
+	{
+		FGAAttributeBase* AtrPtr = Ctx.TargetComp->GetAttribute(attr.Attribute);
+		if (AtrPtr)
+		{
+			for (auto It = AtrPtr->Modifiers.CreateIterator(); It; ++It)
+			{
+				for (auto MIt = It->Value.CreateIterator(); It; ++It)
+				{
+					//check if current attribute mod have the same mod
+					//and is smaller than the the incoming one.
+					if (MIt->AttributeMod == attr.Mod
+						&& MIt->Value < attr.GetModifier(Ctx).Value)
+					{
+						//and remove it.
+						It->Value.RemoveAt(MIt.GetIndex());
+						//if there is no more mods, for this key, just remove it from map.
+						if (It->Value.Num() <= 0)
+						{
+							AtrPtr->Modifiers.Remove(It.Key());
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	return FGAEffectHandle();
 }
 FGAEffectHandle FGAActiveEffectContainer::HandleTargetEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)

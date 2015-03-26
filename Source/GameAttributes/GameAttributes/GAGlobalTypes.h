@@ -65,7 +65,24 @@ enum class EGAEffectType : uint8
 	Duration,
 	Infinite
 };
+/*
 
+	StrongetOverride - Does not check for effect type/tags. It will just check if modified
+	attribute, is already modified, and if incoming effect is stronger it will override
+	all modifiers affecting this attribute, and remove all weaker ones.
+
+	Override - does not check if it is stronger/weaker, it will simply override any existing modifiers
+	and effects with the same tags.
+
+	Duration - Will add duration to existing effect of EXACTLY the same type.
+
+	Intensity - Undefined. It will either add new effects to stack,
+	or it will simply sum modifiers, from all effects of the same types, for the same attributes
+	and refresh duration to the latest applied effect.
+
+	Add - no checks, simply add new effect to stack.
+
+*/
 UENUM()
 enum class EGAEffectStacking : uint8
 {

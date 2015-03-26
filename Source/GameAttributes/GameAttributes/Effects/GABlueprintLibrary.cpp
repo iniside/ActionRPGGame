@@ -27,6 +27,8 @@ void UGABlueprintLibrary::ApplyEffect(const FHitResult& Target, APawn* Instigato
 	FGAEffectContext context(Target.Location, Target.Actor, Causer,
 		Instigator, targetComp, instiComp);
 
+	SpecIn.EffectName = FGAEffectName(Causer->GetClass()->GetFName());
+
 	SpecIn.Context = context;
 
 	//SpecIn.GetModifiers();
