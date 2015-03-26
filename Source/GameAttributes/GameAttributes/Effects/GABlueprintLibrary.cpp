@@ -35,6 +35,8 @@ void UGABlueprintLibrary::ApplyEffect(const FHitResult& Target, APawn* Instigato
 	instiComp->ApplyEffectToTarget(SpecIn, context);
 }
 
+
+
 FGAEffectHandle UGABlueprintLibrary::ApplyEffectActor(AActor* Target, APawn* Instigator,
 	UObject* Causer, FGAEffectSpec SpecIn)
 {

@@ -78,7 +78,7 @@ FGAEffectHandle UGAAttributeComponent::ApplySelfEffect(AActor* Target, APawn* In
 
 	SpecIn.Context = context;
 
-	SpecIn.GetModifiers();
+	//SpecIn.GetModifiers();
 	return ActiveEffects.ApplyEffect(SpecIn, context);
 }
 
@@ -104,30 +104,30 @@ void UGAAttributeComponent::ExecuteModifiers(FGAAttributeData& ModifierIn, const
 	ActiveEffects.ExecuteEffectModifier(ModifierIn, EffectTags, Context);
 }
 
-void UGAAttributeComponent::ModifyAttributesOnSelf(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, 
+void UGAAttributeComponent::ModifyAttributesOnSelf(FGAAttributeData& EvalData, const FGAEffectContext& Context, 
 	const FGameplayTagContainer& EffectTags, FGAEffectHandle& HandleIn)
 {
 	//incoming
 	ModifiedAttribute.Empty();
-	for (FGAAttributeData& eval : EvalData)
-	{
-		DefaultAttributes->PreModifyAttribute(eval, EGAModifierDirection::Incoming);
-		FGAAttributeBase* attr = DefaultAttributes->GetAttribute(eval.Attribute);
+	//for (FGAAttributeData& eval : EvalData)
+	//{
+		DefaultAttributes->PreModifyAttribute(EvalData, EGAModifierDirection::Incoming);
+		FGAAttributeBase* attr = DefaultAttributes->GetAttribute(EvalData.Attribute);
 		float newValue = 0;
 		if (attr)
 		{
 			if (HandleIn.IsValid())
 			{
-				DefaultAttributes->SetAttributeAdditiveBonus(eval.Attribute, eval.Value);
+				DefaultAttributes->SetAttributeAdditiveBonus(EvalData.Attribute, EvalData.Value);
 			}
 		}
 		else
 		{
-			newValue = DefaultAttributes->AttributeOperation(eval.Attribute, eval.Value, eval.Mod);
-			FGAEvalData evalData(eval.Attribute, eval.Mod, eval.AttributeTag, newValue);
+			newValue = DefaultAttributes->AttributeOperation(EvalData.Attribute, EvalData.Value, EvalData.Mod);
+			FGAEvalData evalData(EvalData.Attribute, EvalData.Mod, EvalData.AttributeTag, newValue);
 			float finalValue = DefaultAttributes->UpdateAttributes(evalData, newValue);
 			FGAModifiedAttribute ModdedAttrRep;
-			ModdedAttrRep.Attribute = eval.Attribute;
+			ModdedAttrRep.Attribute = EvalData.Attribute;
 			ModdedAttrRep.InstigatorLocation = Context.Instigator->GetActorLocation();
 			ModdedAttrRep.TargetLocation = Context.TargetHitLocation;//AttributeIn.Target->GetActorLocation();
 			ModdedAttrRep.ModifiedByValue = finalValue;
@@ -136,7 +136,7 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(TArray<FGAAttributeData>& Eva
 			ModifiedAttribute.Add(ModdedAttrRep);
 		}
 
-	}
+	//}
 
 	if (GetNetMode() == ENetMode::NM_Standalone)
 	{
@@ -146,7 +146,7 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(TArray<FGAAttributeData>& Eva
 		}
 	}
 }
-void UGAAttributeComponent::ModifyAttributesOnTarget(TArray<FGAAttributeData>& EvalData, const FGAEffectContext& Context, 
+void UGAAttributeComponent::ModifyAttributesOnTarget(FGAAttributeData& EvalData, const FGAEffectContext& Context, 
 	const FGameplayTagContainer& EffectTags, FGAEffectHandle& HandleIn)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ModifyAttribute);
@@ -154,10 +154,10 @@ void UGAAttributeComponent::ModifyAttributesOnTarget(TArray<FGAAttributeData>& E
 	//if (Context.TargetComp.IsValid()
 	//	&& Context.InstigatorComp.IsValid())
 	//{
-	for (FGAAttributeData& eval : EvalData)
-	{
-		DefaultAttributes->PreModifyAttribute(eval, EGAModifierDirection::Outgoing);
-	}
+	//for (FGAAttributeData& eval : EvalData)
+	//{
+	DefaultAttributes->PreModifyAttribute(EvalData, EGAModifierDirection::Outgoing);
+	//}
 	Context.TargetComp->ModifyAttributesOnSelf(EvalData, Context, EffectTags, HandleIn);
 	//}
 }

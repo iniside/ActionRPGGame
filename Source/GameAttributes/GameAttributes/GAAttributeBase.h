@@ -2,10 +2,8 @@
 #include "GAGlobalTypes.h"
 #include "GAAttributeBase.generated.h"
 
-
-
 USTRUCT(BlueprintType)
-struct GAMEATTRIBUTES_API FGAAttributeBase // : public UObject
+struct GAMEATTRIBUTES_API FGAAttributeBase
 {
 	GENERATED_USTRUCT_BODY()
 public:

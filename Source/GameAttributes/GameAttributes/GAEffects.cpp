@@ -10,94 +10,116 @@
 #include "GAEffects.h"
 
 
-FGAEffectSpec::FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn, const FGAEffectContext& ContextIn)
-{
+//FGAEffectSpec::FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn, const FGAEffectContext& ContextIn)
+//{
+//
+//}
+//FGAEffectSpec::FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn,
+//	FGAEffectDuration DurationIn, const FGAEffectContext& ContextIn)
+//{
+//	EffectDuration = DurationIn;
+//}
+//FGAEffectSpec::FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn,
+//	TArray<FGAAttributeModifier> ModifiersIn, const FGAEffectContext& ContextIn)
+//{
+//	AttributeModifiers = ModifiersIn;
+//}
+///*
+//	Constructor which will override only specific modifiers.
+//*/
+//FGAEffectSpec::FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn,
+//	TArray<FGAModifierOverride> OverridesIn, const FGAEffectContext& ContextIn)
+//{
+//	for (const FGAModifierOverride& mo : OverridesIn)
+//	{
+//		for (FGAAttributeModifier& am : AttributeModifiers)
+//		{
+//			if (mo.Attribute == am.Attribute)
+//			{
+//				am = mo.Modifier;
+//			}
+//		}
+//	}
+//}
+//TArray<FGAAttributeData> FGAEffectSpec::GetModifiers()
+//{
+//	TArray<FGAAttributeData> temp;
+//	for (FGAAttributeModifier& mod : AttributeModifiers)
+//	{
+//		temp.Add(mod.GetModifier(Context));
+//	}
+//	return temp;
+//}
+//TArray<FGAAttributeData> FGAEffectSpec::GetAttributeModifiers()
+//{
+//	TArray<FGAAttributeData> temp;
+//	for (FGAAttributeModifier& mod : AttributeModifiers)
+//	{
+//		temp.Add(mod.GetModifier(Context));
+//	}
+//	return temp;
+//}
+//TArray<FGAAttributeData> FGAEffectSpec::GetPeriodModifiers()
+//{
+//	for (FGAAttributeModifier& mod : PeriodModifiers)
+//	{
+//		PeriodMods.Add(mod.GetModifier(Context));
+//	}
+//	return PeriodMods;
+//}
+//TArray<FGAAttributeData> FGAEffectSpec::GetOnEndedModifiers()
+//{
+//	TArray<FGAAttributeData> returnValue;
+//	for (FGAAttributeModifier& mod : ExpiredModifiers)
+//	{
+//		returnValue.Add(mod.GetModifier(Context));
+//	}
+//	return returnValue;
+//}
+//TArray<FGAAttributeData> FGAEffectSpec::GetOnRemovedModifiers()
+//{
+//	TArray<FGAAttributeData> returnValue;
+//	for (FGAAttributeModifier& mod : RemovedModifiers)
+//	{
+//		returnValue.Add(mod.GetModifier(Context));
+//	}
+//	return returnValue;
+//}
 
-}
-FGAEffectSpec::FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn,
-	FGAEffectDuration DurationIn, const FGAEffectContext& ContextIn)
+FGAAttributeData FGAEffectSpec::GetInitialAttribute()
 {
-	EffectDuration = DurationIn;
+	return InitialAttribute.GetModifier(Context);
 }
-FGAEffectSpec::FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn,
-	TArray<FGAAttributeModifier> ModifiersIn, const FGAEffectContext& ContextIn)
+FGAAttributeData FGAEffectSpec::GetDurationAttribute()
 {
-	AttributeModifiers = ModifiersIn;
+	return DurationAttribute.GetModifier(Context);
 }
-/*
-	Constructor which will override only specific modifiers.
-*/
-FGAEffectSpec::FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn,
-	TArray<FGAModifierOverride> OverridesIn, const FGAEffectContext& ContextIn)
+FGAAttributeData FGAEffectSpec::GetPeriodAttribute()
 {
-	for (const FGAModifierOverride& mo : OverridesIn)
-	{
-		for (FGAAttributeModifier& am : AttributeModifiers)
-		{
-			if (mo.Attribute == am.Attribute)
-			{
-				am = mo.Modifier;
-			}
-		}
-	}
+	return PeriodAttribute.GetModifier(Context);
 }
-TArray<FGAAttributeData> FGAEffectSpec::GetModifiers()
+FGAAttributeData FGAEffectSpec::GetRemovedAttribute()
 {
-	TArray<FGAAttributeData> temp;
-	for (FGAAttributeModifier& mod : AttributeModifiers)
-	{
-		temp.Add(mod.GetModifier(Context));
-	}
-	return temp;
+	return RemovedAttribute.GetModifier(Context);
 }
-TArray<FGAAttributeData> FGAEffectSpec::GetAttributeModifiers()
+FGAAttributeData FGAEffectSpec::GetExpiredAttribute()
 {
-	TArray<FGAAttributeData> temp;
-	for (FGAAttributeModifier& mod : AttributeModifiers)
-	{
-		temp.Add(mod.GetModifier(Context));
-	}
-	return temp;
+	return ExpiredAttribute.GetModifier(Context);
 }
-TArray<FGAAttributeData> FGAEffectSpec::GetPeriodModifiers()
-{
-	for (FGAAttributeModifier& mod : PeriodModifiers)
-	{
-		PeriodMods.Add(mod.GetModifier(Context));
-	}
-	return PeriodMods;
-}
-TArray<FGAAttributeData> FGAEffectSpec::GetOnEndedModifiers()
-{
-	TArray<FGAAttributeData> returnValue;
-	for (FGAAttributeModifier& mod : ExpiredModifiers)
-	{
-		returnValue.Add(mod.GetModifier(Context));
-	}
-	return returnValue;
-}
-TArray<FGAAttributeData> FGAEffectSpec::GetOnRemovedModifiers()
-{
-	TArray<FGAAttributeData> returnValue;
-	for (FGAAttributeModifier& mod : RemovedModifiers)
-	{
-		returnValue.Add(mod.GetModifier(Context));
-	}
-	return returnValue;
-}
+
 void FGAActiveBase::OnApplied()
 {
-	TArray<FGAAttributeData> data = OnAppliedModifiers;
+	FGAAttributeData data = InitialAttribute;
 	if (Context.InstigatorComp.IsValid())
 		Context.InstigatorComp->ModifyAttributesOnTarget(data, Context, OwnedTags, MyHandle);
 }
-FGAEffectInstant::FGAEffectInstant(const FGAEffectSpec& SpecIn, const FGAEffectContext& ContextIn)
+FGAEffectInstant::FGAEffectInstant(FGAEffectSpec& SpecIn, const FGAEffectContext& ContextIn)
 {
-	OnAppliedModifiers = SpecIn.EvalModifiers;
+	InitialAttribute = SpecIn.GetInitialAttribute();
 }
 void FGAActiveDuration::OnPeriod()
 {
-	TArray<FGAAttributeData> data = PeriodModifiers;
+	FGAAttributeData data = PeriodModifiers;
 	if (Context.InstigatorComp.IsValid())
 		Context.InstigatorComp->ModifyAttributesOnTarget(data, Context, OwnedTags, MyHandle);
 }
@@ -126,26 +148,12 @@ void FGAActiveDuration::FinishEffect()
 {
 	if (Context.Target.IsValid())
 	{
-		AttributeModifiers.Empty();
-		OnAppliedModifiers.Empty();
-		OnEndedModifiers.Empty();
-		OnRemovedModifiers.Empty();
-		PeriodModifiers.Empty();
 		Context.Target->GetWorldTimerManager().ClearTimer(PeriodTimerHandle);
 		Context.Target->GetWorldTimerManager().ClearTimer(DurationTimerHandle);
 	}
 }
 bool FGAActiveDuration::ComparePeriodModifiers(const FGAAttributeData& OtherIn)
 {
-	TArray<FGAAttributeData> allMods;
-	allMods.Append(OnEndedModifiers);
-	allMods.Append(OnRemovedModifiers);
-	allMods.Append(PeriodModifiers);
-	for (const FGAAttributeData& data : allMods)
-	{
-		if (OtherIn > data)
-			return true;
-	}
 	return false;
 }
 FGAActiveDuration::FGAActiveDuration(const FGAEffectContext& ContextIn, FGAEffectSpec& SpecIn,
@@ -158,13 +166,13 @@ FGAActiveDuration::FGAActiveDuration(const FGAEffectContext& ContextIn, FGAEffec
 	Period = SpecIn.EffectDuration.Period;
 	MyHandle = HandleIn;
 	Context = ContextIn;
-	OwnedTags = SpecIn.EffectTags;
-	AttributeModifiers = SpecIn.GetAttributeModifiers();
-	PeriodModifiers = SpecIn.GetPeriodModifiers(); //we probabaly want to recalculate it on every tick
-	//if effect.
-	OnAppliedModifiers = SpecIn.GetModifiers();
-	OnEndedModifiers = SpecIn.GetOnEndedModifiers();
-	OnRemovedModifiers = SpecIn.GetOnRemovedModifiers();
+	//OwnedTags = SpecIn.EffectTags;
+	InitialAttribute = SpecIn.GetInitialAttribute();
+	DurationAttribute = SpecIn.GetDurationAttribute();
+	PeriodModifiers = SpecIn.GetPeriodAttribute(); //we probabaly want to recalculate it on every tick
+	////if effect.
+	RemovedAttribute = SpecIn.GetRemovedAttribute();
+	ExpiredAttribute = SpecIn.GetExpiredAttribute();
 }
 
 FGAActiveDuration::~FGAActiveDuration()
@@ -199,7 +207,7 @@ FGAEffectHandle FGAActiveEffectContainer::ApplyEffect(const FGAEffectSpec& SpecI
 	{
 	case EGAEffectType::Instant:
 	{
-		FGAEffectInstant instntEffect(SpecIn, Ctx);
+		FGAEffectInstant instntEffect;// (SpecIn, Ctx);
 		return HandleInstantEffect(instntEffect, Ctx);
 	}
 	case EGAEffectType::Periodic:
@@ -247,16 +255,11 @@ void FGAActiveEffectContainer::RemoveActiveEffect(const FGAEffectHandle& HandleI
 		/*
 			Clear modifiers, applied directly to attributes (if any).
 		*/
-		for (FGAAttributeData& data : removedEffect->AttributeModifiers)
+		FGAAttributeBase* attr = removedEffect->Context.TargetComp->GetAttribute(removedEffect->DurationAttribute.Attribute);
+		if (attr)
 		{
-			FGAAttributeBase* attr = removedEffect->Context.TargetComp->GetAttribute(data.Attribute);
-			if (attr)
-			{
-				attr->RemoveBonus(HandleIn);
-			}
+			attr->RemoveBonus(HandleIn);
 		}
-		
-
 		removedEffect->FinishEffect();
 	}
 }
@@ -295,14 +298,14 @@ FGAEffectHandle FGAActiveEffectContainer::AddActiveEffect(FGAEffectSpec& EffectI
 	
 	ActiveEffects.Add(handle, tempPeriodic);
 
-	for (FGAAttributeData& data : EffectIn.GetAttributeModifiers())
-	{
-		FGAAttributeBase* attr = Ctx.TargetComp->GetAttribute(data.Attribute);
-		if (attr)
-		{
-			attr->AddBonus(FGAModifier(data.Mod, data.Value), handle);
-		}
-	}
+	//for (FGAAttributeData& data : EffectIn.GetAttributeModifiers())
+	//{
+	//	FGAAttributeBase* attr = Ctx.TargetComp->GetAttribute(data.Attribute);
+	//	if (attr)
+	//	{
+	//		attr->AddBonus(FGAModifier(data.Mod, data.Value), handle);
+	//	}
+	//}
 
 	return handle;
 }
@@ -447,68 +450,68 @@ FGAEffectHandle	FGAActiveEffectContainer::HandleInstigatorEffectStrongerOverride
 		Modifiers, are still part of effect, but they modify other effects, are stored differently.
 		More over what If one effect apply multiple modifiers, and only one of them is higher ?
 	*/
-	FGAInstigatorEffectContainer& instCont = InstigatorEffects.FindOrAdd(Ctx.InstigatorComp);
-	FGAEffectHandle foundHandle;
-	for (FGAEffectTagHandle& eff : instCont.Effects)
-	{
-		if (eff.EffectName == EffectIn.EffectName)
-		{
-			foundHandle = eff.Handle;
-			break;
-		}
-	}
-	TSharedPtr<FGAActiveDuration> effect = ActiveEffects.FindRef(foundHandle);
-	bool bIsStronger = false;
-	if (effect.IsValid())
-	{
-		TArray<FGAAttributeData> data;
-		data.Append(EffectIn.GetPeriodModifiers());
-		data.Append(EffectIn.GetOnRemovedModifiers());
-		data.Append(EffectIn.GetOnEndedModifiers());
-		for (FGAAttributeData& am : data)
-		{
-			if (effect->ComparePeriodModifiers(am))
-			{
-				bIsStronger = true;
-				break;
-			}
-		}
-	}
-	
-	//for (FGEffectModifierGroup& group : EffectIn.EffectModifierGroups)
+	//FGAInstigatorEffectContainer& instCont = InstigatorEffects.FindOrAdd(Ctx.InstigatorComp);
+	//FGAEffectHandle foundHandle;
+	//for (FGAEffectTagHandle& eff : instCont.Effects)
 	//{
-	//	FGAEffectModifiersCont* efModHan = EffectMods.Modifiers.Find(group.AttributeTag);
-	//	if (efModHan)
+	//	if (eff.EffectName == EffectIn.EffectName)
 	//	{
-	//		for (FGAEffectModifierHandles& modHan : efModHan->Modifiers)
+	//		foundHandle = eff.Handle;
+	//		break;
+	//	}
+	//}
+	//TSharedPtr<FGAActiveDuration> effect = ActiveEffects.FindRef(foundHandle);
+	//bool bIsStronger = false;
+	//if (effect.IsValid())
+	//{
+	//	TArray<FGAAttributeData> data;
+	//	data.Append(EffectIn.GetPeriodModifiers());
+	//	data.Append(EffectIn.GetOnRemovedModifiers());
+	//	data.Append(EffectIn.GetOnEndedModifiers());
+	//	for (FGAAttributeData& am : data)
+	//	{
+	//		if (effect->ComparePeriodModifiers(am))
 	//		{
-	//			for (auto MoIt = modHan.Modifiers.CreateIterator(); MoIt; ++MoIt)
-	//			{
-	//				for (FGAEffectModifier& grMod : group.Modifiers)
-	//				{
-	//					if (MoIt->ModDirection == grMod.ModDirection
-	//						&& MoIt->Mod == grMod.Mod
-	//						&& grMod.DirectModifier.Value > MoIt->DirectModifier.Value)
-	//					{
-	//						modHan.Modifiers.RemoveAtSwap(MoIt.GetIndex());
-	//					}
-	//				}
-	//			}
+	//			bIsStronger = true;
+	//			break;
 	//		}
 	//	}
 	//}
-	RemoveActiveEffect(foundHandle);
-	FGAEffectHandle handle = AddActiveEffect(EffectIn, Ctx);
+	//
+	////for (FGEffectModifierGroup& group : EffectIn.EffectModifierGroups)
+	////{
+	////	FGAEffectModifiersCont* efModHan = EffectMods.Modifiers.Find(group.AttributeTag);
+	////	if (efModHan)
+	////	{
+	////		for (FGAEffectModifierHandles& modHan : efModHan->Modifiers)
+	////		{
+	////			for (auto MoIt = modHan.Modifiers.CreateIterator(); MoIt; ++MoIt)
+	////			{
+	////				for (FGAEffectModifier& grMod : group.Modifiers)
+	////				{
+	////					if (MoIt->ModDirection == grMod.ModDirection
+	////						&& MoIt->Mod == grMod.Mod
+	////						&& grMod.DirectModifier.Value > MoIt->DirectModifier.Value)
+	////					{
+	////						modHan.Modifiers.RemoveAtSwap(MoIt.GetIndex());
+	////					}
+	////				}
+	////			}
+	////		}
+	////	}
+	////}
+	//RemoveActiveEffect(foundHandle);
+	FGAEffectHandle handle;// = AddActiveEffect(EffectIn, Ctx);
 
-	FGAEffectTagHandle nameHandle(EffectIn.EffectName, handle);
-	instCont.Effects.Add(nameHandle);
+	//FGAEffectTagHandle nameHandle(EffectIn.EffectName, handle);
+	//instCont.Effects.Add(nameHandle);
 
 	return handle;
 }
 FGAEffectHandle FGAActiveEffectContainer::HandleInstigatorEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
 	FGAInstigatorEffectContainer& instCont = InstigatorEffects.FindOrAdd(Ctx.InstigatorComp);
-	
+	//
 	FGAEffectHandle foundHandle;
 
 	RemoveActiveEffect(foundHandle);
@@ -526,32 +529,32 @@ FGAEffectHandle	FGAActiveEffectContainer::HandleInstigatorEffectAdd(FGAEffectSpe
 FGAEffectHandle	FGAActiveEffectContainer::HandleInstigatorEffectDuration(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
 	FGAEffectHandle foundHandle;
-	FGAInstigatorEffectContainer& instCont = InstigatorEffects.FindOrAdd(Ctx.InstigatorComp);
+	//FGAInstigatorEffectContainer& instCont = InstigatorEffects.FindOrAdd(Ctx.InstigatorComp);
 
-	for (FGAEffectTagHandle& eff : instCont.Effects)
-	{
-		if (EffectIn.EffectName == eff.EffectName)
-		{
-			foundHandle = eff.Handle;
-			break;
-		}
-	}
-	
-	if (foundHandle.IsValid())
-	{
-		TSharedPtr<FGAActiveDuration> durationEffect = ActiveEffects.FindRef(foundHandle);
-		if (durationEffect.IsValid())
-		{
-			durationEffect->RestartTimer(EffectIn.EffectDuration.Duration);
-		}
-	}
-	else
-	{
-		//if handle is not valid, it means there is no effect,
-		//and this means we have to add new effect.
-		foundHandle = AddActiveEffect(EffectIn, Ctx);
-		instCont.Effects.Add(FGAEffectTagHandle(EffectIn.EffectName, foundHandle));
-	}
+	//for (FGAEffectTagHandle& eff : instCont.Effects)
+	//{
+	//	if (EffectIn.EffectName == eff.EffectName)
+	//	{
+	//		foundHandle = eff.Handle;
+	//		break;
+	//	}
+	//}
+	//
+	//if (foundHandle.IsValid())
+	//{
+	//	TSharedPtr<FGAActiveDuration> durationEffect = ActiveEffects.FindRef(foundHandle);
+	//	if (durationEffect.IsValid())
+	//	{
+	//		durationEffect->RestartTimer(EffectIn.EffectDuration.Duration);
+	//	}
+	//}
+	//else
+	//{
+	//	//if handle is not valid, it means there is no effect,
+	//	//and this means we have to add new effect.
+	//	foundHandle = AddActiveEffect(EffectIn, Ctx);
+	//	instCont.Effects.Add(FGAEffectTagHandle(EffectIn.EffectName, foundHandle));
+	//}
 	
 	return foundHandle;
 }
@@ -586,59 +589,59 @@ FGAEffectHandle FGAActiveEffectContainer::HandleTargetAggregationEffect(FGAEffec
 }
 FGAEffectHandle	FGAActiveEffectContainer::HandleTargetEffectStrongerOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
-	for (FGAAttributeModifier& attr : EffectIn.AttributeModifiers)
-	{
-		FGAAttributeBase* AtrPtr = Ctx.TargetComp->GetAttribute(attr.Attribute);
-		if (AtrPtr)
-		{
-			for (auto It = AtrPtr->Modifiers.CreateIterator(); It; ++It)
-			{
-				for (auto MIt = It->Value.CreateIterator(); It; ++It)
-				{
-					//check if current attribute mod have the same mod
-					//and is smaller than the the incoming one.
-					if (MIt->AttributeMod == attr.Mod
-						&& MIt->Value < attr.GetModifier(Ctx).Value)
-					{
-						//and remove it.
-						It->Value.RemoveAt(MIt.GetIndex());
-						//if there is no more mods, for this key, just remove it from map.
-						if (It->Value.Num() <= 0)
-						{
-							AtrPtr->Modifiers.Remove(It.Key());
-						}
-					}
-				}
-			}
-		}
-	}
+	//for (FGAAttributeModifier& attr : EffectIn.AttributeModifiers)
+	//{
+	//	FGAAttributeBase* AtrPtr = Ctx.TargetComp->GetAttribute(attr.Attribute);
+	//	if (AtrPtr)
+	//	{
+	//		for (auto It = AtrPtr->Modifiers.CreateIterator(); It; ++It)
+	//		{
+	//			for (auto MIt = It->Value.CreateIterator(); It; ++It)
+	//			{
+	//				//check if current attribute mod have the same mod
+	//				//and is smaller than the the incoming one.
+	//				if (MIt->AttributeMod == attr.Mod
+	//					&& MIt->Value < attr.GetModifier(Ctx).Value)
+	//				{
+	//					//and remove it.
+	//					It->Value.RemoveAt(MIt.GetIndex());
+	//					//if there is no more mods, for this key, just remove it from map.
+	//					if (It->Value.Num() <= 0)
+	//					{
+	//						AtrPtr->Modifiers.Remove(It.Key());
+	//					}
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
 	
 	return FGAEffectHandle();
 }
 FGAEffectHandle FGAActiveEffectContainer::HandleTargetEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
-	TArray<FGAEffectHandle> handles;
-	handles = MyEffects.FindRef(EffectIn.EffectName);
+	//TArray<FGAEffectHandle> handles;
+	//handles = MyEffects.FindRef(EffectIn.EffectName);
 
-	for (const FGAEffectHandle& hand : handles)
-	{
-		RemoveActiveEffect(hand);
-	}
+	//for (const FGAEffectHandle& hand : handles)
+	//{
+	//	RemoveActiveEffect(hand);
+	//}
 
-	FGAEffectHandle newHandle = AddActiveEffect(EffectIn, Ctx);
+	FGAEffectHandle newHandle;// = AddActiveEffect(EffectIn, Ctx);
 
-	TArray<FGAEffectHandle>& addedHandle = MyEffects.FindOrAdd(EffectIn.EffectName);
-	addedHandle.Add(newHandle);
+	//TArray<FGAEffectHandle>& addedHandle = MyEffects.FindOrAdd(EffectIn.EffectName);
+	//addedHandle.Add(newHandle);
 
 	return newHandle;
 }
 
 FGAEffectHandle FGAActiveEffectContainer::HandleTargetEffectAdd(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
-	FGAEffectHandle newHandle = AddActiveEffect(EffectIn, Ctx);
+	FGAEffectHandle newHandle;// = AddActiveEffect(EffectIn, Ctx);
 
-	TArray<FGAEffectHandle>& addedHandle = MyEffects.FindOrAdd(EffectIn.EffectName);
-	addedHandle.Add(newHandle);
+	//TArray<FGAEffectHandle>& addedHandle = MyEffects.FindOrAdd(EffectIn.EffectName);
+	//addedHandle.Add(newHandle);
 
 	return newHandle;
 }
