@@ -112,7 +112,7 @@ public:
 		BonusValue(0),
 		AdditiveBonus(0),
 		SubtractBonus(0),
-		MultiplyBonus(0),
+		MultiplyBonus(1),
 		DivideBonus(1),
 		CurrentValue(BaseValue)
 	{
@@ -122,7 +122,7 @@ public:
 		BonusValue(0),
 		AdditiveBonus(0),
 		SubtractBonus(0),
-		MultiplyBonus(0),
+		MultiplyBonus(1),
 		DivideBonus(1),
 		CurrentValue(BaseValue)
 	{
@@ -208,11 +208,14 @@ public:
 	//attribute we changed
 	UPROPERTY(BlueprintReadOnly)
 		FGAAttribute Attribute;
+
 	//How we intend to modify attribute
 	UPROPERTY(BlueprintReadOnly)
 		EGAAttributeMod Mod;
+
 	UPROPERTY(BlueprintReadOnly)
 		EGAModifierDirection ModDirection;
+
 	UPROPERTY(BlueprintReadOnly)
 		FGameplayTag AttributeTag;
 	/*
@@ -232,6 +235,9 @@ public:
 	*/
 	UPROPERTY(BlueprintReadOnly)
 		FGameplayTagContainer InstigatorTagsRequiared;
+
+	UPROPERTY()
+		FGAEffectContext Context;
 
 	//final value we will try to apply to attribute.
 	UPROPERTY(BlueprintReadOnly)
@@ -280,6 +286,13 @@ public:
 		: Attribute(AttributeIn),
 		Mod(ModIn),
 		Value(ValueIn)
+	{
+	};
+	FGAAttributeData(const FGAAttribute& AttributeIn, EGAAttributeMod ModIn, float ValueIn, const FGAEffectContext ContextIn)
+		: Attribute(AttributeIn),
+		Mod(ModIn),
+		Value(ValueIn),
+		Context(ContextIn)
 	{
 	};
 };

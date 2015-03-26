@@ -186,12 +186,6 @@ public:
 	UPROPERTY()
 		float WeaknessCondition; //0-1, precentage. always appilied on Source, reduce damage.
 
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase DamageBonus;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase FireDamageBonus;
-
 	///*
 	//	Total number of conditions.
 	//*/
@@ -243,6 +237,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
 		FGAAttributeBase FireDamageDefense;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
+		FGAAttributeBase DamageDefense;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
 		FGAAttributeBase SpellCastingSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
@@ -272,8 +269,10 @@ public:
 
 	virtual void PostEffectApplied() override;
 	virtual void PostEffectRemoved(const FGAEffectHandle& HandleIn, const FGAEffectSpec& SpecIn) override;
-
-	virtual float PreModifyAttribute(FGAAttributeData& AttributeMod, EGAModifierDirection Direction) override;
+	
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = AttributeTags, meta = (BlueprintInternalUseOnly = "true"))
+		FGAAttributeData InternalPreModifyAttribute(const FGAAttributeData& AttributeMod);
+	virtual FGAAttributeData PreModifyAttribute(const FGAAttributeData& AttributeMod) override;
 	/*
 		This need simpler data structure for modification in blueprint.
 	*/
@@ -285,9 +284,8 @@ public:
 	virtual void CalculateOutgoingAttributeMods() override;
 	virtual void CalculateIncomingAttributeMods() override;
 
-
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = AttributeTags, meta = (BlueprintInternalUseOnly = "true"))
-		void InternalIncomingAttributeMod();
+	UFUNCTION(Category = "PreAttribute")
+		FGAAttributeData PreAttribute_Damage(const FGAAttributeData& AttributeMod);
 
 	//UFUNCTION(Category = "PostAttribute")
 	//	FGAAttributeDataCallback PostAttribute_Health(const FGAEvalData& AttributeMod);

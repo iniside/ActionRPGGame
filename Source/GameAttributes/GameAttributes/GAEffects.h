@@ -218,7 +218,7 @@ public:
 		It's used internally to track effects, from different abilities, as effect on it's own, does
 		not have any real meaning.
 	*/
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Base")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base")
 		FGAEffectName EffectName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base")
@@ -309,10 +309,8 @@ public:
 	FGameplayTagContainer OwnedTags;
 };
 
-USTRUCT()
-struct FGAActiveDuration
+struct GAMEATTRIBUTES_API FGAActiveDuration : public TSharedFromThis<FGAActiveDuration>
 {
-	GENERATED_USTRUCT_BODY()
 		friend struct FGAActiveEffectContainer;
 	/* Current handle of this effect. */
 	FGAEffectHandle MyHandle;
@@ -325,8 +323,7 @@ struct FGAActiveDuration
 
 	EGAEffectStacking Stacking;
 
-	UPROPERTY()
-		FGAEffectContext Context;
+	FGAEffectContext Context;
 
 	/* Attribute applied initially by this effect. */
 	TArray<FGAAttributeData> InitialAttribute;
@@ -353,7 +350,7 @@ struct FGAActiveDuration
 	*/
 
 	/*
-		Tags I have accumulated from spec.
+		Tags describing this effect.
 	*/
 	FGameplayTagContainer OwnedTags;
 	

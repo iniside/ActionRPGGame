@@ -69,7 +69,7 @@ void FGAActiveDuration::RemoveDurationAttribute()
 
 void FGAActiveDuration::OnApplied()
 {
-	for (FGAAttributeData data : PeriodModifiers)
+	for (const FGAAttributeData& data : PeriodModifiers)
 	{
 		//FGAAttributeData data = InitialAttribute;
 		if (Context.InstigatorComp.IsValid())
@@ -99,18 +99,15 @@ void FGAActiveDuration::OnApplied()
 		FGAAttributeBase* attr = Context.TargetComp->GetAttribute(data.Attribute);
 		if (attr)
 		{
-			attr->AddBonus(FGAModifier(data.Mod, data.Value, MakeShareable(this)), MyHandle);
+			TSharedPtr<FGAActiveDuration> temp = AsShared();
+			attr->AddBonus(FGAModifier(data.Mod, data.Value, temp), MyHandle);
 		}
 	}
 }
 
 void FGAActiveDuration::OnPeriod()
 {
-	//delibetry copy, not reference!
-	//if we would make reference original attribute data would be modified.
-	//if const reference, then effects couldn't be modified down in the chain.
-	//and so we end up with copy.
-	for (FGAAttributeData data : PeriodModifiers)
+	for (const FGAAttributeData& data : PeriodModifiers)
 	{
 		//FGAAttributeData data = PeriodModifiers;
 		if (Context.InstigatorComp.IsValid())
@@ -151,7 +148,7 @@ void FGAActiveDuration::FinishEffect()
 
 	if (Context.TargetComp.IsValid())
 	{
-		for (const FGAAttributeData& data : PeriodModifiers)
+		for (const FGAAttributeData& data : DurationAttribute)
 		{
 			FGAAttributeBase* attr = Context.TargetComp->GetAttribute(data.Attribute);
 			if (attr)
@@ -266,6 +263,7 @@ void FGAActiveEffectContainer::RemoveActiveEffect(const FGAEffectHandle& HandleI
 			Clear modifiers, applied directly to attributes (if any).
 		*/
 		removedEffect->FinishEffect();
+		removedEffect.Reset();
 	}
 }
 void FGAActiveEffectContainer::RemoveTargetAggregation(TSharedPtr<FGAActiveDuration> EffectIn)

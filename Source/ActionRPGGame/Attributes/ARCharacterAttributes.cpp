@@ -93,9 +93,51 @@ void UARCharacterAttributes::PostEffectRemoved(const FGAEffectHandle& HandleIn, 
 	//}
 }
 
-float UARCharacterAttributes::PreModifyAttribute(FGAAttributeData& AttributeMod, EGAModifierDirection Direction)
+FGAAttributeData UARCharacterAttributes::PreModifyAttribute(const FGAAttributeData& AttributeMod)
 {
-	return 0;
+	FName attribute = AttributeMod.Attribute.AttributeName;
+	ARCharacterAttributes_eventInternalPreModifyAttribute_Parms params;
+	
+	params.AttributeMod = AttributeMod;
+	FString prefix = "PreAttribute_";
+	prefix.Append(attribute.ToString());
+
+	TWeakObjectPtr<UFunction> NativeFunc = GetClass()->FindFunctionByName(*prefix);
+
+	if (NativeFunc.IsValid())
+	{
+		ProcessEvent(NativeFunc.Get(), &params);
+		
+		return params.ReturnValue;
+	}
+	return AttributeMod;
+}
+
+FGAAttributeData UARCharacterAttributes::PreAttribute_Damage(const FGAAttributeData& AttributeMod)
+{
+	UARCharacterAttributes* InstiAttr = Cast<UARCharacterAttributes>(AttributeMod.Context.InstigatorComp->DefaultAttributes);
+	FGAAttributeData returnData = AttributeMod;
+	returnData.Value =
+		(returnData.Value +
+		InstiAttr->BonusDamage.GetAdditiveBonus() -
+		InstiAttr->BonusDamage.GetSubtractBonus());
+	
+	returnData.Value =
+		(returnData.Value *
+		InstiAttr->BonusDamage.GetMultiplyBonus()) /
+		InstiAttr->BonusDamage.GetDivideBonus();
+
+	returnData.Value =
+		(returnData.Value +
+		DamageDefense.GetAdditiveBonus() -
+		DamageDefense.GetSubtractBonus());
+
+	returnData.Value =
+		(returnData.Value *
+		DamageDefense.GetMultiplyBonus()) /
+		DamageDefense.GetDivideBonus();
+
+	return returnData;
 }
 
 float UARCharacterAttributes::PostModifyAttribute(const FGAEvalData& AttributeMod)
@@ -121,8 +163,6 @@ float UARCharacterAttributes::PostModifyAttribute(const FGAEvalData& AttributeMo
 
 float UARCharacterAttributes::PostAttribute_Damage(const FGAEvalData& AttributeMod)
 {
-	Damage = (Damage + DamageBonus.GetAdditiveBonus() - DamageBonus.GetSubtractBonus());
-	Damage = Damage + (Damage * DamageBonus.GetMultiplyBonus()) / DamageBonus.GetDivideBonus();
 	Health.Subtract(Damage);
 	float finalDamage = Damage;// Damage;
 	Damage = 0;
@@ -144,10 +184,10 @@ float UARCharacterAttributes::PostAttribute_Damage(const FGAEvalData& AttributeM
 }
 float UARCharacterAttributes::PostAttribute_FireDamage(const FGAEvalData& AttributeMod)
 {
-	float AddtiveBonus = DamageBonus.GetAdditiveBonus() + FireDamageBonus.GetAdditiveBonus();
-	float SubtractBonus = DamageBonus.GetSubtractBonus() + FireDamageBonus.GetSubtractBonus();
-	float MultiplyBonus = DamageBonus.GetMultiplyBonus() + FireDamageBonus.GetMultiplyBonus();
-	float DivideBonus = DamageBonus.GetDivideBonus() + FireDamageBonus.GetDivideBonus();
+	float AddtiveBonus = BonusDamage.GetAdditiveBonus() + BonusFireDamage.GetAdditiveBonus();
+	float SubtractBonus = BonusDamage.GetSubtractBonus() + BonusFireDamage.GetSubtractBonus();
+	float MultiplyBonus = BonusDamage.GetMultiplyBonus() + BonusFireDamage.GetMultiplyBonus();
+	float DivideBonus = BonusDamage.GetDivideBonus() + BonusFireDamage.GetDivideBonus();
 	FireDamage = (FireDamage + AddtiveBonus - SubtractBonus);
 	FireDamage = FireDamage + (FireDamage * MultiplyBonus) / DivideBonus;
 	Health.Subtract(FireDamage);

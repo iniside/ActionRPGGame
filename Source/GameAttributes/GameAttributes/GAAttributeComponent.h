@@ -104,9 +104,9 @@ public:
 		For example there might be physical armor mod, which will apply changes only
 		to attributes tagged as Damage.Physical and only if you are reciving change, not causing it.
 	*/
-	void ModifyAttributesOnSelf(FGAAttributeData& EvalData, const FGAEffectContext& Context, 
+	void ModifyAttributesOnSelf(const FGAAttributeData& EvalData, const FGAEffectContext& Context, 
 		const FGameplayTagContainer& EffectTags, FGAEffectHandle& HandleIn);
-	void ModifyAttributesOnTarget(FGAAttributeData& EvalData, const FGAEffectContext& Context, 
+	void ModifyAttributesOnTarget(const FGAAttributeData& EvalData, const FGAEffectContext& Context, 
 		const FGameplayTagContainer& EffectTags, FGAEffectHandle& HandleIn);
 	
 	//////Accessors to various functions inside DefaultAttributes;

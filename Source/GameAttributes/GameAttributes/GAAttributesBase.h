@@ -98,7 +98,7 @@ public:
 
 		Intentionally non const. Attribute is in and out.
 	*/
-	virtual float PreModifyAttribute(FGAAttributeData& AttributeMod, EGAModifierDirection Direction) { return 0; };
+	virtual FGAAttributeData PreModifyAttribute(const FGAAttributeData& AttributeMod) { return FGAAttributeData(); };
 	//probabaly doesn't need to be vritual any longer. 
 	/*
 		Impelement your custom logic how changed attribute should affect other attributes.

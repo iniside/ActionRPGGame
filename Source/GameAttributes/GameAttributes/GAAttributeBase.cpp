@@ -98,7 +98,7 @@ void FGAAttributeBase::CalculateBonus()
 {
 	AdditiveBonus = 0;
 	SubtractBonus = 0;
-	MultiplyBonus = 0;
+	MultiplyBonus = 1;
 	DivideBonus = 1;
 	auto ModIt = Modifiers.CreateConstIterator();
 	for (ModIt; ModIt; ++ModIt)
@@ -128,7 +128,7 @@ void FGAAttributeBase::CalculateBonus()
 	//calculate final bonus from modifiers values.
 	//we don't handle stacking here. It's checked and handled before effect is added.
 	BonusValue = (AdditiveBonus - SubtractBonus);
-	BonusValue = BonusValue + (BonusValue * MultiplyBonus) / DivideBonus;
+	BonusValue = (BonusValue * MultiplyBonus) / DivideBonus;
 	//this is absolute maximum (not clamped right now).
 	float addValue = BonusValue - OldBonus;
 	//reset to max = 200
@@ -297,11 +297,11 @@ FGAAttributeData FGAAttributeModifier::GetModifier(const FGAEffectContext& Conte
 	switch (CalculationType)
 	{
 	case EGAMagnitudeCalculation::Direct:
-		return FGAAttributeData(Attribute, Mod, DirectModifier.GetValue());
+		return FGAAttributeData(Attribute, Mod, DirectModifier.GetValue(), ContextIn);
 	case EGAMagnitudeCalculation::AttributeBased:
-		return FGAAttributeData(Attribute, Mod, AttributeBased.GetValue(ContextIn));
+		return FGAAttributeData(Attribute, Mod, AttributeBased.GetValue(ContextIn), ContextIn);
 	case EGAMagnitudeCalculation::CurveBased:
-		return FGAAttributeData(Attribute, Mod, CurveBased.GetValue(ContextIn));;
+		return FGAAttributeData(Attribute, Mod, CurveBased.GetValue(ContextIn), ContextIn);
 	case EGAMagnitudeCalculation::CustomCalculation:
 		break;
 	default:
