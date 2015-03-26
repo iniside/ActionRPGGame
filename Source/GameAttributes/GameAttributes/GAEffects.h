@@ -529,32 +529,7 @@ USTRUCT()
 struct FGAActiveBase
 {
 	GENERATED_USTRUCT_BODY()
-		FGAEffectHandle MyHandle;
 
-	FGAEffectName EffectName;
-
-	EGAEffectAggregation AggregationType;
-
-	UPROPERTY()
-		FGAEffectContext Context;
-	
-	TArray<FGAAttributeData> OnAppliedModifiers;
-
-	FGAAttributeData InitialAttribute;
-
-	//add captured attributes from Instigator/Source.
-	/*
-		Normally attributes on each tick, are checked from instigator, but when Instigator dies (is destroyed)
-		we should revert to checking cached relevelant attributes directly in effect.
-	*/
-
-	/*
-		Tags I have accumulated from spec.
-	*/
-	FGameplayTagContainer OwnedTags;
-	void OnApplied();
-public:
-	void ActivateEffect() {};
 };
 
 USTRUCT()
@@ -562,23 +537,65 @@ struct FGAActiveDuration : public FGAActiveBase
 {
 	GENERATED_USTRUCT_BODY()
 		friend struct FGAActiveEffectContainer;
+	/* Current handle of this effect. */
+	FGAEffectHandle MyHandle;
+
+	/* Name of effect derived from EffectSpec. */
+	FGAEffectName EffectName;
+
+	/* Aggregation type derived from EffectSpec. */
+	EGAEffectAggregation AggregationType;
+
+	UPROPERTY()
+		FGAEffectContext Context;
+
+	/* Attribute applied initially by this effect. */
+	FGAAttributeData InitialAttribute;
+	/* 
+		Attribute change applied for this effect duration. This is only really useful for 
+		Complex Attributes.
+	*/
+	FGAAttributeData DurationAttribute;
+	/* Attribute changes applied on each period. */
+	FGAAttributeData PeriodModifiers;
+	/* Attribute changes applied when effect is removed externally. */
+	FGAAttributeData RemovedAttribute;
+	/* Attribute changes applied when effect naturally expires. */
+	FGAAttributeData ExpiredAttribute;
+	/* Duration of effect. */
+	float Duration;
+	/* Time interval between periods. */
+	float Period;
+
+	//add captured attributes from Instigator/Source.
+	/*
+	Normally attributes on each tick, are checked from instigator, but when Instigator dies (is destroyed)
+	we should revert to checking cached relevelant attributes directly in effect.
+	*/
+
+	/*
+		Tags I have accumulated from spec.
+	*/
+	FGameplayTagContainer OwnedTags;
+	
+
+	void RemoveDurationAttribute();
+		
 public:
+	/* 
+		Called when effect is applied. 
+		Applies InitialAttribute and DurationAttribute.
+	*/
+	void OnApplied();
+	/* Called on period of this effect. */
 	void OnPeriod();
-	void OnRemoved() {};
+	/* Called when effect externally removed. */
+	void OnRemoved();
+	/* Called when effect naturally expires. */
 	void OnEnded();
 protected:
 	FTimerHandle PeriodTimerHandle;
 	FTimerHandle DurationTimerHandle;
-	
-	FGEffectModifierGroup EffectModifiers;
-	
-	FGAAttributeData DurationAttribute;
-	FGAAttributeData PeriodModifiers;
-	FGAAttributeData RemovedAttribute;
-	FGAAttributeData ExpiredAttribute;
-	
-	float Duration;
-	float Period;
 
 public:
 	/*

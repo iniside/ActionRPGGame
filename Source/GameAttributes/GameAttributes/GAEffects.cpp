@@ -107,23 +107,41 @@ FGAAttributeData FGAEffectSpec::GetExpiredAttribute()
 	return ExpiredAttribute.GetModifier(Context);
 }
 
-void FGAActiveBase::OnApplied()
-{
-	FGAAttributeData data = InitialAttribute;
-	if (Context.InstigatorComp.IsValid())
-		Context.InstigatorComp->ModifyAttributesOnTarget(data, Context, OwnedTags, MyHandle);
-}
+
 FGAEffectInstant::FGAEffectInstant(FGAEffectSpec& SpecIn, const FGAEffectContext& ContextIn)
 {
 	InitialAttribute = SpecIn.GetInitialAttribute();
 }
+
+void FGAActiveDuration::RemoveDurationAttribute()
+{
+
+}
+
+void FGAActiveDuration::OnApplied()
+{
+	FGAAttributeData data = InitialAttribute;
+	if (Context.InstigatorComp.IsValid())
+		Context.InstigatorComp->ModifyAttributesOnTarget(data, Context, OwnedTags, MyHandle);
+
+	FGAAttributeBase* attr = Context.TargetComp->GetAttribute(DurationAttribute.Attribute);
+	if (attr)
+	{
+		attr->AddBonus(FGAModifier(DurationAttribute.Mod, DurationAttribute.Value), MyHandle);
+	}
+
+}
+
 void FGAActiveDuration::OnPeriod()
 {
 	FGAAttributeData data = PeriodModifiers;
 	if (Context.InstigatorComp.IsValid())
 		Context.InstigatorComp->ModifyAttributesOnTarget(data, Context, OwnedTags, MyHandle);
 }
+void FGAActiveDuration::OnRemoved()
+{
 
+}
 void FGAActiveDuration::OnEnded()
 {
 	Context.TargetComp->EffectExpired(MyHandle);
@@ -150,6 +168,15 @@ void FGAActiveDuration::FinishEffect()
 	{
 		Context.Target->GetWorldTimerManager().ClearTimer(PeriodTimerHandle);
 		Context.Target->GetWorldTimerManager().ClearTimer(DurationTimerHandle);
+	}
+
+	if (Context.TargetComp.IsValid())
+	{
+		FGAAttributeBase* attr = Context.TargetComp->GetAttribute(DurationAttribute.Attribute);
+		if (attr)
+		{
+			attr->RemoveBonus(MyHandle);
+		}
 	}
 }
 bool FGAActiveDuration::ComparePeriodModifiers(const FGAAttributeData& OtherIn)
@@ -255,11 +282,6 @@ void FGAActiveEffectContainer::RemoveActiveEffect(const FGAEffectHandle& HandleI
 		/*
 			Clear modifiers, applied directly to attributes (if any).
 		*/
-		FGAAttributeBase* attr = removedEffect->Context.TargetComp->GetAttribute(removedEffect->DurationAttribute.Attribute);
-		if (attr)
-		{
-			attr->RemoveBonus(HandleIn);
-		}
 		removedEffect->FinishEffect();
 	}
 }
