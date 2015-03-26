@@ -27,10 +27,12 @@ protected:
 	/*
 		Bonus value calculated from stack of affecting effects.
 	*/
+	UPROPERTY()
 	float BonusValue;
 	/*
 		Current Value. BaseValue + BonusValue - AnyDamageIhave Takend, Clamped between 0 and ClampValue.
 	*/
+	UPROPERTY()
 	float CurrentValue;
 public:
 	//map of modifiers.
@@ -82,6 +84,14 @@ public:
 
 	void AddBonus(const FGAModifier& ModifiersIn, const FGAEffectHandle& Handle);
 	void RemoveBonus(const FGAEffectHandle& Handle);
+	/*
+		Remove weaker bonus of the same mod type, from Modifiers.
+	*/
+	void RemoveWeakerBonus(EGAAttributeMod ModType, float ValueIn);
+	/*
+		Removes bonus of the same mod type from Modifiers.
+	*/
+	void RemoveBonusType(EGAAttributeMod ModType);
 
 	void InitializeAttribute();
 
@@ -103,7 +113,8 @@ public:
 		AdditiveBonus(0),
 		SubtractBonus(0),
 		MultiplyBonus(0),
-		DivideBonus(1)
+		DivideBonus(1),
+		CurrentValue(BaseValue)
 	{
 	};
 	FGAAttributeBase(float BaseValueIn)
@@ -112,7 +123,8 @@ public:
 		AdditiveBonus(0),
 		SubtractBonus(0),
 		MultiplyBonus(0),
-		DivideBonus(1)
+		DivideBonus(1),
+		CurrentValue(BaseValue)
 	{
 	};
 };

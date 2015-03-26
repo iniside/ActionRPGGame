@@ -14,6 +14,7 @@ UARCharacterAttributes::UARCharacterAttributes(const FObjectInitializer& ObjectI
 {
 	Damage = 0;
 	FireDamage = 0;
+	Health.BaseValue = 300;
 }
 void UARCharacterAttributes::InitializeAttributes()
 {
@@ -61,14 +62,14 @@ void UARCharacterAttributes::InitializeAttributes()
 	//	}
 	//}
 
-	//for (TFieldIterator<UStructProperty> StrIt(GetClass(), EFieldIteratorFlags::IncludeSuper); StrIt; ++StrIt)
-	//{
-	//	FGAAttributeBase* attr = StrIt->ContainerPtrToValuePtr<FGAAttributeBase>(this);
-	//	if (attr)
-	//	{
-	//		attr->InitializeAttribute();
-	//	}
-	//}
+	for (TFieldIterator<UStructProperty> StrIt(GetClass(), EFieldIteratorFlags::IncludeSuper); StrIt; ++StrIt)
+	{
+		FGAAttributeBase* attr = StrIt->ContainerPtrToValuePtr<FGAAttributeBase>(this);
+		if (attr)
+		{
+			attr->InitializeAttribute();
+		}
+	}
 }
 
 void UARCharacterAttributes::PostEffectApplied()
@@ -148,7 +149,7 @@ float UARCharacterAttributes::PostAttribute_FireDamage(const FGAEvalData& Attrib
 	float MultiplyBonus = DamageBonus.GetMultiplyBonus() + FireDamageBonus.GetMultiplyBonus();
 	float DivideBonus = DamageBonus.GetDivideBonus() + FireDamageBonus.GetDivideBonus();
 	FireDamage = (FireDamage + AddtiveBonus - SubtractBonus);
-	FireDamage = (FireDamage * MultiplyBonus) / DivideBonus;
+	FireDamage = FireDamage + (FireDamage * MultiplyBonus) / DivideBonus;
 	Health.Subtract(FireDamage);
 	float finalDamage = FireDamage;// FireDamage;
 	FireDamage = 0;

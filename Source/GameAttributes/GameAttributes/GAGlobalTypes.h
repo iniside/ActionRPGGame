@@ -72,7 +72,7 @@ enum class EGAEffectType : uint8
 	all modifiers affecting this attribute, and remove all weaker ones.
 
 	Override - does not check if it is stronger/weaker, it will simply override any existing modifiers
-	and effects with the same tags.
+	and effects with the same name.
 
 	Duration - Will add duration to existing effect of EXACTLY the same type.
 
@@ -81,7 +81,6 @@ enum class EGAEffectType : uint8
 	and refresh duration to the latest applied effect.
 
 	Add - no checks, simply add new effect to stack.
-
 */
 UENUM()
 enum class EGAEffectStacking : uint8
@@ -212,9 +211,8 @@ public:
 	}
 
 };
-
 /*
-	Struct representing final modifier applied to attribute.
+Struct representing final modifier applied to attribute.
 */
 USTRUCT(BlueprintType)
 struct FGAModifier
@@ -226,12 +224,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		float Value;
 
-	FGAModifier()
+	/* 
+		Weak pointer to effect, which added this modifier.
+		Useful because, while effect exist it have lots of useful informations.
+	*/
+	TWeakPtr<struct FGAActiveDuration> Effect;
+
+		FGAModifier()
 	{};
 	FGAModifier(EGAAttributeMod ModIn, float ValueIn)
 		: AttributeMod(ModIn),
 		Value(ValueIn)
 	{};
+	FGAModifier(EGAAttributeMod ModIn, float ValueIn, TSharedPtr<struct FGAActiveDuration> ActiveEffect);
 };
 /**
  *	Struct representing single attribute. Needed for Pin customization.

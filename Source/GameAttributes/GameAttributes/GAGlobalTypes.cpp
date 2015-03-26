@@ -6,6 +6,7 @@
 #include "IGAAttributes.h"
 #include "Effects/GAEffect.h"
 #include "Effects/GAEffectSpecification.h"
+#include "GAEffects.h"
 #include "GAGlobalTypes.h"
 
 FGAEffectHandle FGAEffectHandle::GenerateHandle()
@@ -15,7 +16,12 @@ FGAEffectHandle FGAEffectHandle::GenerateHandle()
 
 	return NewHandle;
 }
-
+FGAModifier::FGAModifier(EGAAttributeMod ModIn, float ValueIn, TSharedPtr<struct FGAActiveDuration> ActiveEffect)
+	: AttributeMod(ModIn),
+	Value(ValueIn)
+{
+	Effect = TWeakPtr<FGAActiveDuration>(ActiveEffect);
+}
 void FGAEffectContext::Reset()
 {
 	Target.Reset();

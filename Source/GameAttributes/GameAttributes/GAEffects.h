@@ -93,17 +93,6 @@ public:
 
 	float GetFinalValue();
 };
-/*
-	Struct, which represent attribute modified by effect.
-*/
-//USTRUCT(BlueprintType)
-//struct FGAModifiedAttribute
-//{
-//	GENERATED_USTRUCT_BODY()
-//public:
-//	UPROPERTY()
-//		FGAAttribute Attribute;
-//};
 
 USTRUCT(BlueprintType)
 struct FGAEffectDuration
@@ -134,8 +123,14 @@ struct FGAEffectName
 {
 	GENERATED_USTRUCT_BODY()
 public:
-	UPROPERTY()
-	FName EffectName;
+	/*
+		If true, use Causer object as name for effect.
+	*/
+	UPROPERTY(EditAnywhere)
+		bool CustomName;
+
+	UPROPERTY(EditAnywhere, meta = (EditCondition = "CustomName"), Category = "Base")
+		FName EffectName;
 
 	FGAEffectName()
 		: EffectName(NAME_None)
@@ -178,28 +173,30 @@ public:
 		Instant application effects, do use only this property.
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
-		FGAAttributeModifier InitialAttribute;
+		TArray<FGAAttributeModifier> InitialAttributes;
 	/*
 		Modifier which is applied for effect duration.
 		It's removed when effect is removed/expire.
+
+		Duration effects should only be used to modify Complex Attributes!
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
-		FGAAttributeModifier DurationAttribute;
+		TArray<FGAAttributeModifier> DurationAttributes;
 	/*
 		Modifier applied when effect Ticks (on period interval).
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
-		FGAAttributeModifier PeriodAttribute;
+		TArray<FGAAttributeModifier> PeriodAttributes;
 	/*
 		Modifier applied when effect is removed from target.
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
-		FGAAttributeModifier RemovedAttribute;
+		TArray<FGAAttributeModifier> RemovedAttributes;
 	/*
 		Modifier applied when Effect naturally expire.
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
-		FGAAttributeModifier ExpiredAttribute;
+		TArray<FGAAttributeModifier> ExpiredAttributes;
 };
 
 /*
@@ -241,40 +238,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 		FGAAttributeEffectSpec AttributeSpec;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
-		FGAAttributeModifier InitialAttribute;
-	/*
-		Modifier which is applied for effect duration.
-		It's removed when effect is removed/expire.
-	*/
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
-		FGAAttributeModifier DurationAttribute;
-	/*
-		Modifier applied when effect Ticks (on period interval).
-	*/
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
-		FGAAttributeModifier PeriodAttribute;
-	/*
-		Modifier applied when effect is removed from target.
-	*/
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
-		FGAAttributeModifier RemovedAttribute;
-	/*
-		Modifier applied when Effect naturally expire.
-	*/
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
-		FGAAttributeModifier ExpiredAttribute;
-
-
-	TArray<FGAAttributeData> EvalModifiers;
-	TArray<FGAAttributeData> PeriodMods;
-
-
-	FGAAttributeData GetInitialAttribute();
-	FGAAttributeData GetDurationAttribute();
-	FGAAttributeData GetPeriodAttribute();
-	FGAAttributeData GetRemovedAttribute();
-	FGAAttributeData GetExpiredAttribute();
+	TArray<FGAAttributeData> GetInitialAttribute();
+	TArray<FGAAttributeData> GetDurationAttribute();
+	TArray<FGAAttributeData> GetPeriodAttribute();
+	TArray<FGAAttributeData> GetRemovedAttribute();
+	TArray<FGAAttributeData> GetExpiredAttribute();
 };
 
 /*
@@ -326,191 +294,6 @@ public:
 		FGAAttributeModifier Modifier;
 };
 
-/*
-	What I want to achieve:
-	1. Effect modifing the same attribute within the same depth, never stack.
-	Ie. Damage + Damage don't stack. But Damage + Damage.Fire does.
-	2. Only highest modifier for attribute can be active.
-*/
-/*
-1. If spec is instant application, we will try to apply it directly without any fuss.
-2. If it have duration (or is infinite), we will create FGAActiveEffect out of it.
-	TODO::!!!!!!!!!!!
-	Need way to cache this off, for two reasons.
-	1. There is quite a lot of useful information in this spec, which can be reused later in active effects.
-	2. So we don't have to copy this shit all over the place. And no. This is not even big yet.
-	It still misses a lot of informations.
-*/
-//USTRUCT(BlueprintType)
-//struct FGAEffectSpec
-//{
-//	GENERATED_USTRUCT_BODY()
-//public:
-//	UPROPERTY()
-//		TSubclassOf<class UGAEffectSpecification> EffectSpec;
-//	/*
-//		Name of the effect. 
-//
-//		Name of effect is derived from object (Causer) which apply this effect, be it ability, character,
-//		projectile, weapon etc.
-//
-//		If you have blueprint ability called Fireball, name of effect will be Fireball_C.
-//
-//		It's used internally to track effects, from different abilities, as effect on it's own, does
-//		not have any real meaning.
-//	*/
-//	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attribute Modifiers")
-//		FGAEffectName EffectName;
-//	/*
-//		These properties will mirror the ones in GAEffectSpecification.
-//		We use GAEffectSpecification as template, which is used to initialize, those properties
-//		and then we can override them using various static functions.
-//
-//		Or we can just apply them directly.
-//
-//		EditAnywhere, so we can create an inline spec, when we need it.
-//	*/
-//	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-//		FGAEffectPolicy Policy;
-//	/*
-//		Modifiers applied to attribute for duration of effect.
-//		Should only be really used with complex Attributes!
-//	*/
-//	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-//		TArray<FGAAttributeModifier> AttributeModifiers;
-//	/*
-//		Modifiers, to attributes applied when this effect applied to target.
-//
-//		Should only be used with float attributes!
-//	*/
-//	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-//		TArray<FGAAttributeModifier> AppliedModifiers;
-//	/*
-//		Modifiers which will be applied on effect period.
-//
-//		Should only be used with float attributes!
-//	*/
-//	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-//		TArray<FGAAttributeModifier> PeriodModifiers;
-//	/*
-//		Modifiers which will be applied when effect is prematurly removed.
-//
-//		Should only be used with float attributes!
-//	*/
-//	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-//		TArray<FGAAttributeModifier> RemovedModifiers;
-//	/*
-//		Modifiers which will be applied when effect naturally expired.
-//
-//		Should only be used with float attributes!
-//	*/
-//	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-//		TArray<FGAAttributeModifier> ExpiredModifiers;
-//
-//	/*
-//		If I have duration, I will modify other effects, attribute modifiers,
-//		if those effects meet these requirements.
-//	*/
-//	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-//		TArray<FGAEffectModifier> EffectModifiers;
-//	/*
-//		Duration of effect. Separate for Period duration, and total duration.
-//
-//		Right now you type, values directly.
-//	*/
-//	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-//		FGAEffectDuration EffectDuration;
-//
-//	/*
-//		Tags, which describe this effect. 
-//	*/
-//	UPROPERTY(EditAnywhere, Category = "Tags")
-//		FGameplayTagContainer EffectTags;
-//	/*
-//		I require these tags on target to be applied.
-//		If this is empty I will ignore it.
-//	*/
-//	UPROPERTY(EditAnywhere, Category = "Tags")
-//		FGameplayTagContainer RequiredTags;
-//	/*
-//		I will apply these tags, to target if I'm applied.
-//	*/
-//	UPROPERTY(EditAnywhere, Category = "Tags")
-//		FGameplayTagContainer GrantedTags;
-//	/*
-//		I will add these immunity tags, to target if I'm applied.
-//	*/
-//	UPROPERTY(EditAnywhere, Category = "Tags")
-//		FGameplayTagContainer GrantedImmunityTags;
-//	/*
-//		Other effect must have these tags if I'm going to stack with it.
-//	*/
-//	UPROPERTY(EditAnywhere, Category = "Tags")
-//		FGameplayTagContainer StackRequireTags;
-//	/*
-//		If effect I'm stacking with have these tags, I will remove it.
-//	*/
-//	UPROPERTY(EditAnywhere, Category = "Tags")
-//		FGameplayTagContainer StackingRemoveTags;
-//
-//	/*
-//		I require any of these tags, on other effect
-//		to be able to modify it.
-//	*/
-//	UPROPERTY(EditAnywhere, Category = "Tags")
-//		FGameplayTagContainer OtherEffectRequire;
-//
-//
-//	/*
-//	I will do something when I expire, If target have these tags.
-//
-//	Ok. It's kind of dumb, I should do it differently, we need more data
-//	about who is target (target doesn't need to be actor, to which
-//	effect is applied, but for example, actor, who hit actor with this effect.
-//	*/
-//	UPROPERTY(EditAnywhere, Category = "Tags")
-//		FGameplayTagContainer ExpiredRequireTags;
-//
-//	UPROPERTY()
-//		FGAEffectContext Context;
-//
-//	FGAEffectSpec() {};
-//	FGAEffectSpec(const FGAEffectContext& ContextIn)
-//		: Context(ContextIn)
-//	{};
-//
-//	FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn, const FGAEffectContext& ContextIn);
-//	/*
-//	These constructors are used with conjuction with static functions,
-//	to easily alter parts of effect spec, without spawning/chagning
-//	UGAEffectSpecification, which can provide some defaults.
-//	*/
-//	/*
-//	Constructor which will override duration.
-//	*/
-//	FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn,
-//		FGAEffectDuration DurationIn, const FGAEffectContext& ContextIn);
-//	/*
-//	Constructor which will override entire stack of modifiers.
-//	*/
-//	FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn,
-//		TArray<FGAAttributeModifier> ModifiersIn, const FGAEffectContext& ContextIn);
-//	/*
-//	Constructor which will override only specific modifiers.
-//	*/
-//	FGAEffectSpec(TSubclassOf<class UGAEffectSpecification> SpecIn,
-//		TArray<FGAModifierOverride> OverridesIn, const FGAEffectContext& ContextIn);
-//
-//	TArray<FGAAttributeData> GetModifiers();
-//	TArray<FGAAttributeData> GetAttributeModifiers();
-//	TArray<FGAAttributeData> GetPeriodModifiers();
-//	TArray<FGAAttributeData> GetOnEndedModifiers();
-//	TArray<FGAAttributeData> GetOnRemovedModifiers();
-//
-//	TArray<FGAAttributeData> EvalModifiers;
-//	TArray<FGAAttributeData> PeriodMods;
-//};
-
 USTRUCT()
 struct FGAEffectInstant
 {
@@ -521,19 +304,13 @@ public:
 	FGAEffectInstant(FGAEffectSpec& SpecIn, const FGAEffectContext& ContextIn);
 
 	void OnApplied() {};
-	FGAAttributeData InitialAttribute;
+	TArray<FGAAttributeData> InitialAttribute;
 
 	FGameplayTagContainer OwnedTags;
 };
-USTRUCT()
-struct FGAActiveBase
-{
-	GENERATED_USTRUCT_BODY()
-
-};
 
 USTRUCT()
-struct FGAActiveDuration : public FGAActiveBase
+struct FGAActiveDuration
 {
 	GENERATED_USTRUCT_BODY()
 		friend struct FGAActiveEffectContainer;
@@ -546,22 +323,24 @@ struct FGAActiveDuration : public FGAActiveBase
 	/* Aggregation type derived from EffectSpec. */
 	EGAEffectAggregation AggregationType;
 
+	EGAEffectStacking Stacking;
+
 	UPROPERTY()
 		FGAEffectContext Context;
 
 	/* Attribute applied initially by this effect. */
-	FGAAttributeData InitialAttribute;
+	TArray<FGAAttributeData> InitialAttribute;
 	/* 
 		Attribute change applied for this effect duration. This is only really useful for 
 		Complex Attributes.
 	*/
-	FGAAttributeData DurationAttribute;
+	TArray<FGAAttributeData> DurationAttribute;
 	/* Attribute changes applied on each period. */
-	FGAAttributeData PeriodModifiers;
+	TArray<FGAAttributeData> PeriodModifiers;
 	/* Attribute changes applied when effect is removed externally. */
-	FGAAttributeData RemovedAttribute;
+	TArray<FGAAttributeData> RemovedAttribute;
 	/* Attribute changes applied when effect naturally expires. */
-	FGAAttributeData ExpiredAttribute;
+	TArray<FGAAttributeData> ExpiredAttribute;
 	/* Duration of effect. */
 	float Duration;
 	/* Time interval between periods. */
@@ -617,13 +396,6 @@ public:
 		const FGAEffectHandle& HandleIn);
 
 	~FGAActiveDuration();
-};
-
-USTRUCT()
-struct FGAActiveInfinite : public FGAActiveBase
-{
-	GENERATED_USTRUCT_BODY()
-public:
 };
 
 USTRUCT()

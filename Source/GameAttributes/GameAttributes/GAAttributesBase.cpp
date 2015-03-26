@@ -94,7 +94,7 @@ float UGAAttributesBase::GetFinalAttributeValue(const FGAAttribute& Name)
 	FGAAttributeBase* attrPtr = GetAttribute(Name);
 	if (attrPtr)
 	{
-		//return attrPtr->GetFinalValue();
+		return attrPtr->GetFinalValue();
 	}
 	return 0;
 }
@@ -103,7 +103,7 @@ float UGAAttributesBase::GetCurrentAttributeValue(const FGAAttribute& Name)
 	FGAAttributeBase* attrPtr = GetAttribute(Name);
 	if (attrPtr)
 	{
-		//return attrPtr->GetCurrentValue();
+		return attrPtr->GetCurrentValue();
 	}
 	return 0;
 }
