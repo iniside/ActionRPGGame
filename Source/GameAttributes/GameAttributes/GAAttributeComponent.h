@@ -93,6 +93,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes | UI")
 		TArray<FGAEffectUIData> GetEffectUIData();
+
+	UFUNCTION(BlueprintCallable, Category = "Game Attributes | UI")
+		FGAEffectUIData GetEffectUIDataByIndex(int32 IndexIn);
 protected:
 	void ExecuteModifiers(FGAAttributeData& ModifierIn, const FGameplayTagContainer& EffectTags, 
 		const FGAEffectContext Context);

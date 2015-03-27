@@ -140,6 +140,38 @@ FGAAttributeData UARCharacterAttributes::PreAttribute_Damage(const FGAAttributeD
 	return returnData;
 }
 
+FGAAttributeData UARCharacterAttributes::PreAttribute_FireDamage(const FGAAttributeData& AttributeMod)
+{
+	UARCharacterAttributes* InstiAttr = Cast<UARCharacterAttributes>(AttributeMod.Context.InstigatorComp->DefaultAttributes);
+	FGAAttributeData returnData = AttributeMod;
+	float AddtiveBonus = InstiAttr->BonusDamage.GetAdditiveBonus() + InstiAttr->BonusFireDamage.GetAdditiveBonus();
+	float SubtractBonus = InstiAttr->BonusDamage.GetSubtractBonus() + InstiAttr->BonusFireDamage.GetSubtractBonus();
+	float MultiplyBonus = InstiAttr->BonusDamage.GetMultiplyBonus() + InstiAttr->BonusFireDamage.GetMultiplyBonus();
+	float DivideBonus = InstiAttr->BonusDamage.GetDivideBonus() + InstiAttr->BonusFireDamage.GetDivideBonus();
+	
+	returnData.Value =
+		(returnData.Value +
+		AddtiveBonus -
+		SubtractBonus;
+
+	returnData.Value =
+		(returnData.Value *
+		MultiplyBonus /
+		DivideBonus;
+
+	returnData.Value =
+		(returnData.Value +
+		DamageDefense.GetAdditiveBonus() -
+		DamageDefense.GetSubtractBonus());
+
+	returnData.Value =
+		(returnData.Value *
+		DamageDefense.GetMultiplyBonus()) /
+		DamageDefense.GetDivideBonus();
+
+	return returnData;
+}
+
 float UARCharacterAttributes::PostModifyAttribute(const FGAEvalData& AttributeMod)
 {
 	SCOPE_CYCLE_COUNTER(STAT_PostModifyAttribute);
@@ -184,12 +216,6 @@ float UARCharacterAttributes::PostAttribute_Damage(const FGAEvalData& AttributeM
 }
 float UARCharacterAttributes::PostAttribute_FireDamage(const FGAEvalData& AttributeMod)
 {
-	float AddtiveBonus = BonusDamage.GetAdditiveBonus() + BonusFireDamage.GetAdditiveBonus();
-	float SubtractBonus = BonusDamage.GetSubtractBonus() + BonusFireDamage.GetSubtractBonus();
-	float MultiplyBonus = BonusDamage.GetMultiplyBonus() + BonusFireDamage.GetMultiplyBonus();
-	float DivideBonus = BonusDamage.GetDivideBonus() + BonusFireDamage.GetDivideBonus();
-	FireDamage = (FireDamage + AddtiveBonus - SubtractBonus);
-	FireDamage = FireDamage + (FireDamage * MultiplyBonus) / DivideBonus;
 	Health.Subtract(FireDamage);
 	float finalDamage = FireDamage;// FireDamage;
 	FireDamage = 0;

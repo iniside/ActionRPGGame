@@ -286,6 +286,8 @@ public:
 
 	UFUNCTION(Category = "PreAttribute")
 		FGAAttributeData PreAttribute_Damage(const FGAAttributeData& AttributeMod);
+	UFUNCTION(Category = "PreAttribute")
+		FGAAttributeData PreAttribute_Damage(const FGAAttributeData& AttributeMod);
 
 	//UFUNCTION(Category = "PostAttribute")
 	//	FGAAttributeDataCallback PostAttribute_Health(const FGAEvalData& AttributeMod);

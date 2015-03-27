@@ -94,6 +94,16 @@ TArray<FGAEffectUIData> UGAAttributeComponent::GetEffectUIData()
 	return dataReturn;
 }
 
+FGAEffectUIData UGAAttributeComponent::GetEffectUIDataByIndex(int32 IndexIn)
+{
+	FGAEffectUIData data;
+	if (ActiveEffects.RepActiveEffects.IsValidIndex(IndexIn))
+	{
+		data.RemainingTime = ActiveEffects.RepActiveEffects[IndexIn].GetRemainingDuration(GetWorld()->GetTimeSeconds());
+	}
+	return data;
+}
+
 FGAEffectInstant UGAAttributeComponent::MakeOutgoingInstantEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context)
 {
 	FGAEffectInstant InstatnEffect;

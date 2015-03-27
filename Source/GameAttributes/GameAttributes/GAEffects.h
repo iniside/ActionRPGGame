@@ -455,6 +455,14 @@ public:
 	Active effect is struct made for replication and UI.
 	It's very simple, and contains only rudimentary information about effect.
 	Stacks, remaining duration, handle to effect.
+
+	It's also not really synced with server. That means, server have total authorative controll
+	over effects, and what is in this struct is approximation. 
+	Only begin and end of effect are synced by server (wehther end is natural or not is irrelevelant).
+
+	What happen in between is entirely up to client.
+
+	This struct could be predictively applied to target, but as of now it's not yet supported.
 */
 USTRUCT()
 struct FGAActiveEffect // : public FFastArraySerializerItem
@@ -469,6 +477,9 @@ public:
 		FGAEffectContext Context;
 	UPROPERTY()
 		float WorldStartTime;
+
+	UPROPERTY()
+		TSubclassOf<class UGAUIData> UIDataClass;
 	/*
 		Called when effect has been activated or replicated to client.
 	*/
