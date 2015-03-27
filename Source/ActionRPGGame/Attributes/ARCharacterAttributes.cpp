@@ -152,11 +152,11 @@ FGAAttributeData UARCharacterAttributes::PreAttribute_FireDamage(const FGAAttrib
 	returnData.Value =
 		(returnData.Value +
 		AddtiveBonus -
-		SubtractBonus;
+		SubtractBonus);
 
 	returnData.Value =
 		(returnData.Value *
-		MultiplyBonus /
+		MultiplyBonus) /
 		DivideBonus;
 
 	returnData.Value =
