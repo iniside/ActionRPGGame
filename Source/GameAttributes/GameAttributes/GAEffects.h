@@ -465,19 +465,24 @@ public:
 		FGAEffectHandle MyHandle;
 	UPROPERTY()
 		float Duration;
-
+	UPROPERTY()
+		FGAEffectContext Context;
+	UPROPERTY()
+		float WorldStartTime;
 	/*
 		Called when effect has been activated or replicated to client.
 	*/
 	void OnActivated();
 
+	float GetRemainingDuration(float CurrentWorldTime);
+
 private:
 	FTimerHandle DurationTimerHandle;
-
+public:
 	FGAActiveEffect()
 	{};
 
-	FGAActiveEffect(const FGAEffectHandle& HandleIn, FGAEffectSpec& SpecIn);
+	FGAActiveEffect(const FGAEffectHandle& HandleIn, FGAEffectSpec& SpecIn, float StartTimeIn);
 };
 /*
 	Notes:

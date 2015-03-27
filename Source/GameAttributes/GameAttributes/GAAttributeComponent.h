@@ -12,6 +12,16 @@ DECLARE_CYCLE_STAT_EXTERN(TEXT("AttributeComponentModifyAttribute"), STAT_Modify
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGAOnAttributeChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGAOnAttributeModifed, const FGAModifiedAttribute&, attr);
 
+
+USTRUCT(BlueprintType)
+struct FGAEffectUIData
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(BlueprintReadOnly, Category = "UI")
+		float RemainingTime;
+};
+
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
 class GAMEATTRIBUTES_API UGAAttributeComponent : public UActorComponent
 {
@@ -81,6 +91,8 @@ public:
 		FGAEffectHandle ApplySelfEffect(AActor* Target, APawn* Instigator,
 		UObject* Causer, FGAEffectSpec SpecIn);
 
+	UFUNCTION(BlueprintCallable, Category = "Game Attributes | UI")
+		TArray<FGAEffectUIData> GetEffectUIData();
 protected:
 	void ExecuteModifiers(FGAAttributeData& ModifierIn, const FGameplayTagContainer& EffectTags, 
 		const FGAEffectContext Context);

@@ -82,6 +82,18 @@ FGAEffectHandle UGAAttributeComponent::ApplySelfEffect(AActor* Target, APawn* In
 	return ActiveEffects.ApplyEffect(SpecIn, context);
 }
 
+TArray<FGAEffectUIData> UGAAttributeComponent::GetEffectUIData()
+{
+	TArray<FGAEffectUIData> dataReturn;
+	for (auto It = ActiveEffects.RepActiveEffects.CreateIterator(); It; ++It)
+	{
+		FGAEffectUIData data;
+		data.RemainingTime = It->GetRemainingDuration(GetWorld()->GetTimeSeconds());
+		dataReturn.Add(data);
+	}
+	return dataReturn;
+}
+
 FGAEffectInstant UGAAttributeComponent::MakeOutgoingInstantEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context)
 {
 	FGAEffectInstant InstatnEffect;

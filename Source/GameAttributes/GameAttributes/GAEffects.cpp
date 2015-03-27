@@ -218,12 +218,23 @@ float FGAEffectModifier::GetFinalValue()
 	return 0;
 }
 
-FGAActiveEffect::FGAActiveEffect(const FGAEffectHandle& HandleIn, FGAEffectSpec& SpecIn)
-	: MyHandle(HandleIn)
+FGAActiveEffect::FGAActiveEffect(const FGAEffectHandle& HandleIn, FGAEffectSpec& SpecIn, float StartTimeIn)
+	: MyHandle(HandleIn),
+	Duration(SpecIn.EffectDuration.Duration),
+	Context(SpecIn.Context),
+	WorldStartTime(StartTimeIn)
+{
+	
+}
+void FGAActiveEffect::OnActivated()
 {
 
 }
 
+float FGAActiveEffect::GetRemainingDuration(float CurrentWorldTime)
+{
+	return Duration - (CurrentWorldTime - WorldStartTime);
+}
 FGAEffectHandle FGAActiveEffectContainer::ApplyEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Ctx)
 {
 	switch (SpecIn.Policy.Type)
@@ -326,7 +337,7 @@ FGAEffectHandle FGAActiveEffectContainer::AddActiveEffect(FGAEffectSpec& EffectI
 	TSharedPtr<FGAActiveDuration> tempPeriodic = MakeShareable(new FGAActiveDuration(Ctx, EffectIn, handle));
 	tempPeriodic->ActivateEffect();
 
-	FGAActiveEffect activeEffect(handle);
+	FGAActiveEffect activeEffect(handle, EffectIn, Ctx.Target->GetWorld()->GetTimeSeconds());
 	RepActiveEffects.Add(activeEffect);
 
 
