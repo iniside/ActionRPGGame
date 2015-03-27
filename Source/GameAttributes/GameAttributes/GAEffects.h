@@ -124,7 +124,7 @@ struct FGAEffectName
 	GENERATED_USTRUCT_BODY()
 public:
 	/*
-		If true, use Causer object as name for effect.
+		If true, use custom name.
 	*/
 	UPROPERTY(EditAnywhere)
 		bool CustomName;
@@ -302,8 +302,8 @@ public:
 	FGAEffectInstant()
 	{}
 	FGAEffectInstant(FGAEffectSpec& SpecIn, const FGAEffectContext& ContextIn);
-
-	void OnApplied() {};
+	FGAEffectContext Context;
+	void OnApplied();
 	TArray<FGAAttributeData> InitialAttribute;
 
 	FGameplayTagContainer OwnedTags;
@@ -311,7 +311,7 @@ public:
 
 struct GAMEATTRIBUTES_API FGAActiveDuration : public TSharedFromThis<FGAActiveDuration>
 {
-		friend struct FGAActiveEffectContainer;
+	friend struct FGAActiveEffectContainer;
 	/* Current handle of this effect. */
 	FGAEffectHandle MyHandle;
 
@@ -342,6 +342,10 @@ struct GAMEATTRIBUTES_API FGAActiveDuration : public TSharedFromThis<FGAActiveDu
 	float Duration;
 	/* Time interval between periods. */
 	float Period;
+
+	float StackedDuration;
+	/* How many effects are stacked. */
+	int32 CurrentStack;
 
 	//add captured attributes from Instigator/Source.
 	/*
@@ -378,7 +382,7 @@ public:
 		Return true if OtherIn is higher than, any existing mod.
 	*/
 	bool ComparePeriodModifiers(const FGAAttributeData& OtherIn);
-	void RestartTimer(float NewDuration);
+	void StackDuration(float NewDuration);
 	void ActivateEffect();
 	void FinishEffect();
 	FGAActiveDuration()
@@ -447,11 +451,71 @@ public:
 	TMap<FGameplayTag, TArray<FGAEffectHandle>> EffectsByTag;
 };
 
+/*
+	Active effect is struct made for replication and UI.
+	It's very simple, and contains only rudimentary information about effect.
+	Stacks, remaining duration, handle to effect.
+*/
 USTRUCT()
-struct FGAActiveEffectContainer
+struct FGAActiveEffect // : public FFastArraySerializerItem
 {
 	GENERATED_USTRUCT_BODY()
 public:
+	UPROPERTY()
+		FGAEffectHandle MyHandle;
+	UPROPERTY()
+		float Duration;
+
+	/*
+		Called when effect has been activated or replicated to client.
+	*/
+	void OnActivated();
+
+private:
+	FTimerHandle DurationTimerHandle;
+
+	FGAActiveEffect()
+	{};
+
+	FGAActiveEffect(const FGAEffectHandle& HandleIn, FGAEffectSpec& SpecIn);
+};
+/*
+	Notes:
+
+	Implement fast serialization. Latter, when basics works.
+*/
+USTRUCT()
+struct FGAActiveEffectContainer// : public FFastArraySerializer
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	/*
+		Map of all Active effects.
+		Store as shared pointers, so we can have some basic polymorphism.
+
+		Not, extremly important and might change later!
+	*/
+	TMap<FGAEffectHandle, TSharedPtr<FGAActiveDuration>> ActiveEffects;
+	
+	/*
+		List of active effects, for replication and UI.
+	*/
+	UPROPERTY()
+		TArray<FGAActiveEffect> RepActiveEffects;
+
+	/*
+		Group effects, by instigator who applied to it.
+		Each instigator get separate pool, against which stacking rules are checked.
+	*/
+	TMap<TWeakObjectPtr<class UGAAttributeComponent>, FGAInstigatorEffectContainer> InstigatorEffects;
+
+	/*
+		Effects aggregated by Target.
+	*/
+	TMap<FGAEffectName, TArray<FGAEffectHandle>> MyEffects;
+
+
+
 	FGAActiveEffectContainer()
 	{}
 	
@@ -484,18 +548,16 @@ public:
 		const FGameplayTagContainer& EffectTags, const FGAEffectContext& Ctx);
 protected:
 	FGAEffectHandle HandleInstantEffect(FGAEffectInstant& SpecIn, const FGAEffectContext& Ctx);
-
-	//merge duration and periodic.
 	FGAEffectHandle HandleDurationEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+
 	FGAEffectHandle HandleInstigatorAggregationEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
 	FGAEffectHandle	HandleInstigatorEffectStrongerOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
 	FGAEffectHandle HandleInstigatorEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
-	FGAEffectHandle	HandleInstigatorEffectAdd(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
-	/*
-		If existing effect has been found, it will simply return handle to existing effect.
-		If new effect has been added return handle to new effect.
-	*/
 	FGAEffectHandle	HandleInstigatorEffectDuration(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+	FGAEffectHandle	HandleInstigatorEffectDIntensity(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+	FGAEffectHandle	HandleInstigatorEffectAdd(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+
+	
 	FGAEffectHandle HandleTargetAggregationEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
 	FGAEffectHandle	HandleTargetEffectStrongerOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
 	/*
@@ -506,32 +568,9 @@ protected:
 		Does not check for anything.
 	*/
 	FGAEffectHandle HandleTargetEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+	FGAEffectHandle HandleTargetEffectDuration(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+	FGAEffectHandle HandleTargetEffectIntensity(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
 	FGAEffectHandle HandleTargetEffectAdd(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
-
-	
-	/*
-		Map of all Active effects.
-		Store as shared pointers, so we can have some basic polymorphism.
-
-		Not, extremly important and might change later!
-	*/
-	TMap<FGAEffectHandle, TSharedPtr<FGAActiveDuration>> ActiveEffects;
-
-	/*
-		Group effects, by instigator who applied to it.
-		Each instigator get separate pool, against which stacking rules are checked.
-	*/
-	TMap<TWeakObjectPtr<class UGAAttributeComponent>, FGAInstigatorEffectContainer> InstigatorEffects;
-
-	/*
-		Effects aggregated by Target.
-	*/
-	TMap<FGAEffectName, TArray<FGAEffectHandle>> MyEffects;
-
-	/*
-		Use it to store modifier tags (tags, from effects which modify other effect),
-	*/
-	FGACountedTagContainer ActiveModifierTags;
 
 };
 
