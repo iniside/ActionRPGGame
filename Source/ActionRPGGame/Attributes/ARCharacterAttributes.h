@@ -62,11 +62,11 @@ public:
 		Or maybe another attribute, which is only used to store value of health
 		calculated from other attributes ?
 	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "Resources")
 		FGAAttributeBase Health;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "Resources")
 		FGAAttributeBase Energy;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "Resources")
 		FGAAttributeBase Stamina;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")

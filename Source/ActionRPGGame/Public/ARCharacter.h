@@ -151,7 +151,9 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Character Death")
 		void OnCharacterDied();
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
-
+	
+	UFUNCTION(BlueprintImplementableEvent, Category = "Character Death")
+		void OnPostControllerRep();
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;

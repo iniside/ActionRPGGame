@@ -237,6 +237,14 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 		FGAAttributeEffectSpec AttributeSpec;
+	/*
+		If you don't want  effect to spawn Cue, you can simply leave it empty.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Cues")
+		TSubclassOf<class AGAEffectCue> EffectCue;
+
+	UPROPERTY(EditAnywhere, Category = "Cues")
+		TSubclassOf<class UGAUIData> UIData;
 
 	TArray<FGAAttributeData> GetInitialAttribute();
 	TArray<FGAAttributeData> GetDurationAttribute();
@@ -460,11 +468,13 @@ public:
 	over effects, and what is in this struct is approximation. 
 	Only begin and end of effect are synced by server (wehther end is natural or not is irrelevelant).
 
+	Does not contain information, about what is modified and how.
+
 	What happen in between is entirely up to client.
 
 	This struct could be predictively applied to target, but as of now it's not yet supported.
 */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FGAActiveEffect // : public FFastArraySerializerItem
 {
 	GENERATED_USTRUCT_BODY()
@@ -474,26 +484,37 @@ public:
 	UPROPERTY()
 		float Duration;
 	UPROPERTY()
+		float Period;
+	UPROPERTY()
 		FGAEffectContext Context;
 	UPROPERTY()
 		float WorldStartTime;
 
 	UPROPERTY()
 		TSubclassOf<class UGAUIData> UIDataClass;
-	/*
-		Called when effect has been activated or replicated to client.
-	*/
-	void OnActivated();
 
+	UPROPERTY()
+		TSubclassOf<class AGAEffectCue> CueClass;
+	/* Indicates if effect has already been actiated. */
+	UPROPERTY()
+		uint32 bIsActivated : 1;
+	/*
+	Weak reference to cue associated with this effect.
+	*/
+	UPROPERTY(NotReplicated)
+		TWeakObjectPtr<class AGAEffectCue> EffectCue;
+public:
 	float GetRemainingDuration(float CurrentWorldTime);
 
-private:
-	FTimerHandle DurationTimerHandle;
+
 public:
 	FGAActiveEffect()
 	{};
 
 	FGAActiveEffect(const FGAEffectHandle& HandleIn, FGAEffectSpec& SpecIn, float StartTimeIn);
+
+	FGAActiveEffect(const FGAEffectHandle& HandleIn, FGAEffectSpec& SpecIn, float StartTimeIn,
+					TSubclassOf<class UGAUIData> UIDataIn, TSubclassOf<class AGAEffectCue> CueIn);
 };
 /*
 	Notes:

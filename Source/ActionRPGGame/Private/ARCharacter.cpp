@@ -90,6 +90,7 @@ void AARCharacter::OnRep_Controller()
 {
 	Super::OnRep_Controller();
 	ARPController = Cast<AARPlayerController>(Controller);
+	OnPostControllerRep();
 }
 void AARCharacter::PossessedBy(AController* NewController)
 {

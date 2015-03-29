@@ -2,6 +2,7 @@
 #include "GAGlobalTypes.h"
 #include "GAAttributeBase.h"
 #include "GAEffects.h"
+#include "GAEffectCueTypes.h"
 #include "GAAttributesBase.h"
 #include "GAAttributeComponent.generated.h"
 
@@ -20,6 +21,10 @@ struct FGAEffectUIData
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "UI")
 		float RemainingTime;
+
+	FGAEffectUIData()
+		: RemainingTime(0)
+	{};
 };
 
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
@@ -40,8 +45,15 @@ public:
 
 	FGACountedTagContainer AppliedTags;
 	
-	FGAActiveEffectContainer ActiveEffects;
+	UPROPERTY(ReplicatedUsing=OnRep_ActiveEffects)
+		FGAActiveEffectContainer ActiveEffects;
+	UFUNCTION()
+		void OnRep_ActiveEffects();
 
+	UPROPERTY(ReplicatedUsing = OnRep_ActiveCues)
+		FGAActiveEffectCuesContainer ActiveCues;
+	UFUNCTION()
+		void OnRep_ActiveCues();
 	/*
 		Could make it array. But realistically. How many times do you really need more, than one
 		attribute set for actor ?
@@ -56,12 +68,12 @@ public:
 		class UGAAttributesBase* DefaultAttributes;
 
 	UPROPERTY(ReplicatedUsing = OnRep_AttributeChanged, RepRetry)
-		TArray<FGAModifiedAttribute> ModifiedAttribute;
+		FGAModifiedAttribute ModifiedAttribute;
+	UFUNCTION()
+		void OnRep_AttributeChanged();
 	UPROPERTY()
 		FGAOnAttributeModifed OnAttributeModifed;
 
-	UFUNCTION()
-		void OnRep_AttributeChanged();
 	
 	UFUNCTION(BlueprintCallable, Category = "Test")
 		void GetAttributeStructTest(FGAAttribute Name);
@@ -86,6 +98,7 @@ public:
 
 	void EffectExpired(const FGAEffectHandle& HandleIn);
 
+	void EffectRemoved(const FGAEffectHandle& HandleIn);
 
 	UFUNCTION(BlueprintCallable, Category = "Attribute Tests")
 		FGAEffectHandle ApplySelfEffect(AActor* Target, APawn* Instigator,
@@ -93,9 +106,29 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes | UI")
 		TArray<FGAEffectUIData> GetEffectUIData();
+	/*
+		Get Last Index of effect for UI display.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Game Attributes | UI")
+		int32 GetEffectUIIndex();
 
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes | UI")
 		FGAEffectUIData GetEffectUIDataByIndex(int32 IndexIn);
+
+	UFUNCTION(NetMulticast, Unreliable)
+		void MulticastEffectCueExpired(int32 Handle);
+
+	UFUNCTION(NetMulticast, Unreliable)
+		void MulticastRemoveEffectCue(int32 Handle);
+
+	/* 
+		int param, is temporary work around, until I learn, how to tell engine, how
+		it should serialize custom data types for replication
+	*/
+	void RemoveEffectCue(int32 Handle);
+
+	void ApplyEffectCue(int32 Handle);
+
 protected:
 	void ExecuteModifiers(FGAAttributeData& ModifierIn, const FGameplayTagContainer& EffectTags, 
 		const FGAEffectContext Context);
@@ -106,10 +139,6 @@ protected:
 public:
 	/////////////////////////////////////////////////
 	//////////// ATTRIBUTES HANDLING
-	/*
-		I'm not entirely sure if this should be here. Just sayin.
-	*/
-	//FGAOnAttributeUpdated OnAttributeUpdated;
 
 	/*
 		Two functions, They will allow to apply any static numerical mods from player who

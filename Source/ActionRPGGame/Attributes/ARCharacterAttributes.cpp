@@ -3,6 +3,9 @@
 #include "ActionRPGGame.h"
 #include "Attributes/GSAttributeComponent.h"
 #include "GAAttributesStats.h"
+
+#include "Net/UnrealNetwork.h"
+
 #include "ARCharacterAttributes.h"
 
 DEFINE_STAT(STAT_PostModifyAttribute);
@@ -280,4 +283,15 @@ void UARCharacterAttributes::CalculateIncomingAttributeMods()
 	//{
 	//	ProcessEvent(ModifyAttrFunc, &params);
 	//}
+}
+
+
+void UARCharacterAttributes::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	//possibly replicate it to everyone
+	//to allow prediction for UI.
+	DOREPLIFETIME(UARCharacterAttributes, Health);
+	DOREPLIFETIME(UARCharacterAttributes, Energy);
+	DOREPLIFETIME(UARCharacterAttributes, Stamina);
 }

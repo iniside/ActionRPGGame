@@ -180,7 +180,7 @@ struct FGAEffectHandle
 {
 	GENERATED_USTRUCT_BODY()
 protected:
-	UPROPERTY()
+	UPROPERTY() //we will replicate handle, so we need it be uproperty.
 		int32 Handle; //Fname Guid ?
 
 public:
@@ -194,6 +194,8 @@ public:
 	{
 		return Handle != INDEX_NONE;
 	}
+
+	inline int32 GetHandle() const { return Handle; }
 
 	static FGAEffectHandle GenerateHandle();
 

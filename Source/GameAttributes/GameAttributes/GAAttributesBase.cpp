@@ -194,7 +194,7 @@ bool UGAAttributesBase::IsNameStableForNetworking() const
 	*	-They were explicitly set to bNetAddressable
 	*/
 
-	return bNetAddressable || Super::IsNameStableForNetworking();
+	return bNetAddressable;// || Super::IsNameStableForNetworking();
 }
 
 

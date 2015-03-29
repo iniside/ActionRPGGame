@@ -7,6 +7,8 @@
 #include "IGAAttributes.h"
 #include "Effects/GAEffect.h"
 #include "Effects/GAEffectSpecification.h"
+#include "GAEffectCue.h"
+
 #include "GAEffects.h"
 
 
@@ -123,7 +125,7 @@ void FGAActiveDuration::OnPeriod()
 }
 void FGAActiveDuration::OnRemoved()
 {
-
+	Context.TargetComp->EffectRemoved(MyHandle);
 }
 void FGAActiveDuration::OnEnded()
 {
@@ -224,17 +226,27 @@ FGAActiveEffect::FGAActiveEffect(const FGAEffectHandle& HandleIn, FGAEffectSpec&
 	Context(SpecIn.Context),
 	WorldStartTime(StartTimeIn)
 {
-	
+	bIsActivated = false;
 }
-void FGAActiveEffect::OnActivated()
-{
 
+FGAActiveEffect::FGAActiveEffect(const FGAEffectHandle& HandleIn, FGAEffectSpec& SpecIn, float StartTimeIn,
+	TSubclassOf<class UGAUIData> UIDataIn, TSubclassOf<class AGAEffectCue> CueIn)
+	: MyHandle(HandleIn),
+	Duration(SpecIn.EffectDuration.Duration),
+	Context(SpecIn.Context),
+	WorldStartTime(StartTimeIn),
+	UIDataClass(UIDataIn),
+	CueClass(CueIn)
+{
+	bIsActivated = false;
 }
 
 float FGAActiveEffect::GetRemainingDuration(float CurrentWorldTime)
 {
 	return Duration - (CurrentWorldTime - WorldStartTime);
 }
+
+
 FGAEffectHandle FGAActiveEffectContainer::ApplyEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Ctx)
 {
 	switch (SpecIn.Policy.Type)
@@ -278,9 +290,6 @@ void FGAActiveEffectContainer::RemoveActiveEffect(const FGAEffectHandle& HandleI
 		if (It->MyHandle == HandleIn)
 		{
 			RepActiveEffects.RemoveAt(It.GetIndex());
-			//do we really need shrink here ?
-			RepActiveEffects.Shrink();
-			//but we need break for sure.
 			break;
 		}
 	}
@@ -337,7 +346,12 @@ FGAEffectHandle FGAActiveEffectContainer::AddActiveEffect(FGAEffectSpec& EffectI
 	TSharedPtr<FGAActiveDuration> tempPeriodic = MakeShareable(new FGAActiveDuration(Ctx, EffectIn, handle));
 	tempPeriodic->ActivateEffect();
 
-	FGAActiveEffect activeEffect(handle, EffectIn, Ctx.Target->GetWorld()->GetTimeSeconds());
+	FGAActiveEffect activeEffect(handle, EffectIn, Ctx.Target->GetWorld()->GetTimeSeconds(),
+								EffectIn.UIData, EffectIn.EffectCue);
+
+	activeEffect.Duration = EffectIn.EffectDuration.Duration;
+	activeEffect.Period = EffectIn.EffectDuration.Period;
+
 	RepActiveEffects.Add(activeEffect);
 
 

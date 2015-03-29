@@ -65,6 +65,11 @@ protected:
 
 public:
 	/*
+		Ticked called from owning component.
+	*/
+	virtual void Tick(float DeltaTime) {};
+
+	/*
 		Central function in which we update attributes.
 
 		It can be called from PostModifyAttribute, so I actually need to figure out if it's safe to do so.
