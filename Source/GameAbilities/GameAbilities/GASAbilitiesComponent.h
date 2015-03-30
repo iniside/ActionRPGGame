@@ -16,6 +16,7 @@ struct GAMEABILITIES_API FGASActiveAbilitySlot
 {
 	GENERATED_USTRUCT_BODY()
 public:
+	UPROPERTY()
 	int32 SlotIndex;
 
 	UPROPERTY()

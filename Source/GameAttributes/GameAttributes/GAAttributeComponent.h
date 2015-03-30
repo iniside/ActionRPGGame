@@ -13,6 +13,20 @@ DECLARE_CYCLE_STAT_EXTERN(TEXT("AttributeComponentModifyAttribute"), STAT_Modify
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGAOnAttributeChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGAOnAttributeModifed, const FGAModifiedAttribute&, attr);
 
+USTRUCT()
+struct FGAModifiedAttributeData
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY()
+		TArray<FGAModifiedAttribute> Mods;
+	UPROPERTY()
+		int32 ForceUpdate;
+
+	FGAModifiedAttributeData()
+		: ForceUpdate(0)
+	{}
+};
 
 USTRUCT(BlueprintType)
 struct FGAEffectUIData
@@ -68,10 +82,10 @@ public:
 		class UGAAttributesBase* DefaultAttributes;
 
 	UPROPERTY(ReplicatedUsing = OnRep_AttributeChanged, RepRetry)
-		FGAModifiedAttribute ModifiedAttribute;
+		FGAModifiedAttributeData ModifiedAttribute;
 	UFUNCTION()
 		void OnRep_AttributeChanged();
-	UPROPERTY()
+	UPROPERTY(BlueprintAssignable, Category = "Game Attributes")
 		FGAOnAttributeModifed OnAttributeModifed;
 
 	

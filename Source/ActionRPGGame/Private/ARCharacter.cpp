@@ -63,9 +63,7 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	FollowCamera->AttachTo(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-	Inventory = ObjectInitializer.CreateDefaultSubobject<UGISInventoryBaseComponent>(this, TEXT("Inventory"));
-	Inventory->SetIsReplicated(true);
-	Inventory->SetNetAddressable();
+
 	//testing out multi commponent interaction
 
 	Attributes = ObjectInitializer.CreateDefaultSubobject<UGAAttributeComponent>(this, TEXT("Attributes"));
@@ -79,23 +77,31 @@ void AARCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Inventory->SetIsReplicated(true);
-	Inventory->SetNetAddressable();
-
 	Attributes->SetIsReplicated(true);
 	Attributes->SetNetAddressable();
-
 }
 void AARCharacter::OnRep_Controller()
 {
 	Super::OnRep_Controller();
 	ARPController = Cast<AARPlayerController>(Controller);
-	OnPostControllerRep();
+	Abilities->PCOwner = ARPController;
+	if (ARPController)
+	{
+		Abilities->InitializeGUI();
+	}
+	OnPostControllerRep(ARPController);
 }
 void AARCharacter::PossessedBy(AController* NewController)
 {
-	Super::PossessedBy(NewController);
 	ARPController = Cast<AARPlayerController>(NewController);
+	if ((GetNetMode() == ENetMode::NM_Standalone
+		|| GetNetMode() == ENetMode::NM_Client)
+		&& ARPController)
+	{
+		Abilities->PCOwner = ARPController;
+		Abilities->InitializeGUI();
+	}
+	Super::PossessedBy(NewController);
 }
 /** IIGAAttributes Begin */
 class UGAAttributesBase* AARCharacter::GetAttributes()
@@ -207,21 +213,6 @@ void AARCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 
 	InputComponent->BindAction("InputUseAbility", IE_Pressed, this, &AARCharacter::InputAbilityPressed);
 	InputComponent->BindAction("InputUseAbility", IE_Released, this, &AARCharacter::InputAbilityReleased);
-
-	//InputComponent->BindAction("ActionButtonTab0Slot0", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 0>);
-	//InputComponent->BindAction("ActionButtonTab0Slot1", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 1>);
-	//InputComponent->BindAction("ActionButtonTab0Slot2", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 2>);
-	//InputComponent->BindAction("ActionButtonTab0Slot3", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 3>);
-	//InputComponent->BindAction("ActionButtonTab0Slot4", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 4>);
-	//InputComponent->BindAction("ActionButtonTab0Slot5", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 5>);
-
-	//InputComponent->BindAction("ActionButtonTab0Slot0", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 0>);
-	//InputComponent->BindAction("ActionButtonTab0Slot1", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 1>);
-	//InputComponent->BindAction("ActionButtonTab0Slot2", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 2>);
-	//InputComponent->BindAction("ActionButtonTab0Slot3", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 3>);
-	//InputComponent->BindAction("ActionButtonTab0Slot4", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 4>);
-	//InputComponent->BindAction("ActionButtonTab0Slot5", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 5>);
-
 
 	InputComponent->BindAction("SwapActionBars", IE_Pressed, this, &AARCharacter::InputSwapActionBars);
 	InputComponent->BindAction("ShowHideEditableActionBars", IE_Pressed, this, &AARCharacter::ShowHideEditableHotbars);

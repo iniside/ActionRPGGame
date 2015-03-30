@@ -25,7 +25,7 @@ class AARCharacter : public AGSCharacter, public IIGAAttributes,
 	public IIGIPawn
 {
 	GENERATED_BODY()
-
+protected:
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
@@ -34,13 +34,10 @@ class AARCharacter : public AGSCharacter, public IIGAAttributes,
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
-	class UGISInventoryBaseComponent* Inventory;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes", meta = (AllowPrivateAccess = "true"))
 	class UGAAttributeComponent* Attributes;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category = "Base")
 	class AARPlayerController* ARPController;
 public:
 	/** IIGAAttributes Begin */
@@ -153,7 +150,7 @@ protected:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	
 	UFUNCTION(BlueprintImplementableEvent, Category = "Character Death")
-		void OnPostControllerRep();
+		void OnPostControllerRep(class AARPlayerController* ControllerOut);
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;

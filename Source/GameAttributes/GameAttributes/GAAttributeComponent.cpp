@@ -161,7 +161,7 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(const FGAAttributeData& EvalD
 	const FGameplayTagContainer& EffectTags, FGAEffectHandle& HandleIn)
 {
 	//incoming
-	ModifiedAttribute.Empty();
+	ModifiedAttribute.Mods.Empty();
 	FGAAttributeData FinalData = DefaultAttributes->PreModifyAttribute(EvalData);
 	FGAAttributeBase* attr = DefaultAttributes->GetAttribute(FinalData.Attribute);
 	float newValue = 0;
@@ -184,11 +184,12 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(const FGAAttributeData& EvalD
 		ModdedAttrRep.ModifiedByValue = finalValue;
 		ModdedAttrRep.ReplicationCounter = FMath::RandRange(0,255);
 		ModdedAttrRep.Causer = Context.InstigatorComp;
-		ModifiedAttribute.Add(ModdedAttrRep);
+		ModifiedAttribute.ForceUpdate++;
+		ModifiedAttribute.Mods.Add(ModdedAttrRep);
 	}
 	if (GetNetMode() == ENetMode::NM_Standalone)
 	{
-		for (FGAModifiedAttribute& attr : ModifiedAttribute)
+		for (FGAModifiedAttribute& attr : ModifiedAttribute.Mods)
 		{
 			Context.InstigatorComp->OnAttributeModifed.Broadcast(attr);
 		}
@@ -247,9 +248,9 @@ void UGAAttributeComponent::ApplyEffectCue(int32 Handle)
 }
 void UGAAttributeComponent::OnRep_AttributeChanged()
 {
-	for (FGAModifiedAttribute& attr : ModifiedAttribute)
+	for (FGAModifiedAttribute& attr : ModifiedAttribute.Mods)
 	{
-		ModifiedAttribute.Causer->OnAttributeModifed.Broadcast(attr);
+		attr.Causer->OnAttributeModifed.Broadcast(attr);
 	}
 }
 bool UGAAttributeComponent::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)

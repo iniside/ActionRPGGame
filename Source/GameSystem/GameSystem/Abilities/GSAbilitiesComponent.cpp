@@ -7,6 +7,9 @@
 #include "Net/UnrealNetwork.h"
 #include "Widgets/GSAbilityContainerWidget.h"
 #include "Widgets/GSAbilityCastTimeWidget.h"
+
+#include "Widgets/GSAbilityBookContainerWidget.h"
+
 #include "GSAbilitiesComponent.h"
 
 UGSAbilitiesComponent::UGSAbilitiesComponent(const FObjectInitializer& ObjectInitializer)
@@ -20,9 +23,13 @@ void UGSAbilitiesComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 	InitializeActivatableAbilities();
+	InitializeAbilityBook();
+}
+void UGSAbilitiesComponent::InitializeGUI()
+{
 	if (AbilityContainerClass)
 	{
-		AbilityContainer = CreateWidget<UGSAbilityContainerWidget>(GetWorld(), AbilityContainerClass);
+		AbilityContainer = CreateWidget<UGSAbilityContainerWidget>(PCOwner, AbilityContainerClass);
 		if (AbilityContainer)
 		{
 			AbilityContainer->AbilityComponent = this;
@@ -34,8 +41,10 @@ void UGSAbilitiesComponent::InitializeComponent()
 			AbilityContainer->DropSlotName = ActionBarAbilitySlotName;
 			AbilityContainer->InitializeWidget();
 		}
-
-		CastTimeWidget = CreateWidget<UGSAbilityCastTimeWidget>(GetWorld(), CastTimeWidgetClass);
+	}
+	if (CastTimeWidgetClass)
+	{
+		CastTimeWidget = CreateWidget<UGSAbilityCastTimeWidget>(PCOwner, CastTimeWidgetClass);
 		if (CastTimeWidget)
 		{
 			CastTimeWidget->AbilityComponent = this;
@@ -43,9 +52,26 @@ void UGSAbilitiesComponent::InitializeComponent()
 			CastTimeWidget->InitializeWidget();
 		}
 	}
-	OnAbilityAddedToSet.ExecuteIfBound();
+	if (AbilityBookConfig.AbilityBookContainerClass)
+	{
+		AbilityBookContainer = CreateWidget<UGSAbilityBookContainerWidget>(PCOwner, AbilityBookConfig.AbilityBookContainerClass);
+		if (AbilityBookContainer)
+		{
+			AbilityBookContainer->InitializeWidget(AbilityBookConfig, this);
+		}
+	}
+	//if (GetNetMode() == ENetMode::NM_Standalone)
+	//{
+		OnAbilityAddedToSet.ExecuteIfBound();
+		OnAbilityAddedToBook.ExecuteIfBound();
+	//}
 }
+
 void UGSAbilitiesComponent::OnRep_OwnedAbilities()
+{
+	OnAbilityAddedToBook.ExecuteIfBound();
+}
+void UGSAbilitiesComponent::OnRep_AbilitySets()
 {
 	OnAbilityAddedToSet.ExecuteIfBound();
 }
@@ -86,24 +112,75 @@ void UGSAbilitiesComponent::InputReleased(int32 SetIndex, int32 SlotIndex)
 
 void UGSAbilitiesComponent::GiveAbilityAndInsert(TSubclassOf<class  UGSAbility> AbilityIn)
 {
-	int32 abIndex = AddAbilityToActiveList(AbilityIn);
-
-	if (abIndex != -1)
+	if (GetOwnerRole() < ROLE_Authority)
 	{
-		for (FGSAbilitiesSets& set : AbilitySets)
+		ServerGiveAbilityAndInsert(AbilityIn);
+	}
+	else
+	{
+		int32 abIndex = AddAbilityToActiveList(AbilityIn);
+
+		if (abIndex != -1)
 		{
-			for (FGSAbilitySlot& slot : set.AbilitySlots)
+			for (FGSAbilitiesSets& set : AbilitySets)
 			{
-				if (slot.AbilityIndex == -1)
+				for (FGSAbilitySlot& slot : set.AbilitySlots)
 				{
-					slot.AbilityIndex = abIndex;
-					OnAbilityAddedToSet.ExecuteIfBound();
-					return;
+					if (slot.AbilityIndex == -1)
+					{
+						set.RepMe++;
+						slot.AbilityIndex = abIndex;
+						if (GetNetMode() == ENetMode::NM_Standalone)
+							OnAbilityAddedToSet.ExecuteIfBound();
+						
+						return;
+					}
 				}
 			}
 		}
 	}
-	
+}
+void UGSAbilitiesComponent::ServerGiveAbilityAndInsert_Implementation(TSubclassOf<class  UGSAbility> AbilityIn)
+{
+	GiveAbilityAndInsert(AbilityIn);
+}
+bool UGSAbilitiesComponent::ServerGiveAbilityAndInsert_Validate(TSubclassOf<class  UGSAbility> AbilityIn)
+{
+	return true;
+}
+void UGSAbilitiesComponent::GiveAbility(TSubclassOf<class  UGSAbility> AbilityIn)
+{
+	if (GetOwnerRole() < ROLE_Authority)
+	{
+		ServerGiveAbility(AbilityIn);
+	}
+	else
+	{
+		//ok this is very basic implementation, which will simply add ability to the first available slot.
+		for (FGSAbilityBookTab& tab : OwnedAbilities.AbilitiesTab)
+		{
+			for (FGSAbilityBookSlot& slot : tab.Abilities)
+			{
+				if (slot.AbilityClass == nullptr)
+				{
+					slot.AbilityClass = AbilityIn;
+					slot.bIsAbilityActive = true;
+					slot.bIsAbilityVisible = true;
+					break;
+				}
+			}
+		}
+		//make sure changes are replicated back.
+		OwnedAbilities.ForceRep++;
+	}
+}
+void UGSAbilitiesComponent::ServerGiveAbility_Implementation(TSubclassOf<class  UGSAbility> AbilityIn)
+{
+	GiveAbility(AbilityIn);
+}
+bool UGSAbilitiesComponent::ServerGiveAbility_Validate(TSubclassOf<class  UGSAbility> AbilityIn)
+{
+	return true;
 }
 
 void UGSAbilitiesComponent::BP_AddAbilityToSlot(int32 TargetSetIndex, int32 TargetSlotIndex, int32 AbilityIndex)
@@ -121,6 +198,33 @@ void UGSAbilitiesComponent::AddAbilityToSlot(int32 TargetSetIndex, int32 TargetS
 	int32 LastSetIndex, int32 LastSlotIndex, int32 AbilityIndex)
 {
 
+}
+void UGSAbilitiesComponent::AddAbilityToSlotFromBook(int32 TargetSetIndex, int32 TargetSlotIndex, int32 BookTabIndex,
+	int32 BookSlotIndex)
+{
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		ServerAddAbilityToSlotFromBook(TargetSetIndex, TargetSlotIndex, BookTabIndex, BookSlotIndex);
+	}
+	else
+	{
+		TSubclassOf<UGSAbility> abilityClass = OwnedAbilities.AbilitiesTab[BookTabIndex].Abilities[BookSlotIndex].AbilityClass;
+
+		int32 abIndex = AddAbilityToActiveList(abilityClass);
+
+		AbilitySets[TargetSetIndex].AbilitySlots[TargetSetIndex].AbilityIndex = abIndex;
+		AbilitySets[TargetSetIndex].RepMe++;
+	}
+}
+void UGSAbilitiesComponent::ServerAddAbilityToSlotFromBook_Implementation(int32 TargetSetIndex, int32 TargetSlotIndex,
+	int32 BookTabIndex, int32 BookSlotIndex)
+{
+	AddAbilityToSlotFromBook(TargetSetIndex, TargetSlotIndex, BookTabIndex, BookSlotIndex);
+}
+bool UGSAbilitiesComponent::ServerAddAbilityToSlotFromBook_Validate(int32 TargetSetIndex, int32 TargetSlotIndex,
+	int32 BookTabIndex, int32 BookSlotIndex)
+{
+	return true;
 }
 void UGSAbilitiesComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
 {
@@ -147,6 +251,24 @@ void UGSAbilitiesComponent::InitializeActivatableAbilities()
 		AbilitySets.Add(setIn);
 		SetCounter++;
 	}
+}
+void UGSAbilitiesComponent::InitializeAbilityBook()
+{
+	int32 SetCounter = 0;
+	for (FGSAbilityBookConfig& set : AbilityBookSlotsConfig)
+	{
+		FGSAbilityBookTab setIn;
+		setIn.TabIndex = SetCounter;
+		for (int32 Index = 0; Index < set.SlotNumber; Index++)
+		{
+			FGSAbilityBookSlot ability(Index, SetCounter);
+			setIn.Abilities.Add(ability);
+
+		}
+		OwnedAbilities.AbilitiesTab.Add(setIn);
+		SetCounter++;
+	}
+
 }
 void UGSAbilitiesComponent::Del_OnAbilityCasted()
 {

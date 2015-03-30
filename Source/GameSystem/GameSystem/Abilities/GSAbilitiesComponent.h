@@ -1,91 +1,26 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 #pragma once
 #include "GASAbilitiesComponent.h"
+#include "GSAbilityGlobalTypes.h"
 #include "GSAbilitiesComponent.generated.h"
-
-
-/*
-	Struct representing available abilities to this component.
-	It does not represent abilities which are Instanced (ActiveAbilities array).
-*/
-USTRUCT()
-struct GAMESYSTEM_API FGSAvailableAbilities
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY()
-		TSubclassOf<class UGSAbility> AbilityClass;
-	/*
-		If this ability is active, store index of array, in which instanced ability is contained.
-	*/
-	UPROPERTY()
-		int32 ActiveAbilityIndex;
-
-	UPROPERTY()
-		bool bIsAbilityActive;
-};
-
-
-USTRUCT()
-struct GAMESYSTEM_API FGSAbilitySlot
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY()
-		int32 AbilityIndex;
-
-	UPROPERTY()
-		int32 SlotIndex;
-
-	UPROPERTY()
-		int32 SetIndex;
-
-	FGSAbilitySlot()
-		: AbilityIndex(INDEX_NONE),
-			SlotIndex(INDEX_NONE),
-			SetIndex(INDEX_NONE)
-	{
-	}
-};
-USTRUCT()
-struct GAMESYSTEM_API FGSAbilitiesSets
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY()
-		int32 SetIndex;
-
-	TArray<FGSAbilitySlot> AbilitySlots;
-	FGSAbilitiesSets()
-	{
-		SetIndex = INDEX_NONE;
-	}
-};
-USTRUCT()
-struct GAMESYSTEM_API FGSActiveAbilitiesSlotConfig
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY(EditAnywhere, Category = "Config")
-		int32 NumberOfSlots;
-};
 
 DECLARE_DELEGATE(FGSOnAbilityAddedToSet);
 DECLARE_DELEGATE_OneParam(FGSOnGetAbilityIndex, int32);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGSOnAbilityPressedIndex, int32, Index);
-
-UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
+/* Blueprintable.. becaue why not ? Not that there are many extension points right now ;) */
+UCLASS(Blueprintable, hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
 class GAMESYSTEM_API UGSAbilitiesComponent : public UGASAbilitiesComponent
 {
 	GENERATED_BODY()
 public:
-	UGSAbilitiesComponent(const FObjectInitializer& ObjectInitializer);
-
+	/* Normally you should load it from somwhere. File, database sth. */
 	UPROPERTY(ReplicatedUsing = OnRep_OwnedAbilities)
-		TArray<FGSAvailableAbilities> OwnedAbilities;
+		FGSAbilityBook OwnedAbilities;
 	UFUNCTION()
 		void OnRep_OwnedAbilities();
+
+	FGSOnAbilityAddedToSet OnAbilityAddedToBook;
 
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Abilities")
 		FGSOnAbilityPressedIndex OnAbilityPressedIndex;
@@ -95,8 +30,10 @@ public:
 		input binding or UI.
 
 	*/
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing=OnRep_AbilitySets)
 		TArray<FGSAbilitiesSets> AbilitySets;
+	UFUNCTION()
+		void OnRep_AbilitySets();
 
 	UPROPERTY(EditAnywhere, Category = "Action Bar UI")
 		TSubclassOf<class UGSAbilityContainerWidget> AbilityContainerClass;
@@ -117,7 +54,16 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Action Bar UI")
 		UGSAbilityContainerWidget* AbilityContainer;
-	
+
+
+	UPROPERTY(EditAnywhere, Category = "Ability Book UI")
+		FGSAbilityBookUI AbilityBookConfig;
+	UPROPERTY(EditAnywhere, Category = "Ability Book UI")
+		TArray<FGSAbilityBookConfig> AbilityBookSlotsConfig;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Ability Book UI")
+	class UGSAbilityBookContainerWidget* AbilityBookContainer;
+
 	UPROPERTY(EditAnywhere, Category = "UI")
 		TSubclassOf<class UGSAbilityCastTimeWidget> CastTimeWidgetClass;
 
@@ -132,17 +78,48 @@ public:
 	UPROPERTY(EditAnywhere, Category = "UI Config")
 		TArray<FGSActiveAbilitiesSlotConfig> ActivatableAbilitiesConfig;
 	
+
+	UPROPERTY(BlueprintReadOnly, Category = "Base")
+	class AGSPlayerController* PCOwner;
+
 	FGSOnAbilityAddedToSet OnAbilityAddedToSet;
 
 	FGSOnGetAbilityIndex OnGetAbilityIndex;
 protected:
 	int32 CurrentAbility;
 public:
+	UGSAbilitiesComponent(const FObjectInitializer& ObjectInitializer);
+
 	virtual void InitializeComponent() override;
+
+	/*
+		Initializes guid widgets. Call it after there is valid player controller available.
+	*/
+	void InitializeGUI();
+
 	class UGSAbility* GetGSAbility(int32 IndexIn);
 
+	/*
+		Automatically inserts ability into action bar.
+	*/
 	UFUNCTION(BlueprintCallable, Category = "Ability System")
 		void GiveAbilityAndInsert(TSubclassOf<class  UGSAbility> AbilityIn);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerGiveAbilityAndInsert(TSubclassOf<class  UGSAbility> AbilityIn);
+
+	virtual void ServerGiveAbilityAndInsert_Implementation(TSubclassOf<class  UGSAbility> AbilityIn);
+	virtual bool ServerGiveAbilityAndInsert_Validate(TSubclassOf<class  UGSAbility> AbilityIn);
+	/*
+		Gives Ability to this pawn, inserting into list of available abilities.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Ability System")
+		virtual void GiveAbility(TSubclassOf<class  UGSAbility> AbilityIn);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerGiveAbility(TSubclassOf<class  UGSAbility> AbilityIn);
+	virtual void ServerGiveAbility_Implementation(TSubclassOf<class  UGSAbility> AbilityIn);
+	virtual bool ServerGiveAbility_Validate(TSubclassOf<class  UGSAbility> AbilityIn);
 
 	UFUNCTION(BlueprintPure, Category = "Ability System|UI")
 		float GetCurrentCastTime();
@@ -160,9 +137,20 @@ public:
 	void AddAbilityToSlot(int32 TargetSetIndex, int32 TargetSlotIndex, int32 AbilityIndex);
 	void AddAbilityToSlot(int32 TargetSetIndex, int32 TargetSlotIndex,
 		 int32 LastSetIndex, int32 LastSlotIndex, int32 AbilityIndex);
+
+	void AddAbilityToSlotFromBook(int32 TargetSetIndex, int32 TargetSlotIndex, int32 BookTabIndex,
+		int32 BookSlotIndex);
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerAddAbilityToSlotFromBook(int32 TargetSetIndex, int32 TargetSlotIndex, int32 BookTabIndex,
+		int32 BookSlotIndex);
+	virtual void ServerAddAbilityToSlotFromBook_Implementation(int32 TargetSetIndex, int32 TargetSlotIndex,
+		int32 BookTabIndex, int32 BookSlotIndex);
+	virtual bool ServerAddAbilityToSlotFromBook_Validate(int32 TargetSetIndex, int32 TargetSlotIndex,
+		int32 BookTabIndex, int32 BookSlotIndex);
+
 private:
 	void InitializeActivatableAbilities();
-
+	void InitializeAbilityBook();
 	UFUNCTION()
 		void Del_OnAbilityCasted();
 };

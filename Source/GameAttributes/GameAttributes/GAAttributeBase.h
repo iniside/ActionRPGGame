@@ -317,7 +317,7 @@ public:
 	/**
 	*	Final value by which we modified attribute.
 	*/
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category = "UI")
 		float ModifiedByValue;
 
 	/**
@@ -326,9 +326,9 @@ public:
 	UPROPERTY()
 		FGameplayTagContainer Tags;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category = "UI")
 		FVector TargetLocation; //change to vector, we need only position.
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category = "UI")
 		FVector InstigatorLocation;
 
 	UPROPERTY()

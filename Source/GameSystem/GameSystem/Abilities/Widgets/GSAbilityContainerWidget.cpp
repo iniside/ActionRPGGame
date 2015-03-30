@@ -6,6 +6,7 @@
 #include "GSAbilityTabWidget.h"
 #include "GSAbilityWidget.h"
 #include "GSAbilitySlotWidget.h"
+#include "../../GSPlayerController.h"
 
 #include "GSAbilityContainerWidget.h"
 
@@ -18,20 +19,23 @@ UGSAbilityContainerWidget::UGSAbilityContainerWidget(const FObjectInitializer& O
 void UGSAbilityContainerWidget::InitializeWidget()
 {
 	AbilityComponent->OnAbilityAddedToSet.BindUObject(this, &UGSAbilityContainerWidget::UpdateCreatetWidget);
+	//AbilityComponent->OnAbilityAddedToSet.BindUObject(this, &UGSAbilityContainerWidget::UpdateCreatetWidget);
 }
 
 void UGSAbilityContainerWidget::UpdateCreatetWidget()
 {
-	UWorld* world = AbilityComponent->GetWorld();
+	AGSPlayerController* MyPC = AbilityComponent->PCOwner;
 	if (!bIsWidgetCreated)
 	{
 		for (FGSAbilitiesSets& abSet : AbilityComponent->AbilitySets)
 		{
-			UGSAbilityTabWidget* setWid = CreateWidget<UGSAbilityTabWidget>(world, AbilityTabClass);
+			UGSAbilityTabWidget* setWid = CreateWidget<UGSAbilityTabWidget>(MyPC, AbilityTabClass);
 			for (FGSAbilitySlot& slot : abSet.AbilitySlots)
 			{
-				UGSAbilitySlotWidget* abSlot = CreateWidget<UGSAbilitySlotWidget>(world, AbilitySlotClass);
-				UGSAbilityWidget* abil = CreateWidget<UGSAbilityWidget>(world, AbilityWidgetClass);
+				UGSAbilitySlotWidget* abSlot = CreateWidget<UGSAbilitySlotWidget>(MyPC, AbilitySlotClass);
+				abSlot->SlotInfo = slot;
+				abSlot->OwnerComp = AbilityComponent;
+				UGSAbilityWidget* abil = CreateWidget<UGSAbilityWidget>(MyPC, AbilityWidgetClass);
 				abil->AbilityComponent = AbilityComponent;
 				if (slot.AbilityIndex != INDEX_NONE)
 				{

@@ -3,20 +3,31 @@
 #include "ActionRPGGame.h"
 #include "Public/ARCharacter.h"
 #include "GSHUD.h"
+#include "Abilities/GSAbilitiesComponent.h"
 #include "ARPlayerController.h"
 
 AARPlayerController::AARPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	
+	Inventory = ObjectInitializer.CreateDefaultSubobject<UGISInventoryBaseComponent>(this, TEXT("Inventory"));
+	Inventory->SetIsReplicated(true);
+	Inventory->SetNetAddressable();
+
+
+	Abilities = ObjectInitializer.CreateDefaultSubobject<UGSAbilitiesComponent>(this, TEXT("Abilities"));
+	Abilities->SetIsReplicated(true);
+	Abilities->SetNetAddressable();
 }
-//void AARPlayerController::PreInitializeComponents()
-//{
-//	Super::PreInitializeComponents();
-//}
+
 void AARPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	Inventory->SetIsReplicated(true);
+	Inventory->SetNetAddressable();
+
+	Abilities->SetIsReplicated(true);
+	Abilities->SetNetAddressable();
+
 	if (GetNetMode() == ENetMode::NM_Standalone)
 	{
 		AARCharacter* MyChar = Cast<AARCharacter>(GetPawn());
@@ -32,6 +43,7 @@ void AARPlayerController::BeginPlay()
 //
 void AARPlayerController::OnRep_Pawn()
 {
+	OnPawnReplicated(GetPawn());
 	Super::OnRep_Pawn();
 	if (Role < ROLE_Authority)
 	{
@@ -42,6 +54,12 @@ void AARPlayerController::OnRep_Pawn()
 		}
 	}
 }
+
+void AARPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+}
+
 //
 void AARPlayerController::OnRecivedModifiedAttribute(const FGAModifiedAttribute& AttributeModIn)
 {
