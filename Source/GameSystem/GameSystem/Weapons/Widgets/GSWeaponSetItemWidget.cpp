@@ -21,9 +21,9 @@ UTexture2D* UGSWeaponSetItemWidget::GetIcon() const
 {
 	if (WeaponSlot.WeaponID == -1 || WeaponSlot.WeaponTabID == -1)
 		return nullptr;
-	if (WeaponEquipComp->Tabs.InventoryTabs[WeaponSlot.WeaponTabID].TabSlots[WeaponSlot.WeaponID].ItemData)
+	if (WeaponEquipComp->GetItemDataInSlot(WeaponSlot.WeaponTabID, WeaponSlot.WeaponID))
 	{
-		return WeaponEquipComp->Tabs.InventoryTabs[WeaponSlot.WeaponTabID].TabSlots[WeaponSlot.WeaponID].ItemData->GetImage();
+		return WeaponEquipComp->GetItemDataInSlot(WeaponSlot.WeaponTabID, WeaponSlot.WeaponID)->GetImage();
 	}
 	return nullptr;
 }

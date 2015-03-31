@@ -3,6 +3,38 @@
 #include "GISGlobalTypes.generated.h"
 
 USTRUCT()
+struct FGISInventoryConfiguration
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(Editanywhere, Category = "Inventory")
+		FName DropSlottName;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+		TSubclassOf<class UGISContainerBaseWidget> InventoryContainerClass;
+
+	/*
+	Type of tab used in this container. meta = (ExposeOnSpawn)
+	*/
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+		TSubclassOf<class UGISTabBaseWidget> TabClass;
+
+	/*
+	Type of slot used in this container.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+		TSubclassOf<class UGISSlotBaseWidget> SlotClass;
+
+	/*
+	Type if item widget, which can be contained in slot.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+		TSubclassOf<class UGISItemBaseWidget> ItemClass;
+
+	bool IsValid();
+};
+
+USTRUCT()
 struct GAMEINVENTORYSYSTEM_API FGISLootSlotInfo
 {
 	GENERATED_USTRUCT_BODY()
@@ -84,28 +116,6 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct GAMEINVENTORYSYSTEM_API FGISSlotInfo
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY(BlueprintReadOnly)
-		int32 SlotIndex;
-	UPROPERTY(BlueprintReadOnly)
-		int32 SlotTabIndex;
-	UPROPERTY(BlueprintReadWrite)
-	class UGISItemData* ItemData;
-
-	UPROPERTY(BlueprintReadWrite)
-		TWeakObjectPtr<class UGISInventoryBaseComponent> CurrentInventoryComponent;
-
-	bool IsValid();
-	class UGISItemData* GetItemData();
-	void SetItemData(class UGISItemData* DataIn);
-	void DecrementItemCount();
-	void IncrementItemCount();
-};
-
-USTRUCT(BlueprintType)
 struct GAMEINVENTORYSYSTEM_API FGISSlotSwapInfo
 {
 	GENERATED_USTRUCT_BODY()
@@ -131,20 +141,62 @@ public:
 	UPROPERTY()
 		bool bRemoveItemsFromInvetoryOnDrag;
 
+	void LastAddItem(const FGISSlotSwapInfo& SwapInfo) const;
+	void LastRemoveItem(const FGISSlotSwapInfo& SwapInfo) const;
+	void TargetAddItem(const FGISSlotSwapInfo& SwapInfo) const ;
+	void TargetRemoveItem(const FGISSlotSwapInfo& SwapInfo) const;
 	FGISSlotSwapInfo()
 	{};
 
-	FGISSlotSwapInfo(const FGISSlotInfo& LastSlot, class UGISItemData* LastItemDataIn,
-		const FGISSlotInfo& TargetSlot, class UGISItemData* TargetItemDataIn)
-		: LastTabIndex(LastSlot.SlotTabIndex),
-		LastSlotIndex(LastSlot.SlotIndex),
-		LastSlotComponent(LastSlot.CurrentInventoryComponent),
-		LastSlotData(LastItemDataIn),
-		TargetTabIndex(TargetSlot.SlotTabIndex),
-		TargetSlotIndex(TargetSlot.SlotIndex),
-		TargetSlotComponent(TargetSlot.CurrentInventoryComponent),
-		TargetSlotData(TargetItemDataIn)
+	FGISSlotSwapInfo(const struct FGISSlotInfo& LastSlot, class UGISItemData* LastItemDataIn,
+		const struct FGISSlotInfo& TargetSlot, class UGISItemData* TargetItemDataIn);
+};
+
+USTRUCT(BlueprintType)
+struct GAMEINVENTORYSYSTEM_API FGISSlotInfo
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(BlueprintReadOnly)
+		int32 SlotIndex;
+	UPROPERTY(BlueprintReadOnly)
+		int32 SlotTabIndex;
+	UPROPERTY(BlueprintReadWrite)
+	class UGISItemData* ItemData;
+
+	UPROPERTY(BlueprintReadWrite)
+		TWeakObjectPtr<class UGISInventoryBaseComponent> CurrentInventoryComponent;
+
+	FGISSlotInfo()
 	{}
+	FGISSlotInfo(const FGISSlotUpdateData& Data)
+		: SlotIndex(Data.SlotIndex),
+		SlotTabIndex(Data.TabIndex),
+		ItemData(Data.SlotData),
+		CurrentInventoryComponent(Data.SlotComponent)
+	{};
+
+	void SetFromLast(const FGISSlotSwapInfo& LastData)
+	{
+		SlotIndex = LastData.LastTabIndex;
+		SlotTabIndex = LastData.LastSlotIndex;
+		ItemData = LastData.LastSlotData;
+		CurrentInventoryComponent = LastData.LastSlotComponent;
+	}
+
+	void SetFromTarget(const FGISSlotSwapInfo& TargetData)
+	{
+		SlotIndex = TargetData.TargetSlotIndex;
+		SlotTabIndex = TargetData.TargetTabIndex;
+		ItemData = TargetData.TargetSlotData;
+		CurrentInventoryComponent = TargetData.TargetSlotComponent;
+	}
+
+	bool IsValid();
+	class UGISItemData* GetItemData();
+	void SetItemData(class UGISItemData* DataIn);
+	void DecrementItemCount();
+	void IncrementItemCount();
 };
 
 USTRUCT(BlueprintType)
@@ -224,6 +276,10 @@ public:
 				return true;
 
 		return false;
+	}
+	inline int32 GetItemCount(int32 TabIndex)
+	{
+		return InventoryTabs[TabIndex].ItemCount;
 	}
 };
 

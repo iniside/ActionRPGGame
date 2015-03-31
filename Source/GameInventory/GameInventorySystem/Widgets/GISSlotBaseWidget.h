@@ -20,9 +20,6 @@ public:
 	UPROPERTY()
 	class UGISItemBaseWidget* ItemInSlot;
 
-	UPROPERTY()
-		TSubclassOf<class UGISItemBaseWidget> GISItemClass;
-
 	FEventReply OnMouseButtonDown_Implementation(FGeometry MyGeometry, const FPointerEvent& MouseEvent) override;
 
 	void OnDragDetected_Implementation(FGeometry MyGeometry, const FPointerEvent& PointerEvent, UDragDropOperation*& Operation) override;

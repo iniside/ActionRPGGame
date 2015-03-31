@@ -142,7 +142,7 @@ void UGSActiveActionsComponent::OnRightWeaponRemoved(const FGISSlotSwapInfo& Slo
 void UGSActiveActionsComponent::SwapWeapon(int32& LastCopiedIndex, class UGSItemWeaponInfo*& CurrentWeapon, class UGSItemWeaponInfo*& LastWeapon, class UGISInventoryBaseComponent* OtherInventory,
 	int32 OtherTabIndex, int32 TargetTabIndex, int32 TargetSlotIndex)
 {
-	int32 OtherTabSlotCount = OtherInventory->Tabs.InventoryTabs[OtherTabIndex].TabSlots.Num();
+	int32 OtherTabSlotCount = OtherInventory->GetSlotsInTab(OtherTabIndex);
 	int32 loopCounter = 0;//addtionan loop counter so we can prevent selcting empty slots if there are any.
 	for (int32 TabIndex = 0; TabIndex <= OtherTabSlotCount; TabIndex++)
 	{
@@ -150,14 +150,14 @@ void UGSActiveActionsComponent::SwapWeapon(int32& LastCopiedIndex, class UGSItem
 		{
 			//proceed as normal
 			LastCopiedIndex++;
-			if (OtherInventory->Tabs.InventoryTabs[OtherTabIndex].TabSlots[LastCopiedIndex].ItemData)
+			if (OtherInventory->GetItemDataInSlot(OtherTabIndex, LastCopiedIndex))
 			{
 
 				LastWeapon = Cast<UGSItemWeaponInfo>(Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData);
 				//we need to delay setting up current weapon pointer, or rather activating weapon, until equiping is finished.
-				CurrentWeapon = Cast<UGSItemWeaponInfo>(OtherInventory->Tabs.InventoryTabs[OtherTabIndex].TabSlots[LastCopiedIndex].ItemData);
+				CurrentWeapon = Cast<UGSItemWeaponInfo>(OtherInventory->GetItemDataInSlot(OtherTabIndex, LastCopiedIndex));
 
-				Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData = OtherInventory->Tabs.InventoryTabs[OtherTabIndex].TabSlots[LastCopiedIndex].ItemData;
+				Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData = OtherInventory->GetItemDataInSlot(OtherTabIndex, LastCopiedIndex);
 				if (Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData)
 				{
 					Tabs.InventoryTabs[TargetTabIndex].TabSlots[TargetSlotIndex].ItemData->CurrentInventory = this;
@@ -1008,7 +1008,7 @@ void UGSActiveActionsComponent::SetAbility(class UGISInventoryBaseComponent* Oth
 		if (!OtherIn)
 			return;
 		//update tab
-		CurrentAbility = Cast<UGSAbilityInfo>(OtherIn->Tabs.InventoryTabs[OtherTabIndex].TabSlots[OtherSlotIndex].ItemData);
+		CurrentAbility = Cast<UGSAbilityInfo>(OtherIn->GetItemDataInSlot(OtherTabIndex, OtherSlotIndex));
 		Tabs.InventoryTabs[0].TabSlots[0].ItemData = CurrentAbility;
 
 		//if (CurrentAbility)

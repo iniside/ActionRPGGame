@@ -50,7 +50,7 @@ UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStrea
 class GAMEINVENTORYSYSTEM_API UGISInventoryBaseComponent : public UActorComponent
 {
 	GENERATED_UCLASS_BODY()
-public:
+protected:
 	UPROPERTY(EditAnywhere, Category = "Inventory Options")
 		FGISInventoryConfig InventoryConfig;
 
@@ -162,29 +162,8 @@ public:
 		FGameplayTagContainer RequiredTags;
 
 	UPROPERTY(Editanywhere, Category = "Inventory")
-		FName DropSlottName;
-
-	UPROPERTY(EditAnywhere, Category = "Inventory")
-		TSubclassOf<class UGISContainerBaseWidget> InventoryContainerClass;
-
-	/*
-		Type of tab used in this container. meta = (ExposeOnSpawn)
-	*/
-	UPROPERTY(EditAnywhere, Category = "Inventory")
-		TSubclassOf<class UGISTabBaseWidget> TabClass;
-
-	/*
-		Type of slot used in this container.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Inventory")
-		TSubclassOf<class UGISSlotBaseWidget> SlotClass;
-
-	/*
-		Type if item widget, which can be contained in slot.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Inventory")
-		TSubclassOf<class UGISItemBaseWidget> ItemClass;
-
+		FGISInventoryConfiguration InventoryConfiguration;
+public: //temp
 	/*
 		This is very bad pack. When componeents will work with normal objects (pointers)
 		It should be replaced with class UGISLootContainerBaseWidget* LootWidget;
@@ -207,10 +186,10 @@ public:
 		straightforwad way, not some right clicking menus or other crap.
 	*/
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		class UGISLootContainerBaseWidget* LootWidget;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		class UGISContainerBaseWidget* InventoryContainer;
 
 	UPROPERTY(BlueprintCallable, BlueprintAssignable)
@@ -232,6 +211,11 @@ public:
 	FGISOnTabVisibilityChanged OnTabVisibilityChanged;
 
 	FGISOnTabChanged OnTabChanged;
+public:
+	UPROPERTY(ReplicatedUsing = OnRep_LootedItems)
+		FGISPickupItemContainer LootFromPickup;
+
+protected:
 	/*
 	Pickup actor that this inventory is interacting with.
 	For now one inventory can interact with only one pickup actor.
@@ -245,12 +229,11 @@ public:
 	UFUNCTION()
 		void OnRep_PickupActor();
 
-	UPROPERTY(ReplicatedUsing = OnRep_LootedItems)
-		FGISPickupItemContainer LootFromPickup;
+
 
 	UFUNCTION()
 		void OnRep_LootedItems();
-protected:
+
 	UPROPERTY(ReplicatedUsing = OnRep_SlotUpdate, RepRetry)
 		FGISSlotUpdateData SlotUpdateInfo;
 	UFUNCTION()
@@ -275,7 +258,7 @@ public:
 	/*
 		To easily get current inventory array for widget initialization.
 	*/
-	virtual FGISInventoryTab GetInventoryTabs();
+	virtual FGISInventoryTab GetInventory();
 	/*
 		Initial draft for picking up items from world.
 
@@ -558,10 +541,36 @@ public:
 	{
 		return Tabs.IsValid(TabIndex, SlotIndex);
 	}
+	inline int32 GetItemCount(int32 TabIndex)
+	{
+		return Tabs.GetItemCount(TabIndex);
+	}
+	inline void DecrementItemCount(int32 TabIndex)
+	{
+		Tabs.InventoryTabs[TabIndex].ItemCount--;
+	}
+	inline void IncrementItemCount(int32 TabIndex)
+	{
+		Tabs.InventoryTabs[TabIndex].ItemCount++;
+	}
+	inline TArray<FGISTabInfo>& GetInventoryTabs()
+	{
+		return Tabs.InventoryTabs;
+	}
+	inline TArray<FGISSlotInfo>& GetInventorySlots(int32 TabIndex)
+	{
+		return Tabs.InventoryTabs[TabIndex].TabSlots;
+	}
+	inline bool GetRemoveItemsOnDrag()
+	{
+		return bRemoveItemsFromInvetoryOnDrag;
+	}
 
 	inline void SetLastTargetTab(int32 LastTargetTabIn) { LastTargetTab = LastTargetTabIn; }
 	inline void SetLastOtherOriginTab(int32 LastOtherOriginTabIn) { LastOtherOriginTab = LastOtherOriginTabIn; }
 	inline void SetLastOtherOriginInventory(UGISInventoryBaseComponent* LastOtherOriginInventoryIn) { LastOtherOriginInventory = LastOtherOriginInventoryIn; }
+
+	inline class UGISContainerBaseWidget* GetInventoryWidget() { return InventoryContainer; }
 };
 
 

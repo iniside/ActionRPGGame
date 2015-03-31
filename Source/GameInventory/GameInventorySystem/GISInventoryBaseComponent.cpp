@@ -53,19 +53,14 @@ void UGISInventoryBaseComponent::InitializeComponent()
 			
 	if (CurrentRole < ROLE_Authority || CurrentNetMode == ENetMode::NM_Standalone)
 	{
-		if (InventoryContainerClass)
+		if (InventoryConfiguration.InventoryContainerClass)
 		{
-			InventoryContainer = CreateWidget<UGISContainerBaseWidget>(GetWorld(), InventoryContainerClass);
+			InventoryContainer = CreateWidget<UGISContainerBaseWidget>(GetWorld(), InventoryConfiguration.InventoryContainerClass);
 			if (InventoryContainer)
 			{
-				InventoryContainer->DropSlottName = DropSlottName;
-				InventoryContainer->TabClass = TabClass;
-				InventoryContainer->SlotClass = SlotClass;
-				InventoryContainer->ItemClass = ItemClass;
-				InventoryContainer->InventoryComponent = this;
+				InventoryContainer->InitializeContainer(InventoryConfiguration);
 				InventoryContainer->SetVisibility(InventoryVisibility);
 				//call last
-				InventoryContainer->InitializeContainer();
 			}
 		}
 
@@ -122,7 +117,7 @@ void UGISInventoryBaseComponent::PostInitProperties()
 	
 }
 
-FGISInventoryTab UGISInventoryBaseComponent::GetInventoryTabs()
+FGISInventoryTab UGISInventoryBaseComponent::GetInventory()
 {
 	return Tabs;
 }

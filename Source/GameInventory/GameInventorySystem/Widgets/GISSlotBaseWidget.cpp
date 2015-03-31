@@ -38,17 +38,12 @@ FEventReply UGISSlotBaseWidget::OnMouseButtonDown_Implementation(FGeometry MyGeo
 
 void UGISSlotBaseWidget::OnDragDetected_Implementation(FGeometry MyGeometry, const FPointerEvent& PointerEvent, UDragDropOperation*& Operation)
 {
-	if (GISItemClass)
-	{
 		UWidget* superWidget = GetWidgetFromName(DropSlottName);
 		UOverlay* overlay = Cast<UOverlay>(superWidget);
 		//UGISItemBaseWidget* itemTemp = 
 		UGISItemBaseWidget* ItemWidget = Cast<UGISItemBaseWidget>(overlay->GetChildAt(0)); //ConstructObject<UGISItemBaseWidget>(GISItemClass);
 		if (ItemWidget && SlotInfo.CurrentInventoryComponent.IsValid())
 		{
-			ULocalPlayer* Player = SlotInfo.CurrentInventoryComponent->GetWorld()->GetFirstLocalPlayerFromController(); //temporary
-			ItemWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
-			ItemWidget->Initialize();
 			ItemWidget->LastSlotInfo = SlotInfo;
 			ItemWidget->LastSlotInfo.ItemData = nullptr;
 			ItemWidget->ItemData = SlotInfo.ItemData;
@@ -63,7 +58,6 @@ void UGISSlotBaseWidget::OnDragDetected_Implementation(FGeometry MyGeometry, con
 
 			Operation = DragDropOp;
 		}
-	}
 }
 
 bool UGISSlotBaseWidget::OnDrop_Implementation(FGeometry MyGeometry, FPointerEvent PointerEvent, UDragDropOperation* Operation)

@@ -15,31 +15,32 @@ UCLASS()
 class GAMEINVENTORYSYSTEM_API UGISContainerBaseWidget : public UUserWidget
 {
 	GENERATED_UCLASS_BODY()
-public:
-	virtual void InitializeContainer();
+protected:
+
+	UPROPERTY()
+		FGISInventoryConfiguration Config;
 	/*
 		Type of tab used in this container. meta = (ExposeOnSpawn)
 	*/
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY()
 		TSubclassOf<class UGISTabBaseWidget> TabClass;
 
 	/*
 		Type of slot used in this container.
 	*/
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY()
 		TSubclassOf<class UGISSlotBaseWidget> SlotClass;
 
 	/*
 		Type if item widget, which can be contained in slot.
 	*/
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY()
 		TSubclassOf<class UGISItemBaseWidget> ItemClass;
 
 	/*
 		Name of drop slot, which will contain ItemWidget.
-
 	*/
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY()
 		FName DropSlottName;
 
 	/**
@@ -58,19 +59,14 @@ public:
 	*/
 	UPROPERTY(BlueprintReadWrite)
 		TArray<class UGISTabBaseWidget*> InventoryTabs;
-
-	//could make it virtual, but don't want to expose it to blueprint
-	//ideally blueprint user shouldn't know that this even exist.
-	//in anycase they are only for client side interaction
-
+public:
+	virtual void InitializeContainer(const FGISInventoryConfiguration& ConfigIn);
+protected:
 	UFUNCTION()
 		void Widget_OnItemAdded(const FGISSlotUpdateData& SlotUpdateInfo);
 	
 	UFUNCTION()
 		void Widget_OnItemSlotSwapped(const FGISSlotSwapInfo& SlotSwapInfo);
-
-	void AddItem(const FGISSlotSwapInfo& SlotSwapInfo);
-	void RemoveItem(const FGISSlotSwapInfo& SlotSwapInfo);
 
 	UFUNCTION()
 		void Widget_OnTabVisibilityChanged(int32 TabIndex);
@@ -79,7 +75,7 @@ public:
 		void OnTabChangedVisibility(int32 TabIndex);
 
 	UFUNCTION()
-	void InitializeInventory();
+		void InitializeInventory();
 
 	/*
 		Redraw tab, when it changed.
@@ -89,4 +85,16 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
 		UGISTabBaseWidget* GetTabByName(FName TabNameIn);
+
+public:
+	void AddItem(const FGISSlotSwapInfo& SlotSwapInfo);
+	void RemoveItem(const FGISSlotSwapInfo& SlotSwapInfo);
+
+	int32 GetItemCount(int32 TabIndex);
+	void IncrementItemCount(int32 TabIndex);
+	void SetSlotInfo(int32 TabIndex, int32 SlotIndex, const FGISSlotInfo& SlotInfo);
+	void SetSlotData(int32 TabIndex, int32 SlotIndex, class UGISItemData* DataIn);
+	class UGISItemBaseWidget* GetItemWidget(int32 TabIndex, int32 SlotIndex);
+	void UpdateItemWidget(class UGISItemBaseWidget* Item, const FGISSlotInfo& SlotInfo);
+
 };
