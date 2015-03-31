@@ -60,7 +60,8 @@ protected:
 	UPROPERTY(BlueprintReadWrite)
 		TArray<class UGISTabBaseWidget*> InventoryTabs;
 public:
-	virtual void InitializeContainer(const FGISInventoryConfiguration& ConfigIn);
+	virtual void InitializeContainer(const FGISInventoryConfiguration& ConfigIn, 
+	class UGISInventoryBaseComponent* InventoryComponentIn);
 protected:
 	UFUNCTION()
 		void Widget_OnItemAdded(const FGISSlotUpdateData& SlotUpdateInfo);

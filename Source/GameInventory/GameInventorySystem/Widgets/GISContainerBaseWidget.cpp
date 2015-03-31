@@ -17,14 +17,15 @@ UGISContainerBaseWidget::UGISContainerBaseWidget(const FObjectInitializer& Objec
 
 }
 
-void UGISContainerBaseWidget::InitializeContainer(const FGISInventoryConfiguration& ConfigIn)
+void UGISContainerBaseWidget::InitializeContainer(const FGISInventoryConfiguration& ConfigIn,
+class UGISInventoryBaseComponent* InventoryComponentIn)
 {
 	Config = ConfigIn;
 	TabClass = ConfigIn.TabClass;
 	SlotClass = ConfigIn.SlotClass;
 	ItemClass = ConfigIn.ItemClass;
 	DropSlottName = ConfigIn.DropSlottName;
-
+	InventoryComponent = InventoryComponentIn;
 	if (InventoryComponent)
 	{
 		//bind functions to delegates:
@@ -170,7 +171,7 @@ void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 		UpdateItemWidget(TargetItemWidget, TargetSlotInfo);
 		
 		UGISItemBaseWidget* LastItemWidget = GetItemWidget(SlotSwapInfo.LastTabIndex, SlotSwapInfo.LastSlotIndex);
-		UpdateItemWidget(LastItemWidget, TargetSlotInfo);
+		UpdateItemWidget(LastItemWidget, LastSlotInfo);
 
 	}
 	else

@@ -178,8 +178,8 @@ public:
 
 	void SetFromLast(const FGISSlotSwapInfo& LastData)
 	{
-		SlotIndex = LastData.LastTabIndex;
-		SlotTabIndex = LastData.LastSlotIndex;
+		SlotIndex = LastData.LastSlotIndex;
+		SlotTabIndex = LastData.LastTabIndex;
 		ItemData = LastData.LastSlotData;
 		CurrentInventoryComponent = LastData.LastSlotComponent;
 	}

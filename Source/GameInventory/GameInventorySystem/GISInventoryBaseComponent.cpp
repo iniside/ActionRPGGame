@@ -58,7 +58,7 @@ void UGISInventoryBaseComponent::InitializeComponent()
 			InventoryContainer = CreateWidget<UGISContainerBaseWidget>(GetWorld(), InventoryConfiguration.InventoryContainerClass);
 			if (InventoryContainer)
 			{
-				InventoryContainer->InitializeContainer(InventoryConfiguration);
+				InventoryContainer->InitializeContainer(InventoryConfiguration,this);
 				InventoryContainer->SetVisibility(InventoryVisibility);
 				//call last
 			}
@@ -95,15 +95,10 @@ void UGISInventoryBaseComponent::TickComponent(float DeltaTime, enum ELevelTick 
 void UGISInventoryBaseComponent::OnRep_InventoryCreated()
 {
 	OnInventoryLoaded.Broadcast();
-	//if (SlotUpdateInfo.SlotComponent.IsValid())
-	//	SlotUpdateInfo.SlotData = SlotUpdateInfo.SlotComponent->Tabs.InventoryTabs[SlotUpdateInfo.TabIndex].TabSlots[SlotUpdateInfo.SlotIndex].ItemData;
-	//OnItemAdded.Broadcast(SlotUpdateInfo);
 }
 
 void UGISInventoryBaseComponent::OnRep_SlotUpdate()
 {
-//	if (SlotUpdateInfo.SlotComponent.IsValid())
-//		SlotUpdateInfo.SlotData = SlotUpdateInfo.SlotComponent->Tabs.InventoryTabs[SlotUpdateInfo.TabIndex].TabSlots[SlotUpdateInfo.SlotIndex].ItemData;
 	OnItemAdded.Broadcast(SlotUpdateInfo);
 }
 
