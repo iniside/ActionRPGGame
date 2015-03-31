@@ -250,8 +250,6 @@ public:
 
 	UFUNCTION()
 		void OnRep_LootedItems();
-	UFUNCTION()
-		void ConstructLootPickingWidget();
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_SlotUpdate, RepRetry)
 		FGISSlotUpdateData SlotUpdateInfo;
@@ -345,19 +343,6 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 		virtual void ServerLootItems();
 
-	/*
-		Technically you should call it on server, since you should trace for it only
-		on server ;). 
-	*/
-	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
-		virtual void GetLootContainer(class AGISPickupActor* LootContainer);
-	/*
-		So in reality this function should never get called.
-		But if for some reason, you really want to trace on client.. Here you go.
-	*/
-	UFUNCTION(Server, Reliable, WithValidation)
-		virtual void ServerGetLootContainer(class AGISPickupActor* LootContainer);
-
 	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
 		void LootOneItem(int32 ItemIndex);
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -367,17 +352,6 @@ public:
 		void DropItemFromInventory(const FGISItemDropInfo& DropItemInfoIn);
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerDropItemFromInventory(const FGISItemDropInfo& DropItemInfoIn);
-
-
-
-	UFUNCTION(Client, Reliable)
-		void ClientSlotSwap(const FGISSlotSwapInfo& SlotSwapInfoIn);
-
-	UFUNCTION(Client, Reliable)
-		void ClientLoadInventory();
-
-	UFUNCTION(Client, Reliable)
-		void ClientConstructWidget();
 
 	UFUNCTION(Client, Reliable)
 		void ClientHideLootingWidget();
@@ -565,6 +539,25 @@ public:
 	inline int32 GetLastTargetTab() { return LastTargetTab; }
 	inline int32 GetLastOtherOriginTab() { return LastOtherOriginTab; }
 	inline UGISInventoryBaseComponent* GetLastOtherOriginInventory() { return LastOtherOriginInventory; }
+
+	inline int32 GetSlotsInTab(int32 TabIndex) { return Tabs.GetSlotNum(TabIndex); };
+	
+	inline void CopyItemsFromTab(int32 TargetTab, int32 TargetIndex, int32 OriginTab, int32 OriginIndex) 
+	{
+		Tabs.SetItemData(TargetTab, TargetIndex, Tabs.GetItemData(OriginTab, OriginIndex));
+	}
+	inline class UGISItemData* GetItemDataInSlot(int32 TabIndex, int32 SlotIndex)
+	{ 
+		return Tabs.GetItemData(TabIndex, SlotIndex); 
+	}
+	inline void SetItemDataInSlot(int32 TabIndex, int32 SlotIndex, class UGISItemData* DataIn)
+	{ 
+		Tabs.SetItemData(TabIndex,SlotIndex, DataIn); 
+	}
+	inline bool IsInventoryValid(int32 TabIndex, int32 SlotIndex)
+	{
+		return Tabs.IsValid(TabIndex, SlotIndex);
+	}
 
 	inline void SetLastTargetTab(int32 LastTargetTabIn) { LastTargetTab = LastTargetTabIn; }
 	inline void SetLastOtherOriginTab(int32 LastOtherOriginTabIn) { LastOtherOriginTab = LastOtherOriginTabIn; }

@@ -8,9 +8,7 @@ bool FGISSlotInfo::IsValid()
 {
 	if (!CurrentInventoryComponent.IsValid())
 		return false;
-	if (!CurrentInventoryComponent->Tabs.InventoryTabs.IsValidIndex(SlotTabIndex))
-		return false;
-	if (!CurrentInventoryComponent->Tabs.InventoryTabs[SlotTabIndex].TabSlots.IsValidIndex(SlotIndex))
+	if (!CurrentInventoryComponent->IsInventoryValid(SlotTabIndex, SlotIndex))
 		return false;
 
 	return true;
@@ -20,14 +18,14 @@ class UGISItemData* FGISSlotInfo::GetItemData()
 {
 	UGISItemData* returnData = nullptr;
 
-	returnData = CurrentInventoryComponent->Tabs.InventoryTabs[SlotTabIndex].TabSlots[SlotIndex].ItemData;
+	returnData = CurrentInventoryComponent->GetItemDataInSlot(SlotTabIndex,SlotIndex);
 
 	return returnData;
 }
 
 void FGISSlotInfo::SetItemData(class UGISItemData* DataIn)
 {
-	CurrentInventoryComponent->Tabs.InventoryTabs[SlotTabIndex].TabSlots[SlotIndex].ItemData = DataIn;
+	CurrentInventoryComponent->SetItemDataInSlot(SlotTabIndex,SlotIndex, DataIn);
 }
 
 void FGISSlotInfo::DecrementItemCount()

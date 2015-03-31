@@ -83,9 +83,6 @@ void UGISInventoryBaseComponent::InitializeComponent()
 			}
 		}
 	}
-
-	if (CurrentRole == ROLE_Authority || CurrentNetMode == ENetMode::NM_Standalone)
-		ClientLoadInventory();
 }
 void UGISInventoryBaseComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
 {
@@ -385,6 +382,14 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 			OnItemSlotSwapped.Broadcast(SlotSwapInfo);
 	}
 }
+void UGISInventoryBaseComponent::ServerAddItemOnSlot_Implementation(const FGISSlotInfo& TargetSlotType, const FGISSlotInfo& LastSlotType)
+{
+	AddItemOnSlot(TargetSlotType, LastSlotType);
+}
+bool UGISInventoryBaseComponent::ServerAddItemOnSlot_Validate(const FGISSlotInfo& TargetSlotType, const FGISSlotInfo& LastSlotType)
+{
+	return true;
+}
 bool UGISInventoryBaseComponent::CheckIfCanAddItemToSlot(class UGISItemData* TargetDataIn, int32 TargetTabIndex, int32 TargetSlotIndex, 
 		class UGISItemData* LastDataIn)
 {
@@ -398,84 +403,20 @@ void UGISInventoryBaseComponent::OnItemAddedToSlot(class UGISItemData* AddedItem
 		AddedItemIn->OnItemAddedToSlot();
 	}
 }
-void UGISInventoryBaseComponent::ServerAddItemOnSlot_Implementation(const FGISSlotInfo& TargetSlotType, const FGISSlotInfo& LastSlotType)
-{
-	AddItemOnSlot(TargetSlotType, LastSlotType);
-}
-bool UGISInventoryBaseComponent::ServerAddItemOnSlot_Validate(const FGISSlotInfo& TargetSlotType, const FGISSlotInfo& LastSlotType)
-{
-	return true;
-}
+
 
 void UGISInventoryBaseComponent::RemoveItem(const FGISSlotInfo& TargetSlotType)
 {
 
 }
 
-void UGISInventoryBaseComponent::GetLootContainer(class AGISPickupActor* LootContainer)
-{
-	//if (GetOwnerRole() < ROLE_Authority)
-	//{
-	//	ServerGetLootContainer(LootContainer);
-	//}
-	//else
-	//{
-	//	if (!LootContainer->bIsCurrentlyBeingLooted)
-	//	{
-	//		CurrentPickupActor = LootContainer;
-	//		LootContainer->bIsCurrentlyBeingLooted = true;
-	//		for (UGISItemData* Item : LootContainer->ItemToLoot)
-	//		{
-	//			UGISItemData* test = ConstructObject<UGISItemData>(Item->GetClass(), this, NAME_None, RF_NoFlags, Item);
-	//			LootedItems.Add(test);
-	//		}
-	//		SetComponentTickEnabled(true);
-	//		if (GetNetMode() == ENetMode::NM_Standalone)
-	//		{
-	//			OnRep_LootedItems();
-	//		}
-	//		//ClientConstructWidget();
-	//	}
-	//}
-}
+
 void UGISInventoryBaseComponent::OnRep_LootedItems()
 {
 	OnLootingStart.Broadcast();
 }
 void UGISInventoryBaseComponent::OnRep_PickupActor()
 {
-	//ConstructLootPickingWidget();
-}
-void UGISInventoryBaseComponent::ClientConstructWidget_Implementation()
-{
-	ConstructLootPickingWidget();
-}
-void UGISInventoryBaseComponent::ConstructLootPickingWidget()
-{
-	//if (CurrentPickupActor)
-	//{
-	//	if (LootWidget)
-	//	{
-	//		CurrentPickupActor->InteractingInventory = this;
-	//		int32 ItemCount = LootedItems.Num();
-	//		TArray<FGISLootSlotInfo> LootSlotInfos;
-	//		for (int32 Index = 0; Index < ItemCount; Index++)
-	//		{
-	//			FGISLootSlotInfo LootInfo;
-	//			LootInfo.SlotIndex = Index;
-	//			LootInfo.SlotData = LootedItems[Index];
-	//		//	LootInfo.OwningPickupActor = CurrentPickupActor;
-	//			LootInfo.SlotComponent = this;
-	//			LootSlotInfos.Add(LootInfo);
-	//		}
-	//		LootWidget->ItemsInfos = LootSlotInfos;
-	//		//LootWidget->OwningPickupActor = CurrentPickupActor;
-	//		LootWidget->InitializeLootWidget();
-	//		LootWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	//	}
-	//	//LootContainer->InteractingInventory = this;
-	//	//LootContainer->OpenLootWindow();
-	//}
 }
 
 void UGISInventoryBaseComponent::StartLooting(class AGISPickupActor* PickUp)
@@ -589,24 +530,6 @@ bool UGISInventoryBaseComponent::ServerDropItemFromInventory_Validate(const FGIS
 	return true;
 }
 
-void UGISInventoryBaseComponent::ServerGetLootContainer_Implementation(class AGISPickupActor* LootContainer)
-{
-	GetLootContainer(LootContainer);
-}
-bool UGISInventoryBaseComponent::ServerGetLootContainer_Validate(class AGISPickupActor* LootContainer)
-{
-	return true;
-}
-
-void UGISInventoryBaseComponent::ClientSlotSwap_Implementation(const FGISSlotSwapInfo& SlotSwapInfoIn)
-{
-	OnItemSlotSwapped.Broadcast(SlotSwapInfoIn);
-}
-
-void UGISInventoryBaseComponent::ClientLoadInventory_Implementation()
-{
-	OnInventoryLoaded.Broadcast();
-}
 void UGISInventoryBaseComponent::ClientHideLootingWidget_Implementation()
 {
 	if (LootWidget)
@@ -624,14 +547,7 @@ void UGISInventoryBaseComponent::OnRep_TabUpdated()
 void UGISInventoryBaseComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	//if (bReplicateTabsToOwnerOnly)
-	//{
-		DOREPLIFETIME_CONDITION(UGISInventoryBaseComponent, Tabs, COND_OwnerOnly);
-	//}
-	//else
-	//{
-	//	DOREPLIFETIME(UGISInventoryBaseComponent, Tabs);
-	//}
+	DOREPLIFETIME_CONDITION(UGISInventoryBaseComponent, Tabs, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UGISInventoryBaseComponent, SlotUpdateInfo, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UGISInventoryBaseComponent, SlotSwapInfo, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UGISInventoryBaseComponent, CurrentPickupActor, COND_OwnerOnly);
@@ -724,16 +640,16 @@ void UGISInventoryBaseComponent::InitializeInventoryTabs()
 void  UGISInventoryBaseComponent::InputSlotPressed(int32 TabIndex, int32 SlotIndex)
 {
 	//TODO:: Add valid index check...
-	if (Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData)
+	if (Tabs.GetItemData(TabIndex, SlotIndex))
 	{
-		Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData->InputPressed();
+		Tabs.GetItemData(TabIndex, SlotIndex)->InputPressed();
 	}
 }
 void UGISInventoryBaseComponent::InputSlotReleased(int32 TabIndex, int32 SlotIndex)
 {
-	if (Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData)
+	if (Tabs.GetItemData(TabIndex, SlotIndex))
 	{
-		Tabs.InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData->InputReleased();
+		Tabs.GetItemData(TabIndex, SlotIndex)->InputReleased();
 	}
 }
 void UGISInventoryBaseComponent::SwapTabItems(int32 OriginalTab, int32 TargetTab)
@@ -747,18 +663,18 @@ void UGISInventoryBaseComponent::SwapTabItems(int32 OriginalTab, int32 TargetTab
 	{
 		for (int32 Index = 0; Index < TargetItemCount; Index++)
 		{
-			UGISItemData* tempTargetData = Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData;
-			Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData = Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData;
-			Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData = tempTargetData;
+			UGISItemData* tempTargetData = GetItemDataInSlot(TargetTab, Index);
+			SetItemDataInSlot(TargetTab, Index, GetItemDataInSlot(OriginalTab, Index));
+			SetItemDataInSlot(OriginalTab,Index,tempTargetData);
 		}
 	}
 	else
 	{
 		for (int32 Index = 0; Index < OrignalItemCount; Index++)
 		{
-			UGISItemData* tempTargetData = Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData;
-			Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData = Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData;
-			Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData = tempTargetData;
+			UGISItemData* tempTargetData = GetItemDataInSlot(TargetTab, Index);
+			SetItemDataInSlot(TargetTab, Index, GetItemDataInSlot(OriginalTab, Index));
+			SetItemDataInSlot(OriginalTab, Index, tempTargetData);
 		}
 	}
 	/*
@@ -772,8 +688,8 @@ void UGISInventoryBaseComponent::SwapTabItems(int32 OriginalTab, int32 TargetTab
 
 void UGISInventoryBaseComponent::CopyItemsToTab(int32 OriginalTab, int32 TargetTab)
 {
-	int32 OrignalItemCount = Tabs.InventoryTabs[OriginalTab].TabSlots.Num();
-	int32 TargetItemCount = Tabs.InventoryTabs[TargetTab].TabSlots.Num();
+	int32 OrignalItemCount = GetSlotsInTab(OriginalTab);
+	int32 TargetItemCount = GetSlotsInTab(TargetTab);
 	//check which item count is bigger
 	//to avoid copying into non existend array elements.
 	//we always count against smaller.
@@ -782,14 +698,14 @@ void UGISInventoryBaseComponent::CopyItemsToTab(int32 OriginalTab, int32 TargetT
 	{
 		for (int32 Index = 0; Index < TargetItemCount; Index++)
 		{
-			Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData = Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData;
+			CopyItemsFromTab(TargetTab, Index, OriginalTab, Index);
 		}
 	}
 	else
 	{
 		for (int32 Index = 0; Index < OrignalItemCount; Index++)
 		{
-			Tabs.InventoryTabs[TargetTab].TabSlots[Index].ItemData = Tabs.InventoryTabs[OriginalTab].TabSlots[Index].ItemData;
+			CopyItemsFromTab(TargetTab, Index, OriginalTab, Index);
 		}
 	}
 	TabUpdateInfo.ReplicationCounter++;
@@ -824,7 +740,7 @@ void UGISInventoryBaseComponent::CopyItemsFromOtherInventoryTab(class UGISInvent
 				{
 					OtherIn->SetLastOtherOriginTab(TabIndex);
 					LastOtherOriginTab = TabIndex;
-					int32 TargetItemCount = Tabs.InventoryTabs[TargetTabIndex].TabSlots.Num();
+					int32 TargetItemCount = GetSlotsInTab(TargetTabIndex);
 					int32 OtherItemCount = Tabs.InventoryTabs[TabIndex].TabSlots.Num();
 					//check which item count is bigger
 					//to avoid copying into non existend array elements.
@@ -834,7 +750,7 @@ void UGISInventoryBaseComponent::CopyItemsFromOtherInventoryTab(class UGISInvent
 					{
 						for (int32 Index = 0; Index < TargetItemCount; Index++)
 						{
-							Tabs.InventoryTabs[TargetTabIndex].TabSlots[Index].ItemData = OtherIn->Tabs.InventoryTabs[TabIndex].TabSlots[Index].ItemData;
+							SetItemDataInSlot(TargetTabIndex, Index, OtherIn->GetItemDataInSlot(TabIndex, Index));
 							OnCopyItemsFromOtherInventoryTab(Tabs.InventoryTabs[TargetTabIndex].TabSlots[Index].ItemData);
 						}
 					}
@@ -842,7 +758,7 @@ void UGISInventoryBaseComponent::CopyItemsFromOtherInventoryTab(class UGISInvent
 					{
 						for (int32 Index = 0; Index < OtherItemCount; Index++)
 						{
-							Tabs.InventoryTabs[TargetTabIndex].TabSlots[Index].ItemData = OtherIn->Tabs.InventoryTabs[TabIndex].TabSlots[Index].ItemData;
+							SetItemDataInSlot(TargetTabIndex, Index, OtherIn->GetItemDataInSlot(TabIndex, Index));
 							OnCopyItemsFromOtherInventoryTab(Tabs.InventoryTabs[TargetTabIndex].TabSlots[Index].ItemData);
 						}
 					}
@@ -861,13 +777,13 @@ void UGISInventoryBaseComponent::CopyItemsToOtherInventoryTab(class UGISInventor
 {
 	if (OtherIn)
 	{
-		int32 OtherSlotCount =  OtherIn->Tabs.InventoryTabs[OtherTabIndex].TabSlots.Num();
-		int32 TargetSlotCount = Tabs.InventoryTabs[TargetTabIndex].TabSlots.Num();
+		int32 OtherSlotCount = OtherIn->GetSlotsInTab(OtherTabIndex);
+		int32 TargetSlotCount = GetSlotsInTab(TargetTabIndex);
 		if (OtherSlotCount > TargetSlotCount)
 		{
 			for (int32 Index = 0; Index < TargetSlotCount; Index++)
 			{
-				OtherIn->Tabs.InventoryTabs[OtherTabIndex].TabSlots[Index].ItemData = Tabs.InventoryTabs[TargetTabIndex].TabSlots[Index].ItemData;
+				OtherIn->SetItemDataInSlot(OtherTabIndex, Index, GetItemDataInSlot(TargetTabIndex, Index));
 				OnCopyItemsToOtherInventoryTab(Tabs.InventoryTabs[TargetTabIndex].TabSlots[Index].ItemData);
 			}
 		}
@@ -875,7 +791,7 @@ void UGISInventoryBaseComponent::CopyItemsToOtherInventoryTab(class UGISInventor
 		{
 			for (int32 Index = 0; Index < OtherSlotCount; Index++)
 			{
-				OtherIn->Tabs.InventoryTabs[OtherTabIndex].TabSlots[Index].ItemData = Tabs.InventoryTabs[TargetTabIndex].TabSlots[Index].ItemData;
+				OtherIn->SetItemDataInSlot(OtherTabIndex, Index, GetItemDataInSlot(TargetTabIndex, Index));
 				OnCopyItemsToOtherInventoryTab(Tabs.InventoryTabs[TargetTabIndex].TabSlots[Index].ItemData);
 			}
 		}
@@ -890,13 +806,13 @@ void UGISInventoryBaseComponent::CopyItemsFromOtherInventoryTab(class UGISInvent
 {
 	if (OtherIn)
 	{
-		int32 OtherSlotCount = OtherIn->Tabs.InventoryTabs[OtherTabIndex].TabSlots.Num();
-		int32 TargetSlotCount = Tabs.InventoryTabs[TargetTabIndex].TabSlots.Num();
+		int32 OtherSlotCount = OtherIn->GetSlotsInTab(OtherTabIndex);
+		int32 TargetSlotCount = GetSlotsInTab(TargetTabIndex);
 		if (OtherSlotCount > TargetSlotCount)
 		{
 			for (int32 Index = 0; Index < TargetSlotCount; Index++)
 			{
-				Tabs.InventoryTabs[TargetTabIndex].TabSlots[Index].ItemData = OtherIn->Tabs.InventoryTabs[OtherTabIndex].TabSlots[Index].ItemData;
+				SetItemDataInSlot(TargetTabIndex, Index, OtherIn->GetItemDataInSlot(OtherTabIndex,Index));
 				OnCopyItemsFromOtherInventoryTab(Tabs.InventoryTabs[TargetTabIndex].TabSlots[Index].ItemData);
 			}
 		}
@@ -904,7 +820,7 @@ void UGISInventoryBaseComponent::CopyItemsFromOtherInventoryTab(class UGISInvent
 		{
 			for (int32 Index = 0; Index < OtherSlotCount; Index++)
 			{
-				Tabs.InventoryTabs[TargetTabIndex].TabSlots[Index].ItemData = OtherIn->Tabs.InventoryTabs[OtherTabIndex].TabSlots[Index].ItemData;
+				SetItemDataInSlot(TargetTabIndex, Index, OtherIn->GetItemDataInSlot(OtherTabIndex, Index));
 				OnCopyItemsFromOtherInventoryTab(Tabs.InventoryTabs[TargetTabIndex].TabSlots[Index].ItemData);
 			}
 		}

@@ -200,6 +200,31 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 		TArray<FGISTabInfo> InventoryTabs;
+
+	inline class UGISItemData* GetItemData(int32 TabIndex, int32 SlotIndex)
+	{
+		return InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData;
+	}
+	inline void SetItemData(int32 TabIndex, int32 SlotIndex, class UGISItemData* DataIn)
+	{
+		InventoryTabs[TabIndex].TabSlots[SlotIndex].ItemData = DataIn;
+	}
+	inline int32 GetSlotNum(int32 TabIndex)
+	{
+		return InventoryTabs[TabIndex].TabSlots.Num();
+	}
+	inline int32 GetTabNum()
+	{
+		return InventoryTabs.Num();
+	}
+	inline bool IsValid(int32 TabIndex, int32 SlotIndex)
+	{
+		if (InventoryTabs.IsValidIndex(TabIndex))
+			if (InventoryTabs[TabIndex].TabSlots.IsValidIndex(SlotIndex))
+				return true;
+
+		return false;
+	}
 };
 
 USTRUCT()
