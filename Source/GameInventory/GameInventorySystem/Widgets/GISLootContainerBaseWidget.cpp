@@ -18,7 +18,7 @@ UGISLootContainerBaseWidget::UGISLootContainerBaseWidget(const FObjectInitialize
 
 void UGISLootContainerBaseWidget::InitializeLootWidget()
 {
-	OwningComp->OnLootingStart.BindUObject(this, &UGISLootContainerBaseWidget::UpdateLootWidget);
+	OwningComp->OnLootingStart.AddUObject(this, &UGISLootContainerBaseWidget::UpdateLootWidget);
 	Slots.Empty();
 	if (SlotClass)
 	{
@@ -50,19 +50,16 @@ void UGISLootContainerBaseWidget::InitializeLootWidget()
 
 void UGISLootContainerBaseWidget::UpdateLootWidget()
 {
+	int32 SlotNum = Slots.Num();
+	for (int32 ItemIndex = 0; ItemIndex < SlotNum; ItemIndex++)
+	{
+		Slots[ItemIndex]->ResetSlot();
+	}
 	int32 ItemNum = OwningComp->LootFromPickup.Loot.Num();
 	TArray<FGISLootSlotInfo>& ItemRef = OwningComp->LootFromPickup.Loot;
 	for (int32 ItemIndex = 0; ItemIndex < ItemNum; ItemIndex++)
 	{
 		Slots[ItemIndex]->LootSlotInfo = ItemRef[ItemIndex];
 		Slots[ItemIndex]->SetItemInfo(ItemIndex);// = ItemRef[ItemIndex];
-	}
-	if (ItemNum <= 0)
-	{
-		int32 SlotNum = Slots.Num();
-		for (int32 ItemIndex = 0; ItemIndex < SlotNum; ItemIndex++)
-		{
-			Slots[ItemIndex]->ResetSlot();
-		}
 	}
 }

@@ -18,9 +18,6 @@ public:
 	UPROPERTY()
 	class UGISItemBaseWidget* ItemWidget;
 
-	UFUNCTION(BlueprintCallable, Category = "Item Data")
-		UTexture2D* GetIcon() const;
-
 	void SetItemInfo(int32 ItemIndex);
 
 	void ResetSlot();

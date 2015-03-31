@@ -22,7 +22,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGISOnCopyItemsToTab, const FGISSlot
 /*
 	We will use it, to reconstruct widget.
 */
-DECLARE_DELEGATE(FGISOnItemLooted);
+DECLARE_MULTICAST_DELEGATE(FGISOnItemLooted);
 
 DECLARE_DELEGATE_OneParam(FGISOnTabVisibilityChanged, int32);
 

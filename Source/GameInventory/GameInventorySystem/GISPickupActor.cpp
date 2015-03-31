@@ -43,6 +43,7 @@ void AGISPickupActor::StartLooting(AActor* WhoPicks)
 		if (!invInt)
 			return;
 		UGISInventoryBaseComponent* InvComp = invInt->GetInventory();
+		InteractingInventory = InvComp;
 		if (InvComp)
 		{
 			InvComp->StartLooting(this);
@@ -61,24 +62,27 @@ void AGISPickupActor::DestroyPickupActor()
 {
 
 }
+void AGISPickupActor::OnRep_ItemToLoot()
+{
 
-//void AGISPickupActor::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
-//{
-//	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-//
-//	//DOREPLIFETIME(AGISPickupActor, ItemToLoot);
-//}
+}
+void AGISPickupActor::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AGISPickupActor, ItemToLoot);
+}
 bool AGISPickupActor::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
 {
 	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
 
-	//for (const UGISItemData* SlotItem : ItemToLoot)
-	//{
-	//	if (SlotItem)
-	//	{
-	//		WroteSomething |= Channel->ReplicateSubobject(const_cast<UGISItemData*>(SlotItem), *Bunch, *RepFlags);
-	//	}
-	//}
+	for (const UGISItemData* SlotItem : ItemToLoot)
+	{
+		if (SlotItem)
+		{
+			WroteSomething |= Channel->ReplicateSubobject(const_cast<UGISItemData*>(SlotItem), *Bunch, *RepFlags);
+		}
+	}
 	return WroteSomething;
 }
 void AGISPickupActor::GetSubobjectsWithStableNamesForNetworking(TArray<UObject*>& Objs)

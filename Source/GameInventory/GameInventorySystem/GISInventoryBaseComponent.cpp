@@ -203,39 +203,25 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 		ServerAddItemOnSlot(TargetSlotType, LastSlotType);
 		return;
 	}
+	FGISSlotInfo& LastSlot = const_cast<FGISSlotInfo&>(LastSlotType);
+	FGISSlotInfo& TargetSlot = const_cast<FGISSlotInfo&>(TargetSlotType);
 	//check if all data is valid.
-	if (!TargetSlotType.CurrentInventoryComponent.IsValid() || !LastSlotType.CurrentInventoryComponent.IsValid())
+	if (!TargetSlot.IsValid() || !LastSlot.IsValid())
 		return;
-	if (!TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs.IsValidIndex(TargetSlotType.SlotTabIndex)
-		|| !LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs.IsValidIndex(LastSlotType.SlotTabIndex))
-		return;
-	if (!TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots.IsValidIndex(TargetSlotType.SlotIndex)
-		|| !LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots.IsValidIndex(LastSlotType.SlotIndex))
-		return;
-
-	if (!TargetSlotType.CurrentInventoryComponent->RequiredTags.MatchesAny(LastSlotType.CurrentInventoryComponent->OwnedTags, false))
-		return;
-
-
 
 	//next check should be against item tags, but that's later!
 	if (LastSlotType.CurrentInventoryComponent->bRemoveItemsFromInvetoryOnDrag)
 	{
 		//Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotTabIndex].ItemData
-		if (TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData == nullptr)
+		if (TargetSlot.GetItemData() == nullptr)
 		{
-			UGISItemData* TargetItem = LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData;
-			UGISItemData* LastItem = TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData; //Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData;
+			UGISItemData* TargetItem = LastSlot.GetItemData(); 
+			UGISItemData* LastItem = TargetSlot.GetItemData();
 			if (!CheckIfCanAddItemToSlot(TargetItem, TargetSlotType.SlotTabIndex, TargetSlotType.SlotIndex, LastItem))
 				return;
 
 			if (!TargetItem->HasAnyMatchingGameplayTags(TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].Tags))
 				return;
-
-
-
-			//if (!TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].Tags.HasTag(TargetItem->MyTag, EGameplayTagMatchType::Explicit, EGameplayTagMatchType::Explicit))
-			//	return;
 
 			if (TargetItem)
 				if (!TargetItem->CanItemBeSwapped())
@@ -244,14 +230,14 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 				if (!LastItem->CanItemBeSwapped())
 					return;
 
-			TargetItem->CurrentInventory = TargetSlotType.CurrentInventoryComponent.Get(); //seems approperties instead of this ?
-			TargetItem->LastInventory = LastSlotType.CurrentInventoryComponent.Get();
+			TargetItem->CurrentInventory = TargetSlot.CurrentInventoryComponent.Get(); //seems approperties instead of this ?
+			TargetItem->LastInventory = LastSlot.CurrentInventoryComponent.Get();
 
-			LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].ItemCount--;
-			TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].ItemCount++;
+			LastSlot.DecrementItemCount();
+			TargetSlot.IncrementItemCount(); 
 
-			TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData = TargetItem;
-			LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData = nullptr;
+			TargetSlot.SetItemData(TargetItem);
+			LastSlot.SetItemData(nullptr); 
 			
 			if ((LastTargetTab != INDEX_NONE) && (LastOtherOriginTab != INDEX_NONE)
 				&& LastOtherOriginInventory)
@@ -262,18 +248,10 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 			TargetItem->SetWorld(GetWorld());
 			TargetItem->SetCurrentOwner(GetOwner());
 			OnItemAddedToSlot(TargetItem);
-				
-			//FGISSlotSwapInfo SlotSwapInfo;
 
 			SlotSwapInfo.ReplicationCounter++;
-			SlotSwapInfo.LastSlotIndex = LastSlotType.SlotIndex;
-			SlotSwapInfo.LastTabIndex = LastSlotType.SlotTabIndex;
-			SlotSwapInfo.LastSlotData = LastItem;
-			SlotSwapInfo.LastSlotComponent = LastSlotType.CurrentInventoryComponent;
-			SlotSwapInfo.TargetSlotIndex = TargetSlotType.SlotIndex;
-			SlotSwapInfo.TargetTabIndex = TargetSlotType.SlotTabIndex;
-			SlotSwapInfo.TargetSlotData = TargetItem;
-			SlotSwapInfo.TargetSlotComponent = TargetSlotType.CurrentInventoryComponent;
+			SlotSwapInfo = FGISSlotSwapInfo(LastSlot, LastItem, TargetSlot, TargetItem);
+
 			if (GetNetMode() == ENetMode::NM_Standalone)
 			{
 				OnItemSlotSwapped.Broadcast(SlotSwapInfo);
@@ -286,7 +264,6 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 				OnItemSlotSwapped.Broadcast(SlotSwapInfo);
 				LastSlotType.CurrentInventoryComponent->OnItemSlotSwapped.Broadcast(SlotSwapInfo);
 			}
-			//ClientSlotSwap(SlotSwapInfo);
 		}
 		else
 		{
@@ -294,11 +271,11 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 			/*
 				Last copy item from last inventory, to be placed in Target inventory.
 			*/
-			UGISItemData* TargetItem = LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData;
+			UGISItemData* TargetItem = LastSlot.GetItemData();
 			/*
 				Copy item from target inventory, to be placed in last inventory.
 			*/
-			UGISItemData* LastItem = TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData; //Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData;
+			UGISItemData* LastItem = TargetSlot.GetItemData();
 			
 			if (!CheckIfCanAddItemToSlot(TargetItem, TargetSlotType.SlotTabIndex, TargetSlotType.SlotIndex, LastItem))
 				return;
@@ -335,11 +312,11 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 			*/
 			LastItem->LastInventory = TargetSlotType.CurrentInventoryComponent.Get();
 			
-			LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].ItemCount--;
-			TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].ItemCount++;
+			LastSlot.DecrementItemCount();
+			TargetSlot.IncrementItemCount();
 
-			TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData = TargetItem;
-			LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData = LastItem;
+			TargetSlot.SetItemData(TargetItem);
+			LastSlot.SetItemData(LastItem);
 
 			if ((LastTargetTab != INDEX_NONE) && (LastOtherOriginTab != INDEX_NONE)
 				&& LastOtherOriginInventory)
@@ -355,16 +332,9 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 			OnItemAddedToSlot(TargetItem);
 			OnItemAddedToSlot(LastItem);
 
-			//FGISSlotSwapInfo SlotSwapInfo;
 			SlotSwapInfo.ReplicationCounter++;
-			SlotSwapInfo.LastSlotIndex = LastSlotType.SlotIndex;
-			SlotSwapInfo.LastTabIndex = LastSlotType.SlotTabIndex;
-			SlotSwapInfo.LastSlotData = LastItem;
-			SlotSwapInfo.LastSlotComponent = LastSlotType.CurrentInventoryComponent;
-			SlotSwapInfo.TargetSlotIndex = TargetSlotType.SlotIndex;
-			SlotSwapInfo.TargetTabIndex = TargetSlotType.SlotTabIndex;
-			SlotSwapInfo.TargetSlotData = TargetItem;
-			SlotSwapInfo.TargetSlotComponent = TargetSlotType.CurrentInventoryComponent;
+			SlotSwapInfo = FGISSlotSwapInfo(LastSlot, LastItem, TargetSlot, TargetItem);
+	
 			if (GetNetMode() == ENetMode::NM_Standalone)
 			{
 				OnItemSlotSwapped.Broadcast(SlotSwapInfo);
@@ -383,8 +353,9 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 	}
 	else
 	{ //if there is item in target slot. Remove it. or override it.
-		UGISItemData* TargetItem = LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData;
-		UGISItemData* LastItem = TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData; //Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData;
+		UGISItemData* TargetItem = LastSlot.GetItemData();
+		UGISItemData* LastItem = TargetSlot.GetItemData(); //Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData;
+		
 		if (TargetItem)
 			if (!TargetItem->CanItemBeSwapped())
 				return;
@@ -392,9 +363,8 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 			if (!LastItem->CanItemBeSwapped())
 				return;
 		
-		TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData = nullptr;
-		TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData = TargetItem;
-		//LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].TabSlots[LastSlotType.SlotIndex].ItemData = LastItem;
+		LastSlot.SetItemData(nullptr);
+		TargetSlot.SetItemData(TargetItem);
 
 		TargetItem->CurrentInventory = TargetSlotType.CurrentInventoryComponent.Get();
 
@@ -409,22 +379,10 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 
 		OnItemAddedToSlot(TargetItem);
 
-		//since we won't be removing anything from last inventory
-		//we don't really need any information about it.
-		//all we need to know if the target slot
-		//contained any item. So we can remove widgets on client side.
 		SlotSwapInfo.ReplicationCounter++;
-		SlotSwapInfo.LastSlotIndex = TargetSlotType.SlotIndex;
-		SlotSwapInfo.LastTabIndex = TargetSlotType.SlotTabIndex;
-		SlotSwapInfo.LastSlotData = LastItem;
-		SlotSwapInfo.LastSlotComponent = LastSlotType.CurrentInventoryComponent;
-		SlotSwapInfo.TargetSlotIndex = TargetSlotType.SlotIndex;
-		SlotSwapInfo.TargetTabIndex = TargetSlotType.SlotTabIndex;
-		SlotSwapInfo.TargetSlotData = TargetItem;
-		SlotSwapInfo.TargetSlotComponent = TargetSlotType.CurrentInventoryComponent;
+		SlotSwapInfo = FGISSlotSwapInfo(LastSlot, LastItem, TargetSlot, TargetItem);
 		if (GetNetMode() == ENetMode::NM_Standalone)
 			OnItemSlotSwapped.Broadcast(SlotSwapInfo);
-		//ClientSlotSwap(SlotSwapInfo);
 	}
 }
 bool UGISInventoryBaseComponent::CheckIfCanAddItemToSlot(class UGISItemData* TargetDataIn, int32 TargetTabIndex, int32 TargetSlotIndex, 
@@ -482,7 +440,7 @@ void UGISInventoryBaseComponent::GetLootContainer(class AGISPickupActor* LootCon
 }
 void UGISInventoryBaseComponent::OnRep_LootedItems()
 {
-	OnLootingStart.ExecuteIfBound();
+	OnLootingStart.Broadcast();
 }
 void UGISInventoryBaseComponent::OnRep_PickupActor()
 {
@@ -540,14 +498,13 @@ void UGISInventoryBaseComponent::LootOneItem(int32 ItemIndex)
 {
 	if (GetOwnerRole() < ROLE_Authority)
 	{
+		CurrentPickupActor->ItemToLoot.RemoveAtSwap(ItemIndex, 1, false);
 		SeverLootOneItem(ItemIndex);
 	}
 	else
 	{
 		if (CurrentPickupActor)
 		{
-		//	UGISItemData* test = ConstructObject<UGISItemData>(CurrentPickupActor->ItemToLoot[ItemIndex]->GetClass(), this, NAME_None, RF_NoFlags, CurrentPickupActor->ItemToLoot[ItemIndex]);
-			
 			//if it is not valid index both arrays, then something is wrong.
 			if (LootFromPickup.Loot.IsValidIndex(ItemIndex) && CurrentPickupActor->ItemToLoot.IsValidIndex(ItemIndex))
 			{
@@ -555,8 +512,18 @@ void UGISInventoryBaseComponent::LootOneItem(int32 ItemIndex)
 				AddItemToInventory(dataDuplicate);
 				//ok we removed one item. We need to rconstruct widgets, indexes etc, to make sure arry
 				//have proper indexes in first place.
-				LootFromPickup.Loot.RemoveAt(ItemIndex, 1, false);
-				CurrentPickupActor->ItemToLoot.RemoveAt(ItemIndex, 1, false);
+				//LootFromPickup.Loot.RemoveAtSwap(ItemIndex, 1, false);
+				CurrentPickupActor->ItemToLoot.RemoveAtSwap(ItemIndex, 1, false);
+				int32 ItemNum = CurrentPickupActor->ItemToLoot.Num();
+				LootFromPickup.Loot.Empty();
+				for (int32 ItemIndex = 0; ItemIndex < ItemNum; ItemIndex++)
+				{
+					FGISLootSlotInfo lootInfo;
+					lootInfo.OwningPickupActor = CurrentPickupActor;
+					lootInfo.SlotComponent = this;
+					lootInfo.SlotIndex = ItemIndex;
+					LootFromPickup.Loot.Add(lootInfo);
+				}
 				LootFromPickup.ForceRep++;
 			}
 			//reconstruct widget.

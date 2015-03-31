@@ -20,15 +20,6 @@ UGISLootSlotBaseWidget::~UGISLootSlotBaseWidget()
 	//LootSlotInfo.SlotComponent.Reset();
 	LootSlotInfo.OwningPickupActor = nullptr;
 }
-UTexture2D* UGISLootSlotBaseWidget::GetIcon() const
-{
-	if (LootSlotInfo.OwningPickupActor)
-	{
-		if (LootSlotInfo.OwningPickupActor->ItemToLoot[LootSlotInfo.SlotIndex])
-			return LootSlotInfo.OwningPickupActor->ItemToLoot[LootSlotInfo.SlotIndex]->GetImage();
-	}
-	return nullptr;
-}
 
 void UGISLootSlotBaseWidget::SetItemInfo(int32 ItemIndex)
 {
@@ -42,6 +33,7 @@ void UGISLootSlotBaseWidget::ResetSlot()
 {
 	ItemWidget->ItemData = nullptr;
 }
+
 FEventReply UGISLootSlotBaseWidget::OnMouseButtonDown_Implementation(FGeometry MyGeometry, const FPointerEvent& MouseEvent)
 {
 	FEventReply Reply;

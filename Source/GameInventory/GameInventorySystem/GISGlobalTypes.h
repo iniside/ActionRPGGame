@@ -84,6 +84,28 @@ public:
 };
 
 USTRUCT(BlueprintType)
+struct GAMEINVENTORYSYSTEM_API FGISSlotInfo
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(BlueprintReadOnly)
+		int32 SlotIndex;
+	UPROPERTY(BlueprintReadOnly)
+		int32 SlotTabIndex;
+	UPROPERTY(BlueprintReadWrite)
+	class UGISItemData* ItemData;
+
+	UPROPERTY(BlueprintReadWrite)
+		TWeakObjectPtr<class UGISInventoryBaseComponent> CurrentInventoryComponent;
+
+	bool IsValid();
+	class UGISItemData* GetItemData();
+	void SetItemData(class UGISItemData* DataIn);
+	void DecrementItemCount();
+	void IncrementItemCount();
+};
+
+USTRUCT(BlueprintType)
 struct GAMEINVENTORYSYSTEM_API FGISSlotSwapInfo
 {
 	GENERATED_USTRUCT_BODY()
@@ -108,22 +130,21 @@ public:
 		TWeakObjectPtr<class UGISInventoryBaseComponent> TargetSlotComponent;
 	UPROPERTY()
 		bool bRemoveItemsFromInvetoryOnDrag;
-};
 
-USTRUCT(BlueprintType)
-struct GAMEINVENTORYSYSTEM_API FGISSlotInfo
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY(BlueprintReadOnly)
-		int32 SlotIndex;
-	UPROPERTY(BlueprintReadOnly)
-		int32 SlotTabIndex;
-	UPROPERTY(BlueprintReadWrite)
-		class UGISItemData* ItemData;
+	FGISSlotSwapInfo()
+	{};
 
-	UPROPERTY(BlueprintReadWrite)
-		TWeakObjectPtr<class UGISInventoryBaseComponent> CurrentInventoryComponent;
+	FGISSlotSwapInfo(const FGISSlotInfo& LastSlot, class UGISItemData* LastItemDataIn,
+		const FGISSlotInfo& TargetSlot, class UGISItemData* TargetItemDataIn)
+		: LastTabIndex(LastSlot.SlotTabIndex),
+		LastSlotIndex(LastSlot.SlotIndex),
+		LastSlotComponent(LastSlot.CurrentInventoryComponent),
+		LastSlotData(LastItemDataIn),
+		TargetTabIndex(TargetSlot.SlotTabIndex),
+		TargetSlotIndex(TargetSlot.SlotIndex),
+		TargetSlotComponent(TargetSlot.CurrentInventoryComponent),
+		TargetSlotData(TargetItemDataIn)
+	{}
 };
 
 USTRUCT(BlueprintType)

@@ -18,9 +18,10 @@ class GAMEINVENTORYSYSTEM_API AGISPickupActor : public AActor, public IIGIIntera
 	GENERATED_BODY()
 public:
 	//Instanced
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced)
+	UPROPERTY(ReplicatedUsing=OnRep_ItemToLoot, EditAnywhere, BlueprintReadWrite, Instanced)
 		TArray<class UGISItemData*> ItemToLoot;
-
+	UFUNCTION()
+		void OnRep_ItemToLoot();
 	/*
 		Is this actor currently looted ?
 
@@ -57,7 +58,7 @@ public:
 	*/
 	virtual void DestroyPickupActor();
 
-
+	virtual void GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const override;
 	virtual bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags) override;
 	virtual void GetSubobjectsWithStableNamesForNetworking(TArray<UObject*>& Objs) override;
 
