@@ -9,7 +9,7 @@
 
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
-
+#include "IGISInventory.h"
 #include "GISPickupActor.h"
 
 AGISPickupActor::AGISPickupActor(const FObjectInitializer& ObjectInitializer)
@@ -24,6 +24,39 @@ void AGISPickupActor::BeginPlay()
 
 }
 
+void AGISPickupActor::Interact(AActor* InteractingActor)
+{
+	SetOwner(InteractingActor);
+	this->StartLooting(InteractingActor);
+
+	//go to server now, or go to server in component ?
+}
+void AGISPickupActor::StartLooting(AActor* WhoPicks)
+{
+	if (Role < ROLE_Authority)
+	{
+		ServerStartLooting(WhoPicks);
+	}
+	else
+	{
+		IIGISInventory* invInt = Cast<IIGISInventory>(WhoPicks);
+		if (!invInt)
+			return;
+		UGISInventoryBaseComponent* InvComp = invInt->GetInventory();
+		if (InvComp)
+		{
+			InvComp->StartLooting(this);
+		}
+	}
+}
+void AGISPickupActor::ServerStartLooting_Implementation(AActor* WhoPicks)
+{
+	StartLooting(WhoPicks);
+}
+bool AGISPickupActor::ServerStartLooting_Validate(AActor* WhoPicks)
+{
+	return true;
+}
 void AGISPickupActor::DestroyPickupActor()
 {
 

@@ -71,3 +71,8 @@ void AARPlayerController::OnRecivedModifiedAttribute(const FGAModifiedAttribute&
 	if (gshud && gshud->FCTWidget)
 		gshud->FCTWidget->OnReceivedData.Broadcast(DisplayData);
 }
+
+UGISInventoryBaseComponent* AARPlayerController::GetInventory()
+{
+	return Inventory;
+}

@@ -30,7 +30,6 @@ UGISInventoryBaseComponent::UGISInventoryBaseComponent(const FObjectInitializer&
 	PrimaryComponentTick.bRunOnAnyThread = true;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 	bAllowConcurrentTick = true;
-	OnItemLooted.AddDynamic(this, &UGISInventoryBaseComponent::ConstructLootPickingWidget);
 	InventoryVisibility = ESlateVisibility::Hidden;
 	LootWindowVisibility = ESlateVisibility::Hidden;
 
@@ -56,13 +55,9 @@ void UGISInventoryBaseComponent::InitializeComponent()
 	{
 		if (InventoryContainerClass)
 		{
-			UObject* Outer = GetWorld()->GetGameInstance() ? StaticCast<UObject*>(GetWorld()->GetGameInstance()) : StaticCast<UObject*>(GetWorld());
-			InventoryContainer = ConstructObject<UGISContainerBaseWidget>(InventoryContainerClass, Outer);
+			InventoryContainer = CreateWidget<UGISContainerBaseWidget>(GetWorld(), InventoryContainerClass);
 			if (InventoryContainer)
 			{
-				ULocalPlayer* Player = World->GetFirstLocalPlayerFromController(); //temporary
-				InventoryContainer->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
-				InventoryContainer->Initialize();
 				InventoryContainer->DropSlottName = DropSlottName;
 				InventoryContainer->TabClass = TabClass;
 				InventoryContainer->SlotClass = SlotClass;
@@ -74,16 +69,17 @@ void UGISInventoryBaseComponent::InitializeComponent()
 			}
 		}
 
-		UObject* Outer = GetWorld()->GetGameInstance() ? StaticCast<UObject*>(GetWorld()->GetGameInstance()) : StaticCast<UObject*>(GetWorld());
 		if (LootWidgetClass)
 		{
-			LootWidget = ConstructObject<UGISLootContainerBaseWidget>(LootWidgetClass, Outer);
+			LootWidget = CreateWidget<UGISLootContainerBaseWidget>(GetWorld(), LootWidgetClass);
 			if (LootWidget)
 			{
-				ULocalPlayer* Player = GetWorld()->GetFirstLocalPlayerFromController(); //temporary
-				LootWidget->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
-				LootWidget->Initialize();
+				LootWidget->SlotClass = LootSlotClass;
+				LootWidget->LootItemClass = LootItemClass;
+				LootWidget->OwningComp = this;
+				LootWidget->LootItemSlotName = LootItemSlotName;
 				LootWidget->SetVisibility(LootWindowVisibility);
+				LootWidget->InitializeLootWidget();
 			}
 		}
 	}
@@ -460,33 +456,33 @@ void UGISInventoryBaseComponent::RemoveItem(const FGISSlotInfo& TargetSlotType)
 
 void UGISInventoryBaseComponent::GetLootContainer(class AGISPickupActor* LootContainer)
 {
-	if (GetOwnerRole() < ROLE_Authority)
-	{
-		ServerGetLootContainer(LootContainer);
-	}
-	else
-	{
-		if (!LootContainer->bIsCurrentlyBeingLooted)
-		{
-			CurrentPickupActor = LootContainer;
-			LootContainer->bIsCurrentlyBeingLooted = true;
-			for (UGISItemData* Item : LootContainer->ItemToLoot)
-			{
-				UGISItemData* test = ConstructObject<UGISItemData>(Item->GetClass(), this, NAME_None, RF_NoFlags, Item);
-				LootedItems.Add(test);
-			}
-			SetComponentTickEnabled(true);
-			if (GetNetMode() == ENetMode::NM_Standalone)
-			{
-				OnRep_LootedItems();
-			}
-			//ClientConstructWidget();
-		}
-	}
+	//if (GetOwnerRole() < ROLE_Authority)
+	//{
+	//	ServerGetLootContainer(LootContainer);
+	//}
+	//else
+	//{
+	//	if (!LootContainer->bIsCurrentlyBeingLooted)
+	//	{
+	//		CurrentPickupActor = LootContainer;
+	//		LootContainer->bIsCurrentlyBeingLooted = true;
+	//		for (UGISItemData* Item : LootContainer->ItemToLoot)
+	//		{
+	//			UGISItemData* test = ConstructObject<UGISItemData>(Item->GetClass(), this, NAME_None, RF_NoFlags, Item);
+	//			LootedItems.Add(test);
+	//		}
+	//		SetComponentTickEnabled(true);
+	//		if (GetNetMode() == ENetMode::NM_Standalone)
+	//		{
+	//			OnRep_LootedItems();
+	//		}
+	//		//ClientConstructWidget();
+	//	}
+	//}
 }
 void UGISInventoryBaseComponent::OnRep_LootedItems()
 {
-	ConstructLootPickingWidget();
+	OnLootingStart.ExecuteIfBound();
 }
 void UGISInventoryBaseComponent::OnRep_PickupActor()
 {
@@ -498,49 +494,105 @@ void UGISInventoryBaseComponent::ClientConstructWidget_Implementation()
 }
 void UGISInventoryBaseComponent::ConstructLootPickingWidget()
 {
-	if (CurrentPickupActor)
+	//if (CurrentPickupActor)
+	//{
+	//	if (LootWidget)
+	//	{
+	//		CurrentPickupActor->InteractingInventory = this;
+	//		int32 ItemCount = LootedItems.Num();
+	//		TArray<FGISLootSlotInfo> LootSlotInfos;
+	//		for (int32 Index = 0; Index < ItemCount; Index++)
+	//		{
+	//			FGISLootSlotInfo LootInfo;
+	//			LootInfo.SlotIndex = Index;
+	//			LootInfo.SlotData = LootedItems[Index];
+	//		//	LootInfo.OwningPickupActor = CurrentPickupActor;
+	//			LootInfo.SlotComponent = this;
+	//			LootSlotInfos.Add(LootInfo);
+	//		}
+	//		LootWidget->ItemsInfos = LootSlotInfos;
+	//		//LootWidget->OwningPickupActor = CurrentPickupActor;
+	//		LootWidget->InitializeLootWidget();
+	//		LootWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	//	}
+	//	//LootContainer->InteractingInventory = this;
+	//	//LootContainer->OpenLootWindow();
+	//}
+}
+
+void UGISInventoryBaseComponent::StartLooting(class AGISPickupActor* PickUp)
+{
+	int32 ItemNum = PickUp->ItemToLoot.Num();
+	CurrentPickupActor = PickUp;
+	LootFromPickup.Loot.Empty();
+	for (int32 ItemIndex = 0; ItemIndex < ItemNum; ItemIndex++)
 	{
-		if (LootWidget)
-		{
-			CurrentPickupActor->InteractingInventory = this;
-			int32 ItemCount = LootedItems.Num();
-			TArray<FGISLootSlotInfo> LootSlotInfos;
-			for (int32 Index = 0; Index < ItemCount; Index++)
-			{
-				FGISLootSlotInfo LootInfo;
-				LootInfo.SlotIndex = Index;
-				LootInfo.SlotData = LootedItems[Index];
-			//	LootInfo.OwningPickupActor = CurrentPickupActor;
-				LootInfo.SlotComponent = this;
-				LootSlotInfos.Add(LootInfo);
-			}
-			LootWidget->ItemsInfos = LootSlotInfos;
-			//LootWidget->OwningPickupActor = CurrentPickupActor;
-			LootWidget->InitializeLootWidget();
-			LootWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		}
-		//LootContainer->InteractingInventory = this;
-		//LootContainer->OpenLootWindow();
+		FGISLootSlotInfo lootInfo;
+		lootInfo.OwningPickupActor = PickUp;
+		lootInfo.SlotComponent = this;
+		lootInfo.SlotIndex = ItemIndex;
+		LootFromPickup.Loot.Add(lootInfo);
+		LootFromPickup.ForceRep++;
 	}
+}
+
+void UGISInventoryBaseComponent::LootOneItem(int32 ItemIndex)
+{
+	if (GetOwnerRole() < ROLE_Authority)
+	{
+		SeverLootOneItem(ItemIndex);
+	}
+	else
+	{
+		if (CurrentPickupActor)
+		{
+		//	UGISItemData* test = ConstructObject<UGISItemData>(CurrentPickupActor->ItemToLoot[ItemIndex]->GetClass(), this, NAME_None, RF_NoFlags, CurrentPickupActor->ItemToLoot[ItemIndex]);
+			
+			//if it is not valid index both arrays, then something is wrong.
+			if (LootFromPickup.Loot.IsValidIndex(ItemIndex) && CurrentPickupActor->ItemToLoot.IsValidIndex(ItemIndex))
+			{
+				UGISItemData* dataDuplicate = ConstructObject<UGISItemData>(CurrentPickupActor->ItemToLoot[ItemIndex]->GetClass(), this, NAME_None, RF_NoFlags, CurrentPickupActor->ItemToLoot[ItemIndex]);
+				AddItemToInventory(dataDuplicate);
+				//ok we removed one item. We need to rconstruct widgets, indexes etc, to make sure arry
+				//have proper indexes in first place.
+				LootFromPickup.Loot.RemoveAt(ItemIndex, 1, false);
+				CurrentPickupActor->ItemToLoot.RemoveAt(ItemIndex, 1, false);
+				LootFromPickup.ForceRep++;
+			}
+			//reconstruct widget.
+			if (GetNetMode() == ENetMode::NM_Standalone)
+			{
+				OnRep_LootedItems();
+			}
+		}
+	}
+}
+void UGISInventoryBaseComponent::SeverLootOneItem_Implementation(int32 ItemIndex)
+{
+	LootOneItem(ItemIndex);
+}
+bool UGISInventoryBaseComponent::SeverLootOneItem_Validate(int32 ItemIndex)
+{
+	return true;
 }
 
 void UGISInventoryBaseComponent::LootItems()
 {
-	if (GetOwnerRole() < ROLE_Authority)
-	{
-		ServerLootItems();
-	}
-	else
-	{
-		if (!CurrentPickupActor)
-			return;
+	//if (GetOwnerRole() < ROLE_Authority)
+	//{
+	//	ServerLootItems();
+	//}
+	//else
+	//{
+	//	if (!CurrentPickupActor)
+	//		return;
 
 
-		for (UGISItemData* Item : LootedItems)
-		{
-			AddItemToInventory(Item);
-		}
-	}
+	//	for (UGISItemData* Item : LootedItems)
+	//	{
+	//		AddItemToInventory(Item);
+	//	}
+	//}
 }
 void UGISInventoryBaseComponent::ServerLootItems_Implementation()
 {
@@ -569,44 +621,6 @@ bool UGISInventoryBaseComponent::ServerDropItemFromInventory_Validate(const FGIS
 {
 	return true;
 }
-void UGISInventoryBaseComponent::LootOneItem(int32 ItemIndex)
-{
-	if (GetOwnerRole() < ROLE_Authority)
-	{
-		SeverLootOneItem(ItemIndex);
-	}
-	else
-	{
-		if (CurrentPickupActor)
-		{
-		//	UGISItemData* test = ConstructObject<UGISItemData>(CurrentPickupActor->ItemToLoot[ItemIndex]->GetClass(), this, NAME_None, RF_NoFlags, CurrentPickupActor->ItemToLoot[ItemIndex]);
-			
-			//if it is not valid index both arrays, then something is wrong.
-			if (LootedItems.IsValidIndex(ItemIndex) && CurrentPickupActor->ItemToLoot.IsValidIndex(ItemIndex))
-			{
-				AddItemToInventory(LootedItems[ItemIndex]);
-				//ok we removed one item. We need to rconstruct widgets, indexes etc, to make sure arry
-				//have proper indexes in first place.
-				LootedItems.RemoveAt(ItemIndex, 1, true);
-				CurrentPickupActor->ItemToLoot.RemoveAt(ItemIndex, 1, true);
-			}
-			//reconstruct widget.
-			if (GetNetMode() == ENetMode::NM_Standalone)
-			{
-				OnRep_LootedItems();
-			}
-		}
-	}
-}
-void UGISInventoryBaseComponent::SeverLootOneItem_Implementation(int32 ItemIndex)
-{
-	LootOneItem(ItemIndex);
-}
-bool UGISInventoryBaseComponent::SeverLootOneItem_Validate(int32 ItemIndex)
-{
-	return true;
-}
-
 
 void UGISInventoryBaseComponent::ServerGetLootContainer_Implementation(class AGISPickupActor* LootContainer)
 {
@@ -654,7 +668,7 @@ void UGISInventoryBaseComponent::GetLifetimeReplicatedProps(TArray< class FLifet
 	DOREPLIFETIME_CONDITION(UGISInventoryBaseComponent, SlotUpdateInfo, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UGISInventoryBaseComponent, SlotSwapInfo, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UGISInventoryBaseComponent, CurrentPickupActor, COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UGISInventoryBaseComponent, LootedItems, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UGISInventoryBaseComponent, LootFromPickup, COND_OwnerOnly);
 
 	DOREPLIFETIME_CONDITION(UGISInventoryBaseComponent, TabUpdateInfo, COND_OwnerOnly);
 }
@@ -691,11 +705,11 @@ bool UGISInventoryBaseComponent::ReplicateSubobjects(class UActorChannel *Channe
 	{
 		WroteSomething |= Channel->ReplicateSubobject(const_cast<UGISItemData*>(SlotSwapInfo.TargetSlotData), *Bunch, *RepFlags);
 	}
-	for (const UGISItemData* data : LootedItems)
+	for (const FGISLootSlotInfo& data : LootFromPickup.Loot)
 	{
-		if (data)
+		if (data.SlotData)
 		{
-			WroteSomething |= Channel->ReplicateSubobject(const_cast<UGISItemData*>(data), *Bunch, *RepFlags);
+			WroteSomething |= Channel->ReplicateSubobject(const_cast<UGISItemData*>(data.SlotData), *Bunch, *RepFlags);
 		}
 	}
 	return WroteSomething;

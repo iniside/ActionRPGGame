@@ -13,6 +13,4 @@ class GAMEINVENTORYSYSTEM_API UIGISPickupItem : public UInterface
 class IIGISPickupItem
 {
 	GENERATED_IINTERFACE_BODY()
-public:
-	FPickupItemContainer GetItems();
 };

@@ -15,8 +15,19 @@ public:
 	UPROPERTY()
 		FGISLootSlotInfo LootSlotInfo;
 
+	UPROPERTY()
+	class UGISItemBaseWidget* ItemWidget;
+
 	UFUNCTION(BlueprintCallable, Category = "Item Data")
 		UTexture2D* GetIcon() const;
 
+	void SetItemInfo(int32 ItemIndex);
+
+	void ResetSlot();
+
 	virtual FEventReply OnMouseButtonDown_Implementation(FGeometry MyGeometry, const FPointerEvent& MouseEvent) override;
+
+	void OnDragDetected_Implementation(FGeometry MyGeometry, const FPointerEvent& PointerEvent, UDragDropOperation*& Operation) override;
+
+	bool OnDrop_Implementation(FGeometry MyGeometry, FPointerEvent PointerEvent, UDragDropOperation* Operation) override;
 };

@@ -10,7 +10,9 @@ namespace UnrealBuildTool.Rules
 				new string[] {
                     "GameInventorySystem",
                     "GameInventorySystem/Public",
-                    "GameInventorySystem/Widgets"
+                    "GameInventorySystem/Widgets",
+                    "GameInterfaces"
+                
 					// ... add public include paths required here ...
 				}
 				);
@@ -32,7 +34,8 @@ namespace UnrealBuildTool.Rules
                     "UMG",
                     "Slate",
                     "SlateCore",
-                    "GameplayTags"
+                    "GameplayTags",
+                    "GameInterfaces"
                     //
 					// ... add other public dependencies that you statically link with here ...
 				}

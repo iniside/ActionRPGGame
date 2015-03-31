@@ -4,7 +4,8 @@
 
 #include "../GISItemData.h"
 #include "../GISPickupActor.h"
-
+#include "../GISInventoryBaseComponent.h"
+#include "GISItemBaseWidget.h"
 #include "GISLootSlotBaseWidget.h"
 #include "GISLootContainerBaseWidget.h"
 
@@ -17,25 +18,51 @@ UGISLootContainerBaseWidget::UGISLootContainerBaseWidget(const FObjectInitialize
 
 void UGISLootContainerBaseWidget::InitializeLootWidget()
 {
+	OwningComp->OnLootingStart.BindUObject(this, &UGISLootContainerBaseWidget::UpdateLootWidget);
 	Slots.Empty();
 	if (SlotClass)
 	{
-		for (const FGISLootSlotInfo& Item : ItemsInfos)
+		int32 MaxSlots = 20;
+		for (int32 SlotIndex = 0; SlotIndex < MaxSlots; SlotIndex++)
 		{
-			UObject* Outer = GetWorld()->GetGameInstance() ? StaticCast<UObject*>(GetWorld()->GetGameInstance()) : StaticCast<UObject*>(GetWorld());
-			UGISLootSlotBaseWidget* ItemSlot = ConstructObject<UGISLootSlotBaseWidget>(SlotClass, Outer);
+			UGISLootSlotBaseWidget* ItemSlot = CreateWidget<UGISLootSlotBaseWidget>(GetWorld(), SlotClass);
 			if (ItemSlot)
 			{
-			//	OwningPickupActor->
-
-				ULocalPlayer* Player = GetWorld()->GetFirstLocalPlayerFromController(); //temporary
-				ItemSlot->SetPlayerContext(FLocalPlayerContext(Player)); //temporary
-				ItemSlot->Initialize();
-				ItemSlot->LootSlotInfo = Item;
+				if (LootItemClass)
+				{
+					UGISItemBaseWidget* item = CreateWidget<UGISItemBaseWidget>(GetWorld(), LootItemClass);
+					ItemSlot->ItemWidget = item;
+					
+					if (LootItemSlotName != NAME_None)
+					{
+						UWidget* superWidget = ItemSlot->GetWidgetFromName(LootItemSlotName);
+						UOverlay* overlay = Cast<UOverlay>(superWidget);
+						overlay->AddChild(item);
+					}
+				}
 			}
 
 			Slots.Add(ItemSlot);
 		}
 		PostLootWidgetInitialized();
+	}
+}
+
+void UGISLootContainerBaseWidget::UpdateLootWidget()
+{
+	int32 ItemNum = OwningComp->LootFromPickup.Loot.Num();
+	TArray<FGISLootSlotInfo>& ItemRef = OwningComp->LootFromPickup.Loot;
+	for (int32 ItemIndex = 0; ItemIndex < ItemNum; ItemIndex++)
+	{
+		Slots[ItemIndex]->LootSlotInfo = ItemRef[ItemIndex];
+		Slots[ItemIndex]->SetItemInfo(ItemIndex);// = ItemRef[ItemIndex];
+	}
+	if (ItemNum <= 0)
+	{
+		int32 SlotNum = Slots.Num();
+		for (int32 ItemIndex = 0; ItemIndex < SlotNum; ItemIndex++)
+		{
+			Slots[ItemIndex]->ResetSlot();
+		}
 	}
 }

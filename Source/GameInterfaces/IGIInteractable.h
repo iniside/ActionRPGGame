@@ -15,5 +15,6 @@ class IIGIInteractable
 {
 	GENERATED_IINTERFACE_BODY()
 public:
-	virtual void Interact(); //AActor* InteractingActor ?
+	UFUNCTION(BlueprintCallable, Category = "Game Interfaces | Interact")
+		virtual void Interact(AActor* InteractingActor) = 0; //AActor* InteractingActor ?
 };

@@ -2,6 +2,30 @@
 #include "GameplayTagContainer.h"
 #include "GISGlobalTypes.generated.h"
 
+USTRUCT()
+struct GAMEINVENTORYSYSTEM_API FGISLootSlotInfo
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(BlueprintReadOnly)
+		int32 SlotIndex;
+	UPROPERTY(BlueprintReadOnly)
+	class UGISItemData* SlotData;
+	UPROPERTY(BlueprintReadOnly)
+		TWeakObjectPtr<class UGISInventoryBaseComponent> SlotComponent;
+	UPROPERTY(BlueprintReadOnly)
+	class AGISPickupActor* OwningPickupActor;
+
+	FGISLootSlotInfo()
+		: SlotData(nullptr) {};
+	FGISLootSlotInfo(int32 SlotIndexIn, TWeakObjectPtr<class UGISInventoryBaseComponent> SlotComponentIn,
+	class AGISPickupActor* OwningPickupActorIn)
+		: SlotIndex(SlotIndexIn),
+		SlotComponent(SlotComponentIn),
+		OwningPickupActor(OwningPickupActorIn)
+	{};
+};
+
 USTRUCT(BlueprintType)
 struct GAMEINVENTORYSYSTEM_API FPickupItemData
 {
@@ -9,9 +33,15 @@ struct GAMEINVENTORYSYSTEM_API FPickupItemData
 };
 
 USTRUCT(BlueprintType)
-struct GAMEINVENTORYSYSTEM_API FPickupItemContainer
+struct GAMEINVENTORYSYSTEM_API FGISPickupItemContainer
 {
 	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY()
+		TArray<FGISLootSlotInfo> Loot;
+	
+	UPROPERTY()
+		int8 ForceRep;
 };
 
 //hmp. This actually doesn't lend itself as extensible solution...
@@ -36,21 +66,6 @@ public:
 		int32 SlotIndex;
 	UPROPERTY(BlueprintReadOnly)
 		int32 TabIndex;
-};
-
-USTRUCT()
-struct GAMEINVENTORYSYSTEM_API FGISLootSlotInfo
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY(BlueprintReadOnly)
-		int32 SlotIndex;
-	UPROPERTY(BlueprintReadOnly)
-		class UGISItemData* SlotData;
-	UPROPERTY(BlueprintReadOnly)
-		TWeakObjectPtr<class UGISInventoryBaseComponent> SlotComponent;
-	UPROPERTY(BlueprintReadOnly)
-		class AGISPickupActor* OwningPickupActor;
 };
 
 USTRUCT()

@@ -7,4 +7,3 @@ UIGIInteractable::UIGIInteractable(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
-

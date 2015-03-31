@@ -1,6 +1,7 @@
 #pragma once
 #include "GameplayTags.h"
 #include "GameplayTagContainer.h"
+#include "IGIInteractable.h"
 #include "GISPickupActor.generated.h"
 /*
 	It's not actor that we pick and physically put it inventory.
@@ -12,9 +13,9 @@
 	Try to always store them as classes.
 */
 UCLASS(BlueprintType, Blueprintable)
-class GAMEINVENTORYSYSTEM_API AGISPickupActor : public AActor
+class GAMEINVENTORYSYSTEM_API AGISPickupActor : public AActor, public IIGIInteractable
 {
-	GENERATED_UCLASS_BODY()
+	GENERATED_BODY()
 public:
 	//Instanced
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced)
@@ -28,17 +29,27 @@ public:
 	UPROPERTY()
 		bool bIsCurrentlyBeingLooted;
 
-	virtual void BeginPlay() override;
-
 	/*
 		Set pointer to inventory component, which will interact with this
 		loot container. This should allow to loot it properly.
 	*/
 	UPROPERTY(BlueprintReadOnly)
 		TWeakObjectPtr<class UGISInventoryBaseComponent> InteractingInventory;
+public:
+	AGISPickupActor(const FObjectInitializer& ObjectInitializer);
+	virtual void BeginPlay() override;
+	
+	/** IIGIInteractable - BEGIN */
+	//UFUNCTION(BlueprintCallable, Category = "Game Interfaces | Interact")
+	virtual void Interact(AActor* InteractingActor) override;
+	/* IIGIInteractable - END **/
+	
+	void StartLooting(AActor* WhoPicks);
 
-
-
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerStartLooting(AActor* WhoPicks);
+	virtual void ServerStartLooting_Implementation(AActor* WhoPicks);
+	virtual bool ServerStartLooting_Validate(AActor* WhoPicks);
 	/*
 		Should be called when item count in array reaches zero, or life time of actor experies.
 		It will actually call DestroyActor(), but it can be used for cleanup/spawning cosmetic effects

@@ -4,11 +4,12 @@
 #include "GSPlayerController.h"
 #include "FCTGlobalTypes.h"
 #include "GAGlobalTypes.h"
+#include "IGISInventory.h"
 #include "ARPlayerController.generated.h"
 
 
 UCLASS()
-class ACTIONRPGGAME_API AARPlayerController : public AGSPlayerController
+class ACTIONRPGGAME_API AARPlayerController : public AGSPlayerController, public IIGISInventory
 {
 	GENERATED_BODY()
 protected:
@@ -32,6 +33,10 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnPawnReplicated(APawn* NewPawn);
+	
+	/** IIGISInventory - BEGIN */
+	class UGISInventoryBaseComponent* GetInventory() override;
+	/* IIGISInventory - END **/
 
 	//virtual void PreInitializeComponents() override;
 };

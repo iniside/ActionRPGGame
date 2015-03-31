@@ -1,9 +1,9 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
 #include "GameInventorySystem.h"
-#include "IGISPickupItem.h"
+#include "IGISInventory.h"
 
-UIGISPickupItem::UIGISPickupItem(const FObjectInitializer& ObjectInitializer)
+UIGISInventory::UIGISInventory(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }

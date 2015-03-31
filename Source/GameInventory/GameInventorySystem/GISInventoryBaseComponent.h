@@ -22,7 +22,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGISOnCopyItemsToTab, const FGISSlot
 /*
 	We will use it, to reconstruct widget.
 */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGISOnItemLooted);
+DECLARE_DELEGATE(FGISOnItemLooted);
 
 DECLARE_DELEGATE_OneParam(FGISOnTabVisibilityChanged, int32);
 
@@ -189,9 +189,17 @@ public:
 		This is very bad pack. When componeents will work with normal objects (pointers)
 		It should be replaced with class UGISLootContainerBaseWidget* LootWidget;
 	*/
-	UPROPERTY(EditAnywhere, Instanced)
+	UPROPERTY(EditAnywhere, Category = "Loot Window")
 		TSubclassOf<class UGISLootContainerBaseWidget> LootWidgetClass;
 
+	UPROPERTY(EditAnywhere, Category = "Loot Window")
+		TSubclassOf<class UGISLootSlotBaseWidget> LootSlotClass;
+
+	UPROPERTY(EditAnywhere, Category = "Loot Window")
+		TSubclassOf<class UGISItemBaseWidget> LootItemClass;
+
+	UPROPERTY(EditAnywhere, Category = "Loot Window")
+		FName LootItemSlotName;
 	/*
 		Add one full screen widget, which will act as drop area. 
 		it should be added under all other widgets, so it will accept input as last.
@@ -214,38 +222,44 @@ public:
 	UPROPERTY(BlueprintCallable, BlueprintAssignable)
 		FGISOnItemSlotSwapped OnItemSlotSwapped;
 
-	UPROPERTY()
-		FGISOnItemLooted OnItemLooted;
+	/*
+		CAlled when items from loot actor have been copied into temporary
+		array, on inventory component.
+	*/
+	FGISOnItemLooted OnLootingStart;
 
 
 	FGISOnTabVisibilityChanged OnTabVisibilityChanged;
 
 	FGISOnTabChanged OnTabChanged;
-private:
 	/*
-		Pickup actor that this inventory is interacting with. 
-		For now one inventory can interact with only one pickup actor.
+	Pickup actor that this inventory is interacting with.
+	For now one inventory can interact with only one pickup actor.
 	*/
-	UPROPERTY(ReplicatedUsing=OnRep_PickupActor)
+	UPROPERTY(ReplicatedUsing = OnRep_PickupActor)
 	class AGISPickupActor* CurrentPickupActor;
+
+	UPROPERTY()
+		APlayerController* PCOwner;
 
 	UFUNCTION()
 		void OnRep_PickupActor();
+
 	UPROPERTY(ReplicatedUsing = OnRep_LootedItems)
-		TArray<UGISItemData*> LootedItems;
+		FGISPickupItemContainer LootFromPickup;
+
 	UFUNCTION()
 		void OnRep_LootedItems();
 	UFUNCTION()
-	void ConstructLootPickingWidget();
-
+		void ConstructLootPickingWidget();
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_SlotUpdate, RepRetry)
-	FGISSlotUpdateData SlotUpdateInfo;
+		FGISSlotUpdateData SlotUpdateInfo;
 	UFUNCTION()
 		void OnRep_SlotUpdate();
 
 	UPROPERTY(ReplicatedUsing = OnRep_SlotSwap, RepRetry)
-	FGISSlotSwapInfo SlotSwapInfo;
+		FGISSlotSwapInfo SlotSwapInfo;
 	UFUNCTION()
 		void OnRep_SlotSwap();
 
@@ -320,6 +334,8 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
 		virtual void RemoveItem(const FGISSlotInfo& TargetSlotType);
+
+	void StartLooting(class AGISPickupActor* PickUp);
 
 	/*
 		Test function. Will loot everything from container!
@@ -538,6 +554,7 @@ public:
 
 	*/
 private:
+	void InitializeWidgets();
 	void InitializeInventoryTabs();
 
 	int32 LastTargetTab; //last tab from which we copied items, to this tab.

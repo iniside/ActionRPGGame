@@ -18,7 +18,7 @@
 */
 
 
-UCLASS(BlueprintType, Blueprintable)
+UCLASS(BlueprintType, Blueprintable, EditInLineNew)
 class GAMESYSTEM_API UGSItemWeaponRangedInfo : public UGSItemWeaponInfo
 {
 	GENERATED_UCLASS_BODY()

@@ -28,10 +28,10 @@ public:
 	UPROPERTY()
 		TWeakObjectPtr<class UGISSlotBaseWidget> LastSlot;
 
-	//UPROPERTY()
+	UPROPERTY()
 		class UGISItemData* ItemData;
 
-	//UPROPERTY()
+	UPROPERTY()
 		class UGISInventoryBaseComponent* InventoryComponent;
 	
 	virtual void InitializeItem();
