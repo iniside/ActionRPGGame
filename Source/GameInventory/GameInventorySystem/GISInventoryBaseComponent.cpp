@@ -385,7 +385,16 @@ void UGISInventoryBaseComponent::OnItemAddedToSlot(class UGISItemData* AddedItem
 
 void UGISInventoryBaseComponent::RemoveItem(const FGISSlotInfo& TargetSlotType)
 {
+	if (!TargetSlotType.IsValid())
+		return;
 
+
+	TargetSlotType.DecrementItemCount();
+	TargetSlotType.SetItemData(nullptr);
+	TargetSlotType.EnsureReplication();
+
+	TabUpdateInfo.TargetTabIndex = TargetSlotType.SlotTabIndex;
+	TabUpdateInfo.ReplicationCounter++;
 }
 
 
@@ -405,9 +414,11 @@ void UGISInventoryBaseComponent::StartLooting(class AGISPickupActor* PickUp)
 	for (int32 ItemIndex = 0; ItemIndex < ItemNum; ItemIndex++)
 	{
 		FGISLootSlotInfo lootInfo;
+		UGISItemData* dataDuplicate = ConstructObject<UGISItemData>(CurrentPickupActor->ItemToLoot[ItemIndex]->GetClass(), this, NAME_None, RF_NoFlags, CurrentPickupActor->ItemToLoot[ItemIndex]);
 		lootInfo.OwningPickupActor = PickUp;
 		lootInfo.SlotComponent = this;
 		lootInfo.SlotIndex = ItemIndex;
+		lootInfo.SlotData = dataDuplicate;
 		LootFromPickup.Loot.Add(lootInfo);
 		LootFromPickup.ForceRep++;
 	}
@@ -417,7 +428,9 @@ void UGISInventoryBaseComponent::LootOneItem(int32 ItemIndex)
 {
 	if (GetOwnerRole() < ROLE_Authority)
 	{
-		CurrentPickupActor->ItemToLoot.RemoveAtSwap(ItemIndex, 1, false);
+		//if (LootFromPickup.Loot.IsValidIndex(ItemIndex) && CurrentPickupActor->ItemToLoot.IsValidIndex(ItemIndex))
+		//	CurrentPickupActor->ItemToLoot.RemoveAt(ItemIndex);
+		
 		SeverLootOneItem(ItemIndex);
 	}
 	else
@@ -427,20 +440,23 @@ void UGISInventoryBaseComponent::LootOneItem(int32 ItemIndex)
 			//if it is not valid index both arrays, then something is wrong.
 			if (LootFromPickup.Loot.IsValidIndex(ItemIndex) && CurrentPickupActor->ItemToLoot.IsValidIndex(ItemIndex))
 			{
-				UGISItemData* dataDuplicate = ConstructObject<UGISItemData>(CurrentPickupActor->ItemToLoot[ItemIndex]->GetClass(), this, NAME_None, RF_NoFlags, CurrentPickupActor->ItemToLoot[ItemIndex]);
-				AddItemToInventory(dataDuplicate);
+				
+				AddItemToInventory(LootFromPickup.Loot[ItemIndex].SlotData);
 				//ok we removed one item. We need to rconstruct widgets, indexes etc, to make sure arry
 				//have proper indexes in first place.
 				//LootFromPickup.Loot.RemoveAtSwap(ItemIndex, 1, false);
-				CurrentPickupActor->ItemToLoot.RemoveAtSwap(ItemIndex, 1, false);
+				LootFromPickup.Loot.RemoveAt(ItemIndex);
+				CurrentPickupActor->ItemToLoot.RemoveAt(ItemIndex);
 				int32 ItemNum = CurrentPickupActor->ItemToLoot.Num();
 				LootFromPickup.Loot.Empty();
-				for (int32 ItemIndex = 0; ItemIndex < ItemNum; ItemIndex++)
+				for (int32 ItemIdx = 0; ItemIdx < ItemNum; ItemIdx++)
 				{
 					FGISLootSlotInfo lootInfo;
+					UGISItemData* dataDuplicate = ConstructObject<UGISItemData>(CurrentPickupActor->ItemToLoot[ItemIdx]->GetClass(), this, NAME_None, RF_NoFlags, CurrentPickupActor->ItemToLoot[ItemIdx]);
 					lootInfo.OwningPickupActor = CurrentPickupActor;
 					lootInfo.SlotComponent = this;
-					lootInfo.SlotIndex = ItemIndex;
+					lootInfo.SlotIndex = ItemIdx;
+					lootInfo.SlotData = dataDuplicate;
 					LootFromPickup.Loot.Add(lootInfo);
 				}
 				LootFromPickup.ForceRep++;
@@ -488,7 +504,7 @@ bool UGISInventoryBaseComponent::ServerLootItems_Validate()
 {
 	return true;
 }
-void UGISInventoryBaseComponent::DropItemFromInventory(const FGISItemDropInfo& DropItemInfoIn)
+void UGISInventoryBaseComponent::DropItemFromInventory(const FGISSlotInfo& DropItemInfoIn)
 {
 	if (GetOwnerRole() < ROLE_Authority)
 	{
@@ -496,14 +512,46 @@ void UGISInventoryBaseComponent::DropItemFromInventory(const FGISItemDropInfo& D
 	}
 	else
 	{
+		if (!DropItemInfoIn.IsValid())
+			return;
 
+		UGISItemData* tempItem = DropItemInfoIn.GetItemData();
+		if (tempItem)// && tempItem->ItemLootActorClass)
+		{
+			FVector CurrentLocation = PCOwner->GetPawn()->GetActorLocation();
+			FVector ForwardVector = PCOwner->GetPawn()->GetActorRotation().Vector();
+			//find floor infront of character
+			FHitResult HitOut;
+			FVector Start = CurrentLocation + ForwardVector * 150;
+			FVector End = Start + FVector(0, 0, -1) * 300;
+			FCollisionQueryParams Params;
+			Params.AddIgnoredActor(PCOwner->GetPawn());
+			bool bHit = GetWorld()->LineTraceSingle(HitOut, Start, End, ECollisionChannel::ECC_WorldStatic, Params);
+
+			if (bHit)
+			{
+				FActorSpawnParameters SpawnParams;
+				SpawnParams.bNoCollisionFail = true;
+				AGISPickupActor* pickup = GetWorld()->SpawnActor<AGISPickupActor>(PickupActor, HitOut.Location, FRotator(0, 0, 0), SpawnParams);
+				if (pickup)
+				{
+					UGISItemData* duplicatedItem = ConstructObject<UGISItemData>(tempItem->GetClass(),
+						pickup, NAME_Name, EObjectFlags::RF_NoFlags, tempItem);
+					pickup->ItemToLoot.Add(duplicatedItem);
+				}
+			}
+
+			RemoveItem(DropItemInfoIn);
+
+			tempItem->OnDropFromInventory();
+		}
 	}
 }
-void UGISInventoryBaseComponent::ServerDropItemFromInventory_Implementation(const FGISItemDropInfo& DropItemInfoIn)
+void UGISInventoryBaseComponent::ServerDropItemFromInventory_Implementation(const FGISSlotInfo& DropItemInfoIn)
 {
 	DropItemFromInventory(DropItemInfoIn);
 }
-bool UGISInventoryBaseComponent::ServerDropItemFromInventory_Validate(const FGISItemDropInfo& DropItemInfoIn)
+bool UGISInventoryBaseComponent::ServerDropItemFromInventory_Validate(const FGISSlotInfo& DropItemInfoIn)
 {
 	return true;
 }

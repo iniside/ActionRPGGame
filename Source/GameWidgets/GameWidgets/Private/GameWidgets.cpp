@@ -1,27 +1,27 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 #pragma once
-#include "GameFloatingCombatText.h"
-#include "GameFloatingCombatTextPrivatePCH.h"
+#include "GameWidgets.h"
+#include "GameWidgetsPrivatePCH.h"
 
 
-class FGameFloatingCombatText : public IGameFloatingCombatText
+class FGameWidgets : public IGameWidgets
 {
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 };
 
-IMPLEMENT_MODULE( FGameFloatingCombatText, GameFloatingCombatText )
+IMPLEMENT_MODULE( FGameWidgets, GameWidgets )
 
 
 
-void FGameFloatingCombatText::StartupModule()
+void FGameWidgets::StartupModule()
 {
 	// This code will execute after your module is loaded into memory (but after global variables are initialized, of course.)
 }
 
 
-void FGameFloatingCombatText::ShutdownModule()
+void FGameWidgets::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.

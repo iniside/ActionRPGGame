@@ -25,7 +25,7 @@ public class ActionRPGGameServerTarget : TargetRules
 		OutExtraModuleNames.Add("GameAttributes");
 		OutExtraModuleNames.Add("GameAbilities");
 		OutExtraModuleNames.Add("GameSystem");
-		OutExtraModuleNames.Add("GameFloatingCombatText");
+		OutExtraModuleNames.Add("GameWidgets");
         OutExtraModuleNames.Add("ActionRPGGame");
     }
 

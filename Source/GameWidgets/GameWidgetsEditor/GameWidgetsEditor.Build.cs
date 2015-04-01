@@ -2,16 +2,16 @@
 
 namespace UnrealBuildTool.Rules
 {
-	public class GameFloatingCombatTextEditor : ModuleRules
+	public class GameWidgetsEditor : ModuleRules
 	{
-		public GameFloatingCombatTextEditor(TargetInfo Target)
+		public GameWidgetsEditor(TargetInfo Target)
 		{
 			PublicIncludePaths.AddRange(
 				new string[] {
-                    "GameFloatingCombatText",
-                    "GameFloatingCombatText/Public",
+                    "GameWidgets",
+                    "GameWidgets/Public",
                  //   "GameAttributesEditor",
-                    "GameFloatingCombatTextEditor/Public"
+                    "GameWidgets/Public"
 					// ... add public include paths required here ...
 				}
 				);
@@ -41,7 +41,7 @@ namespace UnrealBuildTool.Rules
                     "AssetTools",
                     "MainFrame",
                     "InputCore",
-                    "GameFloatingCombatText"
+                    "GameWidgets"
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);

@@ -48,12 +48,13 @@ void UGISLootContainerBaseWidget::InitializeLootWidget(const FGISLootConfigurati
 void UGISLootContainerBaseWidget::UpdateLootWidget()
 {
 	int32 SlotNum = Slots.Num();
+	TArray<FGISLootSlotInfo>& ItemRef = OwningComp->LootFromPickup.Loot;
 	for (int32 ItemIndex = 0; ItemIndex < SlotNum; ItemIndex++)
 	{
 		Slots[ItemIndex]->ResetSlot();
 	}
 	int32 ItemNum = OwningComp->LootFromPickup.Loot.Num();
-	TArray<FGISLootSlotInfo>& ItemRef = OwningComp->LootFromPickup.Loot;
+	
 	for (int32 ItemIndex = 0; ItemIndex < ItemNum; ItemIndex++)
 	{
 		Slots[ItemIndex]->LootSlotInfo = ItemRef[ItemIndex];

@@ -1,6 +1,6 @@
 #pragma once
 #include "Engine.h"
-#include "GameFloatingCombatText.h"
+#include "GameWidgets.h"
 
 #include "EditorStyle.h"
 

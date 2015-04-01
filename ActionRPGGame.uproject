@@ -50,12 +50,12 @@
 			"LoadingPhase": "Default"
 		},
 		{
-			"Name": "GameFloatingCombatText",
+			"Name": "GameWidgets",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		},
 		{
-			"Name": "GameFloatingCombatTextEditor",
+			"Name": "GameWidgetsEditor",
 			"Type": "Editor",
 			"LoadingPhase": "Default"
 		},

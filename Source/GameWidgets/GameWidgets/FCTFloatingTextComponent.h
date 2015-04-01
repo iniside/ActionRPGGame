@@ -15,7 +15,7 @@
 	attached.
 */
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
-class GAMEFLOATINGCOMBATTEXT_API UFCTFloatingTextComponent : public UActorComponent
+class GAMEWIDGETS_API UFCTFloatingTextComponent : public UActorComponent
 {
 	GENERATED_UCLASS_BODY()
 public:

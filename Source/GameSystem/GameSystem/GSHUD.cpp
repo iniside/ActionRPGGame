@@ -21,7 +21,6 @@ const int32 FGSCrosshairDirection::Center = 4;
 AGSHUD::AGSHUD(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	FCTWidget = ObjectInitializer.CreateDefaultSubobject<UFCTHudWidget>(this, TEXT("FCTWidget"));
 	bInitialized = false;
 	CurrentSpread = 1;
 }
@@ -97,11 +96,6 @@ void AGSHUD::DrawHUD()
 	//{
 	//	iSocket = Cast<IIGTSocket>(GetOwningPawn());
 	//}
-	if (FCTWidget)
-	{
-		FCTWidget->HUDPawn = GetOwningPawn();
-		FCTWidget->DrawDamageIndicators(Canvas, RenderDelta);
-	}
 	if (OwnChar) //(iSocket)
 	{
 		if (CurrentRangedLeftWeapon != OwnChar->WeaponsEquipment->MainHandWeapon)

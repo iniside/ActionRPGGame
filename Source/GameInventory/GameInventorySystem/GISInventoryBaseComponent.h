@@ -90,7 +90,8 @@ protected:
 	UPROPERTY(EditAnywhere)
 		TArray<TSubclassOf<class UGISItemData>> AccepectedItems;
 
-
+	UPROPERTY(EditAnywhere, Category = "Inventory Options")
+		TSubclassOf<class AGISPickupActor> PickupActor;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory Options")
 		bool bReplicateTabsToOwnerOnly;
@@ -315,9 +316,9 @@ public:
 		void SeverLootOneItem(int32 ItemIndex);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
-		void DropItemFromInventory(const FGISItemDropInfo& DropItemInfoIn);
+		void DropItemFromInventory(const FGISSlotInfo& DropItemInfoIn);
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerDropItemFromInventory(const FGISItemDropInfo& DropItemInfoIn);
+		void ServerDropItemFromInventory(const FGISSlotInfo& DropItemInfoIn);
 
 	UFUNCTION(Client, Reliable)
 		void ClientHideLootingWidget();
@@ -554,11 +555,18 @@ public:
 		return Tabs.InventoryTabs[TabIndex].Tags;
 	}
 
+	inline void EnsureInventoryReplication()
+	{
+		Tabs.EnsureReplication();
+	}
+
 	inline void SetLastTargetTab(int32 LastTargetTabIn) { LastTargetTab = LastTargetTabIn; }
 	inline void SetLastOtherOriginTab(int32 LastOtherOriginTabIn) { LastOtherOriginTab = LastOtherOriginTabIn; }
 	inline void SetLastOtherOriginInventory(UGISInventoryBaseComponent* LastOtherOriginInventoryIn) { LastOtherOriginInventory = LastOtherOriginInventoryIn; }
 
 	inline class UGISContainerBaseWidget* GetInventoryWidget() { return InventoryContainer; }
+
+	inline void SetPCOwner(APlayerController* OwnerIn){ PCOwner = OwnerIn; };
 };
 
 

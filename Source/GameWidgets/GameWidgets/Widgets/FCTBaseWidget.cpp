@@ -1,6 +1,6 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
-#include "GameFloatingCombatText.h"
+#include "GameWidgets.h"
 
 #include "Blueprint/WidgetBlueprintLibrary.h"
 

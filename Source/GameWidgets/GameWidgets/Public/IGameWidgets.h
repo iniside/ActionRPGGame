@@ -9,7 +9,7 @@
  * The public interface to this module.  In most cases, this interface is only public to sibling modules 
  * within this plugin.
  */
-class IGameFloatingCombatText : public IModuleInterface
+class IGameWidgets : public IModuleInterface
 {
 
 public:
@@ -20,9 +20,9 @@ public:
 	 *
 	 * @return Returns singleton instance, loading the module on demand if needed
 	 */
-	static inline IGameFloatingCombatText& Get()
+	static inline IGameWidgets& Get()
 	{
-		return FModuleManager::LoadModuleChecked< IGameFloatingCombatText >( "GameFloatingCombatText" );
+		return FModuleManager::LoadModuleChecked< IGameWidgets >( "GameWidgets" );
 	}
 
 	/**
@@ -32,7 +32,7 @@ public:
 	 */
 	static inline bool IsAvailable()
 	{
-		return FModuleManager::Get().IsModuleLoaded( "GameFloatingCombatText" );
+		return FModuleManager::Get().IsModuleLoaded( "GameWidgets" );
 	}
 };
 

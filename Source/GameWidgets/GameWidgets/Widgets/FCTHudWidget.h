@@ -9,7 +9,7 @@
 	Make it actor component to be attachable to AHUD in blueprint ?
 */
 UCLASS()
-class GAMEFLOATINGCOMBATTEXT_API UFCTHudWidget : public UObject
+class GAMEWIDGETS_API UFCTHudWidget : public UObject
 {
 	GENERATED_UCLASS_BODY()
 public:

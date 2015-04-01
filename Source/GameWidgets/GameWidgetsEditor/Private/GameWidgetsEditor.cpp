@@ -1,13 +1,13 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 #pragma once
-#include "GameFloatingCombatTextEditor.h"
+#include "GameWidgetsEditor.h"
 
 
 
-#include "GameFloatingCombatTextEditorPrivatePCH.h"
+#include "GameWidgetsEditorPrivatePCH.h"
 
 
-class FGameFloatingCombatTextEditor : public IGameFloatingCombatTextEditor
+class FGameWidgetsEditor : public IGameWidgetsEditor
 {
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override
@@ -20,7 +20,7 @@ class FGameFloatingCombatTextEditor : public IGameFloatingCombatTextEditor
 	}
 };
 
-IMPLEMENT_GAME_MODULE(FGameFloatingCombatTextEditor, GameFloatingCombatTextEditor)
+IMPLEMENT_GAME_MODULE(FGameWidgetsEditor, GameWidgetsEditor)
 
 
 //void FGameAttributesEditor::StartupModule()

@@ -49,16 +49,6 @@ public:
 		float CrossSpread;
 	void DrawCrosshair();
 
-	/**
-	 *	Where hit will really hit. Crosshair is traced against world and
-	 *	special collision box around pawn. this trace will ignore crosshair box.
-	 */
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "Crosshair")
-	//class UGTTraceBase* BulletHitTrace;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Instanced, Category = "Floating Combat Text")
-		UFCTHudWidget* FCTWidget;
-
 	virtual void DrawHUD() override;
 
 	/** IIGIPawn */

@@ -2,21 +2,21 @@
 
 namespace UnrealBuildTool.Rules
 {
-	public class GameFloatingCombatText: ModuleRules
+	public class GameWidgets: ModuleRules
 	{
-		public GameFloatingCombatText(TargetInfo Target)
+		public GameWidgets(TargetInfo Target)
 		{
 			PublicIncludePaths.AddRange(
 				new string[] {
-                    "GameFloatingCombatText",
-                    "GameFloatingCombatText/Public"
+                    "GameWidgets",
+                    "GameWidgets/Public"
 					// ... add public include paths required here ...
 				}
 				);
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
-					"GameFloatingCombatText/Private",
+					"GameWidgets/Private",
 					// ... add other private include paths required here ...
 				}
 				);

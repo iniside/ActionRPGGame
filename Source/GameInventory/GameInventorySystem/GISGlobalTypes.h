@@ -130,7 +130,13 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	class AGISPickupActor* OwningPickupActor;
 
-
+	void Reset()
+	{
+		SlotIndex = -1;
+		SlotData = nullptr;
+		SlotComponent.Reset();
+		OwningPickupActor = nullptr;
+	}
 	FGISLootSlotInfo()
 		: SlotData(nullptr) {};
 	FGISLootSlotInfo(int32 SlotIndexIn, TWeakObjectPtr<class UGISInventoryBaseComponent> SlotComponentIn,
@@ -299,6 +305,8 @@ public:
 	void DecrementItemCount() const;
 	void IncrementItemCount() const;
 
+	void EnsureReplication() const;
+
 	FGameplayTagContainer& GetTags() const;
 };
 
@@ -355,6 +363,14 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 		TArray<FGISTabInfo> InventoryTabs;
+
+	UPROPERTY()
+		int8 EnsureRep;
+
+	inline void EnsureReplication()
+	{
+		EnsureRep++;
+	}
 
 	inline class UGISItemData* GetItemData(int32 TabIndex, int32 SlotIndex)
 	{

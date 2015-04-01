@@ -59,7 +59,10 @@ void FGISSlotInfo::IncrementItemCount() const
 {
 	CurrentInventoryComponent->IncrementItemCount(SlotTabIndex);
 }
-
+void FGISSlotInfo::EnsureReplication() const
+{
+	CurrentInventoryComponent->EnsureInventoryReplication();
+}
 FGameplayTagContainer& FGISSlotInfo::GetTags() const
 {
 	return CurrentInventoryComponent->GetTabTags(SlotTabIndex);

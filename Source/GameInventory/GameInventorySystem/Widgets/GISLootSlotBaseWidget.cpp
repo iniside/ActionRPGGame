@@ -25,13 +25,14 @@ void UGISLootSlotBaseWidget::SetItemInfo(int32 ItemIndex)
 {
 	if (ItemWidget)
 	{
-		if (LootSlotInfo.OwningPickupActor)
-			ItemWidget->ItemData = LootSlotInfo.OwningPickupActor->ItemToLoot[ItemIndex];
+		ItemWidget->ItemData = LootSlotInfo.SlotData;
 	}
+	
 }
 void UGISLootSlotBaseWidget::ResetSlot()
 {
 	ItemWidget->ItemData = nullptr;
+	LootSlotInfo.Reset();
 }
 
 FEventReply UGISLootSlotBaseWidget::OnMouseButtonDown_Implementation(FGeometry MyGeometry, const FPointerEvent& MouseEvent)

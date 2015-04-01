@@ -8,7 +8,7 @@
 	And then you inherit from it in blueprint to setup animations/how exactly values will be rendered.
 */
 UCLASS()
-class GAMEFLOATINGCOMBATTEXT_API UFCTBaseWidget : public UUserWidget
+class GAMEWIDGETS_API UFCTBaseWidget : public UUserWidget
 {
 	GENERATED_UCLASS_BODY()
 public:
