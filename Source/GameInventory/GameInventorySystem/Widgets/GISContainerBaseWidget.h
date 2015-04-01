@@ -49,6 +49,8 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	class UGISInventoryBaseComponent* InventoryComponent;
 
+	UPROPERTY(BlueprintReadOnly)
+	class APlayerController* PCOwner;
 	/*
 		Base widget doesn't care how slots are displyed, it will just create list of slots
 		upon creation, so you can then display it however you want, by making derived widget in 
@@ -61,7 +63,7 @@ protected:
 		TArray<class UGISTabBaseWidget*> InventoryTabs;
 public:
 	virtual void InitializeContainer(const FGISInventoryConfiguration& ConfigIn, 
-	class UGISInventoryBaseComponent* InventoryComponentIn);
+	class UGISInventoryBaseComponent* InventoryComponentIn, APlayerController* PCOwnerIn);
 protected:
 	UFUNCTION()
 		void Widget_OnItemAdded(const FGISSlotUpdateData& SlotUpdateInfo);
@@ -93,9 +95,9 @@ public:
 
 	int32 GetItemCount(int32 TabIndex);
 	void IncrementItemCount(int32 TabIndex);
-	void SetSlotInfo(int32 TabIndex, int32 SlotIndex, const FGISSlotInfo& SlotInfo);
-	void SetSlotData(int32 TabIndex, int32 SlotIndex, class UGISItemData* DataIn);
-	class UGISItemBaseWidget* GetItemWidget(int32 TabIndex, int32 SlotIndex);
+	void SetSlotInfo(const FGISSlotIndexInfo& Index, const FGISSlotInfo& SlotInfo);
+	void SetSlotData(const FGISSlotIndexInfo& Index, class UGISItemData* DataIn);
+	class UGISItemBaseWidget* GetItemWidget(const FGISSlotIndexInfo& Index);
 	void UpdateItemWidget(class UGISItemBaseWidget* Item, const FGISSlotInfo& SlotInfo);
 
 };

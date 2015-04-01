@@ -16,36 +16,32 @@ UGISLootContainerBaseWidget::UGISLootContainerBaseWidget(const FObjectInitialize
 }
 
 
-void UGISLootContainerBaseWidget::InitializeLootWidget()
+void UGISLootContainerBaseWidget::InitializeLootWidget(const FGISLootConfiguration& ConfigIn, class UGISInventoryBaseComponent* OwningCompIn,
+	APlayerController* PCOwnerIn)
 {
+	OwningComp = OwningCompIn;
+	PCOwner = PCOwnerIn;
 	OwningComp->OnLootingStart.AddUObject(this, &UGISLootContainerBaseWidget::UpdateLootWidget);
 	Slots.Empty();
-	if (SlotClass)
+	if (Config.IsValid())
 	{
 		int32 MaxSlots = 20;
 		for (int32 SlotIndex = 0; SlotIndex < MaxSlots; SlotIndex++)
 		{
-			UGISLootSlotBaseWidget* ItemSlot = CreateWidget<UGISLootSlotBaseWidget>(GetWorld(), SlotClass);
+			UGISLootSlotBaseWidget* ItemSlot = CreateWidget<UGISLootSlotBaseWidget>(PCOwner, Config.LootSlotClass);
 			if (ItemSlot)
 			{
-				if (LootItemClass)
-				{
-					UGISItemBaseWidget* item = CreateWidget<UGISItemBaseWidget>(GetWorld(), LootItemClass);
-					ItemSlot->ItemWidget = item;
-					
-					if (LootItemSlotName != NAME_None)
-					{
-						UWidget* superWidget = ItemSlot->GetWidgetFromName(LootItemSlotName);
-						UOverlay* overlay = Cast<UOverlay>(superWidget);
-						overlay->AddChild(item);
-					}
-				}
-			}
+				UGISItemBaseWidget* item = CreateWidget<UGISItemBaseWidget>(PCOwner, Config.LootItemClass);
+				ItemSlot->ItemWidget = item;
 
+				UWidget* superWidget = ItemSlot->GetWidgetFromName(Config.LootItemSlotName);
+				UOverlay* overlay = Cast<UOverlay>(superWidget);
+				overlay->AddChild(item);
+			}
 			Slots.Add(ItemSlot);
 		}
-		PostLootWidgetInitialized();
 	}
+	PostLootWidgetInitialized();
 }
 
 void UGISLootContainerBaseWidget::UpdateLootWidget()

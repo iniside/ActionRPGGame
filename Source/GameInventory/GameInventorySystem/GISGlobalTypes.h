@@ -2,6 +2,22 @@
 #include "GameplayTagContainer.h"
 #include "GISGlobalTypes.generated.h"
 
+struct FGISSlotIndexInfo
+{
+public:
+	int32 TabIndex;
+	int32 SlotIndex;
+
+	FGISSlotIndexInfo()
+		: TabIndex(-1),
+		SlotIndex(-1)
+	{};
+	FGISSlotIndexInfo(int32 TabIndexIn, int32 SlotIndexIn)
+		: TabIndex(TabIndexIn),
+		SlotIndex(SlotIndexIn)
+	{};
+};
+
 USTRUCT()
 struct FGISInventoryConfiguration
 {
@@ -35,6 +51,26 @@ public:
 };
 
 USTRUCT()
+struct FGISLootConfiguration
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(EditAnywhere, Category = "Loot Window")
+		TSubclassOf<class UGISLootContainerBaseWidget> LootWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category = "Loot Window")
+		TSubclassOf<class UGISLootSlotBaseWidget> LootSlotClass;
+
+	UPROPERTY(EditAnywhere, Category = "Loot Window")
+		TSubclassOf<class UGISItemBaseWidget> LootItemClass;
+
+	UPROPERTY(EditAnywhere, Category = "Loot Window")
+		FName LootItemSlotName;
+
+	bool IsValid();
+};
+
+USTRUCT()
 struct GAMEINVENTORYSYSTEM_API FGISLootSlotInfo
 {
 	GENERATED_USTRUCT_BODY()
@@ -47,6 +83,7 @@ public:
 		TWeakObjectPtr<class UGISInventoryBaseComponent> SlotComponent;
 	UPROPERTY(BlueprintReadOnly)
 	class AGISPickupActor* OwningPickupActor;
+
 
 	FGISLootSlotInfo()
 		: SlotData(nullptr) {};
@@ -113,6 +150,11 @@ public:
 		class UGISItemData* SlotData;
 	UPROPERTY(BlueprintReadOnly)
 		TWeakObjectPtr<class UGISInventoryBaseComponent> SlotComponent;
+
+	inline FGISSlotIndexInfo GetSlotIndex() const
+	{
+		return FGISSlotIndexInfo(TabIndex, SlotIndex);
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -140,6 +182,16 @@ public:
 		TWeakObjectPtr<class UGISInventoryBaseComponent> TargetSlotComponent;
 	UPROPERTY()
 		bool bRemoveItemsFromInvetoryOnDrag;
+
+	inline FGISSlotIndexInfo GetTargetSlotIndex() const
+	{
+		return FGISSlotIndexInfo(TargetTabIndex, TargetSlotIndex);
+	}
+
+	inline FGISSlotIndexInfo GetLastSlotIndex() const
+	{
+		return FGISSlotIndexInfo(LastTabIndex, LastSlotIndex);
+	}
 
 	void LastAddItem(const FGISSlotSwapInfo& SwapInfo) const;
 	void LastRemoveItem(const FGISSlotSwapInfo& SwapInfo) const;
@@ -175,7 +227,10 @@ public:
 		ItemData(Data.SlotData),
 		CurrentInventoryComponent(Data.SlotComponent)
 	{};
-
+	inline FGISSlotIndexInfo GetSlotIndex() const
+	{
+		return FGISSlotIndexInfo(SlotTabIndex, SlotIndex);
+	}
 	void SetFromLast(const FGISSlotSwapInfo& LastData)
 	{
 		SlotIndex = LastData.LastSlotIndex;

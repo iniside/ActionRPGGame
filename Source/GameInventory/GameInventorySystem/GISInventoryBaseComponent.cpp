@@ -51,34 +51,39 @@ void UGISInventoryBaseComponent::InitializeComponent()
 		InitializeInventoryTabs();
 	}
 			
+
+}
+
+void UGISInventoryBaseComponent::InitializeWidgets(APlayerController* PCIn)
+{
+	ENetRole CurrentRole = GetOwnerRole();
+	ENetMode CurrentNetMode = GetNetMode();
+	
 	if (CurrentRole < ROLE_Authority || CurrentNetMode == ENetMode::NM_Standalone)
 	{
-		if (InventoryConfiguration.InventoryContainerClass)
+		if (InventoryConfiguration.IsValid())
 		{
-			InventoryContainer = CreateWidget<UGISContainerBaseWidget>(GetWorld(), InventoryConfiguration.InventoryContainerClass);
+			InventoryContainer = CreateWidget<UGISContainerBaseWidget>(PCIn, InventoryConfiguration.InventoryContainerClass);
 			if (InventoryContainer)
 			{
-				InventoryContainer->InitializeContainer(InventoryConfiguration,this);
+				InventoryContainer->InitializeContainer(InventoryConfiguration, this, PCIn);
 				InventoryContainer->SetVisibility(InventoryVisibility);
 				//call last
 			}
 		}
 
-		if (LootWidgetClass)
+		if (LootConfiguration.IsValid())
 		{
-			LootWidget = CreateWidget<UGISLootContainerBaseWidget>(GetWorld(), LootWidgetClass);
+			LootWidget = CreateWidget<UGISLootContainerBaseWidget>(PCIn, LootConfiguration.LootWidgetClass);
 			if (LootWidget)
 			{
-				LootWidget->SlotClass = LootSlotClass;
-				LootWidget->LootItemClass = LootItemClass;
-				LootWidget->OwningComp = this;
-				LootWidget->LootItemSlotName = LootItemSlotName;
+				LootWidget->InitializeLootWidget(LootConfiguration, this, PCIn);
 				LootWidget->SetVisibility(LootWindowVisibility);
-				LootWidget->InitializeLootWidget();
 			}
 		}
 	}
 }
+
 void UGISInventoryBaseComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);

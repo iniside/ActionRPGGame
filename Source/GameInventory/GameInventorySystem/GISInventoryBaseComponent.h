@@ -51,8 +51,6 @@ class GAMEINVENTORYSYSTEM_API UGISInventoryBaseComponent : public UActorComponen
 {
 	GENERATED_UCLASS_BODY()
 protected:
-	UPROPERTY(EditAnywhere, Category = "Inventory Options")
-		FGISInventoryConfig InventoryConfig;
 
 	/**
 	 *	Should this inventory execute On Item Added To Slot function ?
@@ -137,9 +135,13 @@ protected:
 
 	UFUNCTION()
 		void OnRep_InventoryCreated();
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+		FGISInventoryConfig InventoryConfig;
 	/*
 
 	*/
+	UPROPERTY(Editanywhere, Category = "Inventory")
+		FGISInventoryConfiguration InventoryConfiguration;
 	/**
 	The idea behind tags, while might seem to be complicated at first, is actually very, very
 	easy.
@@ -161,9 +163,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 		FGameplayTagContainer RequiredTags;
 
-	UPROPERTY(Editanywhere, Category = "Inventory")
-		FGISInventoryConfiguration InventoryConfiguration;
-public: //temp
+
+protected: //temp
+	UPROPERTY(EditAnywhere, Category = "Loot Window")
+		FGISLootConfiguration LootConfiguration;
 	/*
 		This is very bad pack. When componeents will work with normal objects (pointers)
 		It should be replaced with class UGISLootContainerBaseWidget* LootWidget;
@@ -185,7 +188,7 @@ public: //temp
 		this should allow for dropping items out of inventory is
 		straightforwad way, not some right clicking menus or other crap.
 	*/
-
+public:
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		class UGISLootContainerBaseWidget* LootWidget;
 
@@ -252,6 +255,8 @@ public:
 
 	virtual void InitializeComponent() override;
 	virtual void PostInitProperties() override;
+
+	virtual void InitializeWidgets(APlayerController* PCIn);
 
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 

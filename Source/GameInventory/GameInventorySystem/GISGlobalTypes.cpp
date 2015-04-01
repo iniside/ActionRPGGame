@@ -6,6 +6,8 @@
 #include "Widgets/GISItemBaseWidget.h"
 #include "Widgets/GISTabBaseWidget.h"
 #include "Widgets/GISSlotBaseWidget.h"
+#include "Widgets/GISLootContainerBaseWidget.h"
+#include "Widgets/GISLootSlotBaseWidget.h"
 #include "GISGlobalTypes.h"
 
 bool FGISInventoryConfiguration::IsValid()
@@ -15,6 +17,16 @@ bool FGISInventoryConfiguration::IsValid()
 		return true;
 	return false;
 }
+
+bool FGISLootConfiguration::IsValid()
+{
+	if (LootWidgetClass && LootSlotClass && LootItemClass
+		&& LootItemSlotName.IsValid())
+		return true;
+
+	return false;
+}
+
 bool FGISSlotInfo::IsValid()
 {
 	if (!CurrentInventoryComponent.IsValid())

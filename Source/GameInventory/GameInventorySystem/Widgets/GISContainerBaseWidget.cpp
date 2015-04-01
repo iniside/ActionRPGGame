@@ -18,7 +18,7 @@ UGISContainerBaseWidget::UGISContainerBaseWidget(const FObjectInitializer& Objec
 }
 
 void UGISContainerBaseWidget::InitializeContainer(const FGISInventoryConfiguration& ConfigIn,
-class UGISInventoryBaseComponent* InventoryComponentIn)
+class UGISInventoryBaseComponent* InventoryComponentIn, APlayerController* PCOwnerIn)
 {
 	Config = ConfigIn;
 	TabClass = ConfigIn.TabClass;
@@ -26,6 +26,7 @@ class UGISInventoryBaseComponent* InventoryComponentIn)
 	ItemClass = ConfigIn.ItemClass;
 	DropSlottName = ConfigIn.DropSlottName;
 	InventoryComponent = InventoryComponentIn;
+	PCOwner = PCOwnerIn;
 	if (InventoryComponent)
 	{
 		//bind functions to delegates:
@@ -34,33 +35,32 @@ class UGISInventoryBaseComponent* InventoryComponentIn)
 		InventoryComponent->OnItemSlotSwapped.AddDynamic(this, &UGISContainerBaseWidget::Widget_OnItemSlotSwapped);
 		InventoryComponent->OnTabVisibilityChanged.BindUObject(this, &UGISContainerBaseWidget::Widget_OnTabVisibilityChanged);
 		InventoryComponent->OnTabChanged.BindUObject(this, &UGISContainerBaseWidget::Widget_OnTabChanged);
-		//InitializeInventory();
+		InitializeInventory();
 	}
 }
 void UGISContainerBaseWidget::InitializeInventory()
 {
 	if (InventoryComponent && InventoryTabs.Num() == 0 && Config.IsValid())
 	{
-		UWorld* WorldIn = InventoryComponent->GetWorld();
 		int32 IndexCounter = 0;
 		TArray<FGISTabInfo>& Tabs = InventoryComponent->GetInventoryTabs();
 		for (const FGISTabInfo& Tab : Tabs)
 		{
-			UGISTabBaseWidget* tabWidget = CreateWidget<UGISTabBaseWidget>(WorldIn, Config.TabClass);
+			UGISTabBaseWidget* tabWidget = CreateWidget<UGISTabBaseWidget>(PCOwner, Config.TabClass);
 			if (tabWidget)
 			{
 				tabWidget->TabInfo = Tab;
 				//tabWidget->SetVisibility(ESlateVisibility::Hidden);
 				for (const FGISSlotInfo& Slot : Tab.TabSlots)
 				{
-					UGISSlotBaseWidget* slotWidget = CreateWidget<UGISSlotBaseWidget>(WorldIn, Config.SlotClass);
+					UGISSlotBaseWidget* slotWidget = CreateWidget<UGISSlotBaseWidget>(PCOwner, Config.SlotClass);
 					if (slotWidget)
 					{
 						slotWidget->SlotInfo = Slot;
 						slotWidget->TabInfo = Tab;
 						slotWidget->DropSlottName = Config.DropSlottName;
 
-						UGISItemBaseWidget* ItemWidget = CreateWidget<UGISItemBaseWidget>(WorldIn, Config.ItemClass);
+						UGISItemBaseWidget* ItemWidget = CreateWidget<UGISItemBaseWidget>(PCOwner, Config.ItemClass);
 						ItemWidget->ItemData = nullptr;
 						ItemWidget->InventoryComponent = InventoryComponent;
 						ItemWidget->InitializeItem();
@@ -82,8 +82,6 @@ void UGISContainerBaseWidget::InitializeInventory()
 }
 void UGISContainerBaseWidget::Widget_OnItemAdded(const FGISSlotUpdateData& SlotUpdateInfo)
 {
-	UObject* Outer = GetWorld()->GetGameInstance() ? StaticCast<UObject*>(GetWorld()->GetGameInstance()) : StaticCast<UObject*>(GetWorld());
-
 	/*
 		if Item count between widget and actual inventory is different
 		it means, that to inventory on server multiple items have been added
@@ -101,9 +99,9 @@ void UGISContainerBaseWidget::Widget_OnItemAdded(const FGISSlotUpdateData& SlotU
 
 		FGISSlotInfo SlotInfo(SlotUpdateInfo);
 		IncrementItemCount(SlotUpdateInfo.TabIndex);
-		SetSlotInfo(SlotUpdateInfo.TabIndex, SlotUpdateInfo.SlotIndex, SlotInfo);
+		SetSlotInfo(SlotUpdateInfo.GetSlotIndex(), SlotInfo);
 
-		UGISItemBaseWidget* ItemWidget = GetItemWidget(SlotUpdateInfo.TabIndex, SlotUpdateInfo.SlotIndex);
+		UGISItemBaseWidget* ItemWidget = GetItemWidget(SlotUpdateInfo.GetSlotIndex());
 		UpdateItemWidget(ItemWidget, SlotInfo);
 	}
 }
@@ -149,9 +147,9 @@ void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 	{
 		FGISSlotInfo TargetSlotInfo;
 		TargetSlotInfo.SetFromTarget(SlotSwapInfo);
-		SetSlotInfo(SlotSwapInfo.TargetTabIndex, SlotSwapInfo.TargetSlotIndex,TargetSlotInfo);
+		SetSlotInfo(SlotSwapInfo.GetTargetSlotIndex(), TargetSlotInfo);
 
-		UGISItemBaseWidget* ItemWidget = GetItemWidget(SlotSwapInfo.TargetTabIndex, SlotSwapInfo.TargetSlotIndex);
+		UGISItemBaseWidget* ItemWidget = GetItemWidget(SlotSwapInfo.GetTargetSlotIndex());
 		
 		UpdateItemWidget(ItemWidget, TargetSlotInfo);
 	}
@@ -159,18 +157,18 @@ void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 	{
 		FGISSlotInfo TargetSlotInfo;
 		TargetSlotInfo.SetFromTarget(SlotSwapInfo);
-		SetSlotInfo(SlotSwapInfo.TargetTabIndex, SlotSwapInfo.TargetSlotIndex, TargetSlotInfo);
-		SetSlotData(SlotSwapInfo.TargetTabIndex, SlotSwapInfo.TargetSlotIndex, SlotSwapInfo.TargetSlotData);
+		SetSlotInfo(SlotSwapInfo.GetTargetSlotIndex(), TargetSlotInfo);
+		SetSlotData(SlotSwapInfo.GetTargetSlotIndex(), SlotSwapInfo.TargetSlotData);
 
 		FGISSlotInfo LastSlotInfo;
 		LastSlotInfo.SetFromLast(SlotSwapInfo);
-		SetSlotInfo(SlotSwapInfo.LastTabIndex, SlotSwapInfo.LastSlotIndex, LastSlotInfo);
-		SetSlotData(SlotSwapInfo.LastTabIndex, SlotSwapInfo.LastSlotIndex, SlotSwapInfo.LastSlotData);
+		SetSlotInfo(SlotSwapInfo.GetLastSlotIndex(), LastSlotInfo);
+		SetSlotData(SlotSwapInfo.GetLastSlotIndex(), SlotSwapInfo.LastSlotData);
 
-		UGISItemBaseWidget* TargetItemWidget = GetItemWidget(SlotSwapInfo.TargetTabIndex, SlotSwapInfo.TargetSlotIndex);
+		UGISItemBaseWidget* TargetItemWidget = GetItemWidget(SlotSwapInfo.GetTargetSlotIndex());
 		UpdateItemWidget(TargetItemWidget, TargetSlotInfo);
 		
-		UGISItemBaseWidget* LastItemWidget = GetItemWidget(SlotSwapInfo.LastTabIndex, SlotSwapInfo.LastSlotIndex);
+		UGISItemBaseWidget* LastItemWidget = GetItemWidget(SlotSwapInfo.GetLastSlotIndex());
 		UpdateItemWidget(LastItemWidget, LastSlotInfo);
 
 	}
@@ -178,8 +176,8 @@ void UGISContainerBaseWidget::AddItem(const FGISSlotSwapInfo& SlotSwapInfo)
 	{
 		FGISSlotInfo TargetSlotInfo;
 		TargetSlotInfo.SetFromTarget(SlotSwapInfo);
-		SetSlotInfo(SlotSwapInfo.TargetTabIndex, SlotSwapInfo.TargetSlotIndex, TargetSlotInfo);
-		UGISItemBaseWidget* TargetItemWidget = GetItemWidget(SlotSwapInfo.TargetTabIndex, SlotSwapInfo.TargetSlotIndex);
+		SetSlotInfo(SlotSwapInfo.GetTargetSlotIndex(), TargetSlotInfo);
+		UGISItemBaseWidget* TargetItemWidget = GetItemWidget(SlotSwapInfo.GetTargetSlotIndex());
 		UpdateItemWidget(TargetItemWidget, TargetSlotInfo);
 		
 	}
@@ -194,30 +192,30 @@ void UGISContainerBaseWidget::RemoveItem(const FGISSlotSwapInfo& SlotSwapInfo)
 		FGISSlotInfo LastSlotInfo;
 		LastSlotInfo.SetFromLast(SlotSwapInfo);
 
-		SetSlotInfo(SlotSwapInfo.LastTabIndex, SlotSwapInfo.LastSlotIndex, LastSlotInfo);
+		SetSlotInfo(SlotSwapInfo.GetLastSlotIndex(), LastSlotInfo);
 
-		UGISItemBaseWidget* itemTemp = GetItemWidget(SlotSwapInfo.LastTabIndex, SlotSwapInfo.LastSlotIndex);
+		UGISItemBaseWidget* itemTemp = GetItemWidget(SlotSwapInfo.GetLastSlotIndex());
 		itemTemp->SetVisibility(ESlateVisibility::Collapsed);
 	}
 	else if (SlotSwapInfo.LastSlotComponent->GetRemoveItemsOnDrag())
 	{
-		UGISItemBaseWidget* LastItem = GetItemWidget(SlotSwapInfo.LastTabIndex, SlotSwapInfo.LastSlotIndex);
+		UGISItemBaseWidget* LastItem = GetItemWidget(SlotSwapInfo.GetLastSlotIndex());
 		LastItem->SetVisibility(ESlateVisibility::Collapsed);
 
-		UGISItemBaseWidget* TargetITem = GetItemWidget(SlotSwapInfo.TargetTabIndex, SlotSwapInfo.TargetSlotIndex);
+		UGISItemBaseWidget* TargetITem = GetItemWidget(SlotSwapInfo.GetTargetSlotIndex());
 		TargetITem->SetVisibility(ESlateVisibility::Collapsed);
 
 		FGISSlotInfo TargetSlotInfo;
 		TargetSlotInfo.SetFromTarget(SlotSwapInfo);
-		SetSlotInfo(SlotSwapInfo.TargetTabIndex, SlotSwapInfo.TargetSlotIndex, TargetSlotInfo);
+		SetSlotInfo(SlotSwapInfo.GetTargetSlotIndex(), TargetSlotInfo);
 
 		FGISSlotInfo LastSlotInfo;
 		LastSlotInfo.SetFromLast(SlotSwapInfo); 
-		SetSlotInfo(SlotSwapInfo.LastTabIndex, SlotSwapInfo.LastSlotIndex, LastSlotInfo);
+		SetSlotInfo(SlotSwapInfo.GetLastSlotIndex(), LastSlotInfo);
 	}
 	else if (SlotSwapInfo.LastSlotData && !SlotSwapInfo.LastSlotComponent->GetRemoveItemsOnDrag())
 	{
-		UGISItemBaseWidget* itemTemp = GetItemWidget(SlotSwapInfo.TargetTabIndex, SlotSwapInfo.TargetSlotIndex);
+		UGISItemBaseWidget* itemTemp = GetItemWidget(SlotSwapInfo.GetTargetSlotIndex());
 		itemTemp->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
@@ -240,10 +238,10 @@ void UGISContainerBaseWidget::Widget_OnTabChanged(int32 TabIndexIn)
 	{
 		if (slot.ItemData && ItemClass)
 		{
-			UGISItemBaseWidget* ItemWidget = GetItemWidget(TabIndexIn, slot.SlotIndex); 
+			UGISItemBaseWidget* ItemWidget = GetItemWidget(FGISSlotIndexInfo(TabIndexIn, slot.SlotIndex));
 
 			FGISSlotInfo SlotInfo = slot;
-			SetSlotInfo(TabIndexIn, slot.SlotIndex,SlotInfo);
+			SetSlotInfo(FGISSlotIndexInfo(TabIndexIn, slot.SlotIndex), SlotInfo);
 			UpdateItemWidget(ItemWidget, SlotInfo);
 		}
 	}
@@ -269,14 +267,14 @@ void UGISContainerBaseWidget::IncrementItemCount(int32 TabIndex)
 {
 	InventoryTabs[TabIndex]->ItemCount++;
 }
-void UGISContainerBaseWidget::SetSlotInfo(int32 TabIndex, int32 SlotIndex, const FGISSlotInfo& SlotInfo)
+void UGISContainerBaseWidget::SetSlotInfo(const FGISSlotIndexInfo& Index, const FGISSlotInfo& SlotInfo)
 {
-	InventoryTabs[TabIndex]->InventorySlots[SlotIndex]->SlotInfo = SlotInfo;
+	InventoryTabs[Index.TabIndex]->InventorySlots[Index.SlotIndex]->SlotInfo = SlotInfo;
 }
 
-void UGISContainerBaseWidget::SetSlotData(int32 TabIndex, int32 SlotIndex, class UGISItemData* DataIn)
+void UGISContainerBaseWidget::SetSlotData(const FGISSlotIndexInfo& Index, class UGISItemData* DataIn)
 {
-	InventoryTabs[TabIndex]->InventorySlots[SlotIndex]->SlotInfo.ItemData = DataIn;
+	InventoryTabs[Index.TabIndex]->InventorySlots[Index.SlotIndex]->SlotInfo.ItemData = DataIn;
 }
 void UGISContainerBaseWidget::UpdateItemWidget(class UGISItemBaseWidget* Item, const FGISSlotInfo& SlotInfo)
 {
@@ -285,7 +283,7 @@ void UGISContainerBaseWidget::UpdateItemWidget(class UGISItemBaseWidget* Item, c
 	Item->InitializeItem();
 	Item->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 }
-class UGISItemBaseWidget* UGISContainerBaseWidget::GetItemWidget(int32 TabIndex, int32 SlotIndex)
+class UGISItemBaseWidget* UGISContainerBaseWidget::GetItemWidget(const FGISSlotIndexInfo& Index)
 {
-	return InventoryTabs[TabIndex]->InventorySlots[SlotIndex]->ItemInSlot;
+	return InventoryTabs[Index.TabIndex]->InventorySlots[Index.SlotIndex]->ItemInSlot;
 }

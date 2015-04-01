@@ -4,6 +4,7 @@
 #include "Public/ARCharacter.h"
 #include "GSHUD.h"
 #include "Abilities/GSAbilitiesComponent.h"
+#include "GISInventoryBaseComponent.h"
 #include "ARPlayerController.h"
 
 AARPlayerController::AARPlayerController(const FObjectInitializer& ObjectInitializer)
@@ -21,15 +22,16 @@ AARPlayerController::AARPlayerController(const FObjectInitializer& ObjectInitial
 
 void AARPlayerController::BeginPlay()
 {
-	Super::BeginPlay();
+	
 	Inventory->SetIsReplicated(true);
 	Inventory->SetNetAddressable();
 
 	Abilities->SetIsReplicated(true);
 	Abilities->SetNetAddressable();
-
+	Inventory->InitializeWidgets(this);
 	if (GetNetMode() == ENetMode::NM_Standalone)
 	{
+		
 		AARCharacter* MyChar = Cast<AARCharacter>(GetPawn());
 		if (Role = ROLE_Authority)
 		{
@@ -39,12 +41,15 @@ void AARPlayerController::BeginPlay()
 			}
 		}
 	}
+	Super::BeginPlay();
 }
 //
 void AARPlayerController::OnRep_Pawn()
 {
+	//Inventory->InitializeWidgets(this);
 	OnPawnReplicated(GetPawn());
-	Super::OnRep_Pawn();
+	
+	
 	if (Role < ROLE_Authority)
 	{
 		AARCharacter* MyChar = Cast<AARCharacter>(GetPawn());
@@ -53,6 +58,7 @@ void AARPlayerController::OnRep_Pawn()
 			MyChar->GetAttributeComponent()->OnAttributeModifed.AddDynamic(this, &AARPlayerController::OnRecivedModifiedAttribute);
 		}
 	}
+	Super::OnRep_Pawn();
 }
 
 void AARPlayerController::SetupInputComponent()

@@ -9,21 +9,10 @@
 UCLASS()
 class GAMEINVENTORYSYSTEM_API UGISLootContainerBaseWidget : public UUserWidget
 {
-	GENERATED_UCLASS_BODY()
-public:
-
+	GENERATED_BODY()
+protected:
 	UPROPERTY()
-		TSubclassOf<class UGISLootSlotBaseWidget> SlotClass;
-	UPROPERTY()
-		TSubclassOf<class UGISItemBaseWidget> LootItemClass;
-
-	UPROPERTY(BlueprintReadOnly)
-		TArray<class UGISLootSlotBaseWidget*> Slots;
-
-	UPROPERTY(BlueprintReadOnly)
-		TArray<FGISLootSlotInfo> ItemsInfos;
-
-	FName LootItemSlotName;
+		FGISLootConfiguration Config;
 
 	UPROPERTY()
 		class AGISPickupActor* OwningPickupActor;
@@ -31,7 +20,16 @@ public:
 	UPROPERTY()
 	class UGISInventoryBaseComponent* OwningComp;
 
-	void InitializeLootWidget();
+	UPROPERTY()
+		APlayerController* PCOwner;
+
+	UPROPERTY()
+		TArray<class UGISLootSlotBaseWidget*> Slots;
+public:
+	UGISLootContainerBaseWidget(const FObjectInitializer& ObjectInitializer);
+
+	void InitializeLootWidget(const FGISLootConfiguration& ConfigIn, class UGISInventoryBaseComponent* OwningCompIn,
+		APlayerController* PCOwnerIn);
 
 	UFUNCTION()
 	void UpdateLootWidget();
