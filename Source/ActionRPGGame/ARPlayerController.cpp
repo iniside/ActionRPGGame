@@ -28,7 +28,7 @@ void AARPlayerController::BeginPlay()
 
 	Abilities->SetIsReplicated(true);
 	Abilities->SetNetAddressable();
-	Inventory->InitializeWidgets(this);
+	//Inventory->InitializeWidgets(this);
 	if (GetNetMode() == ENetMode::NM_Standalone)
 	{
 		
@@ -46,6 +46,7 @@ void AARPlayerController::BeginPlay()
 //
 void AARPlayerController::OnRep_Pawn()
 {
+	Inventory->InitializeWidgets(this);
 	//Inventory->InitializeWidgets(this);
 	OnPawnReplicated(GetPawn());
 	
