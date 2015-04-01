@@ -90,11 +90,7 @@ protected:
 	UPROPERTY(EditAnywhere)
 		TArray<TSubclassOf<class UGISItemData>> AccepectedItems;
 
-	UPROPERTY(EditAnywhere)
-		ESlateVisibility InventoryVisibility;
 
-	UPROPERTY(EditAnywhere)
-		ESlateVisibility LootWindowVisibility;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory Options")
 		bool bReplicateTabsToOwnerOnly;
@@ -135,10 +131,8 @@ protected:
 
 	UFUNCTION()
 		void OnRep_InventoryCreated();
-	UPROPERTY(EditAnywhere, Category = "Inventory")
-		FGISInventoryConfig InventoryConfig;
 	/*
-
+		Inventory Configuration.
 	*/
 	UPROPERTY(Editanywhere, Category = "Inventory")
 		FGISInventoryConfiguration InventoryConfiguration;
@@ -164,24 +158,8 @@ protected:
 		FGameplayTagContainer RequiredTags;
 
 
-protected: //temp
 	UPROPERTY(EditAnywhere, Category = "Loot Window")
 		FGISLootConfiguration LootConfiguration;
-	/*
-		This is very bad pack. When componeents will work with normal objects (pointers)
-		It should be replaced with class UGISLootContainerBaseWidget* LootWidget;
-	*/
-	UPROPERTY(EditAnywhere, Category = "Loot Window")
-		TSubclassOf<class UGISLootContainerBaseWidget> LootWidgetClass;
-
-	UPROPERTY(EditAnywhere, Category = "Loot Window")
-		TSubclassOf<class UGISLootSlotBaseWidget> LootSlotClass;
-
-	UPROPERTY(EditAnywhere, Category = "Loot Window")
-		TSubclassOf<class UGISItemBaseWidget> LootItemClass;
-
-	UPROPERTY(EditAnywhere, Category = "Loot Window")
-		FName LootItemSlotName;
 	/*
 		Add one full screen widget, which will act as drop area. 
 		it should be added under all other widgets, so it will accept input as last.
@@ -569,6 +547,11 @@ public:
 	inline bool GetRemoveItemsOnDrag()
 	{
 		return bRemoveItemsFromInvetoryOnDrag;
+	}
+
+	inline FGameplayTagContainer& GetTabTags(int32 TabIndex)
+	{
+		return Tabs.InventoryTabs[TabIndex].Tags;
 	}
 
 	inline void SetLastTargetTab(int32 LastTargetTabIn) { LastTargetTab = LastTargetTabIn; }

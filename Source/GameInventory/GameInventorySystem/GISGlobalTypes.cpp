@@ -27,7 +27,7 @@ bool FGISLootConfiguration::IsValid()
 	return false;
 }
 
-bool FGISSlotInfo::IsValid()
+bool FGISSlotInfo::IsValid() const
 {
 	if (!CurrentInventoryComponent.IsValid())
 		return false;
@@ -37,7 +37,7 @@ bool FGISSlotInfo::IsValid()
 	return true;
 }
 
-class UGISItemData* FGISSlotInfo::GetItemData()
+class UGISItemData* FGISSlotInfo::GetItemData() const
 {
 	UGISItemData* returnData = nullptr;
 
@@ -46,18 +46,23 @@ class UGISItemData* FGISSlotInfo::GetItemData()
 	return returnData;
 }
 
-void FGISSlotInfo::SetItemData(class UGISItemData* DataIn)
+void FGISSlotInfo::SetItemData(class UGISItemData* DataIn) const
 {
 	CurrentInventoryComponent->SetItemDataInSlot(SlotTabIndex,SlotIndex, DataIn);
 }
 
-void FGISSlotInfo::DecrementItemCount()
+void FGISSlotInfo::DecrementItemCount() const
 {
 	CurrentInventoryComponent->DecrementItemCount(SlotTabIndex);
 }
-void FGISSlotInfo::IncrementItemCount()
+void FGISSlotInfo::IncrementItemCount() const
 {
 	CurrentInventoryComponent->IncrementItemCount(SlotTabIndex);
+}
+
+FGameplayTagContainer& FGISSlotInfo::GetTags() const
+{
+	return CurrentInventoryComponent->GetTabTags(SlotTabIndex);
 }
 
 FGISSlotSwapInfo::FGISSlotSwapInfo(const struct FGISSlotInfo& LastSlot, class UGISItemData* LastItemDataIn,

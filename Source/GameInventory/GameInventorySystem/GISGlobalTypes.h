@@ -19,6 +19,40 @@ public:
 };
 
 USTRUCT()
+struct FGISInventoryTabConfig
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(EditAnywhere)
+		bool bIsTabActive;
+
+	/**
+	*	Name of Tab.
+	*/
+	UPROPERTY(EditAnywhere)
+		FName TabName;
+	/**
+	*	These tags must be present in Item OwnedTags container.
+	*	Otherwise item will not be accepted into this tab.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGameplayTagContainer Tags;
+	/**
+	*	Number of slots, that this tab contain.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int32 NumberOfSlots;
+};
+USTRUCT()
+struct FGISInventoryConfig
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(EditAnywhere)
+		TArray<FGISInventoryTabConfig> TabConfigs;
+};
+
+USTRUCT()
 struct FGISInventoryConfiguration
 {
 	GENERATED_USTRUCT_BODY()
@@ -30,22 +64,28 @@ public:
 		TSubclassOf<class UGISContainerBaseWidget> InventoryContainerClass;
 
 	/*
-	Type of tab used in this container. meta = (ExposeOnSpawn)
+		Type of tab used in this container. meta = (ExposeOnSpawn)
 	*/
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 		TSubclassOf<class UGISTabBaseWidget> TabClass;
 
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+		ESlateVisibility InventoryVisibility;
+
 	/*
-	Type of slot used in this container.
+		Type of slot used in this container.
 	*/
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 		TSubclassOf<class UGISSlotBaseWidget> SlotClass;
 
 	/*
-	Type if item widget, which can be contained in slot.
+		Type if item widget, which can be contained in slot.
 	*/
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 		TSubclassOf<class UGISItemBaseWidget> ItemClass;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+		FGISInventoryConfig InventoryConfig;
 
 	bool IsValid();
 };
@@ -65,7 +105,13 @@ public:
 		TSubclassOf<class UGISItemBaseWidget> LootItemClass;
 
 	UPROPERTY(EditAnywhere, Category = "Loot Window")
+		ESlateVisibility LootWindowVisibility;
+
+	UPROPERTY(EditAnywhere, Category = "Loot Window")
 		FName LootItemSlotName;
+
+	UPROPERTY(EditAnywhere, Category = "Loot Window")
+		int32 MaxLootingSlots;
 
 	bool IsValid();
 };
@@ -247,11 +293,13 @@ public:
 		CurrentInventoryComponent = TargetData.TargetSlotComponent;
 	}
 
-	bool IsValid();
-	class UGISItemData* GetItemData();
-	void SetItemData(class UGISItemData* DataIn);
-	void DecrementItemCount();
-	void IncrementItemCount();
+	bool IsValid() const;
+	class UGISItemData* GetItemData() const;
+	void SetItemData(class UGISItemData* DataIn) const;
+	void DecrementItemCount() const;
+	void IncrementItemCount() const;
+
+	FGameplayTagContainer& GetTags() const;
 };
 
 USTRUCT(BlueprintType)
@@ -349,41 +397,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int32 NumberOfSlots;
 };
-
-USTRUCT()
-struct FGISInventoryTabConfig
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY(EditAnywhere)
-		bool bIsTabActive;
-
-	/**
-	 *	Name of Tab.
-	 */
-	UPROPERTY(EditAnywhere)
-		FName TabName;
-	/**
-	 *	These tags must be present in Item OwnedTags container.
-	 *	Otherwise item will not be accepted into this tab.
-	 */
-	UPROPERTY(EditAnywhere)
-		FGameplayTagContainer Tags;
-	/**
-	 *	Number of slots, that this tab contain.
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		int32 NumberOfSlots;
-};
-USTRUCT()
-struct FGISInventoryConfig
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY(EditAnywhere)
-		TArray<FGISInventoryTabConfig> TabConfigs;
-};
-
 
 USTRUCT()
 struct FGISTabUpdateInfo

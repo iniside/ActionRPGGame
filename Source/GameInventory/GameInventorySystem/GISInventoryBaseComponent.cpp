@@ -30,8 +30,6 @@ UGISInventoryBaseComponent::UGISInventoryBaseComponent(const FObjectInitializer&
 	PrimaryComponentTick.bRunOnAnyThread = true;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 	bAllowConcurrentTick = true;
-	InventoryVisibility = ESlateVisibility::Hidden;
-	LootWindowVisibility = ESlateVisibility::Hidden;
 
 	LastTargetTab = INDEX_NONE;
 	LastOtherOriginTab = INDEX_NONE;
@@ -67,7 +65,7 @@ void UGISInventoryBaseComponent::InitializeWidgets(APlayerController* PCIn)
 			if (InventoryContainer)
 			{
 				InventoryContainer->InitializeContainer(InventoryConfiguration, this, PCIn);
-				InventoryContainer->SetVisibility(InventoryVisibility);
+				InventoryContainer->SetVisibility(InventoryConfiguration.InventoryVisibility);
 				//call last
 			}
 		}
@@ -78,7 +76,7 @@ void UGISInventoryBaseComponent::InitializeWidgets(APlayerController* PCIn)
 			if (LootWidget)
 			{
 				LootWidget->InitializeLootWidget(LootConfiguration, this, PCIn);
-				LootWidget->SetVisibility(LootWindowVisibility);
+				LootWidget->SetVisibility(LootConfiguration.LootWindowVisibility);
 			}
 		}
 	}
@@ -195,24 +193,23 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 		ServerAddItemOnSlot(TargetSlotType, LastSlotType);
 		return;
 	}
-	FGISSlotInfo& LastSlot = const_cast<FGISSlotInfo&>(LastSlotType);
-	FGISSlotInfo& TargetSlot = const_cast<FGISSlotInfo&>(TargetSlotType);
+
 	//check if all data is valid.
-	if (!TargetSlot.IsValid() || !LastSlot.IsValid())
+	if (!TargetSlotType.IsValid() || !LastSlotType.IsValid())
 		return;
 
 	//next check should be against item tags, but that's later!
 	if (LastSlotType.CurrentInventoryComponent->bRemoveItemsFromInvetoryOnDrag)
 	{
 		//Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotTabIndex].ItemData
-		if (TargetSlot.GetItemData() == nullptr)
+		if (TargetSlotType.GetItemData() == nullptr)
 		{
-			UGISItemData* TargetItem = LastSlot.GetItemData(); 
-			UGISItemData* LastItem = TargetSlot.GetItemData();
+			UGISItemData* TargetItem = LastSlotType.GetItemData();
+			UGISItemData* LastItem = TargetSlotType.GetItemData();
 			if (!CheckIfCanAddItemToSlot(TargetItem, TargetSlotType.SlotTabIndex, TargetSlotType.SlotIndex, LastItem))
 				return;
 
-			if (!TargetItem->HasAnyMatchingGameplayTags(TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].Tags))
+			if (!TargetItem->HasAnyMatchingGameplayTags(TargetSlotType.GetTags()))
 				return;
 
 			if (TargetItem)
@@ -222,14 +219,13 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 				if (!LastItem->CanItemBeSwapped())
 					return;
 
-			TargetItem->CurrentInventory = TargetSlot.CurrentInventoryComponent.Get(); //seems approperties instead of this ?
-			TargetItem->LastInventory = LastSlot.CurrentInventoryComponent.Get();
+			TargetItem->AssignInventory(LastSlotType, TargetSlotType);
 
-			LastSlot.DecrementItemCount();
-			TargetSlot.IncrementItemCount(); 
+			LastSlotType.DecrementItemCount();
+			TargetSlotType.IncrementItemCount();
 
-			TargetSlot.SetItemData(TargetItem);
-			LastSlot.SetItemData(nullptr); 
+			TargetSlotType.SetItemData(TargetItem);
+			LastSlotType.SetItemData(nullptr);
 			
 			if ((LastTargetTab != INDEX_NONE) && (LastOtherOriginTab != INDEX_NONE)
 				&& LastOtherOriginInventory)
@@ -242,7 +238,7 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 			OnItemAddedToSlot(TargetItem);
 
 			SlotSwapInfo.ReplicationCounter++;
-			SlotSwapInfo = FGISSlotSwapInfo(LastSlot, LastItem, TargetSlot, TargetItem);
+			SlotSwapInfo = FGISSlotSwapInfo(LastSlotType, LastItem, TargetSlotType, TargetItem);
 
 			if (GetNetMode() == ENetMode::NM_Standalone)
 			{
@@ -263,19 +259,19 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 			/*
 				Last copy item from last inventory, to be placed in Target inventory.
 			*/
-			UGISItemData* TargetItem = LastSlot.GetItemData();
+			UGISItemData* TargetItem = LastSlotType.GetItemData();
 			/*
 				Copy item from target inventory, to be placed in last inventory.
 			*/
-			UGISItemData* LastItem = TargetSlot.GetItemData();
+			UGISItemData* LastItem = TargetSlotType.GetItemData();
 			
 			if (!CheckIfCanAddItemToSlot(TargetItem, TargetSlotType.SlotTabIndex, TargetSlotType.SlotIndex, LastItem))
 				return;
 
-			if (!TargetItem->HasAnyMatchingGameplayTags(TargetSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].Tags))
+			if (!TargetItem->HasAnyMatchingGameplayTags(TargetSlotType.GetTags()))
 				return;
 			
-			if (!LastItem->HasAnyMatchingGameplayTags(LastSlotType.CurrentInventoryComponent->Tabs.InventoryTabs[LastSlotType.SlotTabIndex].Tags))
+			if (!LastItem->HasAnyMatchingGameplayTags(LastSlotType.GetTags()))
 				return;
 
 			if (TargetItem)
@@ -288,27 +284,14 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 			/*
 				Assign current inventory to current item.
 			*/
-			TargetItem->CurrentInventory = TargetSlotType.CurrentInventoryComponent.Get(); //seems approperties instead of this ?
-			/*
-				Assign last inventory to current item.
-			*/
-			TargetItem->LastInventory = LastSlotType.CurrentInventoryComponent.Get();
-			/*
-				Assign last inventory to last item, as current inventory, since it's
-				possibly coming from different inventory than Target.
-			*/
-			LastItem->CurrentInventory = LastSlotType.CurrentInventoryComponent.Get();
-			/*
-				Same as above just in reverse. Last item is coming from TargetSlot, so we assign
-				Last Inventory from TargetSlot.
-			*/
-			LastItem->LastInventory = TargetSlotType.CurrentInventoryComponent.Get();
+			TargetItem->AssignInventory(LastSlotType, TargetSlotType);
+			LastItem->AssignInventory(TargetSlotType, LastSlotType);
 			
-			LastSlot.DecrementItemCount();
-			TargetSlot.IncrementItemCount();
+			LastSlotType.DecrementItemCount();
+			TargetSlotType.IncrementItemCount();
 
-			TargetSlot.SetItemData(TargetItem);
-			LastSlot.SetItemData(LastItem);
+			TargetSlotType.SetItemData(TargetItem);
+			LastSlotType.SetItemData(LastItem);
 
 			if ((LastTargetTab != INDEX_NONE) && (LastOtherOriginTab != INDEX_NONE)
 				&& LastOtherOriginInventory)
@@ -325,7 +308,7 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 			OnItemAddedToSlot(LastItem);
 
 			SlotSwapInfo.ReplicationCounter++;
-			SlotSwapInfo = FGISSlotSwapInfo(LastSlot, LastItem, TargetSlot, TargetItem);
+			SlotSwapInfo = FGISSlotSwapInfo(LastSlotType, LastItem, TargetSlotType, TargetItem);
 	
 			if (GetNetMode() == ENetMode::NM_Standalone)
 			{
@@ -345,8 +328,8 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 	}
 	else
 	{ //if there is item in target slot. Remove it. or override it.
-		UGISItemData* TargetItem = LastSlot.GetItemData();
-		UGISItemData* LastItem = TargetSlot.GetItemData(); //Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData;
+		UGISItemData* TargetItem = LastSlotType.GetItemData();
+		UGISItemData* LastItem = TargetSlotType.GetItemData(); //Tabs.InventoryTabs[TargetSlotType.SlotTabIndex].TabSlots[TargetSlotType.SlotIndex].ItemData;
 		
 		if (TargetItem)
 			if (!TargetItem->CanItemBeSwapped())
@@ -355,8 +338,8 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 			if (!LastItem->CanItemBeSwapped())
 				return;
 		
-		LastSlot.SetItemData(nullptr);
-		TargetSlot.SetItemData(TargetItem);
+		LastSlotType.SetItemData(nullptr);
+		TargetSlotType.SetItemData(TargetItem);
 
 		TargetItem->CurrentInventory = TargetSlotType.CurrentInventoryComponent.Get();
 
@@ -372,7 +355,7 @@ void UGISInventoryBaseComponent::AddItemOnSlot(const FGISSlotInfo& TargetSlotTyp
 		OnItemAddedToSlot(TargetItem);
 
 		SlotSwapInfo.ReplicationCounter++;
-		SlotSwapInfo = FGISSlotSwapInfo(LastSlot, LastItem, TargetSlot, TargetItem);
+		SlotSwapInfo = FGISSlotSwapInfo(LastSlotType, LastItem, TargetSlotType, TargetItem);
 		if (GetNetMode() == ENetMode::NM_Standalone)
 			OnItemSlotSwapped.Broadcast(SlotSwapInfo);
 	}
@@ -610,7 +593,7 @@ void UGISInventoryBaseComponent::InitializeInventoryTabs()
 {
 	int8 counter = 0;
 
-	for (const FGISInventoryTabConfig& tabConf : InventoryConfig.TabConfigs)
+	for (const FGISInventoryTabConfig& tabConf : InventoryConfiguration.InventoryConfig.TabConfigs)
 	{
 		FGISTabInfo TabInfo;
 		TabInfo.NumberOfSlots = tabConf.NumberOfSlots;

@@ -1,6 +1,7 @@
 #pragma once
 #include "GameplayTagContainer.h"
 #include "GameplayTagAssetInterface.h"
+#include "GISGlobalTypes.h"
 #include "GISItemData.generated.h"
 /*
 	This is base class for item container used in InventoryComponent, to store items.
@@ -161,6 +162,8 @@ public:
 	*/
 
 	virtual bool CanItemBeSwapped() { return true; }
+
+	void AssignInventory(const FGISSlotInfo& LastInventoryIn, const FGISSlotInfo& CurrentInventoryIn);
 	/*
 		Unique! Id of item container. 
 	*/
@@ -171,6 +174,7 @@ public:
 	virtual bool IsOfType(int32 ItemTypeIDIn) { return UGISItemData::ItemTypeID == ItemTypeIDIn; }
 
 	virtual UWorld* GetWorld() const override;
+
 	/** IGameplayTagAssetInterface overrides */
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	virtual bool HasMatchingGameplayTag(FGameplayTag TagToCheck) const override;

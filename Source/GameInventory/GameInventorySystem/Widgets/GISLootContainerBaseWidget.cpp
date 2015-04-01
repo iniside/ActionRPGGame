@@ -21,11 +21,12 @@ void UGISLootContainerBaseWidget::InitializeLootWidget(const FGISLootConfigurati
 {
 	OwningComp = OwningCompIn;
 	PCOwner = PCOwnerIn;
+	Config = ConfigIn;
 	OwningComp->OnLootingStart.AddUObject(this, &UGISLootContainerBaseWidget::UpdateLootWidget);
 	Slots.Empty();
 	if (Config.IsValid())
 	{
-		int32 MaxSlots = 20;
+		int32 MaxSlots = Config.MaxLootingSlots;
 		for (int32 SlotIndex = 0; SlotIndex < MaxSlots; SlotIndex++)
 		{
 			UGISLootSlotBaseWidget* ItemSlot = CreateWidget<UGISLootSlotBaseWidget>(PCOwner, Config.LootSlotClass);

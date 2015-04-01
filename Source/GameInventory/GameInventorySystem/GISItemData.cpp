@@ -47,6 +47,12 @@ bool UGISItemData::InputReleased_Implementation()
 	return false;
 }
 
+void UGISItemData::AssignInventory(const FGISSlotInfo& LastInventoryIn, const FGISSlotInfo& CurrentInventoryIn)
+{
+	CurrentInventory = CurrentInventoryIn.CurrentInventoryComponent.Get();
+	LastInventory = LastInventoryIn.CurrentInventoryComponent.Get();
+}
+
 void UGISItemData::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {
 	TagContainer = OwnedTags;
