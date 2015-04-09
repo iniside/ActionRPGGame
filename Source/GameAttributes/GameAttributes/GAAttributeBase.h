@@ -452,7 +452,12 @@ USTRUCT(BlueprintType)
 struct FGACustomCalculationModifier
 {
 	GENERATED_USTRUCT_BODY()
-		//TSubclassOf<UGACustomCalculation> CalcClass;
+public:
+	/*
+		Instanced, so we can setup custom properties this class might provide, per effect spec.
+	*/
+	UPROPERTY(EditAnywhere, Instanced)
+	class UGACustomCalculation* CustomCalculation;
 };
 /*
 It will somehow calculcate magnitude out of something.

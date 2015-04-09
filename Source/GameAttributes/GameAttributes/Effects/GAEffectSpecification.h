@@ -51,26 +51,26 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Tags")
 		FGameplayTagContainer MyTags;
 	/*
-	I can be affected by modifiers with these tags.
+		I can be affected by modifiers with these tags.
 	*/
 	UPROPERTY(EditAnywhere, Category = "Tags")
 		FGameplayTagContainer AffectTags;
 	/*
-	If target have any of these tags, I will not be appilied.
+		If target have any of these tags, I will not be appilied.
 	*/
 	UPROPERTY(EditAnywhere, Category = "Tags")
 		FGameplayTagContainer IgnoreTags;
 	/*
-	I will apply these tags, when I'm succefully applied to target.
+		I will apply these tags, when I'm succefully applied to target.
 	*/
 	UPROPERTY(EditAnywhere, Category = "Tags")
 		FGameplayTagContainer AppliedTags;
 
 	/*
-	All of these Tags, must be present in effect target AffectTags, if the target effect is going
-	to be modified.
+		All of these Tags, must be present in effect target AffectTags, if the target effect is going
+		to be modified, byt EffectModifiers.
 	*/
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Tags")
 		FGameplayTagContainer RequiredTags;
 	/*
 	Select calculation type, which will be used, for calculating final value of

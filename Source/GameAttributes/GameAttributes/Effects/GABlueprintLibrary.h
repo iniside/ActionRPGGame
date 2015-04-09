@@ -11,6 +11,9 @@ public:
 		static FGAEffectHandle ApplyEffectSpec(const FHitResult& Target, APawn* Instigator,
 		UObject* Causer, TSubclassOf<class UGAEffectSpecification> SpecIn);
 
+	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
+		static FGAEffectHandle ApplyEffectActorSpec(AActor* Target, APawn* Instigator,
+		UObject* Causer, TSubclassOf<class UGAEffectSpecification> SpecIn);
 	/*
 		Apply Effect Directly from spec defined inside abitrary object.
 	*/

@@ -133,11 +133,6 @@ public:
 	*/
 	UPROPERTY(EditAnywhere)
 		EGAModifierType ModifierType;
-	/*
-		All of these Tags, must be present on effect target, for this modifier to be applied.
-	*/
-	UPROPERTY(EditAnywhere)
-		FGameplayTagContainer RequiredTags;
 
 	UPROPERTY(EditAnywhere)
 		FGADirectModifier DirectModifier;
@@ -222,8 +217,14 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, Category = "Condition")
 		FGameplayTagContainer RequiredTags;
+	/*
+		Instanced is hack, to allow editing effect classes directly inside editor.
+		Please note that when you do it you will change all blueprints of this class.
+		If you want to have specific blueprint you will need to create it!.
 
-	UPROPERTY(EditAnywhere, Category = "Effects")
+
+	*/
+	UPROPERTY(EditAnywhere, Instanced, Category = "Effects")
 		TArray<TSubclassOf<class UGAEffectSpecification>> Effects;
 };
 /*
@@ -290,49 +291,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Base")
 		FGAEffectContext Context;
 	/*
-		Spec Containing attributes, which this effect will modify.
-	*/
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
-		FGAAttributeEffectSpec AttributeSpec;
-
-	/*
-		Modifiers, which are applied to other effects.
-		They are not applied directly or automatically, if you want them to applied
-		you will need to override, UGACalculation class.
-	*/
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
-		TArray<FGAEffectModifierSpec> EffectModifiers;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
-		TArray<FGAConditonalEffectSpec> ConditionalEffects;
-	/*
-		Tag, which are owned by me, and best describe me.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Tags")
-		FGameplayTagContainer MyTags;
-	/*
-		I can be affected by modifiers with these tags.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Tags")
-		FGameplayTagContainer AffectTags;
-	/*
-		If target have any of these tags, I will not be appilied.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Tags")
-		FGameplayTagContainer IgnoreTags;
-	/*
-		I will apply these tags, when I'm succefully applied to target.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Tags")
-		FGameplayTagContainer AppliedTags;
-
-	/*
-		All of these Tags, must be present in effect target AffectTags, if the target effect is going
-		to be modified.
-	*/
-	UPROPERTY(EditAnywhere)
-		FGameplayTagContainer RequiredTags;
-	/*
 		Select calculation type, which will be used, for calculating final value of
 		this effect.
 	*/
@@ -349,9 +307,7 @@ public:
 
 	FGAEffectSpec()
 	{};
-	FGAEffectSpec(class UGAEffectSpecification* EffectSpecIn)
-		: EffectSpec(EffectSpecIn)
-	{};
+	FGAEffectSpec(class UGAEffectSpecification* EffectSpecIn, const FGAEffectContext& ContextIn);
 
 
 	TArray<FGAAttributeData> GetInitialAttribute();
@@ -409,8 +365,8 @@ public:
 struct GAMEATTRIBUTES_API FGAActiveDuration : public TSharedFromThis<FGAActiveDuration>
 {
 	friend struct FGAActiveEffectContainer;
-
-	TWeakPtr<FGAEffectSpec> SpecWeakPtr;
+	/** Pointer to effect asset, from which we can derive information about effect. */
+	TWeakObjectPtr<class UGAEffectSpecification> EffectSpec;
 
 	/* Current handle of this effect. */
 	FGAEffectHandle MyHandle;
@@ -426,16 +382,9 @@ struct GAMEATTRIBUTES_API FGAActiveDuration : public TSharedFromThis<FGAActiveDu
 	FGAEffectContext Context;
 
 	TSubclassOf<class UGACalculation> CalculationType;
-
-	/* Attribute applied initially by this effect. */
-	TArray<FGAAttributeData> InitialAttribute;
-	/* 
-		Attribute change applied for this effect duration. This is only really useful for 
-		Complex Attributes.
-	*/
-	TArray<FGAAttributeData> DurationAttribute;
-	/* Attribute changes applied on each period. */
-	TArray<FGAAttributeData> PeriodModifiers;
+	TArray<FGAAttributeData> InitialModifiers;
+	TArray<FGAAttributeData> DurationModifiers;
+	TArray<FGAAttributeData> PeriodicModifiers;
 	/* Attribute changes applied when effect is removed externally. */
 	TArray<FGAAttributeData> RemovedAttribute;
 	/* Attribute changes applied when effect naturally expires. */
@@ -568,8 +517,11 @@ public:
 	TArray<FGAEffectModifierSpec> ModifiersSpecs;
 
 	void RemoveModifier(const FGameplayTagContainer& TagsIn, const FGAEffectHandle& HandleIn);
-	void AddModifier(const FGAEffectModifierSpec& ModSpec, const FGAEffectHandle HandleIn,
+	void AddModifier(const FGAEffectModifierSpec& ModSpec, const FGameplayTagContainer& Tags, 
+		const FGAEffectHandle HandleIn,
 		TSharedPtr<FGAActiveDuration> EffectPtr);
+
+	void CheckIfStronger(const FGameplayTagContainer& TagsIn, TArray<FGAEffectModifierSpec>& ModSpecs);
 
 	FGAModifierStack GetIncomingModifierStack(const FGAAttributeData& DataIn);
 	FGAModifierStack GetOutgoingModifierStack(const FGAAttributeData& TagIn);
@@ -747,52 +699,67 @@ public:
 		Does not perform any checks.
 	*/
 	void RemoveActiveEffect(const FGAEffectHandle& HandleIn);
-protected:
-	void RemoveTargetAggregation(TSharedPtr<FGAActiveDuration> EffectIn);
-	void RemoveInstigatorAggregation(TSharedPtr<FGAActiveDuration> EffectIn);
-	/*
-		Generic function, which will add any effect.
-
-		It does not perform any checks.
-	*/
-	FGAEffectHandle AddActiveEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
-
 public:
 	FGAEffectHandle ApplyEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Ctx);
 	FGAEffectHandle ApplyEffect(TSubclassOf<class UGAEffectSpecification> SpecIn, 
 		const FGAEffectContext& Ctx, const FName& EffectName);
 	void Clean();
-	/*
-		Execute modifiers from existing effect, spec on incoming effect.
-	*/
-	void ExecuteEffectModifier(FGAAttributeData& ModifierIn, 
-		const FGameplayTagContainer& EffectTags, const FGAEffectContext& Ctx);
 protected:
-	FGAEffectHandle HandleInstantEffect(FGAEffectInstant& SpecIn, const FGAEffectContext& Ctx);
-	FGAEffectHandle HandleDurationEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+	/**
+	 *	Generic function, which will add any effect.
+	 *	It does not perform any checks.
+	 */
+	FGAEffectHandle AddActiveEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
 
+	/* Handles instant effects. */
+	FGAEffectHandle HandleInstantEffect(FGAEffectInstant& SpecIn, const FGAEffectContext& Ctx);
+	/* Handles effects, which have set duration. */
+	FGAEffectHandle HandleDurationEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+	/**
+	 *	Instigator aggregated effects, are aggregated per instigator (AttributeComponent).
+	 *	These effects do not interact with effects, from other instigators, 
+	 *	and are checked only against other effects, from the same instigator.
+	 */
 	FGAEffectHandle HandleInstigatorAggregationEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+	/** 
+	 *	This is very complicated case and it's not done yet.
+	 *	Basically, it find and compare modifiers, from effects, and replace the weaker ones,
+	 *	with stronger ones.
+	 */
 	FGAEffectHandle	HandleInstigatorEffectStrongerOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+	/* Finds effect of the same type, remove it, and apply new effect. */
 	FGAEffectHandle HandleInstigatorEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+	/* Adds duration from new effect, to the old effect of the same type. */
 	FGAEffectHandle	HandleInstigatorEffectDuration(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+	/* will sum all modifiers of the same type, from incoming effect, will not refresh duration. */
 	FGAEffectHandle	HandleInstigatorEffectDIntensity(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+	/* Simply add new effect. Does not do, any checks or removals. */
 	FGAEffectHandle	HandleInstigatorEffectAdd(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
 
-	
+	/**
+	 *	Target aggregated effects, are aggregated on per target basis regardless of instigator.
+	 *	Target effects are checked only against other effects, from the same target.
+	 */
 	FGAEffectHandle HandleTargetAggregationEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+	/**
+	 *	This is very complicated case and it's not done yet.
+	 *	Basically, it find and compare modifiers, from effects, and replace the weaker ones,
+	 *	with stronger ones.
+	 */
 	FGAEffectHandle	HandleTargetEffectStrongerOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
-	/*
-		Simply find existing effect of the same type on target.
-		Remove it.
-		Apply new one.
-
-		Does not check for anything.
-	*/
+	/* Finds effect of the same type, remove it, and apply new effect. */
 	FGAEffectHandle HandleTargetEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+	/* Adds duration from new effect, to the old effect of the same type. */
 	FGAEffectHandle HandleTargetEffectDuration(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+	/* will sum all modifiers of the same type, from incoming effect, will not refresh duration. */
 	FGAEffectHandle HandleTargetEffectIntensity(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
+	/* Simply add new effect. Does not do, any checks or removals. */
 	FGAEffectHandle HandleTargetEffectAdd(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx);
 
+	/* Remove effect aggregated by target. */
+	void RemoveTargetAggregation(TSharedPtr<FGAActiveDuration> EffectIn);
+	/* Remove effect aggregated by instigator. */
+	void RemoveInstigatorAggregation(TSharedPtr<FGAActiveDuration> EffectIn);
 };
 
 

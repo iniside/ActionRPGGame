@@ -36,6 +36,27 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffectSpec(const FHitResult& Target, A
 	ReturnHandle = instiComp->ApplyEffectToTarget(SpecIn, context, EffectName);
 	return ReturnHandle;
 }
+FGAEffectHandle UGABlueprintLibrary::ApplyEffectActorSpec(AActor* Target, APawn* Instigator,
+	UObject* Causer, TSubclassOf<class UGAEffectSpecification> SpecIn)
+{
+	IIGAAttributes* targetAttr = Cast<IIGAAttributes>(Target);
+	IIGAAttributes* instiAttr = Cast<IIGAAttributes>(Instigator);
+	if (!targetAttr || !instiAttr)
+		return FGAEffectHandle();
+
+	UGAAttributeComponent* targetComp = targetAttr->GetAttributeComponent();
+	UGAAttributeComponent* instiComp = instiAttr->GetAttributeComponent();
+	FGAEffectContext context(Target->GetActorLocation(), Target, Causer,
+		Instigator, targetComp, instiComp);
+	FName EffectName;
+	if (SpecIn.GetDefaultObject()->EffectName.CustomName)
+		EffectName = SpecIn.GetDefaultObject()->EffectName.EffectName;
+	else
+		EffectName = Causer->GetClass()->GetFName();
+
+	//SpecIn.GetModifiers();
+	return instiComp->ApplyEffectToTarget(SpecIn, context, EffectName);
+}
 void UGABlueprintLibrary::ApplyEffect(const FHitResult& Target, APawn* Instigator, 
 		UObject* Causer, FGAEffectSpec SpecIn)
 {

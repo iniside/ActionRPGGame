@@ -64,7 +64,6 @@ TArray<FGAEffectModifierSpec> UGAEffectSpecification::GetEffectModifiers(const F
 	TArray<FGAEffectModifierSpec> returnArray;
 	for (FGAEffectModifierSpec& spec : EffectModifiers)
 	{
-		spec.RequiredTags = RequiredTags;
 		returnArray.Add(spec);
 	}
 	return returnArray;
