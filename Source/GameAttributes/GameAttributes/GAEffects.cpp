@@ -452,10 +452,7 @@ FGAEffectHandle FGAActiveEffectContainer::ApplyEffect(const FGAEffectSpec& SpecI
 	return FGAEffectHandle();
 }
 
-void FGAActiveEffectContainer::ExecuteEffectModifier(FGAAttributeData& ModifierIn,
-	const FGameplayTagContainer& EffectTags, const FGAEffectContext& Ctx)
-{
-}
+
 void FGAActiveEffectContainer::RemoveActiveEffect(const FGAEffectHandle& HandleIn)
 {
 	for (auto It = RepActiveEffects.CreateIterator(); It; ++It)

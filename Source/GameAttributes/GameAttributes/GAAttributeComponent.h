@@ -154,11 +154,6 @@ public:
 	void RemoveEffectCue(int32 Handle);
 
 	void ApplyEffectCue(int32 Handle);
-
-protected:
-	void ExecuteModifiers(FGAAttributeData& ModifierIn, const FGameplayTagContainer& EffectTags, 
-		const FGAEffectContext Context);
-
 	//////////// EFFECTS HANDLING
 	/////////////////////////////////////////////////
 

@@ -176,11 +176,7 @@ void UGAAttributeComponent::EffectRemoved(const FGAEffectHandle& HandleIn)
 	MulticastRemoveEffectCue(HandleIn.GetHandle());
 	ActiveEffects.RemoveActiveEffect(HandleIn);
 }
-void UGAAttributeComponent::ExecuteModifiers(FGAAttributeData& ModifierIn, const FGameplayTagContainer& EffectTags,
-	const FGAEffectContext Context)
-{
-	ActiveEffects.ExecuteEffectModifier(ModifierIn, EffectTags, Context);
-}
+
 
 void UGAAttributeComponent::ModifyAttributesOnSelf(const FGAAttributeData& EvalData, const FGAEffectContext& Context,
 	const FGameplayTagContainer& EffectTags, FGAEffectHandle& HandleIn)

@@ -566,20 +566,6 @@ public:
 };
 
 /*
-	Groups effects, by Target.
-*/
-USTRUCT()
-struct FGATargetEffectContainer
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	/*
-		We can assume that effects, with the same tag, are of the same type.
-	*/
-	TMap<FGameplayTag, TArray<FGAEffectHandle>> EffectsByTag;
-};
-
-/*
 	Active effect is struct made for replication and UI.
 	It's very simple, and contains only rudimentary information about effect.
 	Stacks, remaining duration, handle to effect.
