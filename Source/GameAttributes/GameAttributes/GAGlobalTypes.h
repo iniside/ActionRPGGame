@@ -35,7 +35,7 @@ enum class EGAAttributeMod : uint8
 	Add, //Value =  Value + X
 	Subtract, //Value =  Value - X
 	Multiply, //Value =  Value * X
-	Divide,//Value =  Value / X
+	Divide,//Value =  Value * X - ok its's not really divide.
 	Set, //Value = X
 
 	Invalid
@@ -55,6 +55,13 @@ enum class EGAAttributeValue : uint8
 	Current,
 	Final,
 	Bonus
+};
+
+UENUM()
+enum class EGAModifierType : uint8
+{
+	Outgoing,
+	Incoming
 };
 
 UENUM()
@@ -174,6 +181,31 @@ enum class EGAEffectAggregation : uint8
 	*/
 	AggregateByTarget
 };
+/*
+	Special struct, which allows to yse FGameplayTagContainer as key, for TSet and TMap.
+	Bear in mind slower inserts/remove, but allow for complex keys.
+*/
+USTRUCT()
+struct FGAHashedGameplayTagContainer
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	FGameplayTagContainer Tags;
+
+private:
+	FName Key;
+	void GenerateFNameKey();
+
+public:
+	FGAHashedGameplayTagContainer()
+	{};
+	FGAHashedGameplayTagContainer(const FGameplayTagContainer& TagsIn);
+
+	friend uint32 GetTypeHash(const FGAHashedGameplayTagContainer& InHandle)
+	{
+		return ::GetTypeHash(InHandle.Key);
+	}
+};
 
 USTRUCT(BlueprintType)
 struct FGAEffectHandle
@@ -225,6 +257,8 @@ public:
 		EGAAttributeMod AttributeMod;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		float Value;
+
+	EGAModifierType ModifierType;
 
 	/* 
 		Weak pointer to effect, which added this modifier.
@@ -358,6 +392,9 @@ protected:
 	*/
 	FGameplayTagContainer AllTags;
 public:
+
+	inline FGameplayTagContainer GetTags() { return AllTags; };
+
 	void AddTag(const FGameplayTag& TagIn);
 	void AddTagContainer(const FGameplayTagContainer& TagsIn);
 	void RemoveTag(const FGameplayTag& TagIn);

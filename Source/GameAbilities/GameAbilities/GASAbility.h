@@ -16,6 +16,22 @@ public:
 		FVector HitLocation;
 };
 /*
+	Abilites do not rely on AbilitiesComponent specifically to work. If used without component,
+	replication and RPC support must coded within actor, they are being used. Alternatively they can
+	be only used server-side/standalone.
+
+	Abilities are base encapsulation class, for all actions, which can be performed by actors
+	(or more likely Pawns). These actions can vary from MoveForward, Jump, Fire Gun, to 
+	Cast spell.
+	How exactly you will implement weapon fire ability is up to you, I would suggest giving ability 
+	reference to weapon actor, and on input press simply route all input to relevelant actor.
+	This way, ability will be just simple proxy, which can be used in various systems
+	(Behaviour trees for example), which store some generic information about current weapon,
+	like tags, current ammo (in form of getter), etc. Exact details depends on your weapon,
+	but you should have some idea right now, what is it about, and there will be sample implementation,
+	in GameSystem module.
+*/
+/*
 	1. Add linked (sequence) abilities. Which means, when user press input, and ability is executed,
 	next ability is queued and wait for input, without triggering cost/cooldown, but still
 	might trigger cast time. (or probabaly left it as configuration options)
@@ -159,9 +175,20 @@ public:
 	virtual void Initialize();
 
 	inline bool GetIsInitialized(){ return bIsInitialized; };
-	void InputPressed();
-	void InputReleased();
-	void InputCancel();
+	/*
+		Called when input is pressed, for this ability.
+		You can override this, to provide custom behaviour. Normally received input will
+		trigger state machine. But you can override it to trigger another object (like Fire Weapon).
+	*/
+	virtual void InputPressed();
+	/*
+		Called when inoput is released for this ability.
+	*/
+	virtual void InputReleased();
+	/*
+		Cancel current action.
+	*/
+	virtual void InputCancel();
 
 	virtual UWorld* GetWorld() const override;
 protected:

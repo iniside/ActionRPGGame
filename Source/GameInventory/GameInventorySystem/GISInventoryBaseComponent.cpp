@@ -87,10 +87,11 @@ void UGISInventoryBaseComponent::TickComponent(float DeltaTime, enum ELevelTick 
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	if (CurrentPickupActor)
 	{
-		float distance = FVector::Dist(CurrentPickupActor->GetActorLocation(), GetOwner()->GetActorLocation());
+		float distance = FVector::Dist(CurrentPickupActor->GetActorLocation(), PCOwner->GetPawn()->GetActorLocation());
 		if (distance > MaxLootingDistance)
 		{
-			ClientHideLootingWidget();
+			CurrentPickupActor = nullptr;
+			ClientSwitchLootingWidget();
 			SetComponentTickEnabled(false);
 		}
 	}
@@ -405,9 +406,50 @@ void UGISInventoryBaseComponent::OnRep_LootedItems()
 void UGISInventoryBaseComponent::OnRep_PickupActor()
 {
 }
+void UGISInventoryBaseComponent::ClientSwitchLootingWidget_Implementation()
+{
+	if (LootWidget)
+	{
+		if (LootWidget->GetVisibility() == ESlateVisibility::Collapsed)
+			LootWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		else if (LootWidget->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
+			LootWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+void UGISInventoryBaseComponent::PreLootAction(TArray<class AGISPickupActor*> PickupsIn)
+{ 
+	TArray<FGISPickupActorDistanceHelper> HelperStruct;
+	FVector PawmLocation = PCOwner->GetPawn()->GetActorLocation();
+	for (AGISPickupActor* Pickup : PickupsIn)
+	{
+		if (Pickup)
+		{
+			if (Pickup->ItemToLoot.Num() > 0)
+			{
+				float Distance = FVector::Dist(PawmLocation, Pickup->GetActorLocation());
+				FGISPickupActorDistanceHelper helper(Distance, Pickup);
+				HelperStruct.Add(helper);
+			}
+		}
+	}
+	HelperStruct.Sort();
 
+	if (HelperStruct.IsValidIndex(0))
+	{
+		//don't need to check everything. If closest actor is to far, rest is as well.
+		if (HelperStruct[0].Distance > MaxLootingDistance)
+			StartLooting(HelperStruct[0].PickupActor.Get());
+	}
+}
 void UGISInventoryBaseComponent::StartLooting(class AGISPickupActor* PickUp)
 {
+	//should work differently.
+	//1. Passs Array of actors.
+	//2. Discard all actors wihtout loot (if they are in array).
+	//3. Iterate over all actors and find closest to character.
+	//4. Start interacting with closer one, and discard rest.
+	SetComponentTickEnabled(true);
+	ClientSwitchLootingWidget();
 	int32 ItemNum = PickUp->ItemToLoot.Num();
 	CurrentPickupActor = PickUp;
 	LootFromPickup.Loot.Empty();
@@ -459,7 +501,14 @@ void UGISInventoryBaseComponent::LootOneItem(int32 ItemIndex)
 					lootInfo.SlotData = dataDuplicate;
 					LootFromPickup.Loot.Add(lootInfo);
 				}
+				//if there is nothing to loot, and looting widget is visible, this will hide it.
+				if (LootFromPickup.Loot.Num() == 0)
+				{
+					SetComponentTickEnabled(false);
+					ClientSwitchLootingWidget();
+				}
 				LootFromPickup.ForceRep++;
+				CurrentPickupActor->OnLooted();
 			}
 			//reconstruct widget.
 			if (GetNetMode() == ENetMode::NM_Standalone)
@@ -478,32 +527,6 @@ bool UGISInventoryBaseComponent::SeverLootOneItem_Validate(int32 ItemIndex)
 	return true;
 }
 
-void UGISInventoryBaseComponent::LootItems()
-{
-	//if (GetOwnerRole() < ROLE_Authority)
-	//{
-	//	ServerLootItems();
-	//}
-	//else
-	//{
-	//	if (!CurrentPickupActor)
-	//		return;
-
-
-	//	for (UGISItemData* Item : LootedItems)
-	//	{
-	//		AddItemToInventory(Item);
-	//	}
-	//}
-}
-void UGISInventoryBaseComponent::ServerLootItems_Implementation()
-{
-	LootItems();
-}
-bool UGISInventoryBaseComponent::ServerLootItems_Validate()
-{
-	return true;
-}
 void UGISInventoryBaseComponent::DropItemFromInventory(const FGISSlotInfo& DropItemInfoIn)
 {
 	if (GetOwnerRole() < ROLE_Authority)
@@ -554,12 +577,6 @@ void UGISInventoryBaseComponent::ServerDropItemFromInventory_Implementation(cons
 bool UGISInventoryBaseComponent::ServerDropItemFromInventory_Validate(const FGISSlotInfo& DropItemInfoIn)
 {
 	return true;
-}
-
-void UGISInventoryBaseComponent::ClientHideLootingWidget_Implementation()
-{
-	if (LootWidget)
-		LootWidget->SetVisibility(ESlateVisibility::Hidden);
 }
 void UGISInventoryBaseComponent::PostInventoryInitialized()
 {

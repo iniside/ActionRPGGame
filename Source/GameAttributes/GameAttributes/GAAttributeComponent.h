@@ -107,6 +107,18 @@ public:
 	*/
 	FGAEffectHandle ApplyEffectToTarget(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
 
+
+	/*
+		Apply to self probabaly shouldn't take Spec.
+	*/
+	FGAEffectHandle ApplyEffectToSelf(TSubclassOf<class UGAEffectSpecification> SpecIn, 
+		const FGAEffectContext& Context, const FName& EffeftName);
+	/*
+		As matter of fact I'm no sure if apply to target should either.
+	*/
+	FGAEffectHandle ApplyEffectToTarget(TSubclassOf<class UGAEffectSpecification> SpecIn, 
+		const FGAEffectContext& Context, const FName& EffeftName);
+
 	FGAEffectInstant MakeOutgoingInstantEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
 	void MakeOutgoingPeriodicEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
 

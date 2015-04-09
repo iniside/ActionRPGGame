@@ -14,7 +14,11 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Value")
 		float ClampValue;
-
+	/*
+		Current Value. BaseValue + BonusValue - AnyDamageIhave Takend, Clamped between 0 and ClampValue.
+	*/
+	UPROPERTY(BlueprintReadOnly)
+		float CurrentValue;
 protected:
 	UPROPERTY()
 		float AdditiveBonus;
@@ -29,11 +33,6 @@ protected:
 	*/
 	UPROPERTY()
 	float BonusValue;
-	/*
-		Current Value. BaseValue + BonusValue - AnyDamageIhave Takend, Clamped between 0 and ClampValue.
-	*/
-	UPROPERTY()
-	float CurrentValue;
 public:
 	//map of modifiers.
 	//It could be TArray, but map seems easier to use in this case
@@ -112,8 +111,8 @@ public:
 		BonusValue(0),
 		AdditiveBonus(0),
 		SubtractBonus(0),
-		MultiplyBonus(1),
-		DivideBonus(1),
+		MultiplyBonus(0),
+		DivideBonus(0),
 		CurrentValue(BaseValue)
 	{
 	};
@@ -122,8 +121,8 @@ public:
 		BonusValue(0),
 		AdditiveBonus(0),
 		SubtractBonus(0),
-		MultiplyBonus(1),
-		DivideBonus(1),
+		MultiplyBonus(0),
+		DivideBonus(0),
 		CurrentValue(BaseValue)
 	{
 	};
@@ -214,15 +213,12 @@ public:
 		EGAAttributeMod Mod;
 
 	UPROPERTY(BlueprintReadOnly)
-		EGAModifierDirection ModDirection;
-
-	UPROPERTY(BlueprintReadOnly)
 		FGameplayTag AttributeTag;
 	/*
-		Tag for this Attribute.
+		Aggregated tags, from effect & target
 	*/
 	UPROPERTY(BlueprintReadOnly)
-		FGameplayTagContainer AttributeTags;
+		FGameplayTagContainer AgreggatedTags;
 	/*
 		These tags, are must be present on target.
 		Ignored if empty.
@@ -230,7 +226,7 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 		FGameplayTagContainer TargetTagsRequiared;
 	/*
-		These tags, are must be present on target.
+		These tags, are must be present on instigator.
 		Ignored if empty.
 	*/
 	UPROPERTY(BlueprintReadOnly)
@@ -256,28 +252,17 @@ public:
 	{
 	};
 	FGAAttributeData(const FGAAttribute& AttributeIn, EGAAttributeMod ModIn,
-		const FGameplayTagContainer& AttributeTagsIn, float ValueIn)
+		const FGameplayTagContainer& AgreggatedTagsIn, float ValueIn)
 		: Attribute(AttributeIn),
 		Mod(ModIn),
-		ModDirection(EGAModifierDirection::Outgoing),
-		AttributeTags(AttributeTagsIn),
+		AgreggatedTags(AgreggatedTagsIn),
 		Value(ValueIn)
 	{
 	};
 	FGAAttributeData(const FGAAttribute& AttributeIn, EGAAttributeMod ModIn,
-		EGAModifierDirection ModDirectionIn, const FGameplayTagContainer& AttributeTagsIn, float ValueIn)
+		const FGameplayTag& AttributeTagIn, float ValueIn)
 		: Attribute(AttributeIn),
 		Mod(ModIn),
-		ModDirection(ModDirectionIn),
-		AttributeTags(AttributeTagsIn),
-		Value(ValueIn)
-	{
-	};
-	FGAAttributeData(const FGAAttribute& AttributeIn, EGAAttributeMod ModIn,
-		EGAModifierDirection ModDirectionIn, const FGameplayTag& AttributeTagIn, float ValueIn)
-		: Attribute(AttributeIn),
-		Mod(ModIn),
-		ModDirection(ModDirectionIn),
 		AttributeTag(AttributeTagIn),
 		Value(ValueIn)
 	{
@@ -436,6 +421,8 @@ public:
 
 	float GetValue(const FGAEffectContext& Context);
 };
+
+
 //EGAMagnitudeCalculation::CurveBased
 USTRUCT(BlueprintType)
 struct FGACurveBasedModifier
@@ -493,61 +480,59 @@ public:
 
 	float GetMagnitude(const FGAEffectContext& Context);
 };
-
+/*
+	Spec for modifing attribute.
+*/
 USTRUCT(BlueprintType)
 struct FGAAttributeModifier
 {
 	GENERATED_USTRUCT_BODY()
 public:
 	/*
-	Type of calculation we want to perform for this Magnitude.
+		Type of calculation we want to perform for this Magnitude.
 	*/
 	UPROPERTY(EditAnywhere)
 		EGAMagnitudeCalculation CalculationType;
-
 	/*
-	Attribute which will be modified.
+		Attribute which will be modified.
 	*/
 	UPROPERTY(EditAnywhere)
 		FGAAttribute Attribute;
 	/*
-	How Attribute Will be modified
+		How Attribute Will be modified
 	*/
 	UPROPERTY(EditAnywhere)
 		EGAAttributeMod Mod;
 
-	EGAModifierDirection ModDirection;
-
 	UPROPERTY(EditAnywhere)
 		FGADirectModifier DirectModifier;
 	/*
-	Simple calculation based on attribute:
-	(Coefficient * (PreMultiply + AttributeValue) + PostMultiply) * PostCoefficient
+		Simple calculation based on attribute:
+		(Coefficient * (PreMultiply + AttributeValue) + PostMultiply) * PostCoefficient
 
-	There is no any magic manipulation, it straight off pull attribute from selected source,
-	and make this operation on it.
+		There is no any magic manipulation, it straight off pull attribute from selected source,
+		and make this operation on it.
 	*/
 	UPROPERTY(EditAnywhere)
 		FGAAttributeBasedModifier AttributeBased;
 	/*
-	Get value from selected CurveTable, based on selected attribute value.
+		Get value from selected CurveTable, based on selected attribute value.
 	*/
 	UPROPERTY(EditAnywhere)
 		FGACurveBasedModifier CurveBased;
 	/*
-	Provide custom calculation class.
+		Provide custom calculation class.
 	*/
 	UPROPERTY(EditAnywhere)
 		FGACustomCalculationModifier Custom;
 
 	/*
-	Currently evaluated magnitude. Figured I should store it here, so it can be further modified
-	by other effects, or something.
+		Currently evaluated magnitude. Figured I should store it here, so it can be further modified
+		by other effects, or something.
 	*/
 	FGAAttributeData EvalData;
 
 	FGAAttributeData GetModifier(const FGAEffectContext& ContextIn);
 	FGAAttributeModifier()
-		: ModDirection(EGAModifierDirection::Outgoing)
 	{}
 };

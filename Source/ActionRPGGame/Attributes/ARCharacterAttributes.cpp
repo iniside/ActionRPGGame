@@ -115,30 +115,32 @@ FGAAttributeData UARCharacterAttributes::PreModifyAttribute(const FGAAttributeDa
 	}
 	return AttributeMod;
 }
-
+/*
+	To much copy pasting:
+	1. Hard to fix mistakes (if pasted formula was flawed.. we have to find and fix it everywhere).
+	2. But it's pretty efficient, sinve we operate directly on data.
+	3. Still, one point of entry would be better, especially for complex system like this, where
+	there are doznes of possible damage types, and bonuses to them. Need way to make it
+	completly Data Driven, where right formula will be determined on the fly.
+*/
 FGAAttributeData UARCharacterAttributes::PreAttribute_Damage(const FGAAttributeData& AttributeMod)
 {
-	UARCharacterAttributes* InstiAttr = Cast<UARCharacterAttributes>(AttributeMod.Context.InstigatorComp->DefaultAttributes);
+	//UARCharacterAttributes* InstiAttr = Cast<UARCharacterAttributes>(AttributeMod.Context.InstigatorComp->DefaultAttributes);
 	FGAAttributeData returnData = AttributeMod;
-	returnData.Value =
-		(returnData.Value +
-		InstiAttr->BonusDamage.GetAdditiveBonus() -
-		InstiAttr->BonusDamage.GetSubtractBonus());
-	
-	returnData.Value =
-		(returnData.Value *
-		InstiAttr->BonusDamage.GetMultiplyBonus()) /
-		InstiAttr->BonusDamage.GetDivideBonus();
 
-	returnData.Value =
-		(returnData.Value +
-		DamageDefense.GetAdditiveBonus() -
-		DamageDefense.GetSubtractBonus());
+	//returnData.Value = returnData.Value + InstiAttr->BonusDamage.GetAdditiveBonus();
+	//returnData.Value = returnData.Value - InstiAttr->BonusDamage.GetSubtractBonus();
 
-	returnData.Value =
-		(returnData.Value *
-		DamageDefense.GetMultiplyBonus()) /
-		DamageDefense.GetDivideBonus();
+	//returnData.Value = returnData.Value + (returnData.Value * InstiAttr->BonusDamage.GetMultiplyBonus());
+	//returnData.Value = returnData.Value - (returnData.Value * InstiAttr->BonusDamage.GetDivideBonus());
+
+	////so additive bonus in defense would work like penalty and increas damage received ?
+	//returnData.Value = returnData.Value + DamageDefense.GetAdditiveBonus();
+	//returnData.Value = returnData.Value - DamageDefense.GetSubtractBonus();
+
+	////the same goes for multiply bonus. Anything above zero will increase damage taken.
+	//returnData.Value = returnData.Value + (returnData.Value * DamageDefense.GetMultiplyBonus());
+	//returnData.Value = returnData.Value - (returnData.Value * DamageDefense.GetDivideBonus());
 
 	return returnData;
 }
@@ -147,31 +149,28 @@ FGAAttributeData UARCharacterAttributes::PreAttribute_FireDamage(const FGAAttrib
 {
 	UARCharacterAttributes* InstiAttr = Cast<UARCharacterAttributes>(AttributeMod.Context.InstigatorComp->DefaultAttributes);
 	FGAAttributeData returnData = AttributeMod;
-	float AddtiveBonus = InstiAttr->BonusDamage.GetAdditiveBonus() + InstiAttr->BonusFireDamage.GetAdditiveBonus();
-	float SubtractBonus = InstiAttr->BonusDamage.GetSubtractBonus() + InstiAttr->BonusFireDamage.GetSubtractBonus();
-	float MultiplyBonus = InstiAttr->BonusDamage.GetMultiplyBonus() + InstiAttr->BonusFireDamage.GetMultiplyBonus();
-	float DivideBonus = InstiAttr->BonusDamage.GetDivideBonus() + InstiAttr->BonusFireDamage.GetDivideBonus();
-	
-	returnData.Value =
-		(returnData.Value +
-		AddtiveBonus -
-		SubtractBonus);
+	//float AddtiveBonus = InstiAttr->BonusDamage.GetAdditiveBonus() + InstiAttr->BonusFireDamage.GetAdditiveBonus();
+	//float SubtractBonus = InstiAttr->BonusDamage.GetSubtractBonus() + InstiAttr->BonusFireDamage.GetSubtractBonus();
+	//float MultiplyBonus = InstiAttr->BonusDamage.GetMultiplyBonus() + InstiAttr->BonusFireDamage.GetMultiplyBonus();
+	//float DivideBonus = InstiAttr->BonusDamage.GetDivideBonus() + InstiAttr->BonusFireDamage.GetDivideBonus();
+	//
+	//returnData.Value = returnData.Value + AddtiveBonus;
+	//returnData.Value = returnData.Value - SubtractBonus;
 
-	returnData.Value =
-		(returnData.Value *
-		MultiplyBonus) /
-		DivideBonus;
+	//returnData.Value = returnData.Value + (returnData.Value * MultiplyBonus); 
+	//returnData.Value = returnData.Value - (returnData.Value * DivideBonus);
 
-	returnData.Value =
-		(returnData.Value +
-		DamageDefense.GetAdditiveBonus() -
-		DamageDefense.GetSubtractBonus());
+	////so additive bonus in defense would work like penalty and increas damage received ?
+	//returnData.Value = returnData.Value + DamageDefense.GetAdditiveBonus(); 
+	//returnData.Value = returnData.Value - DamageDefense.GetSubtractBonus();
 
-	returnData.Value =
-		(returnData.Value *
-		DamageDefense.GetMultiplyBonus()) /
-		DamageDefense.GetDivideBonus();
-
+	////the same goes for multiply bonus. Anything above zero will increase damage taken.
+	//returnData.Value = returnData.Value + (returnData.Value * DamageDefense.GetMultiplyBonus()); 
+	//returnData.Value = returnData.Value - (returnData.Value * DamageDefense.GetDivideBonus());
+	/*
+		While the above make some theoretical sense, when you think about,
+		It is not immiedietly obvious at first glance.
+	*/
 	return returnData;
 }
 
@@ -184,7 +183,6 @@ float UARCharacterAttributes::PostModifyAttribute(const FGAEvalData& AttributeMo
 	params.AttributeMod = AttributeMod;
 	FString prefix = "PostAttribute_";
 	prefix.Append(attribute.ToString());
-
 	TWeakObjectPtr<UFunction> NativeFunc = PostModifyAttributeFunctions.FindRef(attribute);// GetClass()->FindFunctionByName(*prefix);
 
 	if (NativeFunc.IsValid())

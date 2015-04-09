@@ -15,91 +15,85 @@ class GAMEATTRIBUTES_API UGAEffectSpecification : public UObject
 	GENERATED_BODY()
 public:
 	UGAEffectSpecification(const FObjectInitializer& ObjectInitializer);
-
-	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base")
 		FGAEffectName EffectName;
-	/*
-		Policy effect. How it stacks, where it stack, does it have period and/or duration ?
-	*/
-	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base")
 		FGAEffectPolicy Policy;
 
-	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-		TArray<FGAAttributeModifier> AttributeModifiers;
-
-	/*
-		Modifiers which will be applied on effect period.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-		TArray<FGAAttributeModifier> PeriodModifiers;
-	/*
-		Modifiers which will be applied when effect is prematurly removed
-	*/
-	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-		TArray<FGAAttributeModifier> RemovedModifiers;
-	/*
-		Modifiers which will be applied when effect naturally expired.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-		TArray<FGAAttributeModifier> ExpiredModifiers;
-
-	/*
-		If I have duration, I will modify other effects, attribute modifiers,
-		if those effects meet these requirements.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-		TArray<FGAEffectModifier> EffectModifiers;
-
-	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-		TArray<FGEffectModifierGroup> EffectModifierGroups;
-
-	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base")
 		FGAEffectDuration EffectDuration;
 
 	/*
-		Tags, which describe this effect. Please, refrain
-		from using more than one tag!
-		Like Condition, Condition.Bleed, Boon, Enchatment,
-		Hex, Status, whatever.
-		If you use more than one tag, it might and will produce
-		unpredictable results, which are going to be hard to balance out.
+	Context of effect containing info about target, instigator, causer etc.
 	*/
-	UPROPERTY(EditAnywhere, Category = "Tags")
-		FGameplayTagContainer EffectTags;
+	UPROPERTY(BlueprintReadOnly, Category = "Base")
+		FGAEffectContext Context;
 	/*
-		I require these tags on target to be applied.
-		If this is empty I will ignore it.
+	Spec Containing attributes, which this effect will modify.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+		FGAAttributeEffectSpec AttributeSpec;
+
+	/*
+	Modifiers, which are applied to other effects.
+	They are not applied directly or automatically, if you want them to applied
+	you will need to override, UGACalculation class.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+		TArray<FGAEffectModifierSpec> EffectModifiers;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+		TArray<FGAConditonalEffectSpec> ConditionalEffects;
+	/*
+	Tag, which are owned by me, and best describe me.
 	*/
 	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTagContainer MyTags;
+	/*
+	I can be affected by modifiers with these tags.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTagContainer AffectTags;
+	/*
+	If target have any of these tags, I will not be appilied.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTagContainer IgnoreTags;
+	/*
+	I will apply these tags, when I'm succefully applied to target.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTagContainer AppliedTags;
+
+	/*
+	All of these Tags, must be present in effect target AffectTags, if the target effect is going
+	to be modified.
+	*/
+	UPROPERTY(EditAnywhere)
 		FGameplayTagContainer RequiredTags;
 	/*
-		I will apply these tags, to target if I'm applied.
+	Select calculation type, which will be used, for calculating final value of
+	this effect.
 	*/
-	UPROPERTY(EditAnywhere, Category = "Tags")
-		FGameplayTagContainer GrantedTags;
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class UGACalculation> CalculationType;
 	/*
-		I will add these immunity tags, to target if I'm applied.
+	If you don't want  effect to spawn Cue, you can simply leave it empty.
 	*/
-	UPROPERTY(EditAnywhere, Category = "Tags")
-		FGameplayTagContainer GrantedImmunityTags;
-	/*
-		I require any of these tags, on other effect
-		to be able to modify it.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Tags")
-		FGameplayTagContainer OtherEffectRequire;
+	UPROPERTY(EditAnywhere, Category = "Cues")
+		TSubclassOf<class AGAEffectCue> EffectCue;
+
+	UPROPERTY(EditAnywhere, Category = "Cues")
+		TSubclassOf<class UGAUIData> UIData;
 
 
-	/*
-		I will do something when I expire, If target have these tags.
 
-		Ok. It's kind of dumb, I should do it differently, we need more data
-		about who is target (target doesn't need to be actor, to which
-		effect is applied, but for example, actor, who hit actor with this effect.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Tags")
-		FGameplayTagContainer ExpiredRequireTags;
+	TArray<FGAAttributeData> GetInitialAttribute(const FGAEffectContext& ContextIn);
+	TArray<FGAAttributeData> GetDurationAttribute(const FGAEffectContext& ContextIn);
+	TArray<FGAAttributeData> GetPeriodAttribute(const FGAEffectContext& ContextIn);
+	TArray<FGAAttributeData> GetRemovedAttribute(const FGAEffectContext& ContextIn);
+	TArray<FGAAttributeData> GetExpiredAttribute(const FGAEffectContext& ContextIn);
 
-	UPROPERTY()
-		FGAEffectContext Context;
+	TArray<FGAEffectModifierSpec> GetEffectModifiers(const FGAEffectContext& ContextIn);
 };

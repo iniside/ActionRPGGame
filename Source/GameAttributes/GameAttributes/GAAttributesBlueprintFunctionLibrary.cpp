@@ -29,6 +29,9 @@ float UGAAttributesBlueprintFunctionLibrary::GetFinalAttributeValue(AActor* Targ
 	IIGAAttributes* attributeInt = Cast<IIGAAttributes>(Target);
 	if (!attributeInt)
 		return 0;
+	if (!attributeInt->GetAttributes())
+		return 0;
+
 	return attributeInt->GetAttributes()->GetFinalAttributeValue(Name);
 }
 float UGAAttributesBlueprintFunctionLibrary::GetCurrentAttributeValue(AActor* Target, FGAAttribute Name)

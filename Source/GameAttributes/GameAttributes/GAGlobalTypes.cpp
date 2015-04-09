@@ -8,7 +8,22 @@
 #include "Effects/GAEffectSpecification.h"
 #include "GAEffects.h"
 #include "GAGlobalTypes.h"
-
+FGAHashedGameplayTagContainer::FGAHashedGameplayTagContainer(const FGameplayTagContainer& TagsIn)
+	: Tags(TagsIn)
+{
+	GenerateFNameKey();
+}
+void FGAHashedGameplayTagContainer::GenerateFNameKey()
+{
+	FString RetString;
+	for (const FGameplayTag& tag : Tags)
+	{
+		RetString += TEXT(".");
+		RetString += tag.ToString();
+		RetString += TEXT(".");
+	}
+	Key = *RetString;
+}
 FGAEffectHandle FGAEffectHandle::GenerateHandle()
 {
 	static int32 GlobalHandleID = 0;

@@ -53,6 +53,12 @@ public:
 	UARCharacterAttributes(const FObjectInitializer& ObjectInitializer);
 	//UPROPERTY(EditAnywhere, Category = "Tags Configuration")
 	//	FGameplayTagContainer FireDamageTag;
+	/*
+		How often timer will tick to add attribute.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Config")
+		float AttributeRefreshRate;
+
 
 	/*
 		This is base value of health, it should never be modified directly (??).
@@ -152,39 +158,50 @@ public:
 		float Damage;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float PhysicalDamage;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float MagicalDamage;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float FireDamage;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float IceDamage;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float WaterDamage;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float AirDamage;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float ElectricityDamage;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float EarthDamage;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float ShadowDamage;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float NecroticDamage;
 
-	UPROPERTY()
-		float Heal;
-
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float ConditionDamage;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float ConditionFireDamage;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float ConditionBleedDamage;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float ConditionPoisonDamage;
+
+	/*
+	Modify these attributes, to steal resource (from target), and transfer it to instigator.
+	Makes sense uhh ?
+	*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
+		float LifeStealDamage;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
+		float EnergyStealDamage;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
+		float StaminaStealDamage;
 
 	UPROPERTY()
 		float WeaknessCondition; //0-1, precentage. always appilied on Source, reduce damage.
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Headling")
+		float Heal;
 
 	///*
 	//	Total number of conditions.
@@ -201,19 +218,8 @@ public:
 	/*
 		Because Why not ?
 	*/
-	/*
-		Modify these attributes, to steal resource (from target), and transfer it to instigator.
-		Makes sense uhh ?
-	*/
-	UPROPERTY()
-		float LifeStealDamage;
-	UPROPERTY()
-		float EnergyStealDamage;
-	UPROPERTY()
-		float StaminaStealDamage;
 
-	UPROPERTY(EditAnywhere, Category = "Damage")
-		float ConditionBonusDamage;
+
 	/*
 		Shouldn't be editable, but for testing simplicity..
 
@@ -222,22 +228,25 @@ public:
 		Do not stack, BonusDamage override everything (if highest)
 		otherwise attribute specific to damage type is used.
 	*/
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage Bonus")
 		FGAAttributeBase BonusDamage;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage Bonus")
 		FGAAttributeBase BonusPhysicalDamage;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage Bonus")
 		FGAAttributeBase BonusMagicalDamage;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage Bonus")
 		FGAAttributeBase BonusFireDamage;
 	//because why not ?
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage Bonus")
 		FGAAttributeBase OutgoingDamageReduction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage Bonus")
+		FGAAttributeBase WeaponDamageBonus;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage Defense")
 		FGAAttributeBase FireDamageDefense;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage Defense")
 		FGAAttributeBase DamageDefense;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")

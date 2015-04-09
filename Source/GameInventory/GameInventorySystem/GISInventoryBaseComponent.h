@@ -46,10 +46,32 @@ DECLARE_DELEGATE_OneParam(FGISOnTabChanged, int32);
 	Or.. I can just check for valid index in array.
 */
 
+struct FGISPickupActorDistanceHelper
+{
+	float Distance;
+	TWeakObjectPtr<class AGISPickupActor> PickupActor;
+
+	FGISPickupActorDistanceHelper()
+	{}
+
+	FGISPickupActorDistanceHelper(float DistanceIn, TWeakObjectPtr<class AGISPickupActor>  PickupActorIn)
+		: Distance(DistanceIn),
+		PickupActor(PickupActorIn)
+	{};
+	inline bool operator==(const FGISPickupActorDistanceHelper& Other) const
+	{
+		return Other.Distance == Distance;
+	}
+	inline bool operator<(const FGISPickupActorDistanceHelper& Other) const 
+	{
+		return Other.Distance > Distance;
+	}
+};
+
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
 class GAMEINVENTORYSYSTEM_API UGISInventoryBaseComponent : public UActorComponent
 {
-	GENERATED_UCLASS_BODY()
+	GENERATED_BODY()
 protected:
 
 	/**
@@ -231,7 +253,7 @@ protected:
 	UFUNCTION()
 		void OnRep_TabUpdated();
 public:
-
+	UGISInventoryBaseComponent(const FObjectInitializer& ObjectInitializer);
 	virtual void InitializeComponent() override;
 	virtual void PostInitProperties() override;
 
@@ -263,9 +285,9 @@ public:
 		void PickItem(AActor* PickupItemIn);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerPickItem(AActor* PickupItemIn);
-		
-
+		void ServerPickItem(AActor* PickupItemIn);	
+	virtual void ServerPickItem_Implementation(AActor* PickupItemIn);
+	virtual bool ServerPickItem_Validate(AActor* PickupItemIn);
 	/* 
 		Adds item to inventory. In Multiplayer, never call it on client.
 	*/
@@ -273,15 +295,17 @@ public:
 		virtual void AddItemToInventory(class UGISItemData* ItemIn);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-		virtual void ServerAddItemToInventory(class UGISItemData* ItemIn);
-
+		void ServerAddItemToInventory(class UGISItemData* ItemIn);
+	virtual void ServerAddItemToInventory_Implementation(class UGISItemData* ItemIn);
+	virtual bool ServerAddItemToInventory_Validate(class UGISItemData* ItemIn);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
 		virtual void AddItemOnSlot(const FGISSlotInfo& TargetSlotType, const FGISSlotInfo& LastSlotType);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-		virtual void ServerAddItemOnSlot(const FGISSlotInfo& TargetSlotType, const FGISSlotInfo& LastSlotType);
-	
+		void ServerAddItemOnSlot(const FGISSlotInfo& TargetSlotType, const FGISSlotInfo& LastSlotType);
+	virtual void ServerAddItemOnSlot_Implementation(const FGISSlotInfo& TargetSlotType, const FGISSlotInfo& LastSlotType);
+	virtual bool ServerAddItemOnSlot_Validate(const FGISSlotInfo& TargetSlotType, const FGISSlotInfo& LastSlotType);
 	/*
 		Override if you want constroll which functions from UGISItemInfo, are called
 		when item is added to slot.
@@ -300,28 +324,29 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
 		virtual void RemoveItem(const FGISSlotInfo& TargetSlotType);
 
-	void StartLooting(class AGISPickupActor* PickUp);
-
-	/*
-		Test function. Will loot everything from container!
-	*/
+	//temp
 	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
-		virtual void LootItems();
-	UFUNCTION(Server, Reliable, WithValidation)
-		virtual void ServerLootItems();
+		void PreLootAction(TArray<class AGISPickupActor*> PickupsIn);
+
+	void StartLooting(class AGISPickupActor* PickUp);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
 		void LootOneItem(int32 ItemIndex);
 	UFUNCTION(Server, Reliable, WithValidation)
 		void SeverLootOneItem(int32 ItemIndex);
+	virtual void SeverLootOneItem_Implementation(int32 ItemIndex);
+	virtual bool SeverLootOneItem_Validate(int32 ItemIndex);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Inventory System")
 		void DropItemFromInventory(const FGISSlotInfo& DropItemInfoIn);
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerDropItemFromInventory(const FGISSlotInfo& DropItemInfoIn);
+	virtual void ServerDropItemFromInventory_Implementation(const FGISSlotInfo& DropItemInfoIn);
+	virtual bool ServerDropItemFromInventory_Validate(const FGISSlotInfo& DropItemInfoIn);
 
 	UFUNCTION(Client, Reliable)
-		void ClientHideLootingWidget();
+		void ClientSwitchLootingWidget();
+	virtual void ClientSwitchLootingWidget_Implementation();
 
 	void PostInventoryInitialized();
 	
@@ -385,6 +410,8 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerCopyItemsFromOtherInventoryTab(class UGISInventoryBaseComponent* OtherIn, int32 TargetTabIndex);
+	virtual void ServerCopyItemsFromOtherInventoryTab_Implementation(class UGISInventoryBaseComponent* OtherIn, int32 TargetTabIndex);
+	virtual bool ServerCopyItemsFromOtherInventoryTab_Validate(class UGISInventoryBaseComponent* OtherIn, int32 TargetTabIndex);
 
 	/**
 	 *	Override if you want to perform on items any action, when they are copied from other inventory.

@@ -27,7 +27,7 @@ public:
 
 		Only one player at time, can interact with this actor.
 	*/
-	UPROPERTY()
+	UPROPERTY(Replicated)
 		bool bIsCurrentlyBeingLooted;
 
 	/*
@@ -51,6 +51,8 @@ public:
 		void ServerStartLooting(AActor* WhoPicks);
 	virtual void ServerStartLooting_Implementation(AActor* WhoPicks);
 	virtual bool ServerStartLooting_Validate(AActor* WhoPicks);
+	
+	virtual void OnLooted();
 	/*
 		Should be called when item count in array reaches zero, or life time of actor experies.
 		It will actually call DestroyActor(), but it can be used for cleanup/spawning cosmetic effects

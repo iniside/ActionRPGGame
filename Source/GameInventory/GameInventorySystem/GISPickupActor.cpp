@@ -27,7 +27,8 @@ void AGISPickupActor::BeginPlay()
 void AGISPickupActor::Interact(AActor* InteractingActor)
 {
 	SetOwner(InteractingActor);
-	this->StartLooting(InteractingActor);
+	StartLooting(InteractingActor);
+	bIsCurrentlyBeingLooted = true;
 
 	//go to server now, or go to server in component ?
 }
@@ -58,6 +59,14 @@ bool AGISPickupActor::ServerStartLooting_Validate(AActor* WhoPicks)
 {
 	return true;
 }
+void AGISPickupActor::OnLooted()
+{
+	if (ItemToLoot.Num() <= 0)
+	{
+		Destroy();
+	}
+}
+
 void AGISPickupActor::DestroyPickupActor()
 {
 
@@ -71,6 +80,7 @@ void AGISPickupActor::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AGISPickupActor, ItemToLoot);
+	DOREPLIFETIME(AGISPickupActor, bIsCurrentlyBeingLooted);
 }
 bool AGISPickupActor::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
 {

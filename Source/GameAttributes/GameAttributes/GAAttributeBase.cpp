@@ -98,8 +98,8 @@ void FGAAttributeBase::CalculateBonus()
 {
 	AdditiveBonus = 0;
 	SubtractBonus = 0;
-	MultiplyBonus = 1;
-	DivideBonus = 1;
+	MultiplyBonus = 0;
+	DivideBonus = 0;
 	auto ModIt = Modifiers.CreateConstIterator();
 	for (ModIt; ModIt; ++ModIt)
 	{
@@ -128,7 +128,8 @@ void FGAAttributeBase::CalculateBonus()
 	//calculate final bonus from modifiers values.
 	//we don't handle stacking here. It's checked and handled before effect is added.
 	BonusValue = (AdditiveBonus - SubtractBonus);
-	BonusValue = (BonusValue * MultiplyBonus) / DivideBonus;
+	BonusValue = BonusValue + (BonusValue * MultiplyBonus);
+	BonusValue = BonusValue - (BonusValue * DivideBonus);
 	//this is absolute maximum (not clamped right now).
 	float addValue = BonusValue - OldBonus;
 	//reset to max = 200
@@ -197,6 +198,7 @@ void FGAAttributeBase::Subtract(float ValueIn)
 void FGAAttributeBase::InitializeAttribute()
 {
 	CurrentValue = GetFinalValue();
+	CurrentValue = BaseValue;
 	CalculateBonus();
 }
 

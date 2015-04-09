@@ -70,6 +70,31 @@ FGAEffectHandle UGAAttributeComponent::ApplyEffectToTarget(const FGAEffectSpec& 
 	return Context.TargetComp->ApplyEffectToSelf(SpecIn, Context);
 }
 
+FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(TSubclassOf<class UGAEffectSpecification> SpecIn,
+	const FGAEffectContext& Context, const FName& EffeftName)
+{
+	FGAEffectHandle handle;
+	if (GetOwnerRole() < ROLE_Authority)
+	{
+
+	}
+	else
+	{
+		handle = ActiveEffects.ApplyEffect(SpecIn, Context, EffeftName);
+	}
+
+	if (GetNetMode() == ENetMode::NM_Standalone)
+		OnRep_ActiveEffects();
+
+	return handle;
+}
+
+FGAEffectHandle UGAAttributeComponent::ApplyEffectToTarget(TSubclassOf<class UGAEffectSpecification> SpecIn,
+	const FGAEffectContext& Context, const FName& EffeftName)
+{
+	return Context.TargetComp->ApplyEffectToSelf(SpecIn, Context, EffeftName);
+}
+
 FGAEffectHandle UGAAttributeComponent::ApplySelfEffect(AActor* Target, APawn* Instigator,
 	UObject* Causer, FGAEffectSpec SpecIn)
 {

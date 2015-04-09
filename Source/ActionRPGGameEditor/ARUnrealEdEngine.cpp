@@ -15,12 +15,12 @@ void UARUnrealEdEngine::Init(IEngineLoop* InEngineLoop)
 {
 	Super::Init(InEngineLoop);
 
-	//IGameplayTagsModule& GameplayTagsModule = IGameplayTagsModule::Get();
+	IGameplayTagsModule& GameplayTagsModule = IGameplayTagsModule::Get();
 	//
-	//TArray<FString> TagsList;
+	TArray<FString> TagsList;
 
-	//FString Tags = "/Game/Blueprints/SampleTags.SampleTags";
-	//TagsList.Add(Tags);
+	FString Tags = "/Game/Data/GameplayTags/DamageStatusTags.DamageStatusTags";
+	TagsList.Add(Tags);
 	//
 	//FString DamageTags = "/Game/Blueprints/DamageTags.DamageTags";
 	//TagsList.Add(DamageTags);
@@ -31,7 +31,7 @@ void UARUnrealEdEngine::Init(IEngineLoop* InEngineLoop)
 	//FString PawnTypesTags = "/Game/Blueprints/DataTables/PawnTypes.PawnTypes";
 	//TagsList.Add(PawnTypesTags);
 
-	//GameplayTagsModule.GetGameplayTagsManager().DestroyGameplayTagTree();
-	//GameplayTagsModule.GetGameplayTagsManager().LoadGameplayTagTables(TagsList);
-	//GameplayTagsModule.GetGameplayTagsManager().ConstructGameplayTagTree();
+	GameplayTagsModule.GetGameplayTagsManager().DestroyGameplayTagTree();
+	GameplayTagsModule.GetGameplayTagsManager().LoadGameplayTagTables(TagsList);
+	GameplayTagsModule.GetGameplayTagsManager().ConstructGameplayTagTree();
 }
