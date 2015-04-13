@@ -6,6 +6,8 @@
 #include "IGAAttributes.h"
 #include "Effects/GAEffect.h"
 #include "Effects/GAEffectSpecification.h"
+#include "GAAttributeComponent.h"
+#include "GAAttributesBase.h"
 #include "GAEffects.h"
 #include "GAGlobalTypes.h"
 FGAHashedGameplayTagContainer::FGAHashedGameplayTagContainer(const FGameplayTagContainer& TagsIn)
@@ -45,7 +47,14 @@ void FGAEffectContext::Reset()
 	TargetComp.Reset();
 	InstigatorComp.Reset();
 }
-
+class UGAAttributesBase* FGAEffectContext::GetTargetAttributes()
+{ 
+	return TargetComp->DefaultAttributes; 
+}
+class UGAAttributesBase* FGAEffectContext::GetInstigatorAttributes()
+{ 
+	return InstigatorComp->DefaultAttributes; 
+}
 FGAEffectContext::~FGAEffectContext()
 {
 	Target.Reset();

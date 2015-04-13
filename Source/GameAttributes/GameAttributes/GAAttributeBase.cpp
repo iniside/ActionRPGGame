@@ -47,7 +47,28 @@ void FGAAttributeBase::RemoveBonus(const FGAEffectHandle& Handle)
 	Modifiers.Remove(Handle);
 	CalculateBonus();
 }
-
+void FGAAttributeBase::RemoveBonusByType(EGAAttributeMod ModType)
+{
+	for (auto It = Modifiers.CreateIterator(); It; ++It)
+	{
+		for (auto MIt = It->Value.CreateIterator(); It; ++It)
+		{
+			//check if current attribute mod have the same mod
+			//and is smaller than the the incoming one.
+			if (MIt->AttributeMod == ModType)
+			{
+				//and remove it.
+				It->Value.RemoveAt(MIt.GetIndex());
+				//if there is no more mods, for this key, just remove it from map.
+				if (It->Value.Num() <= 0)
+				{
+					Modifiers.Remove(It.Key());
+				}
+			}
+		}
+	}
+	CalculateBonus();
+}
 void FGAAttributeBase::RemoveWeakerBonus(EGAAttributeMod ModType, float ValueIn)
 {
 	for (auto It = Modifiers.CreateIterator(); It; ++It)

@@ -98,15 +98,6 @@ public:
 public:
 	/////////////////////////////////////////////////
 	//////////// EFFECTS HANDLING
-	/*
-		Apply to self probabaly shouldn't take Spec.
-	*/
-	FGAEffectHandle ApplyEffectToSelf(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
-	/*
-		As matter of fact I'm no sure if apply to target should either.
-	*/
-	FGAEffectHandle ApplyEffectToTarget(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
-
 
 	/*
 		Apply to self probabaly shouldn't take Spec.

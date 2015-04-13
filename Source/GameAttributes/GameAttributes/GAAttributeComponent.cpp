@@ -46,30 +46,6 @@ void UGAAttributeComponent::InitializeComponent()
 	AppliedTags.AddTagContainer(DefaultTags);
 }
 
-FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context)
-{
-	FGAEffectHandle handle;
-	if (GetOwnerRole() < ROLE_Authority)
-	{
-		
-	}
-	else
-	{
-		handle = ActiveEffects.ApplyEffect(SpecIn, Context);
-	}
-	
-	if (GetNetMode() == ENetMode::NM_Standalone)
-		OnRep_ActiveEffects();
-
-	return handle;
-}
-FGAEffectHandle UGAAttributeComponent::ApplyEffectToTarget(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context)
-{
-	SCOPE_CYCLE_COUNTER(STAT_ApplyEffect);
-
-	return Context.TargetComp->ApplyEffectToSelf(SpecIn, Context);
-}
-
 FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(TSubclassOf<class UGAEffectSpecification> SpecIn,
 	const FGAEffectContext& Context, const FName& EffeftName)
 {
@@ -112,7 +88,7 @@ FGAEffectHandle UGAAttributeComponent::ApplySelfEffect(AActor* Target, APawn* In
 	SpecIn.Context = context;
 
 	//SpecIn.GetModifiers();
-	return ActiveEffects.ApplyEffect(SpecIn, context);
+	return FGAEffectHandle(); // ActiveEffects.ApplyEffect(SpecIn, context);
 }
 
 TArray<FGAEffectUIData> UGAAttributeComponent::GetEffectUIData()

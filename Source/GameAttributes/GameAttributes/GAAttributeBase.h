@@ -32,7 +32,7 @@ protected:
 		Bonus value calculated from stack of affecting effects.
 	*/
 	UPROPERTY()
-	float BonusValue;
+		float BonusValue;
 public:
 	//map of modifiers.
 	//It could be TArray, but map seems easier to use in this case
@@ -83,6 +83,10 @@ public:
 
 	void AddBonus(const FGAModifier& ModifiersIn, const FGAEffectHandle& Handle);
 	void RemoveBonus(const FGAEffectHandle& Handle);
+	/*
+		Removes bonus from this attribute based on it's type.
+	*/
+	void RemoveBonusByType(EGAAttributeMod ModType);
 	/*
 		Remove weaker bonus of the same mod type, from Modifiers.
 	*/

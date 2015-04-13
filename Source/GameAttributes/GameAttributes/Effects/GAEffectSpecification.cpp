@@ -21,7 +21,7 @@ TArray<FGAAttributeData> UGAEffectSpecification::GetInitialAttribute(const FGAEf
 TArray<FGAAttributeData> UGAEffectSpecification::GetDurationAttribute(const FGAEffectContext& ContextIn)
 {
 	TArray<FGAAttributeData> modsOut;
-	for (FGAAttributeModifier& mod : AttributeSpec.DurationAttributes)
+	for (FGAAttributeModifier& mod : AttributeModifier)
 	{
 		modsOut.Add(mod.GetModifier(ContextIn));
 	}

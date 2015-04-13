@@ -162,6 +162,21 @@ struct FGAEffectPolicy
 {
 	GENERATED_USTRUCT_BODY()
 public:
+	/*
+		Instant - Effect is applied instantly, and only apply InitialAttributes.
+
+		Periodic - Effect is applied for duration and have period.
+		AttributeModifiers, EffectModifiers, InitialAttributes, PeriodAttributes,
+		RemovedAttributes, ExpiredAttributes can be applied to target.
+
+		Duration - Effect is applied for specific duration.
+		AttributeModifiers, EffectModifiers, InitialAttributes,
+		RemovedAttributes, ExpiredAttributes can be applied to target.
+
+		Infinite - Effect is applied infinitely.
+		AttributeModifiers, EffectModifiers, InitialAttributes,
+		RemovedAttributes, ExpiredAttributes can be applied to target.
+	*/
 	UPROPERTY(EditAnywhere)
 		EGAEffectType Type;
 	UPROPERTY(EditAnywhere)
@@ -176,22 +191,14 @@ struct FGAAttributeEffectSpec
 	GENERATED_USTRUCT_BODY()
 public:
 	/*
-		Modifier for attributes, when effect is initially applied.
+		Change attribute.
 
 		Instant application effects, do use only this property.
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 		TArray<FGAAttributeModifier> InitialAttributes;
 	/*
-		Modifier which is applied for effect duration.
-		It's removed when effect is removed/expire.
-
-		Duration effects should only be used to modify Complex Attributes!
-	*/
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
-		TArray<FGAAttributeModifier> DurationAttributes;
-	/*
-		Modifier applied when effect Ticks (on period interval).
+		Attribute change applied when effect Ticks (on period interval).
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 		TArray<FGAAttributeModifier> PeriodAttributes;
@@ -356,11 +363,7 @@ public:
 };
 
 /*
-	Should we:
-	1. Cache off, effect specs, as shared pointers somewhere ?
-	We could use map with EffectName,TSharedPtr<Spec>, and instead of creating new spec every time
-	check map first, find existing spec, add WeakPtr to active effect, and not copy bunch of stuff,
-	which is used only occasionaly.
+	Non replicated, server only effect.
 */
 struct GAMEATTRIBUTES_API FGAActiveDuration : public TSharedFromThis<FGAActiveDuration>
 {
@@ -382,9 +385,7 @@ struct GAMEATTRIBUTES_API FGAActiveDuration : public TSharedFromThis<FGAActiveDu
 	FGAEffectContext Context;
 
 	TSubclassOf<class UGACalculation> CalculationType;
-	TArray<FGAAttributeData> InitialModifiers;
-	TArray<FGAAttributeData> DurationModifiers;
-	TArray<FGAAttributeData> PeriodicModifiers;
+	
 	/* Attribute changes applied when effect is removed externally. */
 	TArray<FGAAttributeData> RemovedAttribute;
 	/* Attribute changes applied when effect naturally expires. */
@@ -635,6 +636,18 @@ public:
 	TMap<FGAEffectName, TSharedPtr<FGAEffectSpec>> CachedSpecs;
 };
 
+USTRUCT()
+struct FGAInstigatorAggregatedEffects
+{
+	GENERATED_USTRUCT_BODY()
+};
+
+USTRUCT()
+struct FGATargetAggregatedEffects
+{
+	GENERATED_USTRUCT_BODY()
+};
+
 /*
 	Notes:
 
@@ -659,6 +672,10 @@ public:
 	UPROPERTY()
 		TArray<FGAActiveEffect> RepActiveEffects;
 
+	/*
+		Put both Instigator and MyEffects in separater structs.
+		Why ? To make them easier to manage.
+	*/
 	/*
 		Group effects, by instigator who applied to it.
 		Each instigator get separate pool, against which stacking rules are checked.
@@ -686,7 +703,6 @@ public:
 	*/
 	void RemoveActiveEffect(const FGAEffectHandle& HandleIn);
 public:
-	FGAEffectHandle ApplyEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Ctx);
 	FGAEffectHandle ApplyEffect(TSubclassOf<class UGAEffectSpecification> SpecIn, 
 		const FGAEffectContext& Ctx, const FName& EffectName);
 	void Clean();

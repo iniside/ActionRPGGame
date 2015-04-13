@@ -253,9 +253,9 @@ struct FGAModifier
 {
 	GENERATED_USTRUCT_BODY()
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY()
 		EGAAttributeMod AttributeMod;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY()
 		float Value;
 
 	EGAModifierType ModifierType;
@@ -354,6 +354,9 @@ public:
 		TWeakObjectPtr<class UGAAttributeComponent> InstigatorComp;
 
 	void Reset();
+
+	class UGAAttributesBase* GetTargetAttributes();
+	class UGAAttributesBase* GetInstigatorAttributes();
 
 	FGAEffectContext()
 	{}

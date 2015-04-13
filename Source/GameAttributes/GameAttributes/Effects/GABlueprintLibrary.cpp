@@ -31,7 +31,7 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffectSpec(const FHitResult& Target, A
 	if (SpecIn.GetDefaultObject()->EffectName.CustomName)
 		EffectName = SpecIn.GetDefaultObject()->EffectName.EffectName;
 	else
-		EffectName = Causer->GetClass()->GetFName();
+		EffectName = SpecIn->GetFName();// Causer->GetClass()->GetFName();
 
 	ReturnHandle = instiComp->ApplyEffectToTarget(SpecIn, context, EffectName);
 	return ReturnHandle;
@@ -52,54 +52,12 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffectActorSpec(AActor* Target, APawn*
 	if (SpecIn.GetDefaultObject()->EffectName.CustomName)
 		EffectName = SpecIn.GetDefaultObject()->EffectName.EffectName;
 	else
-		EffectName = Causer->GetClass()->GetFName();
+		EffectName = SpecIn->GetFName();
 
 	//SpecIn.GetModifiers();
 	return instiComp->ApplyEffectToTarget(SpecIn, context, EffectName);
 }
-void UGABlueprintLibrary::ApplyEffect(const FHitResult& Target, APawn* Instigator, 
-		UObject* Causer, FGAEffectSpec SpecIn)
-{
-	IIGAAttributes* targetAttr = Cast<IIGAAttributes>(Target.Actor.Get());
-	IIGAAttributes* instiAttr = Cast<IIGAAttributes>(Instigator);
-	if (!targetAttr || !instiAttr)
-		return;
 
-	UGAAttributeComponent* targetComp = targetAttr->GetAttributeComponent();
-	UGAAttributeComponent* instiComp = instiAttr->GetAttributeComponent();
-	FGAEffectContext context(Target.Location, Target.Actor, Causer,
-		Instigator, targetComp, instiComp);
-
-	if (!SpecIn.EffectName.CustomName)
-		SpecIn.EffectName = FGAEffectName(Causer->GetClass()->GetFName());
-
-	SpecIn.Context = context;
-
-	//SpecIn.GetModifiers();
-	instiComp->ApplyEffectToTarget(SpecIn, context);
-}
-
-FGAEffectHandle UGABlueprintLibrary::ApplyEffectActor(AActor* Target, APawn* Instigator,
-	UObject* Causer, FGAEffectSpec SpecIn)
-{
-	IIGAAttributes* targetAttr = Cast<IIGAAttributes>(Target);
-	IIGAAttributes* instiAttr = Cast<IIGAAttributes>(Instigator);
-	if (!targetAttr || !instiAttr)
-		return FGAEffectHandle();
-
-	UGAAttributeComponent* targetComp = targetAttr->GetAttributeComponent();
-	UGAAttributeComponent* instiComp = instiAttr->GetAttributeComponent();
-	FGAEffectContext context(Target->GetActorLocation(), Target, Causer,
-		Instigator, targetComp, instiComp);
-
-	if (!SpecIn.EffectName.CustomName)
-		SpecIn.EffectName = FGAEffectName(Causer->GetClass()->GetFName());
-
-	SpecIn.Context = context;
-
-	//SpecIn.GetModifiers();
-	return instiComp->ApplyEffectToTarget(SpecIn, context);
-}
 void UGABlueprintLibrary::OverrideEffectDuration(TSubclassOf<class UGAEffectSpecification> SpecIn)
 {
 }

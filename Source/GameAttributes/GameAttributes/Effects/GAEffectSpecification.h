@@ -17,7 +17,8 @@ public:
 	UGAEffectSpecification(const FObjectInitializer& ObjectInitializer);
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base")
 		FGAEffectName EffectName;
-
+	/*
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base")
 		FGAEffectPolicy Policy;
 
@@ -25,28 +26,50 @@ public:
 		FGAEffectDuration EffectDuration;
 
 	/*
-	Context of effect containing info about target, instigator, causer etc.
-	*/
-	UPROPERTY(BlueprintReadOnly, Category = "Base")
-		FGAEffectContext Context;
-	/*
 	Spec Containing attributes, which this effect will modify.
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 		FGAAttributeEffectSpec AttributeSpec;
-
 	/*
-	Modifiers, which are applied to other effects.
-	They are not applied directly or automatically, if you want them to applied
-	you will need to override, UGACalculation class.
+		Modifier which is applied for effect duration.
+		It's removed when effect is removed/expire.
+
+		This is only modifier, which is reversed after effect is removed/expired.
+
+		Duration effects should only be used to modify Complex Attributes!
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+		TArray<FGAAttributeModifier> AttributeModifier;
+	/*
+		Modifiers, which are applied to other effects.
+		They are not applied directly or automatically, if you want them to applied
+		you will need to override, UGACalculation class.
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
 		TArray<FGAEffectModifierSpec> EffectModifiers;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
-		TArray<FGAConditonalEffectSpec> ConditionalEffects;
 	/*
-	Tag, which are owned by me, and best describe me.
+		These effects are applied along this effect, when tag requirments for
+		effect are meet.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+		TArray<FGAConditonalEffectSpec> ConditionalApplicationEffects;
+
+	/*
+		These effects, are triggered, when other effects is being applied to the same
+		target as mine, and if the tags on incoming effect match, I will
+		apply these effects.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+		TArray<FGAConditonalEffectSpec> ConditionalTriggerEffects;
+
+	/*
+		Select calculation type, which will be used, for calculating final value of
+		this effect.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Calculation")
+		TSubclassOf<class UGACalculation> CalculationType;
+	/*
+		Tag, which are owned by me, and best describe me.
 	*/
 	UPROPERTY(EditAnywhere, Category = "Tags")
 		FGameplayTagContainer MyTags;
@@ -72,12 +95,6 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, Category = "Tags")
 		FGameplayTagContainer RequiredTags;
-	/*
-	Select calculation type, which will be used, for calculating final value of
-	this effect.
-	*/
-	UPROPERTY(EditAnywhere)
-		TSubclassOf<class UGACalculation> CalculationType;
 	/*
 	If you don't want  effect to spawn Cue, you can simply leave it empty.
 	*/

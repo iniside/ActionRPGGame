@@ -14,16 +14,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
 		static FGAEffectHandle ApplyEffectActorSpec(AActor* Target, APawn* Instigator,
 		UObject* Causer, TSubclassOf<class UGAEffectSpecification> SpecIn);
-	/*
-		Apply Effect Directly from spec defined inside abitrary object.
-	*/
-	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
-		static void ApplyEffect(const FHitResult& Target, APawn* Instigator, 
-			UObject* Causer, FGAEffectSpec SpecIn);
-
-	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
-		static FGAEffectHandle ApplyEffectActor(AActor* Target, APawn* Instigator,
-		UObject* Causer, FGAEffectSpec SpecIn);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
 		static void OverrideEffectDuration(TSubclassOf<class UGAEffectSpecification> SpecIn);
