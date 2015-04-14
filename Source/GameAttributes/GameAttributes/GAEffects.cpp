@@ -83,6 +83,104 @@ void FGAEffectModifier::CalculateOutgoingBonus()
 		}
 	}
 }
+void FGAEffectModifier::RemoveWeakerBonus(EGAAttributeMod ModType, EGAModifierType EffectModType, float ValueIn)
+{
+	switch (EffectModType)
+	{
+	case EGAModifierType::Incoming:
+		RemoveWeakerIncomingBonus(ModType, ValueIn);
+		break;
+	case EGAModifierType::Outgoing:
+		RemoveWeakerOutgoingBonus(ModType, ValueIn);
+		break;
+	}
+}
+void FGAEffectModifier::RemoveWeakerIncomingBonus(EGAAttributeMod ModType, float ValueIn)
+{
+	for (auto aIt = IncomingModifiers.CreateIterator(); aIt; ++aIt)
+	{
+		for (auto It = aIt->Value.CreateIterator(); It; ++It)
+		{
+			if (It->AttributeMod == ModType
+				&& It->Value < ValueIn)
+			{
+				aIt->Value.RemoveAt(It.GetIndex());
+				if (aIt->Value.Num() <= 0)
+				{
+					aIt.RemoveCurrent();
+				}
+			}
+		}
+	}
+	CalculateIncomingBonus();
+}
+void FGAEffectModifier::RemoveWeakerOutgoingBonus(EGAAttributeMod ModType, float ValueIn)
+{
+	for (auto aIt = OutgoingModifiers.CreateIterator(); aIt; ++aIt)
+	{
+		for (auto It = aIt->Value.CreateIterator(); It; ++It)
+		{
+			if (It->AttributeMod == ModType
+				&& It->Value < ValueIn)
+			{
+				aIt->Value.RemoveAt(It.GetIndex());
+				if (aIt->Value.Num() <= 0)
+				{
+					aIt.RemoveCurrent();
+				}
+			}
+		}
+	}
+	CalculateOutgoingBonus();
+}
+void FGAEffectModifier::RemoveBonusOfType(EGAAttributeMod ModType, EGAModifierType EffectModType)
+{
+	switch (EffectModType)
+	{
+	case EGAModifierType::Incoming:
+		RemoveIncomingBonusOfType(ModType);
+		break;
+	case EGAModifierType::Outgoing:
+		RemoveOutgoingBonusOfType(ModType);
+		break;
+	}
+}
+void FGAEffectModifier::RemoveIncomingBonusOfType(EGAAttributeMod ModType)
+{
+	for (auto aIt = IncomingModifiers.CreateIterator(); aIt; ++aIt)
+	{
+		for (auto It = aIt->Value.CreateIterator(); It; ++It)
+		{
+			if (It->AttributeMod == ModType)
+			{
+				aIt->Value.RemoveAt(It.GetIndex());
+				if (aIt->Value.Num() <= 0)
+				{
+					aIt.RemoveCurrent();
+				}
+			}
+		}
+	}
+	CalculateIncomingBonus();
+}
+void FGAEffectModifier::RemoveOutgoingBonusOfType(EGAAttributeMod ModType)
+{
+	for (auto aIt = OutgoingModifiers.CreateIterator(); aIt; ++aIt)
+	{
+		for (auto It = aIt->Value.CreateIterator(); It; ++It)
+		{
+			if (It->AttributeMod == ModType)
+			{
+				aIt->Value.RemoveAt(It.GetIndex());
+				if (aIt->Value.Num() <= 0)
+				{
+					aIt.RemoveCurrent();
+				}
+			}
+		}
+	}
+	CalculateIncomingBonus();
+}
 void FGAEffectModifier::AddBonus(const FGAModifier& ModifiersIn, const FGAEffectHandle& Handle)
 {
 	switch (ModifiersIn.ModifierType)
@@ -315,6 +413,36 @@ void FGAEffectModifierContainer::RemoveModifier(const FGameplayTagContainer& Tag
 		FGAEffectModifier* mods = Modifiers.Find(tag);
 		if (mods)
 			mods->RemoveMod(HandleIn);
+	}
+}
+void FGAEffectModifierContainer::RemoveWeakerModifiers(const FGameplayTagContainer& TagsIn, 
+	const TArray<FGAEffectModifierSpec>& ModSpec)
+{
+	for (const FGameplayTag& Tag : TagsIn)
+	{
+		FGAEffectModifier* EffMod = Modifiers.Find(Tag);
+		if (!EffMod)
+			continue;
+
+		for (const FGAEffectModifierSpec spec : ModSpec)
+		{
+			EffMod->RemoveWeakerBonus(spec.Mod, spec.ModifierType, spec.DirectModifier.Value);
+		}
+	}
+}
+void FGAEffectModifierContainer::RemoveModifiersByType(const FGameplayTagContainer& TagsIn, 
+	const TArray<FGAEffectModifierSpec>& ModSpec)
+{
+	for (const FGameplayTag& Tag : TagsIn)
+	{
+		FGAEffectModifier* EffMod = Modifiers.Find(Tag);
+		if (!EffMod)
+			continue;
+
+		for (const FGAEffectModifierSpec spec : ModSpec)
+		{
+			EffMod->RemoveBonusOfType(spec.Mod, spec.ModifierType);
+		}
 	}
 }
 void FGAEffectModifierContainer::AddModifier(const FGAEffectModifierSpec& ModSpec, const FGameplayTagContainer& Tags,
@@ -650,6 +778,8 @@ FGAEffectHandle	FGAActiveEffectContainer::HandleInstigatorEffectStrongerOverride
 			AtrPtr->RemoveWeakerBonus(data.Mod, data.Value);
 		}
 	}
+
+	ModifierContainer.RemoveWeakerModifiers(EffectIn.EffectSpec->RequiredTags, EffectIn.EffectSpec->EffectModifiers);
 
 	RemoveActiveEffect(foundHandle);
 	FGAEffectHandle handle = AddActiveEffect(EffectIn, Ctx);

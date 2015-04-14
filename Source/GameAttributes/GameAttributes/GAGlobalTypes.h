@@ -28,7 +28,10 @@
 /*
 	I seriosuly need to clean this shit up.
 */
-/**/
+/*
+	TODO:: I probabaly need to change it to normal enum.
+	So I can use it as array indexes.
+*/
 UENUM()
 enum class EGAAttributeMod : uint8
 {

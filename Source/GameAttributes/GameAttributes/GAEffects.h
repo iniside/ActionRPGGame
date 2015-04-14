@@ -465,16 +465,25 @@ public:
 	FGAModifierStack IncomingStack;
 	FGAModifierStack OutgoingStack;
 
+	void RemoveWeakerBonus(EGAAttributeMod ModType, EGAModifierType EffectModType, float ValueIn);
+	void RemoveBonusOfType(EGAAttributeMod ModType, EGAModifierType EffectModType);
+	void RemoveBonus(const FGAEffectHandle& Handle);
+	void RemoveMod(const FGAEffectHandle& HandleIn);
+	void AddBonus(const FGAModifier& ModifiersIn, const FGAEffectHandle& Handle);
+protected:
 	TMap<FGAEffectHandle, TArray<FGAModifier>> IncomingModifiers;
 	TMap<FGAEffectHandle, TArray<FGAModifier>> OutgoingModifiers;
 
-	void RemoveMod(const FGAEffectHandle& HandleIn);
 	void CalculateIncomingBonus();
 	void CalculateOutgoingBonus();
-	void AddBonus(const FGAModifier& ModifiersIn, const FGAEffectHandle& Handle);
 	void AddIncomingBonus(const FGAModifier& ModifiersIn, const FGAEffectHandle& Handle);
 	void AddOutgoingBonus(const FGAModifier& ModifiersIn, const FGAEffectHandle& Handle);
-	void RemoveBonus(const FGAEffectHandle& Handle);
+	
+	void RemoveWeakerIncomingBonus(EGAAttributeMod ModType, float ValueIn);
+	void RemoveWeakerOutgoingBonus(EGAAttributeMod ModType, float ValueIn);
+
+	void RemoveIncomingBonusOfType(EGAAttributeMod ModType);
+	void RemoveOutgoingBonusOfType(EGAAttributeMod ModType);
 };
 
 /*
@@ -518,6 +527,16 @@ public:
 	TArray<FGAEffectModifierSpec> ModifiersSpecs;
 
 	void RemoveModifier(const FGameplayTagContainer& TagsIn, const FGAEffectHandle& HandleIn);
+	/**
+	 *	Removes modifiers, of the same tag and type, which are lower than ValueIn.
+	 */
+	void RemoveWeakerModifiers(const FGameplayTagContainer& TagsIn, 
+		const TArray<FGAEffectModifierSpec>& ModSpec);
+	/**
+	 *	Remove modifiers of the same tags and type.
+	 */
+	void RemoveModifiersByType(const FGameplayTagContainer& TagsIn, 
+		const TArray<FGAEffectModifierSpec>& ModSpec);
 	void AddModifier(const FGAEffectModifierSpec& ModSpec, const FGameplayTagContainer& Tags, 
 		const FGAEffectHandle HandleIn,
 		TSharedPtr<FGAActiveDuration> EffectPtr);
@@ -640,12 +659,20 @@ USTRUCT()
 struct FGAInstigatorAggregatedEffects
 {
 	GENERATED_USTRUCT_BODY()
+
+
+
+protected:
+	TMap<TWeakObjectPtr<class UGAAttributeComponent>, FGAInstigatorEffectContainer> Effects;
 };
 
 USTRUCT()
 struct FGATargetAggregatedEffects
 {
 	GENERATED_USTRUCT_BODY()
+
+protected:
+	TMap<FGAEffectName, TArray<FGAEffectHandle>> Effects;
 };
 
 /*
