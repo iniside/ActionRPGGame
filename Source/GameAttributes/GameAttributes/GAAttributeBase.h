@@ -1,7 +1,20 @@
 #pragma once
 #include "GAGlobalTypes.h"
 #include "GAAttributeBase.generated.h"
+/*
+	Base data structure describing Attribute:
+	1. Base Value - the base value attribute has been initialized with.
+	2. Current value - current value of attribute.
+	3. Bonuses value.
+	4. One bonus value (if need be attribute can take care of calculating it's own bonus value).
 
+	As for now it's made to in mind to use it as meta attribute. Meta attributes, have always
+	0 value and are used to change other attributes. Like Damage is used to subtract health.
+	LifeSteal is used to transfer health from target to instigator etc.
+
+	We could extend attributes, to also support tags, so their bonus can be recalculated,
+	based on on tags requiremnts from effect asking for this particular attribute.
+*/
 USTRUCT(BlueprintType)
 struct GAMEATTRIBUTES_API FGAAttributeBase
 {

@@ -28,11 +28,13 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffectSpec(const FHitResult& Target, A
 	FGAEffectContext context(Target.Location, Target.Actor, Causer,
 		Instigator, targetComp, instiComp);
 	FName EffectName;
-	if (SpecIn.GetDefaultObject()->EffectName.CustomName)
-		EffectName = SpecIn.GetDefaultObject()->EffectName.EffectName;
-	else
-		EffectName = SpecIn->GetFName();// Causer->GetClass()->GetFName();
-
+	if (SpecIn.GetDefaultObject()->Policy.Type != EGAEffectType::Instant)
+	{
+		if (SpecIn.GetDefaultObject()->EffectName.CustomName)
+			EffectName = SpecIn.GetDefaultObject()->EffectName.EffectName;
+		else
+			EffectName = SpecIn->GetFName();// Causer->GetClass()->GetFName();
+	}
 	ReturnHandle = instiComp->ApplyEffectToTarget(SpecIn, context, EffectName);
 	return ReturnHandle;
 }
@@ -49,10 +51,13 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffectActorSpec(AActor* Target, APawn*
 	FGAEffectContext context(Target->GetActorLocation(), Target, Causer,
 		Instigator, targetComp, instiComp);
 	FName EffectName;
-	if (SpecIn.GetDefaultObject()->EffectName.CustomName)
-		EffectName = SpecIn.GetDefaultObject()->EffectName.EffectName;
-	else
-		EffectName = SpecIn->GetFName();
+	if (SpecIn.GetDefaultObject()->Policy.Type != EGAEffectType::Instant)
+	{
+		if (SpecIn.GetDefaultObject()->EffectName.CustomName)
+			EffectName = SpecIn.GetDefaultObject()->EffectName.EffectName;
+		else
+			EffectName = SpecIn->GetFName();// Causer->GetClass()->GetFName();
+	}
 
 	//SpecIn.GetModifiers();
 	return instiComp->ApplyEffectToTarget(SpecIn, context, EffectName);

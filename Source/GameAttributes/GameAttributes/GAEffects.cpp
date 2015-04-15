@@ -732,26 +732,17 @@ FGAEffectHandle FGAActiveEffectContainer::HandleInstigatorAggregationEffect(FGAE
 FGAEffectHandle	FGAActiveEffectContainer::HandleInstigatorEffectStrongerOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
 	/*
-		To Consider:
-		1. Current implementation does not check for tags or consider other effects.
-		When FGAAttributeBase attribute is modified by DurationAttribute, we just check
-		if incoming attribute have the same mode type and have higher value.
-		If it does, we simply remove old modifier, and apply new one.
-		Should we check for tags ? (in this case we would need to modify, FGAModifer, to contains
-		info about tag, or pointer to effect, which applied, from which we could pull tags).
-		Should we check for effect name ? Ie. only the same effect type can override attributes
-		(that's kind of pointless, since same effect, should just override it's older copy).
+		How does it work ?
+		1. If there effect of the same name active, we find it and remove it.
+		WE can safely assume, that effect of the same name is either the same or stronger.
+		2. For effect modifiers, we don't check for effect, we just check for it's tag and type.
+		If it is weaker, remove it, and replace with new one.
+		3. The same goes for attribute modifiers.
 
-
-		What for other attributes attributes ?
-		InitialAttribute is not important.
-		PeriodAttribute, RemovedAttribute,  ExpiredAttribute
-		- thos modify only, primitive attributes (floats)
-		*/
+		It's bit inconsistent to say at least..
+	*/
 	FGAInstigatorEffectContainer& instCont = InstigatorEffects.FindOrAdd(Ctx.InstigatorComp);
 	FGAEffectHandle foundHandle;
-
-
 	for (FGAEffectTagHandle& eff : instCont.Effects)
 	{
 		if (eff.EffectName == EffectIn.EffectName)
@@ -800,6 +791,8 @@ FGAEffectHandle FGAActiveEffectContainer::HandleInstigatorEffectOverride(FGAEffe
 			break;
 		}
 	}
+	ModifierContainer.RemoveModifiersByType(EffectIn.EffectSpec->RequiredTags, EffectIn.EffectSpec->EffectModifiers);
+
 	/*
 		1. If effect is set to override should:
 		a). Remove all attribute modifiers, which are the same as ours ?

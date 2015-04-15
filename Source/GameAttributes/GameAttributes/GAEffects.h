@@ -2,20 +2,7 @@
 #include "GAGlobalTypes.h"
 #include "GAAttributeBase.h"
 #include "GAEffects.generated.h"
-/*
-	Random idea, so I wont forget it.
 
-	Add scoped attributes, (as template).
-	Scoped attribute, will contain names of all attributes, which are going to be needed
-	in final calculation of attribute modification. It does not contain information on how
-	these attribute are going to be used, only that these attributes are needed.
-
-	Since, there is myriad of possible attributes combinations, we need some way to template,
-	which attributes are needed for which modification, so designer can simply select,
-	template from list.
-	It can be class (UObject), or something else. 
-	
-	*/
 /*
 */
 DECLARE_MULTICAST_DELEGATE_OneParam(FGASimpleEffectDelegate, const FGAEffectHandle&);
