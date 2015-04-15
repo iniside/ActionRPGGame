@@ -1,6 +1,7 @@
 #pragma once
 #include "IGIPawn.h"
 #include "IGISkeletalMesh.h"
+#include "GSAbilityBase.h"
 #include "GASAbility.generated.h"
 
 USTRUCT(BlueprintType)
@@ -15,31 +16,16 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Hit")
 		FVector HitLocation;
 };
-/*
-	Abilites do not rely on AbilitiesComponent specifically to work. If used without component,
-	replication and RPC support must coded within actor, they are being used. Alternatively they can
-	be only used server-side/standalone.
 
-	Abilities are base encapsulation class, for all actions, which can be performed by actors
-	(or more likely Pawns). These actions can vary from MoveForward, Jump, Fire Gun, to 
-	Cast spell.
-	How exactly you will implement weapon fire ability is up to you, I would suggest giving ability 
-	reference to weapon actor, and on input press simply route all input to relevelant actor.
-	This way, ability will be just simple proxy, which can be used in various systems
-	(Behaviour trees for example), which store some generic information about current weapon,
-	like tags, current ammo (in form of getter), etc. Exact details depends on your weapon,
-	but you should have some idea right now, what is it about, and there will be sample implementation,
-	in GameSystem module.
-*/
-/*
-	1. Add linked (sequence) abilities. Which means, when user press input, and ability is executed,
-	next ability is queued and wait for input, without triggering cost/cooldown, but still
-	might trigger cast time. (or probabaly left it as configuration options)
-*/
 DECLARE_DELEGATE(FGASOnAbilityCasted)
-
+/*
+	TODO::
+	1. Move some functionality up to UGSAbilityBase.
+	2. Change name of this class to UGSAbilityState (?). It will better describe,
+	that this particular ability type, implement state machine.
+*/
 UCLASS(BlueprintType, Blueprintable, DefaultToInstanced)
-class GAMEABILITIES_API UGASAbility : public UObject, public FTickableGameObject, public IIGIPawn
+class GAMEABILITIES_API UGASAbility : public UGSAbilityBase, public FTickableGameObject, public IIGIPawn
 	, public IIGISkeletalMesh
 {
 	GENERATED_BODY()
