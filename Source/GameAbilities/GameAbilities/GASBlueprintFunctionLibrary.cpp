@@ -4,7 +4,6 @@
 
 #include "GASAbility.h"
 #include "GASEffectField.h"
-#include "Projectiles/GASProjectile.h"
 #include "Tracing/GASTrace.h"
 #include "GASBlueprintFunctionLibrary.h"
 
@@ -55,46 +54,4 @@ class AGASEffectField* UGASBlueprintFunctionLibrary::FinishCreateEffectField(cla
 		//EffectField->InitializeField();
 	}
 	return EffectField;
-}
-
-class AGASProjectile* UGASBlueprintFunctionLibrary::BeginSpawnProjectile(TSubclassOf<class AGASProjectile> ProjectileClass
-, const FGASProjectileConfig& Config
-, class UGASAbility* AbilityInstigator)
-{
-	AGASProjectile* Proj = nullptr;
-	if (!ProjectileClass && !AbilityInstigator)
-		return Proj;
-	if (!AbilityInstigator->GetWorld())
-		return Proj;
-	UWorld* world = AbilityInstigator->GetWorld();
-	
-	FRotator Rot = FRotator::ZeroRotator; // ShootDir.Rotation();
-	FVector hit = AbilityInstigator->Targeting->GetSingHitLocation();
-	
-	FVector SpawnLocation = AbilityInstigator->GetSocketLocation(" ");
-	FVector ShootDir = (hit - SpawnLocation).GetSafeNormal();
-
-	Proj = world->SpawnActorDeferred<AGASProjectile>(ProjectileClass, SpawnLocation,
-	Rot, AbilityInstigator->POwner, AbilityInstigator->POwner, false);
-
-	
-	if (Proj)
-	{
-		Proj->ProjectileConfig = Config;
-		Proj->Initialize(ShootDir);
-	}
-
-	return Proj;
-}
-
-
-class AGASProjectile* UGASBlueprintFunctionLibrary::FinishSpawnProjectile(class AGASProjectile* Projectile)
-{
-	if (Projectile)
-	{
-		FTransform Trans;// = Projectile->GetTransform();;
-		Trans.SetLocation(Projectile->GetActorLocation());
-		Projectile->FinishSpawning(Trans);
-	}
-	return Projectile;
 }

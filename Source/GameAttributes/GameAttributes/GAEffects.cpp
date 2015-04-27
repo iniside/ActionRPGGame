@@ -604,16 +604,7 @@ void FGAActiveEffectContainer::RemoveActiveEffect(const FGAEffectHandle& HandleI
 }
 void FGAActiveEffectContainer::RemoveTargetAggregation(TSharedPtr<FGAActiveDuration> EffectIn)
 {
-	TArray<FGAEffectHandle>* handles;
-	handles = MyEffects.Find(EffectIn->EffectName);
-
-	for (auto It = handles->CreateIterator(); It; ++It)
-	{
-		if (*It == EffectIn->MyHandle)
-		{
-			handles->RemoveAtSwap(It.GetIndex());
-		}
-	}
+	TargetEffects.RemoveEffect(EffectIn->EffectName, EffectIn->MyHandle);
 }
 void FGAActiveEffectContainer::RemoveInstigatorAggregation(TSharedPtr<FGAActiveDuration> EffectIn)
 {
@@ -903,8 +894,7 @@ FGAEffectHandle	FGAActiveEffectContainer::HandleTargetEffectStrongerOverride(FGA
 }
 FGAEffectHandle FGAActiveEffectContainer::HandleTargetEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
-	TArray<FGAEffectHandle> handles;
-	handles = MyEffects.FindRef(EffectIn.EffectName);
+	TArray<FGAEffectHandle> handles = TargetEffects.GetHandles(EffectIn.EffectName);
 
 	for (const FGAEffectHandle& hand : handles)
 	{
@@ -912,18 +902,14 @@ FGAEffectHandle FGAActiveEffectContainer::HandleTargetEffectOverride(FGAEffectSp
 	}
 
 	FGAEffectHandle newHandle = AddActiveEffect(EffectIn, Ctx);
-
-	TArray<FGAEffectHandle>& addedHandle = MyEffects.FindOrAdd(EffectIn.EffectName);
-	addedHandle.Add(newHandle);
+	TargetEffects.AddEffect(EffectIn.EffectName, newHandle);
 
 	return newHandle;
 }
 
 FGAEffectHandle FGAActiveEffectContainer::HandleTargetEffectDuration(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
-	TArray<FGAEffectHandle> handles;
-	handles = MyEffects.FindRef(EffectIn.EffectName);
-
+	TArray<FGAEffectHandle> handles = TargetEffects.GetHandles(EffectIn.EffectName);;
 	for (FGAEffectHandle& hand : handles)
 	{
 		if (hand.IsValid())
@@ -941,8 +927,7 @@ FGAEffectHandle FGAActiveEffectContainer::HandleTargetEffectDuration(FGAEffectSp
 		//if handle is not valid, it means there is no effect,
 		//and this means we have to add new effect.
 		returnHandle = AddActiveEffect(EffectIn, Ctx);
-		handles.Add(returnHandle);
-		MyEffects.Add(EffectIn.EffectName, handles);
+		TargetEffects.AddEffect(EffectIn.EffectName, returnHandle);
 	}
 	return returnHandle;
 }
@@ -956,8 +941,7 @@ FGAEffectHandle FGAActiveEffectContainer::HandleTargetEffectAdd(FGAEffectSpec& E
 {
 	FGAEffectHandle newHandle = AddActiveEffect(EffectIn, Ctx);
 
-	TArray<FGAEffectHandle>& addedHandle = MyEffects.FindOrAdd(EffectIn.EffectName);
-	addedHandle.Add(newHandle);
+	TargetEffects.AddEffect(EffectIn.EffectName, newHandle);
 
 	return newHandle;
 }

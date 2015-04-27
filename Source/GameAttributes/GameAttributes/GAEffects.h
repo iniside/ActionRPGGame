@@ -665,6 +665,36 @@ struct FGATargetAggregatedEffects
 
 protected:
 	TMap<FGAEffectName, TArray<FGAEffectHandle>> Effects;
+public:
+	TArray<FGAEffectHandle> GetHandles(const FGAEffectName& NameIn)
+	{
+		return Effects.FindRef(NameIn);
+	}
+
+	void AddEffect(const FGAEffectName& NameIn, const FGAEffectHandle& HandleIn)
+	{
+		TArray<FGAEffectHandle> handles = Effects.FindOrAdd(NameIn);
+
+		handles.Add(HandleIn);
+	}
+
+	void RemoveEffect(const FGAEffectName& NameIn, const FGAEffectHandle& HandleIn)
+	{
+		TArray<FGAEffectHandle>* handles;
+		handles = Effects.Find(NameIn);
+
+		for (auto It = handles->CreateIterator(); It; ++It)
+		{
+			if (*It == HandleIn)
+			{
+				handles->RemoveAtSwap(It.GetIndex());
+			}
+		}
+		if (handles->Num() == 0)
+		{
+			Effects.Remove(NameIn);
+		}
+	}
 };
 
 /*
