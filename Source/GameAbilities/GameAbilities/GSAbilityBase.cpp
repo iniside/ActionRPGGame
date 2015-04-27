@@ -7,5 +7,4 @@
 UGSAbilityBase::UGSAbilityBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-
 }

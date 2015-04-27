@@ -646,11 +646,16 @@ USTRUCT()
 struct FGAInstigatorAggregatedEffects
 {
 	GENERATED_USTRUCT_BODY()
-
-
-
 protected:
 	TMap<TWeakObjectPtr<class UGAAttributeComponent>, FGAInstigatorEffectContainer> Effects;
+
+public:
+	FGAEffectHandle FindHandle(class UGAAttributeComponent* AttrComp, const FGAEffectName& EffectName);
+
+	void AddEffect(class UGAAttributeComponent* AttrComp, const FGAEffectName& EffectNameIn,
+		const FGAEffectHandle& HandleIn);
+
+	void RemoveEffect(class UGAAttributeComponent* AttrComp, const FGAEffectHandle& HandleIn);
 };
 
 USTRUCT()
@@ -694,12 +699,17 @@ public:
 		Group effects, by instigator who applied to it.
 		Each instigator get separate pool, against which stacking rules are checked.
 	*/
-	TMap<TWeakObjectPtr<class UGAAttributeComponent>, FGAInstigatorEffectContainer> InstigatorEffects;
+	//TMap<TWeakObjectPtr<class UGAAttributeComponent>, FGAInstigatorEffectContainer> InstigatorEffects;
 
 	/*
 		Effects aggregated by Target.
 	*/
 	TMap<FGAEffectName, TArray<FGAEffectHandle>> MyEffects;
+
+	/* Effects aggregated per instigator who applied. */
+	FGAInstigatorAggregatedEffects InstigatorEffects;
+	/* Effects aggregated based on target, to which effect is applied (by Me) */
+	FGATargetAggregatedEffects TargetEffects;
 
 	FGAEffectModifierContainer ModifierContainer;
 

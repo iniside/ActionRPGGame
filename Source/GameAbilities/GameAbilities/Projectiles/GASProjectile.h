@@ -20,7 +20,7 @@ public:
 public:
 	AGASProjectile(const FObjectInitializer& ObjectInitializer);
 
-	UPROPERTY(BlueprintReadWrite, Category = "Projectile Params")
+	UPROPERTY(BlueprintReadWrite, meta=(ExposeOnSpawn), Category = "Projectile Params")
 		FGASProjectileConfig ProjectileConfig;
 protected:
 	FTimerHandle ProjectileLifeTimeTimerHandle;

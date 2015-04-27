@@ -498,6 +498,41 @@ FGAModifierStack FGAEffectModifierContainer::GetOutgoingModifierStack(const FGAA
 	}
 	return StackOut;
 }
+
+FGAEffectHandle FGAInstigatorAggregatedEffects::FindHandle(class UGAAttributeComponent* AttrComp, const FGAEffectName& EffectName)
+{
+	FGAInstigatorEffectContainer& instCont = Effects.FindOrAdd(AttrComp);
+	FGAEffectHandle foundHandle;
+	for (FGAEffectTagHandle& eff : instCont.Effects)
+	{
+		if (eff.EffectName == EffectName)
+		{
+			foundHandle = eff.Handle;
+			break;
+		}
+	}
+	return foundHandle;
+}
+
+void FGAInstigatorAggregatedEffects::AddEffect(class UGAAttributeComponent* AttrComp, const FGAEffectName& EffectNameIn,
+	const FGAEffectHandle& HandleIn)
+{
+	FGAInstigatorEffectContainer& instCont = Effects.FindOrAdd(AttrComp);
+	instCont.Effects.Add(FGAEffectTagHandle(EffectNameIn, HandleIn));
+}
+void FGAInstigatorAggregatedEffects::RemoveEffect(class UGAAttributeComponent* AttrComp, const FGAEffectHandle& HandleIn)
+{
+	FGAInstigatorEffectContainer* cont = Effects.Find(AttrComp);
+	if (!cont)
+		return;
+	for (auto It = cont->Effects.CreateIterator(); It; ++It)
+	{
+		if (It->Handle == HandleIn)
+		{
+			cont->Effects.RemoveAtSwap(It.GetIndex());
+		}
+	}
+}
 FGAEffectHandle FGAActiveEffectContainer::ApplyEffect(TSubclassOf<class UGAEffectSpecification> SpecIn,
 	const FGAEffectContext& Ctx, const FName& EffectName)
 {
@@ -582,16 +617,7 @@ void FGAActiveEffectContainer::RemoveTargetAggregation(TSharedPtr<FGAActiveDurat
 }
 void FGAActiveEffectContainer::RemoveInstigatorAggregation(TSharedPtr<FGAActiveDuration> EffectIn)
 {
-	FGAInstigatorEffectContainer& instCont = InstigatorEffects.FindOrAdd(EffectIn->Context.InstigatorComp);
-
-	for (auto It = instCont.Effects.CreateIterator(); It; ++It)
-	{
-		if (It->Handle == EffectIn->MyHandle)
-		{
-			instCont.Effects.RemoveAtSwap(It.GetIndex());
-		}
-	}
-
+	InstigatorEffects.RemoveEffect(EffectIn->Context.InstigatorComp.Get(), EffectIn->MyHandle);
 }
 FGAEffectHandle FGAActiveEffectContainer::AddActiveEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
@@ -741,16 +767,7 @@ FGAEffectHandle	FGAActiveEffectContainer::HandleInstigatorEffectStrongerOverride
 
 		It's bit inconsistent to say at least..
 	*/
-	FGAInstigatorEffectContainer& instCont = InstigatorEffects.FindOrAdd(Ctx.InstigatorComp);
-	FGAEffectHandle foundHandle;
-	for (FGAEffectTagHandle& eff : instCont.Effects)
-	{
-		if (eff.EffectName == EffectIn.EffectName)
-		{
-			foundHandle = eff.Handle;
-			break;
-		}
-	}
+	FGAEffectHandle foundHandle = InstigatorEffects.FindHandle(Ctx.InstigatorComp.Get(), EffectIn.EffectName);
 
 	/*
 		If stacking is StrongerOverride, we first check if attribute is already modified by anything.
@@ -774,23 +791,13 @@ FGAEffectHandle	FGAActiveEffectContainer::HandleInstigatorEffectStrongerOverride
 
 	RemoveActiveEffect(foundHandle);
 	FGAEffectHandle handle = AddActiveEffect(EffectIn, Ctx);
-
-	FGAEffectTagHandle nameHandle(EffectIn.EffectName, handle);
-	instCont.Effects.Add(nameHandle);
+	InstigatorEffects.AddEffect(Ctx.InstigatorComp.Get(), EffectIn.EffectName, handle);
 	return handle;
 }
 FGAEffectHandle FGAActiveEffectContainer::HandleInstigatorEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
-	FGAInstigatorEffectContainer& instCont = InstigatorEffects.FindOrAdd(Ctx.InstigatorComp);
-	FGAEffectHandle foundHandle;// = instCont.EffectsByName.FindRef(EffectIn.EffectName);
-	for (FGAEffectTagHandle& eff : instCont.Effects)
-	{
-		if (eff.EffectName == EffectIn.EffectName)
-		{
-			foundHandle = eff.Handle;
-			break;
-		}
-	}
+	FGAEffectHandle foundHandle = InstigatorEffects.FindHandle(Ctx.InstigatorComp.Get(), EffectIn.EffectName);
+
 	ModifierContainer.RemoveModifiersByType(EffectIn.EffectSpec->RequiredTags, EffectIn.EffectSpec->EffectModifiers);
 
 	/*
@@ -811,24 +818,13 @@ FGAEffectHandle FGAActiveEffectContainer::HandleInstigatorEffectOverride(FGAEffe
 	RemoveActiveEffect(foundHandle);
 
 	FGAEffectHandle handle = AddActiveEffect(EffectIn, Ctx);
-	FGAEffectTagHandle nameHandle(EffectIn.EffectName, handle);
-	instCont.Effects.Add(nameHandle);
+	InstigatorEffects.AddEffect(Ctx.InstigatorComp.Get(), EffectIn.EffectName, handle);
 
 	return handle;
 }
 FGAEffectHandle	FGAActiveEffectContainer::HandleInstigatorEffectDuration(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
-	FGAEffectHandle foundHandle;
-	FGAInstigatorEffectContainer& instCont = InstigatorEffects.FindOrAdd(Ctx.InstigatorComp);
-
-	for (FGAEffectTagHandle& eff : instCont.Effects)
-	{
-		if (EffectIn.EffectName == eff.EffectName)
-		{
-			foundHandle = eff.Handle;
-			break;
-		}
-	}
+	FGAEffectHandle foundHandle = InstigatorEffects.FindHandle(Ctx.InstigatorComp.Get(), EffectIn.EffectName);;
 
 	if (foundHandle.IsValid())
 	{
@@ -843,7 +839,7 @@ FGAEffectHandle	FGAActiveEffectContainer::HandleInstigatorEffectDuration(FGAEffe
 		//if handle is not valid, it means there is no effect,
 		//and this means we have to add new effect.
 		foundHandle = AddActiveEffect(EffectIn, Ctx);
-		instCont.Effects.Add(FGAEffectTagHandle(EffectIn.EffectName, foundHandle));
+		InstigatorEffects.AddEffect(Ctx.InstigatorComp.Get(), EffectIn.EffectName, foundHandle);
 	}
 
 	return foundHandle;

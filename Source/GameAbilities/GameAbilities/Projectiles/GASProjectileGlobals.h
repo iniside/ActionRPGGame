@@ -11,31 +11,31 @@ struct GAMEABILITIES_API FGASProjectileConfig
 {
 	GENERATED_USTRUCT_BODY();
 public:
-	UPROPERTY(EditAnywhere, meta = (ExposedOnSpawn), Category = "Projectile Params") //possibly change to ExposeOnSpawn instead.
+	UPROPERTY(EditAnywhere, meta = (ExposeOnSpawn), Category = "Projectile Params") //possibly change to ExposeOnSpawn instead.
 		float InitialVelocity;
 
-	UPROPERTY(EditAnywhere, meta = (ExposedOnSpawn), Category = "Projectile Params") //possibly change to ExposeOnSpawn instead.
+	UPROPERTY(EditAnywhere, meta = (ExposeOnSpawn), Category = "Projectile Params") //possibly change to ExposeOnSpawn instead.
 		float MaximumVelocity;
 
-	UPROPERTY(EditAnywhere, meta = (ExposedOnSpawn), Category = "Projectile Params")
+	UPROPERTY(EditAnywhere, meta = (ExposeOnSpawn), Category = "Projectile Params")
 		bool bShouldBounce;
 
-	UPROPERTY(EditAnywhere, meta = (ExposedOnSpawn), Category = "Projectile Params")
+	UPROPERTY(EditAnywhere, meta = (ExposeOnSpawn), Category = "Projectile Params")
 		bool bIsHomingProjectile;
 
-	UPROPERTY(EditAnywhere, meta = (ExposedOnSpawn), Category = "Projectile Params")
+	UPROPERTY(EditAnywhere, meta = (ExposeOnSpawn), Category = "Projectile Params")
 		bool bIsSliding;
 
-	UPROPERTY(EditAnywhere, meta = (ExposedOnSpawn), Category = "Projectile Params") //possibly change to ExposeOnSpawn instead.
+	UPROPERTY(EditAnywhere, meta = (ExposeOnSpawn), Category = "Projectile Params") //possibly change to ExposeOnSpawn instead.
 		float GravityScale;
 
-	UPROPERTY(EditAnywhere, meta = (ExposedOnSpawn), Category = "Projectile Params") //possibly change to ExposeOnSpawn instead.
+	UPROPERTY(EditAnywhere, meta = (ExposeOnSpawn), Category = "Projectile Params") //possibly change to ExposeOnSpawn instead.
 		float Bounciness;
 
-	UPROPERTY(EditAnywhere, meta = (ExposedOnSpawn), Category = "Projectile Params") //possibly change to ExposeOnSpawn instead.
+	UPROPERTY(EditAnywhere, meta = (ExposeOnSpawn), Category = "Projectile Params") //possibly change to ExposeOnSpawn instead.
 		int32 MaxBounces;
 
-	UPROPERTY(EditAnywhere, meta = (ExposedOnSpawn), Category = "Projectile Params") //possibly change to ExposeOnSpawn instead.
+	UPROPERTY(EditAnywhere, meta = (ExposeOnSpawn), Category = "Projectile Params") //possibly change to ExposeOnSpawn instead.
 		float Friction;
 	/*
 		Maximum life time of projectile. After this time projectile will self destroy.
