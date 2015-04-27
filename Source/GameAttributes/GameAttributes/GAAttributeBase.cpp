@@ -36,8 +36,18 @@ void FGAAttributeBase::InstantApplication(const FGAModifier& ModifierIn)
 	}
 }
 
-void FGAAttributeBase::AddBonus(const FGAModifier& ModifiersIn, const FGAEffectHandle& Handle)
+void FGAAttributeBase::AddBonus(const FGAModifier& ModifiersIn, const FGAEffectHandle& Handle
+	, EGAEffectStacking StackingType)
 {
+	switch (StackingType)
+	{
+	case EGAEffectStacking::Override:
+		RemoveBonusByType(ModifiersIn.AttributeMod);
+		break;
+	case EGAEffectStacking::StrongerOverride:
+		RemoveWeakerBonus(ModifiersIn.AttributeMod, ModifiersIn.Value);
+		break;
+	}
 	TArray<FGAModifier>& modsTemp = Modifiers.FindOrAdd(Handle);
 	modsTemp.Add(ModifiersIn);
 	CalculateBonus();

@@ -280,7 +280,7 @@ void FGAActiveDuration::OnApplied()
 		if (attr)
 		{
 			TSharedPtr<FGAActiveDuration> temp = AsShared();
-			attr->AddBonus(FGAModifier(data.Mod, data.Value, temp), MyHandle);
+			attr->AddBonus(FGAModifier(data.Mod, data.Value, temp), MyHandle, Stacking);
 		}
 	}
 }
@@ -877,8 +877,7 @@ FGAEffectHandle FGAActiveEffectContainer::HandleTargetAggregationEffect(FGAEffec
 }
 FGAEffectHandle	FGAActiveEffectContainer::HandleTargetEffectStrongerOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
-	TArray<FGAEffectHandle> handles;
-	handles = MyEffects.FindRef(EffectIn.EffectName);
+	TArray<FGAEffectHandle> handles = TargetEffects.GetHandles(EffectIn.EffectName);
 
 	for (const FGAEffectHandle& hand : handles)
 	{
@@ -887,8 +886,7 @@ FGAEffectHandle	FGAActiveEffectContainer::HandleTargetEffectStrongerOverride(FGA
 
 	FGAEffectHandle handle = AddActiveEffect(EffectIn, Ctx);
 
-	TArray<FGAEffectHandle>& addedHandle = MyEffects.FindOrAdd(EffectIn.EffectName);
-	addedHandle.Add(handle);
+	TargetEffects.AddEffect(EffectIn.EffectName, handle);
 
 	return handle;
 }

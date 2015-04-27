@@ -7,6 +7,17 @@
 /*
 	Class which is used as default template for effects. 
 
+	Effect Specifiction is not effect per se, it just contain data, from which various
+	types of effects might be constructed.
+	
+	We have few effect types, which works independently of each other and can be made from single
+	spec:
+	1. Attribute Modifiers - from them effect modifing attributes will be created.
+	These are most complicated effects, as it can apply conditional effects, use custom calculations,
+	use instance and non-instanced effect extensions.
+	2. Effect Modifiers - these will create effects, which will modify Attribute Modifiers,
+	on other effects. You can think of this part as ordinary buff/debuff
+
 	Do not make event graph in here (I mean you can, but's never going to be executed).
 */
 UCLASS(BlueprintType, Blueprintable)

@@ -94,7 +94,8 @@ public:
 	*/
 	void InstantApplication(const FGAModifier& ModifierIn);
 
-	void AddBonus(const FGAModifier& ModifiersIn, const FGAEffectHandle& Handle);
+	void AddBonus(const FGAModifier& ModifiersIn, const FGAEffectHandle& Handle
+		, EGAEffectStacking StackingType);
 	void RemoveBonus(const FGAEffectHandle& Handle);
 	/*
 		Removes bonus from this attribute based on it's type.

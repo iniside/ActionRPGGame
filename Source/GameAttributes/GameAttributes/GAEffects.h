@@ -721,21 +721,6 @@ public:
 	UPROPERTY()
 		TArray<FGAActiveEffect> RepActiveEffects;
 
-	/*
-		Put both Instigator and MyEffects in separater structs.
-		Why ? To make them easier to manage.
-	*/
-	/*
-		Group effects, by instigator who applied to it.
-		Each instigator get separate pool, against which stacking rules are checked.
-	*/
-	//TMap<TWeakObjectPtr<class UGAAttributeComponent>, FGAInstigatorEffectContainer> InstigatorEffects;
-
-	/*
-		Effects aggregated by Target.
-	*/
-	TMap<FGAEffectName, TArray<FGAEffectHandle>> MyEffects;
-
 	/* Effects aggregated per instigator who applied. */
 	FGAInstigatorAggregatedEffects InstigatorEffects;
 	/* Effects aggregated based on target, to which effect is applied (by Me) */
