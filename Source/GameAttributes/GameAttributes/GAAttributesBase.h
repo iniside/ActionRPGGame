@@ -46,7 +46,7 @@ public:
 
 	virtual void InitializeAttributes();
 
-	UFUNCTION(BlueprintImplementableEvent, meta = (FriendlyName = "Initialize Attributes"))
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Initialize Attributes"))
 		bool BP_InitializeAttributes();
 	/*
 		Updates attributes.

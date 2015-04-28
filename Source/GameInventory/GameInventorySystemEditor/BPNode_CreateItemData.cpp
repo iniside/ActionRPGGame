@@ -11,7 +11,7 @@
 #include "KismetCompiler.h"
 #include "BlueprintNodeSpawner.h"
 #include "EditorCategoryUtils.h"
-#include "K2ActionMenuBuilder.h"
+#include "BlueprintActionMenuBuilder.h"
 
 #include "BPNode_CreateItemData.h"
 
@@ -70,17 +70,17 @@ FText UBPNode_CreateItemData::GetMenuCategory() const
 	return FText::FromString("Game Inventory System");
 }
 
-void UBPNode_CreateItemData::GetMenuEntries(FGraphContextMenuBuilder& ContextMenuBuilder) const
-{
-	UBPNode_CreateItemData* TemplateNode = NewObject<UBPNode_CreateItemData>(GetTransientPackage(), GetClass());
-
-	const FString Category = TEXT("Game Inventory System");
-	const FText   MenuDesc = LOCTEXT("CreateItemDataMenuOption", "Create Item Data...");
-	const FString Tooltip = TEXT("Create a new Item Data container");
-
-	TSharedPtr<FEdGraphSchemaAction_K2NewNode> NodeAction = FK2ActionMenuBuilder::AddNewNodeAction(ContextMenuBuilder, Category, MenuDesc, Tooltip);
-	NodeAction->NodeTemplate = TemplateNode;
-}
+//void UBPNode_CreateItemData::GetMenuEntries(FGraphContextMenuBuilder& ContextMenuBuilder) const
+//{
+//	UBPNode_CreateItemData* TemplateNode = NewObject<UBPNode_CreateItemData>(GetTransientPackage(), GetClass());
+//
+//	const FString Category = TEXT("Game Inventory System");
+//	const FText   MenuDesc = LOCTEXT("CreateItemDataMenuOption", "Create Item Data...");
+//	const FString Tooltip = TEXT("Create a new Item Data container");
+//
+//	TSharedPtr<FEdGraphSchemaAction_K2NewNode> NodeAction = FBlueprintActionMenuBuilder::AddNewNodeAction(ContextMenuBuilder, Category, MenuDesc, Tooltip);
+//	NodeAction->NodeTemplate = TemplateNode;
+//}
 
 //gets out predefined pin
 UEdGraphPin* UBPNode_CreateItemData::GetOwningPlayerPin() const

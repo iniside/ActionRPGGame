@@ -14,10 +14,10 @@ UGSMasterWidget::UGSMasterWidget(const FObjectInitializer& ObjectInitializer)
 
 }
 
-bool UGSMasterWidget::OnDrop_Implementation(FGeometry MyGeometry, FPointerEvent PointerEvent, UDragDropOperation* Operation)
+bool UGSMasterWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
 	//handle dropping item from inventory to world.
-	if (UGISItemBaseWidget* item = Cast<UGISItemBaseWidget>(Operation->Payload))
+	if (UGISItemBaseWidget* item = Cast<UGISItemBaseWidget>(InOperation->Payload))
 	{
 		if (item->InventoryComponent)
 		{

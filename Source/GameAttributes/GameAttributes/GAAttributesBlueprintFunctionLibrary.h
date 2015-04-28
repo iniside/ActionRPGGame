@@ -9,7 +9,7 @@ class GAMEATTRIBUTES_API UGAAttributesBlueprintFunctionLibrary : public UBluepri
 {
 	GENERATED_UCLASS_BODY()
 public:
-	UFUNCTION(BlueprintPure, meta=(FriendlyName="Equal"), Category = "GameAttributes")
+	UFUNCTION(BlueprintPure, meta=(DisplayName="Equal"), Category = "GameAttributes")
 		static bool EqualAttribute(const FGAAttribute& Compare, FGAAttribute Against);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")

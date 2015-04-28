@@ -301,16 +301,16 @@ protected:
 
 	virtual void OnRep_HitInfo() override;
 public:
-	UFUNCTION(BlueprintImplementableEvent, meta = (FriendlyName = "On Weapon Firing"))
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "On Weapon Firing"))
 		void OnWeaponFiring(const FVector& Origin, const FVector& HitLocation);
 
-	UFUNCTION(BlueprintImplementableEvent, meta = (FriendlyName = "On Reload Begin"))
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "On Reload Begin"))
 		void OnReloadBegin();
 
-	UFUNCTION(BlueprintImplementableEvent, meta = (FriendlyName = "On Reload End"))
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "On Reload End"))
 		void OnReloadEnd();
 
-	UFUNCTION(BlueprintImplementableEvent, meta = (FriendlyName = "On Weapon Charging"))
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "On Weapon Charging"))
 		void OnWeaponCharging();
 private:
 	class IIGISkeletalMesh* SkeletalMeshInt;

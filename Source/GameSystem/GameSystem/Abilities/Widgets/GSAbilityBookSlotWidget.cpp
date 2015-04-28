@@ -14,10 +14,10 @@ UGSAbilityBookSlotWidget::UGSAbilityBookSlotWidget(const FObjectInitializer& Obj
 {
 }
 
-FEventReply UGSAbilityBookSlotWidget::OnMouseButtonDown_Implementation(FGeometry MyGeometry, const FPointerEvent& MouseEvent)
+FReply UGSAbilityBookSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	FEventReply Reply;
-	if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	FReply Reply = FReply::Handled();
+	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
 		//no item no mouse interaction for dragging and dropping.
 		if (!SlotInfo.AbilityClass)
@@ -26,14 +26,14 @@ FEventReply UGSAbilityBookSlotWidget::OnMouseButtonDown_Implementation(FGeometry
 		TSharedPtr<SWidget> DetectingDrag = this->GetCachedWidget();
 		if (DetectingDrag.IsValid())
 		{
-			Reply.NativeReply = Reply.NativeReply.DetectDrag(DetectingDrag.ToSharedRef(), EKeys::LeftMouseButton);
+			Reply = Reply.DetectDrag(DetectingDrag.ToSharedRef(), EKeys::LeftMouseButton);
 		}
 	}
 
 	return Reply;
 }
 
-void UGSAbilityBookSlotWidget::OnDragDetected_Implementation(FGeometry MyGeometry, const FPointerEvent& PointerEvent, UDragDropOperation*& Operation)
+void UGSAbilityBookSlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& InOperation)
 {
 	UWidget* superWidget = GetWidgetFromName(SlotName);
 	UOverlay* overlay = Cast<UOverlay>(superWidget);
@@ -44,17 +44,17 @@ void UGSAbilityBookSlotWidget::OnDragDetected_Implementation(FGeometry MyGeometr
 		ItemWidget->SlotInfo = SlotInfo;
 	}
 
-	UDragDropOperation* DragDropOp = ConstructObject<UDragDropOperation>(UDragDropOperation::StaticClass());
+	UDragDropOperation* DragDropOp = NewObject<UDragDropOperation>(UDragDropOperation::StaticClass());
 	if (DragDropOp)
 	{
 		DragDropOp->Payload = ItemWidget;
 		DragDropOp->DefaultDragVisual = ItemWidget;
 
-		Operation = DragDropOp;
+		InOperation = DragDropOp;
 	}
 }
 
-bool UGSAbilityBookSlotWidget::OnDrop_Implementation(FGeometry MyGeometry, FPointerEvent PointerEvent, UDragDropOperation* Operation)
+bool UGSAbilityBookSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
 	return false;
 }

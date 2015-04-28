@@ -214,7 +214,7 @@ struct GAMEINVENTORYSYSTEM_API FGISSlotSwapInfo
 {
 	GENERATED_USTRUCT_BODY()
 public:
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 		int8 ReplicationCounter;
 	UPROPERTY(BlueprintReadOnly)
 		int32 LastTabIndex;

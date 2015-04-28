@@ -149,7 +149,7 @@ protected:
 		TabIndex - easily accessible Index of this tab.
 		TabSlots<> array of inventory Slots in this Tab.
 	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, ReplicatedUsing=OnRep_InventoryCreated, RepRetry, Category = "Inventory")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, ReplicatedUsing=OnRep_InventoryCreated, Category = "Inventory")
 		FGISInventoryTab Tabs;
 
 	UFUNCTION()
@@ -238,12 +238,12 @@ protected:
 	UFUNCTION()
 		void OnRep_LootedItems();
 
-	UPROPERTY(ReplicatedUsing = OnRep_SlotUpdate, RepRetry)
+	UPROPERTY(ReplicatedUsing = OnRep_SlotUpdate)
 		FGISSlotUpdateData SlotUpdateInfo;
 	UFUNCTION()
 		void OnRep_SlotUpdate();
 
-	UPROPERTY(ReplicatedUsing = OnRep_SlotSwap, RepRetry)
+	UPROPERTY(ReplicatedUsing = OnRep_SlotSwap)
 		FGISSlotSwapInfo SlotSwapInfo;
 	UFUNCTION()
 		void OnRep_SlotSwap();
@@ -510,7 +510,7 @@ public:
 	 *
 	 *	@return Single tab from current inventory.
 	 */
-	UFUNCTION(BlueprintCallable, meta=(FriendlyName = "Get Tab By Name"), Category = "Game Inventory System")
+	UFUNCTION(BlueprintCallable, meta=(DisplayName = "Get Tab By Name"), Category = "Game Inventory System")
 		FGISTabInfo& BP_GetTabByName(FName TabNameIn);
 
 

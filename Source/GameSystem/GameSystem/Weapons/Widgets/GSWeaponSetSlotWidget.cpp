@@ -17,17 +17,17 @@ UGSWeaponSetSlotWidget::UGSWeaponSetSlotWidget(const FObjectInitializer& ObjectI
 
 }
 
-FEventReply UGSWeaponSetSlotWidget::OnMouseButtonDown_Implementation(FGeometry MyGeometry, const FPointerEvent& MouseEvent)
+FReply UGSWeaponSetSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	FEventReply Reply;
-	if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	FReply Reply = FReply::Handled();
+	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
 		//no item no mouse interaction for dragging and dropping.
 
 		TSharedPtr<SWidget> DetectingDrag = this->GetCachedWidget();
 		if (DetectingDrag.IsValid())
 		{
-			Reply.NativeReply = Reply.NativeReply.DetectDrag(DetectingDrag.ToSharedRef(), EKeys::LeftMouseButton);
+			Reply = Reply.DetectDrag(DetectingDrag.ToSharedRef(), EKeys::LeftMouseButton);
 		}
 	}
 
@@ -35,29 +35,29 @@ FEventReply UGSWeaponSetSlotWidget::OnMouseButtonDown_Implementation(FGeometry M
 	return Reply;
 }
 
-void UGSWeaponSetSlotWidget::OnDragDetected_Implementation(FGeometry MyGeometry, const FPointerEvent& PointerEvent, UDragDropOperation*& Operation)
+void UGSWeaponSetSlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& InOperation)
 {
 	//if (ItemWidgetClass)
 	//{
 		//UGISItemBaseWidget* itemTemp = 
 		UGSWeaponSetItemWidget* ItemWidgetDrag = ItemWidget;//ConstructObject<UGISItemBaseWidget>(GISItemClass);
 		ItemWidgetDrag->WeaponSlot = WeaponSlot;
-		UDragDropOperation* DragDropOp = ConstructObject<UDragDropOperation>(UDragDropOperation::StaticClass());
+		UDragDropOperation* DragDropOp = NewObject<UDragDropOperation>(UDragDropOperation::StaticClass());
 		if (DragDropOp)
 		{
 			DragDropOp->Payload = ItemWidgetDrag;
 			DragDropOp->DefaultDragVisual = ItemWidgetDrag;
 
-			Operation = DragDropOp;
+			InOperation = DragDropOp;
 		}
 	//}
 }
 
-bool UGSWeaponSetSlotWidget::OnDrop_Implementation(FGeometry MyGeometry, FPointerEvent PointerEvent, UDragDropOperation* Operation)
+bool UGSWeaponSetSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
-	if (Operation)
+	if (InOperation)
 	{
-		UGISItemBaseWidget* item = Cast<UGISItemBaseWidget>(Operation->Payload);
+		UGISItemBaseWidget* item = Cast<UGISItemBaseWidget>(InOperation->Payload);
 		if (item)
 		{
 			UGSWeaponEquipmentComponent* eq = Cast<UGSWeaponEquipmentComponent>(item->LastSlotInfo.CurrentInventoryComponent.Get());
@@ -72,7 +72,7 @@ bool UGSWeaponSetSlotWidget::OnDrop_Implementation(FGeometry MyGeometry, FPointe
 			WeaponSlot.WeaponID = item->LastSlotInfo.SlotIndex;
 			return true;
 		}
-		UGSWeaponSetItemWidget* itemSet = Cast<UGSWeaponSetItemWidget>(Operation->Payload);
+		UGSWeaponSetItemWidget* itemSet = Cast<UGSWeaponSetItemWidget>(InOperation->Payload);
 		if (itemSet)
 		{
 			WeaponEquipComp->AddWeaponToSet(itemSet->WeaponSlot.WeaponID, itemSet->WeaponSlot.WeaponTabID,

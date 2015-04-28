@@ -17,6 +17,6 @@ class GAMEINVENTORYSYSTEM_API UGISBlueprintFunctionLibrary : public UBlueprintFu
 	GENERATED_UCLASS_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject", FriendlyName = "Create Item Data", BlueprintInternalUseOnly = "true"), Category = "Game Inventory System")
+	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject", DisplayName = "Create Item Data", BlueprintInternalUseOnly = "true"), Category = "Game Inventory System")
 		static class UGISItemData* CreateItem(UObject* WorldContextObject, TSubclassOf<class UGISItemData> ItemClass, APlayerController* OwningPlayer);
 };

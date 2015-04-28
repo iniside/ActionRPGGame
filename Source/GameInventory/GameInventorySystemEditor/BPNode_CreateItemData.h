@@ -17,7 +17,7 @@ class GAMEINVENTORYSYSTEMEDITOR_API UBPNode_CreateItemData : public UK2Node_Cons
 	// End UEdGraphNode interface.
 
 	// Begin UK2Node interface
-	void GetMenuEntries(FGraphContextMenuBuilder& ContextMenuBuilder) const;
+	//void GetMenuEntries(FGraphContextMenuBuilder& ContextMenuBuilder) const;
 	virtual FText GetMenuCategory() const override;
 	// End UK2Node interface.
 

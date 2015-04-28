@@ -1,5 +1,6 @@
 #pragma once
 #include "../GAGlobalTypes.h"
+#include "../GAAttributeBase.h"
 #include "GABlueprintLibrary.generated.h"
 
 UCLASS(BlueprintType, Blueprintable)
@@ -14,23 +15,5 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
 		static FGAEffectHandle ApplyEffectActorSpec(AActor* Target, APawn* Instigator,
 		UObject* Causer, TSubclassOf<class UGAEffectSpecification> SpecIn);
-
-	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
-		static void OverrideEffectDuration(TSubclassOf<class UGAEffectSpecification> SpecIn);
-
-	/*
-		Override all attribute modifiers in spec.
-	*/
-	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
-		static void OverrideEffectModifiers(TSubclassOf<class UGAEffectSpecification> SpecIn,
-		TArray<FGAAttributeModifier> ModifiersIn);
-
-	/*
-		Will override one specific modifier in spec.
-	*/
-	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
-		static void OverrideEffectModifier(TSubclassOf<class UGAEffectSpecification> SpecIn,
-		TArray<FGAModifierOverride> OverridesIn);
-
 
 };

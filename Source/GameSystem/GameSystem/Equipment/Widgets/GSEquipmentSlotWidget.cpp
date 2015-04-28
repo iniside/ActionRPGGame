@@ -15,24 +15,24 @@ UGSEquipmentSlotWidget::UGSEquipmentSlotWidget(const FObjectInitializer& ObjectI
 
 }
 
-FEventReply UGSEquipmentSlotWidget::OnMouseButtonDown_Implementation(FGeometry MyGeometry, const FPointerEvent& MouseEvent)
+FReply UGSEquipmentSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	FEventReply Reply;
+	FReply Reply = FReply::Handled();
 	return Reply;
 }
 
-void UGSEquipmentSlotWidget::OnDragDetected_Implementation(FGeometry MyGeometry, const FPointerEvent& PointerEvent, UDragDropOperation*& Operation)
+void UGSEquipmentSlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& InOperation)
 {
 
 }
 
-bool UGSEquipmentSlotWidget::OnDrop_Implementation(FGeometry MyGeometry, FPointerEvent PointerEvent, UDragDropOperation* Operation)
+bool UGSEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
-	if (UGISItemBaseWidget* Item = Cast<UGISItemBaseWidget>(Operation->Payload))
+	if (UGISItemBaseWidget* Item = Cast<UGISItemBaseWidget>(InOperation->Payload))
 	{
 		return true;
 	}
-	if (UGSEquipmentItemWidget* Item = Cast<UGSEquipmentItemWidget>(Operation->Payload))
+	if (UGSEquipmentItemWidget* Item = Cast<UGSEquipmentItemWidget>(InOperation->Payload))
 	{
 		return true;
 	}

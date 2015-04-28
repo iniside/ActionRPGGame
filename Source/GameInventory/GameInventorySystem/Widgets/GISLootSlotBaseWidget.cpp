@@ -35,29 +35,29 @@ void UGISLootSlotBaseWidget::ResetSlot()
 	LootSlotInfo.Reset();
 }
 
-FEventReply UGISLootSlotBaseWidget::OnMouseButtonDown_Implementation(FGeometry MyGeometry, const FPointerEvent& MouseEvent)
+FReply UGISLootSlotBaseWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	FEventReply Reply;
-	if (MouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
+	FReply Reply = FReply::Handled();
+	if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
 	{
 		if (LootSlotInfo.SlotComponent.IsValid())
 		{
 			LootSlotInfo.SlotComponent->LootOneItem(LootSlotInfo.SlotIndex);
 		}
 	}
-	if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
 
 	}
 	return Reply;
 }
 
-void UGISLootSlotBaseWidget::OnDragDetected_Implementation(FGeometry MyGeometry, const FPointerEvent& PointerEvent, UDragDropOperation*& Operation)
+void UGISLootSlotBaseWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& InOperation)
 {
 
 }
 
-bool UGISLootSlotBaseWidget::OnDrop_Implementation(FGeometry MyGeometry, FPointerEvent PointerEvent, UDragDropOperation* Operation)
+bool UGISLootSlotBaseWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
 	return false;
 }

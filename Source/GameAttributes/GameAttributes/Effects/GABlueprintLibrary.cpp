@@ -63,16 +63,3 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffectActorSpec(AActor* Target, APawn*
 	return instiComp->ApplyEffectToTarget(SpecIn, context, EffectName);
 }
 
-void UGABlueprintLibrary::OverrideEffectDuration(TSubclassOf<class UGAEffectSpecification> SpecIn)
-{
-}
-
-void UGABlueprintLibrary::OverrideEffectModifiers(TSubclassOf<class UGAEffectSpecification> SpecIn,
-	TArray<FGAAttributeModifier> ModifiersIn)
-{
-}
-void UGABlueprintLibrary::OverrideEffectModifier(TSubclassOf<class UGAEffectSpecification> SpecIn,
-	TArray<FGAModifierOverride> OverridesIn)
-{
-
-}

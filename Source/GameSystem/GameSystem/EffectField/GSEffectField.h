@@ -100,7 +100,7 @@ public:
 	/*
 		Destroys this field. Call it if you expclitly need to destroy field.
 	*/
-	UFUNCTION(BlueprintCallable, meta=(FriendlyName="Destroy Field"), Category = "Game System|Effect Field")
+	UFUNCTION(BlueprintCallable, meta=(DisplayName="Destroy Field"), Category = "Game System|Effect Field")
 		void BP_DestroyField();
 
 	UFUNCTION()
@@ -124,7 +124,7 @@ public:
 	*/
 	virtual void OnOtherFieldOverlap(AGSEffectField* OtherField);
 
-	UFUNCTION(BlueprintImplementableEvent, meta = (FriendlyName="OnOtherFieldOverlap"))
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnOtherFieldOverlap"))
 	void BP_OnOtherFieldOverlap(AGSEffectField* OtherField);
 
 	/** IIIGAAttributes overrides */

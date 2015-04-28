@@ -11,20 +11,20 @@ UGSAbilitySlotWidget::UGSAbilitySlotWidget(const FObjectInitializer& ObjectIniti
 
 }
 
-FEventReply UGSAbilitySlotWidget::OnMouseButtonDown_Implementation(FGeometry MyGeometry, const FPointerEvent& MouseEvent)
+FReply UGSAbilitySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	FEventReply Reply;
+	FReply Reply = FReply::Handled();
 	return Reply;
 }
 
-void UGSAbilitySlotWidget::OnDragDetected_Implementation(FGeometry MyGeometry, const FPointerEvent& PointerEvent, UDragDropOperation*& Operation)
+void UGSAbilitySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& InOperation)
 {
 
 }
 
-bool UGSAbilitySlotWidget::OnDrop_Implementation(FGeometry MyGeometry, FPointerEvent PointerEvent, UDragDropOperation* Operation)
+bool UGSAbilitySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
-	if (UGSAbilityBookItem* bookItem = Cast<UGSAbilityBookItem>(Operation->Payload))
+	if (UGSAbilityBookItem* bookItem = Cast<UGSAbilityBookItem>(InOperation->Payload))
 	{
 		OwnerComp->AddAbilityToSlotFromBook(SlotInfo.SetIndex, SlotInfo.SlotIndex, bookItem->SlotInfo.TabIndex, bookItem->SlotInfo.SlotIndex);
 	}

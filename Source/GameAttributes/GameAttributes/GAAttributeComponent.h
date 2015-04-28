@@ -81,7 +81,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Replicated)
 		class UGAAttributesBase* DefaultAttributes;
 
-	UPROPERTY(ReplicatedUsing = OnRep_AttributeChanged, RepRetry)
+	UPROPERTY(ReplicatedUsing = OnRep_AttributeChanged)
 		FGAModifiedAttributeData ModifiedAttribute;
 	UFUNCTION()
 		void OnRep_AttributeChanged();

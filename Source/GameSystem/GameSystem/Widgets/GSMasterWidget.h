@@ -13,5 +13,5 @@ class GAMESYSTEM_API UGSMasterWidget : public UGWMasterWidget
 public:
 	UGSMasterWidget(const FObjectInitializer& ObjectInitializer);
 
-	bool OnDrop_Implementation(FGeometry MyGeometry, FPointerEvent PointerEvent, UDragDropOperation* Operation) override;
+	bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 };

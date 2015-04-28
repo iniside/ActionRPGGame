@@ -55,9 +55,9 @@ UGSInventorySlotWidget::UGSInventorySlotWidget(const FObjectInitializer& ObjectI
 //		}
 //}
 
-bool UGSInventorySlotWidget::OnDrop_Implementation(FGeometry MyGeometry, FPointerEvent PointerEvent, UDragDropOperation* Operation)
+bool UGSInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
-	bool returnValue = Super::OnDrop_Implementation(MyGeometry, PointerEvent, Operation);
+	bool returnValue = Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 
 	//if (Operation)
 	//{
