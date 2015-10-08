@@ -456,7 +456,7 @@ void UGISInventoryBaseComponent::StartLooting(class AGISPickupActor* PickUp)
 	for (int32 ItemIndex = 0; ItemIndex < ItemNum; ItemIndex++)
 	{
 		FGISLootSlotInfo lootInfo;
-		UGISItemData* dataDuplicate = ConstructObject<UGISItemData>(CurrentPickupActor->ItemToLoot[ItemIndex]->GetClass(), this, NAME_None, RF_NoFlags, CurrentPickupActor->ItemToLoot[ItemIndex]);
+		UGISItemData* dataDuplicate = NewObject<UGISItemData>(this, CurrentPickupActor->ItemToLoot[ItemIndex]->GetClass(), NAME_None, RF_NoFlags, CurrentPickupActor->ItemToLoot[ItemIndex]);
 		lootInfo.OwningPickupActor = PickUp;
 		lootInfo.SlotComponent = this;
 		lootInfo.SlotIndex = ItemIndex;
@@ -494,7 +494,7 @@ void UGISInventoryBaseComponent::LootOneItem(int32 ItemIndex)
 				for (int32 ItemIdx = 0; ItemIdx < ItemNum; ItemIdx++)
 				{
 					FGISLootSlotInfo lootInfo;
-					UGISItemData* dataDuplicate = ConstructObject<UGISItemData>(CurrentPickupActor->ItemToLoot[ItemIdx]->GetClass(), this, NAME_None, RF_NoFlags, CurrentPickupActor->ItemToLoot[ItemIdx]);
+					UGISItemData* dataDuplicate = NewObject<UGISItemData>(this, CurrentPickupActor->ItemToLoot[ItemIndex]->GetClass(), NAME_None, RF_NoFlags, CurrentPickupActor->ItemToLoot[ItemIdx]);
 					lootInfo.OwningPickupActor = CurrentPickupActor;
 					lootInfo.SlotComponent = this;
 					lootInfo.SlotIndex = ItemIdx;
@@ -549,17 +549,18 @@ void UGISInventoryBaseComponent::DropItemFromInventory(const FGISSlotInfo& DropI
 			FVector End = Start + FVector(0, 0, -1) * 300;
 			FCollisionQueryParams Params;
 			Params.AddIgnoredActor(PCOwner->GetPawn());
-			bool bHit = GetWorld()->LineTraceSingle(HitOut, Start, End, ECollisionChannel::ECC_WorldStatic, Params);
-
+			bool bHit = GetWorld()->LineTraceSingleByObjectType(HitOut, Start, End, FCollisionObjectQueryParams(), Params);
 			if (bHit)
 			{
 				FActorSpawnParameters SpawnParams;
-				SpawnParams.bNoCollisionFail = true;
+				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 				AGISPickupActor* pickup = GetWorld()->SpawnActor<AGISPickupActor>(PickupActor, HitOut.Location, FRotator(0, 0, 0), SpawnParams);
 				if (pickup)
 				{
-					UGISItemData* duplicatedItem = ConstructObject<UGISItemData>(tempItem->GetClass(),
-						pickup, NAME_Name, EObjectFlags::RF_NoFlags, tempItem);
+					//UGISItemData* duplicatedItem = ConstructObject<UGISItemData>(tempItem->GetClass(),
+					//	pickup, NAME_Name, EObjectFlags::RF_NoFlags, tempItem);
+					UGISItemData* duplicatedItem = DuplicateObject<UGISItemData>(tempItem,
+						pickup);
 					pickup->ItemToLoot.Add(duplicatedItem);
 				}
 			}

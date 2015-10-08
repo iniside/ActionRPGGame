@@ -187,7 +187,7 @@ FHitResult UGWTraceBase::SingleLineRangedTrace(const FVector& StartTrace, const 
 		TraceParams.AddIgnoredActor(GetOuterAGWWeapon()->Instigator);
 	}
 
-	bool traceResult = GetWorld()->LineTraceSingle(Hit, StartTrace, EndTrace, TraceParams, CollisionObjectParams);
+	bool traceResult = GetWorld()->LineTraceSingleByObjectType(Hit, StartTrace, EndTrace, CollisionObjectParams, TraceParams);
 	if (bDrawDebug)
 	{
 		if (traceResult && Hit.bBlockingHit)

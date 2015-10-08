@@ -104,6 +104,22 @@ void FGACountedTagContainer::RemoveTag(const FGameplayTag& TagIn)
 		}
 	}
 }
+void FGACountedTagContainer::RemoveTagContainer(const FGameplayTagContainer& TagsIn)
+{
+	for (auto TagIt = TagsIn.CreateConstIterator(); TagIt; ++TagIt)
+	{
+		int32* count = CountedTags.Find(*TagIt);
+		if (count)
+		{
+			*count -= 1;
+		}
+		if (*count <= 0)
+		{
+			CountedTags.Remove(*TagIt);
+			AllTags.RemoveTag(*TagIt);
+		}
+	}
+}
 bool FGACountedTagContainer::HasTag(const FGameplayTag& TagIn)
 {
 	return AllTags.HasTag(TagIn, EGameplayTagMatchType::IncludeParentTags, EGameplayTagMatchType::Explicit);

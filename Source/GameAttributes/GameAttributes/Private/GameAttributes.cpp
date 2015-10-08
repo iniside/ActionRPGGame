@@ -3,6 +3,9 @@
 #include "GameAttributes.h"
 #include "GameAttributesPrivatePCH.h"
 
+DEFINE_LOG_CATEGORY(GameAttributesGeneral);
+DEFINE_LOG_CATEGORY(GameAttributes);
+DEFINE_LOG_CATEGORY(GameAttributesEffects);
 
 class FGameAttributes : public IGameAttributes
 {

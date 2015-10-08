@@ -21,12 +21,18 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, Category = "Duration")
 		float Period;
+	/*
+		If PeriodNum > 0 and Period > 0, then duration of 
+		effect is PeriodNum * Period
+	*/
+	UPROPERTY(EditAnywhere, Category = "Duration")
+		float PeriodNum;
 };
 /*
 Encapsulates effect name into struct.
 We will use to uniqely identify effects.
 
-Idea is simple:
+Idea is simplCENTRUMe:
 1. Generic effects, will have generic names (like bleed, burnining etc).
 2. Specific effects, will derive name from ability/weapon/whatever they are applied from.
 */
@@ -50,6 +56,11 @@ public:
 	FGAEffectName(const FName& EffectNameIn)
 		: EffectName(EffectNameIn)
 	{}
+
+	FString ToString()
+	{
+		return EffectName.ToString();
+	}
 
 	const bool operator==(const FGAEffectName& OtherIn) const
 	{
@@ -76,7 +87,19 @@ struct GAMEATTRIBUTES_API FGAModifierStack
 		Multiply += StackIn.Multiply;
 		Divide += StackIn.Divide;
 	}
+	FString ToString()
+	{
+		FString retString = "Additive: ";
+		retString += FString::FormatAsNumber(Additive);
+		retString = "Subtractive: ";
+		retString += FString::FormatAsNumber(Subtractive);
+		retString = "Multiply: ";
+		retString += FString::FormatAsNumber(Multiply);
+		retString = "Divide: ";
+		retString += FString::FormatAsNumber(Divide);
 
+		return retString;
+	}
 	FGAModifierStack()
 		: Additive(0),
 		Subtractive(0),
@@ -115,8 +138,6 @@ public:
 
 		If incoming mod is additive or PercentageIncrease, it will increase amount of
 		attribute change done to Target (ie. higher damage taken).
-
-		Side note. Should probabaly change names to Outgoing/Incoming, instead of Offensive/Defensive.
 	*/
 	UPROPERTY(EditAnywhere)
 		EGAModifierType ModifierType;
@@ -166,6 +187,21 @@ public:
 	*/
 	UPROPERTY(EditAnywhere)
 		EGAEffectType Type;
+	/*
+		Stronger Override works differently depending on what exactly is modified:
+		1. Attribute For Duration - Will check if incoming change is higher and of the same type
+		as existing one (ie.  multiply), and if it is, it will override it, removing
+		all changes, applied to the same attribute. 
+		It will not remove effects, from affected target.
+		2. Effect Modifier - works the same as Attribute For Duration, except it will check
+		for the type of effect based on tags.
+		3. It currently does not work for periodic attribute changes like damage.
+
+		Override:
+		Behaviour is the same for everything. It will simply check for type of change and
+		override it.
+		
+	*/
 	UPROPERTY(EditAnywhere)
 		EGAEffectStacking Stacking;
 	UPROPERTY(EditAnywhere)
@@ -218,7 +254,7 @@ public:
 
 
 	*/
-	UPROPERTY(EditAnywhere, Instanced, Category = "Effects")
+	UPROPERTY(EditAnywhere, Category = "Effects")
 		TArray<TSubclassOf<class UGAEffectSpecification>> Effects;
 };
 /*
@@ -303,7 +339,10 @@ public:
 	{};
 	FGAEffectSpec(class UGAEffectSpecification* EffectSpecIn, const FGAEffectContext& ContextIn);
 
-
+	FString GetNameAsString()
+	{
+		return EffectName.ToString();
+	}
 	TArray<FGAAttributeData> GetInitialAttribute();
 	TArray<FGAAttributeData> GetDurationAttribute();
 	TArray<FGAAttributeData> GetPeriodAttribute();
@@ -345,6 +384,8 @@ public:
 	FGAEffectContext Context;
 	void OnApplied();
 	TArray<FGAAttributeData> InitialAttribute;
+
+	TSubclassOf<class UGACalculation> CalculationType;
 
 	FGameplayTagContainer OwnedTags;
 };
@@ -403,6 +444,9 @@ struct GAMEATTRIBUTES_API FGAActiveDuration : public TSharedFromThis<FGAActiveDu
 	void RemoveDurationAttribute();
 		
 public:
+	/* When new effect is applied to my target, I will check if I should trigger effects. */
+	void TriggerEffects();
+
 	/* 
 		Called when effect is applied. 
 		Applies InitialAttribute and DurationAttribute.
@@ -444,10 +488,8 @@ public:
 This struct contains information needed for effect, to modify attributes
 on other effects,
 */
-USTRUCT(BlueprintType)
 struct FGAEffectModifier
 {
-	GENERATED_USTRUCT_BODY()
 public:
 	FGAModifierStack IncomingStack;
 	FGAModifierStack OutgoingStack;
@@ -457,6 +499,14 @@ public:
 	void RemoveBonus(const FGAEffectHandle& Handle);
 	void RemoveMod(const FGAEffectHandle& HandleIn);
 	void AddBonus(const FGAModifier& ModifiersIn, const FGAEffectHandle& Handle);
+	FString IncomingToString()
+	{
+		return IncomingStack.ToString();
+	}
+	FString OutgoingToString()
+	{
+		return OutgoingStack.ToString();
+	}
 protected:
 	TMap<FGAEffectHandle, TArray<FGAModifier>> IncomingModifiers;
 	TMap<FGAEffectHandle, TArray<FGAModifier>> OutgoingModifiers;
@@ -473,45 +523,13 @@ protected:
 	void RemoveOutgoingBonusOfType(EGAAttributeMod ModType);
 };
 
-/*
-Group modifiers, for this attribute and this Tag in single struct.
-*/
-USTRUCT(BlueprintType)
-struct FGEffectModifierGroup
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	/*
-	Attribute other effect modify, which we will modify on this effect.
-	*/
-	UPROPERTY(EditAnywhere)
-		FGAAttribute Attribute;
-	/*
-	Only one tag, per one modifier, so we have EXACT match.
-	If you want more generic modifier, you just need to use Tag higher in hierarchy.
-	*/
-	UPROPERTY(EditAnywhere)
-		FGameplayTag AttributeTag;
-	UPROPERTY(EditAnywhere)
-		TArray<FGAEffectModifier> Modifiers;
-
-};
-USTRUCT()
-struct FGACalculatedEffectModifier
-{
-	GENERATED_USTRUCT_BODY()
-};
-USTRUCT()
 struct GAMEATTRIBUTES_API FGAEffectModifierContainer
 {
-	GENERATED_USTRUCT_BODY()
 public:
 	/*
 		Map of all modifiers.
 	*/
 	TMap<FGameplayTag, FGAEffectModifier> Modifiers;
-
-	TArray<FGAEffectModifierSpec> ModifiersSpecs;
 
 	void RemoveModifier(const FGameplayTagContainer& TagsIn, const FGAEffectHandle& HandleIn);
 	/**
@@ -560,10 +578,8 @@ public:
 /*
 	Group effects, per Instigator.
 */
-USTRUCT()
 struct FGAInstigatorEffectContainer
 {
-	GENERATED_USTRUCT_BODY()
 public:
 	/*
 		We can assume that effects, with the same tag, are of the same type.
@@ -642,10 +658,8 @@ public:
 	TMap<FGAEffectName, TSharedPtr<FGAEffectSpec>> CachedSpecs;
 };
 
-USTRUCT()
 struct FGAInstigatorAggregatedEffects
 {
-	GENERATED_USTRUCT_BODY()
 protected:
 	TMap<TWeakObjectPtr<class UGAAttributeComponent>, FGAInstigatorEffectContainer> Effects;
 
@@ -658,11 +672,8 @@ public:
 	void RemoveEffect(class UGAAttributeComponent* AttrComp, const FGAEffectHandle& HandleIn);
 };
 
-USTRUCT()
 struct FGATargetAggregatedEffects
 {
-	GENERATED_USTRUCT_BODY()
-
 protected:
 	TMap<FGAEffectName, TArray<FGAEffectHandle>> Effects;
 public:

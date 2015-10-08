@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{93D03E9D-401C-6D26-5768-7C91E81ABE28}",
+	"EngineAssociation": "{E067B291-49BC-13CF-507B-FFBDB411A229}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -72,7 +72,10 @@
 		{
 			"Name": "ActionRPGGame",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"AIModule"
+			]
 		},
 		{
 			"Name": "ActionRPGGameEditor",

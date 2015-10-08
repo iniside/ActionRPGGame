@@ -57,7 +57,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Tags")
 		FGameplayTagContainer DefaultTags;
 
-	FGACountedTagContainer AppliedTags;
+	UPROPERTY()
+		FGACountedTagContainer AppliedTags;
 	
 	UPROPERTY(ReplicatedUsing=OnRep_ActiveEffects)
 		FGAActiveEffectContainer ActiveEffects;

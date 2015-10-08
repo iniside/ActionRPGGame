@@ -99,7 +99,7 @@ int32 UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbili
 {
 	if (AbilityClass)
 	{
-		UGASAbility* ability = ConstructObject<UGASAbility>(AbilityClass, GetOwner());
+		UGASAbility* ability = NewObject<UGASAbility>(GetOwner(), AbilityClass);
 		int32 slotCounter = 0;
 		for (FGASActiveAbilitySlot& ab : InstancedAbilities)
 		{

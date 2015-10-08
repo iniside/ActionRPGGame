@@ -184,8 +184,8 @@ UWorld* UGASAbility::GetWorld() const
 {
 	if (AbilityComponent)
 		return AbilityComponent->GetWorld(); //if ability component is ever null, something is very wrong!
-	
-	return Super::GetWorld();
+	return nullptr;
+	//return Super::GetWorld();
 }
 void UGASAbility::SetHitLocation(const FVector& OriginIn, const FVector& HitLocationIn)
 {

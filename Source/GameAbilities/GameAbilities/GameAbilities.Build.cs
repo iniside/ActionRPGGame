@@ -31,6 +31,7 @@ namespace UnrealBuildTool.Rules
 				    "Engine",
                     "GameInterfaces",
                     "GameTrace",
+                    "GameAttributes",
                     "InputCore",
                     "UMG",
                     "Slate",

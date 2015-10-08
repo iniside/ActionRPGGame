@@ -230,6 +230,8 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 		EGAAttributeMod Mod;
 
+	EGAModifierTarget Target;
+
 	UPROPERTY(BlueprintReadOnly)
 		FGameplayTag AttributeTag;
 	/*
@@ -238,7 +240,7 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 		FGameplayTagContainer AgreggatedTags;
 	/*
-		These tags, are must be present on target.
+		These tags, must be present on target.
 		Ignored if empty.
 	*/
 	UPROPERTY(BlueprintReadOnly)
@@ -250,6 +252,16 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 		FGameplayTagContainer InstigatorTagsRequiared;
 
+	/*
+		All of these tags must be present on target for this change to be applied.
+	*/
+	UPROPERTY(BlueprintReadOnly)
+		FGameplayTagContainer RequiredTags;
+	/*
+		None of these tags might be present on target for this change to be applied.
+	*/
+	UPROPERTY(BlueprintReadOnly)
+		FGameplayTagContainer DenyTags;
 	UPROPERTY()
 		FGAEffectContext Context;
 
@@ -298,6 +310,18 @@ public:
 		Context(ContextIn)
 	{
 	};
+	FGAAttributeData(const FGAAttribute& AttributeIn, EGAAttributeMod ModIn,
+		float ValueIn, const FGAEffectContext& ContextIn,
+		EGAModifierTarget TargetIn, const FGameplayTagContainer& RequiredTagsIn,
+		const FGameplayTagContainer& DenyTagsIn)
+		:Attribute(AttributeIn),
+		Mod(ModIn),
+		Value(ValueIn),
+		Context(ContextIn),
+		Target(TargetIn),
+		RequiredTags(RequiredTagsIn),
+		DenyTags(DenyTagsIn)
+	{};
 };
 
 USTRUCT(BlueprintType)
@@ -553,6 +577,25 @@ public:
 		Currently evaluated magnitude. Figured I should store it here, so it can be further modified
 		by other effects, or something.
 	*/
+	/*
+		Who will be target of this attribute change. 
+		Instigator - pawn which applied effect (regardless of to whom).
+		Target - targeted pawn (regardless of who applied).
+	*/
+	UPROPERTY(EditAnywhere)
+		EGAModifierTarget ModifierTarget;
+
+	/*
+		These tags must be present on target for this modifier to be applied.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGameplayTagContainer RequiredTags;
+	/*
+		None of these tags must be present on target to apply this modifier.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGameplayTagContainer DenyTags;
+
 	FGAAttributeData EvalData;
 
 	FGAAttributeData GetModifier(const FGAEffectContext& ContextIn);

@@ -172,6 +172,8 @@ void UGSAbilitiesComponent::GiveAbility(TSubclassOf<class  UGSAbility> AbilityIn
 		}
 		//make sure changes are replicated back.
 		OwnedAbilities.ForceRep++;
+		if (GetNetMode() == ENetMode::NM_Standalone)
+			OnRep_OwnedAbilities();
 	}
 }
 void UGSAbilitiesComponent::ServerGiveAbility_Implementation(TSubclassOf<class  UGSAbility> AbilityIn)
@@ -214,6 +216,8 @@ void UGSAbilitiesComponent::AddAbilityToSlotFromBook(int32 TargetSetIndex, int32
 
 		AbilitySets[TargetSetIndex].AbilitySlots[TargetSetIndex].AbilityIndex = abIndex;
 		AbilitySets[TargetSetIndex].RepMe++;
+		if (GetNetMode() == ENetMode::NM_Standalone)
+			OnRep_AbilitySets();
 	}
 }
 void UGSAbilitiesComponent::ServerAddAbilityToSlotFromBook_Implementation(int32 TargetSetIndex, int32 TargetSlotIndex,

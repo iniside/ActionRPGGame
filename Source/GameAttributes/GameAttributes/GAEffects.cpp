@@ -88,9 +88,11 @@ void FGAEffectModifier::RemoveWeakerBonus(EGAAttributeMod ModType, EGAModifierTy
 	switch (EffectModType)
 	{
 	case EGAModifierType::Incoming:
+		UE_LOG(GameAttributesEffects, Log, TEXT("Removing Weaker Incoming Bonus: %f"), ValueIn);
 		RemoveWeakerIncomingBonus(ModType, ValueIn);
 		break;
 	case EGAModifierType::Outgoing:
+		UE_LOG(GameAttributesEffects, Log, TEXT("Removing Weaker Outgoing Bonus: %f"), ValueIn);
 		RemoveWeakerOutgoingBonus(ModType, ValueIn);
 		break;
 	}
@@ -253,25 +255,71 @@ FGAEffectInstant::FGAEffectInstant(FGAEffectSpec& SpecIn, const FGAEffectContext
 }
 void FGAEffectInstant::OnApplied()
 {
-
+	if (!CalculationType)
+	{
+		return;
+	}
 	FGAEffectHandle handle;
 	for (const FGAAttributeData& data : InitialAttribute)
-		Context.InstigatorComp->ModifyAttributesOnTarget(data, Context, OwnedTags, handle);
+	{
+		FGAAttributeData DataIn = CalculationType.GetDefaultObject()->IncomingModifyEffect(data);
+		switch(data.Target)
+		{
+		case EGAModifierTarget::Target:
+			if (Context.TargetComp->AppliedTags.HasAllTags(data.RequiredTags, true)
+				&& !Context.TargetComp->AppliedTags.HasAllTags(data.DenyTags, false))
+			{
+				UE_LOG(GameAttributesGeneral, Log, TEXT("Instant::OnApplied::Target"));
+				Context.InstigatorComp->ModifyAttributesOnTarget(data, Context, OwnedTags, handle);
+			}
+			break;
+		case EGAModifierTarget::Instigator:
+			if (Context.InstigatorComp->AppliedTags.HasAllTags(data.RequiredTags, true)
+				&& !Context.InstigatorComp->AppliedTags.HasAllTags(data.DenyTags, false))
+			{
+				UE_LOG(GameAttributesGeneral, Log, TEXT("Instant::OnApplied::Instigator"));
+				Context.InstigatorComp->ModifyAttributesOnSelf(data, Context, OwnedTags, handle);
+			}
+			break;
+		}
+	}
+
 }
 
 void FGAActiveDuration::RemoveDurationAttribute()
 {
 
 }
+void FGAActiveDuration::TriggerEffects()
+{
 
+}
 void FGAActiveDuration::OnApplied()
 {
 	TArray<FGAAttributeData> InitialModifiers = EffectSpec->GetInitialAttribute(Context);
 	for (const FGAAttributeData& data : InitialModifiers)
 	{
 		//FGAAttributeData data = InitialAttribute;
-		if (Context.InstigatorComp.IsValid())
-			Context.InstigatorComp->ModifyAttributesOnTarget(data, Context, OwnedTags, MyHandle);
+		FGAAttributeData DataIn = CalculationType.GetDefaultObject()->IncomingModifyEffect(data);
+		switch (DataIn.Target)
+		{
+		case EGAModifierTarget::Target:
+			if (Context.TargetComp->AppliedTags.HasAllTags(DataIn.RequiredTags, true)
+				&& !Context.TargetComp->AppliedTags.HasAllTags(DataIn.DenyTags, false))
+			{
+				UE_LOG(GameAttributesGeneral, Log, TEXT("Duration::OnApplied::Target"));
+				Context.InstigatorComp->ModifyAttributesOnTarget(DataIn, Context, OwnedTags, MyHandle);
+			}
+			break;
+		case EGAModifierTarget::Instigator:
+			if (Context.InstigatorComp->AppliedTags.HasAllTags(DataIn.RequiredTags, true)
+				&& !Context.InstigatorComp->AppliedTags.HasAllTags(DataIn.DenyTags, false))
+			{
+				UE_LOG(GameAttributesGeneral, Log, TEXT("Duration::OnApplied::Instigator"));
+				Context.InstigatorComp->ModifyAttributesOnSelf(DataIn, Context, OwnedTags, MyHandle);
+			}
+			break;
+		}
 	}
 	TArray<FGAAttributeData> AttributeModifiers = EffectSpec->GetDurationAttribute(Context);
 	for (const FGAAttributeData& data : AttributeModifiers)
@@ -299,23 +347,44 @@ void FGAActiveDuration::OnPeriod()
 		{
 			FGAAttributeData DataIn = CalculationType.GetDefaultObject()->IncomingModifyEffect(data);
 			//FGAAttributeData data = PeriodModifiers;
-			if (Context.InstigatorComp.IsValid())
-				Context.InstigatorComp->ModifyAttributesOnTarget(DataIn, Context, OwnedTags, MyHandle);
+			switch (DataIn.Target)
+			{
+			case EGAModifierTarget::Target:
+				if (Context.TargetComp->AppliedTags.HasAllTags(DataIn.RequiredTags, true)
+					&& !Context.TargetComp->AppliedTags.HasAllTags(DataIn.DenyTags, false))
+				{
+					UE_LOG(GameAttributesGeneral, Log, TEXT("Duration::Period::OnApplied::Target"));
+					Context.InstigatorComp->ModifyAttributesOnTarget(DataIn, Context, OwnedTags, MyHandle);
+				}
+				break;
+			case EGAModifierTarget::Instigator:
+				if (Context.InstigatorComp->AppliedTags.HasAllTags(DataIn.RequiredTags, true)
+					&& !Context.InstigatorComp->AppliedTags.HasAllTags(DataIn.DenyTags, false))
+				{
+					UE_LOG(GameAttributesGeneral, Log, TEXT("Duration::Period::OnApplied::Instigator"));
+					Context.InstigatorComp->ModifyAttributesOnSelf(DataIn, Context, OwnedTags, MyHandle);
+				}
+				break;
+			}
 		}
 	}
 }
 void FGAActiveDuration::OnRemoved()
 {
+	UE_LOG(GameAttributesGeneral, Log, TEXT("Duration::OnRemoved"));
 	Context.TargetComp->EffectRemoved(MyHandle);
 }
 void FGAActiveDuration::OnEnded()
 {
+	UE_LOG(GameAttributesGeneral, Log, TEXT("Duration::OnEnded"));
 	Context.TargetComp->EffectExpired(MyHandle);
 }
 void FGAActiveDuration::StackDuration(float NewDuration)
 {
 	float remainingDuration = Context.Target->GetWorldTimerManager().GetTimerRemaining(DurationTimerHandle);
+	UE_LOG(GameAttributesGeneral, Log, TEXT("StackDuration::Remaining: %f"), remainingDuration);
 	StackedDuration = remainingDuration + NewDuration;
+	UE_LOG(GameAttributesGeneral, Log, TEXT("StackDuration::StackedDuration: %f"), StackedDuration);
 
 	Context.Target->GetWorldTimerManager().ClearTimer(DurationTimerHandle);
 	FTimerDelegate durationDel = FTimerDelegate::CreateRaw(this, &FGAActiveDuration::OnEnded);;
@@ -477,9 +546,15 @@ FGAModifierStack FGAEffectModifierContainer::GetIncomingModifierStack(const FGAA
 	FGAModifierStack StackOut;
 	for (const FGameplayTag& DataTag : DataIn.AgreggatedTags)
 	{
+		
 		FGAEffectModifier* mod = Modifiers.Find(DataTag);
 		if (mod)
 		{
+			FString vals = mod->IncomingToString();
+			UE_LOG(GameAttributesEffects, Log, TEXT("Incoming Modifier Stack Value %d for Tag %f"), *vals, *DataTag.ToString());
+			//UE_LOG(GameAttributesEffects, Log, TEXT("Incoming Modifier Stack Subtractive Value %d for Tag %f"), mod->Subtractive, *DataTag.ToString());
+			//UE_LOG(GameAttributesEffects, Log, TEXT("Incoming Modifier Stack Multiply Value %d for Tag %f"), mod->Multiply, *DataTag.ToString());
+			//UE_LOG(GameAttributesEffects, Log, TEXT("Incoming Modifier Stack Divide Value %d for Tag %f"), mod->Divide, *DataTag.ToString());
 			StackOut.Add(mod->IncomingStack);
 		}
 	}
@@ -543,27 +618,36 @@ FGAEffectHandle FGAActiveEffectContainer::ApplyEffect(TSubclassOf<class UGAEffec
 	spec.EffectName.EffectName = EffectName;
 	switch (spec.Policy.Type)
 	{
-	case EGAEffectType::Instant:
-	{
-		FGAEffectInstant instntEffect(spec, Ctx);
-		return HandleInstantEffect(instntEffect, Ctx);
-	}
-	case EGAEffectType::Periodic:
-	{
-		return HandleDurationEffect(spec, Ctx);
-	}
-	case EGAEffectType::Duration:
-	{
-		return HandleDurationEffect(spec, Ctx);
-	}
-	case EGAEffectType::Infinite:
-	{
-		break;
-	}
-	default:
-	{
-		return FGAEffectHandle();
-	}
+		case EGAEffectType::Instant:
+		{
+			FGAEffectInstant instntEffect(spec, Ctx);
+			UE_LOG(GameAttributesEffects, Log, TEXT("InstantEffect: %f"), *spec.GetNameAsString());
+			return HandleInstantEffect(instntEffect, Ctx);
+		}
+		case EGAEffectType::Periodic:
+		{
+			UE_LOG(GameAttributesEffects, Log, TEXT("PeriodicEffect: %f"), *spec.GetNameAsString());
+			return HandleDurationEffect(spec, Ctx);
+		}
+		case EGAEffectType::Duration:
+		{
+			UE_LOG(GameAttributesEffects, Log, TEXT("DurationEffect: %f"), *spec.GetNameAsString());
+			return HandleDurationEffect(spec, Ctx);
+		}
+		case EGAEffectType::Infinite:
+		{
+			/*
+				Not sure but holding this in separate data structure could be beneficial,
+				assuming that infinite duration effects, will applied only by things like items
+				not abilities, and will last as long as item is equiped.
+			*/
+			break;
+		}
+		default:
+		{
+			UE_LOG(GameAttributesEffects, Log, TEXT("No valid spec"));
+			return FGAEffectHandle();
+		}
 	}
 	return FGAEffectHandle();
 }
@@ -594,7 +678,7 @@ void FGAActiveEffectContainer::RemoveActiveEffect(const FGAEffectHandle& HandleI
 			RemoveTargetAggregation(removedEffect);
 			break;
 		}
-
+		removedEffect->Context.TargetComp->AppliedTags.RemoveTagContainer(removedEffect->EffectSpec->AppliedTags);
 		/*
 			Clear modifiers, applied directly to attributes (if any).
 			*/
@@ -612,6 +696,7 @@ void FGAActiveEffectContainer::RemoveInstigatorAggregation(TSharedPtr<FGAActiveD
 }
 FGAEffectHandle FGAActiveEffectContainer::AddActiveEffect(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
+	UE_LOG(GameAttributesEffects, Log, TEXT("Add Active Effect begin"));
 	FGAEffectHandle handle = FGAEffectHandle::GenerateHandle();
 	TSharedPtr<FGAActiveDuration> tempPeriodic = MakeShareable(new FGAActiveDuration(Ctx, EffectIn, handle));
 	tempPeriodic->ActivateEffect();
@@ -621,14 +706,38 @@ FGAEffectHandle FGAActiveEffectContainer::AddActiveEffect(FGAEffectSpec& EffectI
 
 	activeEffect.Duration = EffectIn.EffectSpec->EffectDuration.Duration;
 	activeEffect.Period = EffectIn.EffectSpec->EffectDuration.Period;
-
+	
 	RepActiveEffects.Add(activeEffect);
+
+	for (FGAConditonalEffectSpec& condEff : EffectIn.EffectSpec->ConditionalApplicationEffects)
+	{
+		if (Ctx.TargetComp->AppliedTags.HasAllTags(condEff.RequiredTags, false))
+		{
+			for (TSubclassOf<UGAEffectSpecification> spec : condEff.Effects)
+			{
+				
+				FName EffectName;
+				if (spec.GetDefaultObject()->Policy.Type != EGAEffectType::Instant)
+				{
+					if (spec.GetDefaultObject()->EffectName.CustomName)
+						EffectName = spec.GetDefaultObject()->EffectName.EffectName;
+					else
+						EffectName = spec->GetFName();
+					UE_LOG(GameAttributesEffects, Log, TEXT("Apply Conditionl Effect: %f , From: %g"), *EffectName.ToString(), *EffectIn.GetNameAsString());
+				}
+				Ctx.TargetComp->ApplyEffectToSelf(spec, Ctx, EffectName);
+			}
+				
+		}
+	}
 
 	for (const FGAEffectModifierSpec& ad : EffectIn.GetEffectModifiers())
 	{
 		ModifierContainer.AddModifier(ad, EffectIn.EffectSpec->RequiredTags, handle, tempPeriodic);
 	}
 	ActiveEffects.Add(handle, tempPeriodic);
+
+	Ctx.TargetComp->AppliedTags.AddTagContainer(EffectIn.EffectSpec->AppliedTags);
 
 	return handle;
 }
@@ -685,11 +794,13 @@ FGAEffectHandle FGAActiveEffectContainer::HandleDurationEffect(FGAEffectSpec& Ef
 	{
 	case EGAEffectAggregation::AggregateByInstigator:
 	{
+		UE_LOG(GameAttributesEffects, Log, TEXT("DurationEffect::AggregateByInstigator: %f"), *EffectIn.GetNameAsString());
 		return HandleInstigatorAggregationEffect(EffectIn, Ctx);
 		break;
 	}
 	case EGAEffectAggregation::AggregateByTarget:
 	{
+		UE_LOG(GameAttributesEffects, Log, TEXT("DurationEffect::AggregateByTarget: %f"), *EffectIn.GetNameAsString());
 		return HandleTargetAggregationEffect(EffectIn, Ctx);
 		break;
 	}
@@ -719,16 +830,19 @@ FGAEffectHandle FGAActiveEffectContainer::HandleInstigatorAggregationEffect(FGAE
 	{
 	case EGAEffectStacking::StrongerOverride:
 	{
+		UE_LOG(GameAttributesEffects, Log, TEXT("InstigatorAggregationStrongerOverride: %f"), *EffectIn.GetNameAsString());
 		HandleInstigatorEffectStrongerOverride(EffectIn, Ctx);
 		break;
 	}
 	case EGAEffectStacking::Override:
 	{
+		UE_LOG(GameAttributesEffects, Log, TEXT("InstigatorAggregationOverride: %f"), *EffectIn.GetNameAsString());
 		return HandleInstigatorEffectOverride(EffectIn, Ctx);
 		break;
 	}
 	case EGAEffectStacking::Duration:
 	{
+		UE_LOG(GameAttributesEffects, Log, TEXT("InstigatorAggregationStackDuration: %f"), *EffectIn.GetNameAsString());
 		return HandleInstigatorEffectDuration(EffectIn, Ctx);
 		break;
 	}
@@ -738,6 +852,7 @@ FGAEffectHandle FGAActiveEffectContainer::HandleInstigatorAggregationEffect(FGAE
 	}
 	case EGAEffectStacking::Add:
 	{
+		UE_LOG(GameAttributesEffects, Log, TEXT("InstigatorAggregationAdd: %f"), *EffectIn.GetNameAsString());
 		return HandleInstigatorEffectAdd(EffectIn, Ctx);
 		break;
 	}
@@ -788,7 +903,7 @@ FGAEffectHandle	FGAActiveEffectContainer::HandleInstigatorEffectStrongerOverride
 FGAEffectHandle FGAActiveEffectContainer::HandleInstigatorEffectOverride(FGAEffectSpec& EffectIn, const FGAEffectContext& Ctx)
 {
 	FGAEffectHandle foundHandle = InstigatorEffects.FindHandle(Ctx.InstigatorComp.Get(), EffectIn.EffectName);
-
+	UE_LOG(GameAttributesEffects, Log, TEXT("InstigatorEffectOverride: %f , Handle %g"), *EffectIn.GetNameAsString(), foundHandle.GetHandle());
 	ModifierContainer.RemoveModifiersByType(EffectIn.EffectSpec->RequiredTags, EffectIn.EffectSpec->EffectModifiers);
 
 	/*
@@ -797,11 +912,12 @@ FGAEffectHandle FGAActiveEffectContainer::HandleInstigatorEffectOverride(FGAEffe
 		b). Or should we just override modifiers, applied by the same effect (identified, by effects name/handle).
 	*/
 	TArray<FGAAttributeData> AttributeModifiers = EffectIn.EffectSpec->GetDurationAttribute(Ctx);
-	for (const FGAAttributeData& data : AttributeModifiers)
+	for (FGAAttributeData& data : AttributeModifiers)
 	{
 		FGAAttributeBase* AtrPtr = Ctx.TargetComp->GetAttribute(data.Attribute);
 		if (AtrPtr)
 		{
+			UE_LOG(GameAttributesEffects, Log, TEXT("Removing bonus for attribute: %f"), *data.Attribute.ToString());
 			AtrPtr->RemoveBonusByType(data.Mod);
 		}
 	}
@@ -852,10 +968,12 @@ FGAEffectHandle FGAActiveEffectContainer::HandleTargetAggregationEffect(FGAEffec
 	{
 	case EGAEffectStacking::StrongerOverride:
 	{
+		UE_LOG(GameAttributesEffects, Log, TEXT("TargetAggregationStrongerOverride: %f"), *EffectIn.GetNameAsString());
 		return HandleTargetEffectStrongerOverride(EffectIn, Ctx);
 	}
 	case EGAEffectStacking::Override:
 	{
+		UE_LOG(GameAttributesEffects, Log, TEXT("TargetAggregationOverride: %f"), *EffectIn.GetNameAsString());
 		return HandleTargetEffectOverride(EffectIn, Ctx);
 	}
 	case EGAEffectStacking::Duration:
@@ -864,10 +982,12 @@ FGAEffectHandle FGAActiveEffectContainer::HandleTargetAggregationEffect(FGAEffec
 	}
 	case EGAEffectStacking::Intensity:
 	{
+		UE_LOG(GameAttributesEffects, Log, TEXT("TargetAggregationStackIntensity: %f"), *EffectIn.GetNameAsString());
 		return HandleTargetEffectDuration(EffectIn, Ctx);
 	}
 	case EGAEffectStacking::Add:
 	{
+		UE_LOG(GameAttributesEffects, Log, TEXT("TargetAggregationAdd: %f"), *EffectIn.GetNameAsString());
 		return HandleTargetEffectAdd(EffectIn, Ctx);
 	}
 	default:
@@ -898,10 +1018,10 @@ FGAEffectHandle FGAActiveEffectContainer::HandleTargetEffectOverride(FGAEffectSp
 	{
 		RemoveActiveEffect(hand);
 	}
-
+	
 	FGAEffectHandle newHandle = AddActiveEffect(EffectIn, Ctx);
 	TargetEffects.AddEffect(EffectIn.EffectName, newHandle);
-
+	
 	return newHandle;
 }
 

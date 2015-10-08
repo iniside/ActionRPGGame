@@ -23,5 +23,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 		virtual float GetAttributeValue(FGAAttribute AttributeIn) const { return 0; };
 
+	//override to allow gathering tags from causer
+	//those tags will be merged into effect owned tags.
+	virtual FGameplayTagContainer GetCauserTags() { return FGameplayTagContainer(); }
+
 	virtual void Died() {};
 };

@@ -30,7 +30,7 @@ class AGSEffectField* UGSBlueprintFunctionLibrary::BeginCreateEffectField(TSubcl
 		//effectField = FieldInstigator->GetWorld()->SpawnActor<AGSEffectField>(EffectFieldClass,
 		//	Location, Rotation, FieldInstigator, FieldInstigator->Instigator, true); //change to get pawn
 		FActorSpawnParameters SpawnParams;
-		SpawnParams.bNoCollisionFail = true;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		SpawnParams.Instigator = FieldInstigator->Instigator;
 		FieldInstigator->GetWorld()->SpawnActor<AGSEffectField>(EffectFieldClass, Location, Rotation, SpawnParams);
 		if (effectField)
@@ -68,8 +68,12 @@ class AGSPersistentCue* UGSBlueprintFunctionLibrary::BeginSpawnCueActor(TSubclas
 		FRotator Rotation = FRotator::ZeroRotator;
 		Rotation = CueInstigator->GetActorRotation();
 		Rotation.Pitch = 0;
+		FTransform Trans;
+		Trans.SetLocation(Location);
+		Trans.SetRotation(FQuat(Rotation));
 		effectField = CueInstigator->GetWorld()->SpawnActorDeferred<AGSPersistentCue>(CueActorClass,
-			Location, Rotation, CueInstigator, CueInstigator->Instigator, true); //change to get pawn
+			Trans, CueInstigator, CueInstigator->Instigator,
+			ESpawnActorCollisionHandlingMethod::AlwaysSpawn); //change to get pawn
 		if (effectField)
 		{
 			effectField->CueInstigator = CueInstigator;

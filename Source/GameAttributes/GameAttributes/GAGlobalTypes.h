@@ -52,6 +52,13 @@ enum class EGAAttributeSource : uint8
 };
 
 UENUM()
+enum class EGAModifierTarget : uint8
+{
+	Instigator,
+	Target
+};
+
+UENUM()
 enum class EGAAttributeValue : uint8
 {
 	Base,
@@ -310,6 +317,11 @@ public:
 		return !AttributeName.IsNone();
 	}
 
+	inline FString ToString()
+	{
+		return AttributeName.ToString();
+	}
+
 	FGAAttribute()
 	{
 		AttributeName = NAME_None;
@@ -404,8 +416,14 @@ public:
 	void AddTag(const FGameplayTag& TagIn);
 	void AddTagContainer(const FGameplayTagContainer& TagsIn);
 	void RemoveTag(const FGameplayTag& TagIn);
+	void RemoveTagContainer(const FGameplayTagContainer& TagsIn);
 
 	bool HasTag(const FGameplayTag& TagIn);
 	bool HasAllTags(const FGameplayTagContainer& TagsIn, bool bCountEmptyAsMatch);
 	bool HasAnyTags(const FGameplayTagContainer& TagsIn, bool bCountEmptyAsMatch);
+
+	inline int32 GetTagCount(const FGameplayTag& TagIn) const
+	{
+		return CountedTags.FindRef(TagIn);
+	}
 };

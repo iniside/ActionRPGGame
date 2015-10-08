@@ -43,8 +43,6 @@ namespace UnrealBuildTool.Rules
 				    
 				    "Slate",
 				    "SlateCore",
-				    "MovieSceneCore",
-				    "Sequencer",
 				    "DetailCustomizations",
                     "Settings",
 				    "RenderCore",

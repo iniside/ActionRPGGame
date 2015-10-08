@@ -58,7 +58,7 @@ void AGWWeaponRanged::BeginPlay()
 
 	if (TypeOfAmmo)
 	{
-		CurrentAmmo = ConstructObject<UGWAmmo>(TypeOfAmmo, this);
+		CurrentAmmo = NewObject<UGWAmmo>(TypeOfAmmo);
 	}
 }
 void AGWWeaponRanged::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const

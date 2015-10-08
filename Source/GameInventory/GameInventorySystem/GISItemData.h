@@ -213,7 +213,7 @@ T* CreateDataItem(APlayerController* OwningPlayer, UClass* UserWidgetClass)
 	// Assign the outer to the game instance if it exists, otherwise use the player controller's world
 	UWorld* World = OwningPlayer->GetWorld();
 	//UObject* Outer = World->GetGameInstance() ? StaticCast<UObject*>(World->GetGameInstance()) : StaticCast<UObject*>(World);
-	UGISItemData* NewWidget = ConstructObject<UGISItemData>(UserWidgetClass, OwningPlayer);
+	UGISItemData* NewWidget = NewObject<UGISItemData>(OwningPlayer, UserWidgetClass);
 
 	return Cast<T>(NewWidget);
 }

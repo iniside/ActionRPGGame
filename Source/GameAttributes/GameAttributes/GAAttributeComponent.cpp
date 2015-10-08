@@ -68,12 +68,14 @@ FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(TSubclassOf<class UGAEf
 FGAEffectHandle UGAAttributeComponent::ApplyEffectToTarget(TSubclassOf<class UGAEffectSpecification> SpecIn,
 	const FGAEffectContext& Context, const FName& EffeftName)
 {
+	UE_LOG(GameAttributesEffects, Log, TEXT("Apply effect to Target: %f, From: %d Effect: %g"), *Context.Target->GetName(), *GetOwner()->GetName(), *EffeftName.ToString());
 	return Context.TargetComp->ApplyEffectToSelf(SpecIn, Context, EffeftName);
 }
 
 FGAEffectHandle UGAAttributeComponent::ApplySelfEffect(AActor* Target, APawn* Instigator,
 	UObject* Causer, FGAEffectSpec SpecIn)
 {
+	UE_LOG(GameAttributesEffects, Log, TEXT("Apply effect to self: %f , Effect: %d"), *GetOwner()->GetName(), *SpecIn.GetNameAsString());
 	//this is bad btw. I need to change it. LAter.
 	IIGAAttributes* targetAttr = Cast<IIGAAttributes>(Target);
 	IIGAAttributes* instiAttr = Cast<IIGAAttributes>(Instigator);
@@ -223,7 +225,6 @@ void UGAAttributeComponent::OnRep_ActiveEffects()
 			return;
 
 		FActorSpawnParameters SpawnParams;
-		SpawnParams.bNoCollisionFail = true;
 		AGAEffectCue* cue = GetWorld()->SpawnActor<AGAEffectCue>(ActiveEffects.RepActiveEffects[LastIndex].CueClass,
 			ActiveEffects.RepActiveEffects[LastIndex].Context.TargetHitLocation, FRotator(0, 0, 0), SpawnParams);
 		
