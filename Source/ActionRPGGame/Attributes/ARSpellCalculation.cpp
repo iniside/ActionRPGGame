@@ -7,6 +7,8 @@
 #include "ARCharacterAttributes.h"
 #include "ARSpellCalculation.h"
 
+#include "GAGameEffect.h"
+
 UARSpellCalculation::UARSpellCalculation(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
@@ -42,4 +44,26 @@ FGAAttributeData UARSpellCalculation::IncomingModifyEffect(const FGAAttributeDat
 	data.Value = data.Value - (data.Value * DefStack.Divide);
 	
 	return data;
+}
+
+FGAGameEffect UARSpellCalculation::ModiifyEffect(const FGAGameEffect& EffectIn)
+{
+	FGAGameEffect EffectOut = EffectIn;
+	FGAGameModifierStack InstigatorStack = EffectOut.GetInstigatorComp()->GameEffectContainer.GetQualifableMods(EffectIn, EGAModifierDirection::Outgoing);
+	FGAGameModifierStack TargetStack = EffectOut.GetTargetComp()->GameEffectContainer.GetQualifableMods(EffectIn, EGAModifierDirection::Incoming);
+	
+	EffectOut.Value = EffectOut.Value + InstigatorStack.Additive;
+	EffectOut.Value = EffectOut.Value - InstigatorStack.Subtractive;
+
+	EffectOut.Value = EffectOut.Value + (EffectOut.Value * InstigatorStack.Multiply);
+	EffectOut.Value = EffectOut.Value - (EffectOut.Value * InstigatorStack.Divide);
+
+	//so additive bonus in defense would work like penalty and increas damage received ?
+	EffectOut.Value = EffectOut.Value + TargetStack.Additive;
+	EffectOut.Value = EffectOut.Value - TargetStack.Subtractive;
+
+	EffectOut.Value = EffectOut.Value + (EffectOut.Value * TargetStack.Multiply);
+	EffectOut.Value = EffectOut.Value - (EffectOut.Value * TargetStack.Divide);
+
+	return EffectOut;
 }

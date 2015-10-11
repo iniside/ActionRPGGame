@@ -1,6 +1,7 @@
 #pragma once
 #include "../GAGlobalTypes.h"
 #include "../GAAttributeBase.h"
+#include "../GAGameEffect.h"
 #include "GABlueprintLibrary.generated.h"
 
 UCLASS(BlueprintType, Blueprintable)
@@ -16,4 +17,11 @@ public:
 		static FGAEffectHandle ApplyEffectActorSpec(AActor* Target, APawn* Instigator,
 		UObject* Causer, TSubclassOf<class UGAEffectSpecification> SpecIn);
 
+	UFUNCTION(BlueprintCallable, meta=(ExpandEnumAsExecs="ResultOut"), Category = "Game Effect System")
+		static FGAGameEffectHandle MakeOutgoingSpec(FGAGameEffectHandle Handle,
+			TSubclassOf<class UGAGameEffectSpec> SpecIn, const FHitResult& Target, APawn* Instigator,
+			UObject* Causer, EGAMakeSpecResult& ResultOut);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
+		static void ApplyGameEffect(FGAGameEffectHandle Handle);
 };

@@ -214,16 +214,24 @@ void FGAAttributeBase::UpdateAttribute()
 void FGAAttributeBase::Add(float ValueIn)
 {
 	float OldCurrentValue = CurrentValue;
+	UE_LOG(GameAttributes, Log, TEXT("FGAAttributeBase::Add:: OldCurrentValue: %f"), OldCurrentValue);
+	UE_LOG(GameAttributes, Log, TEXT("FGAAttributeBase::Add:: AddValue: %f"), ValueIn);
 	float Val = CurrentValue - (OldCurrentValue + ValueIn);
+	UE_LOG(GameAttributes, Log, TEXT("FGAAttributeBase::Add:: ActuallAddVal: %f"), Val);
 	CurrentValue -= Val;
-	CurrentValue = FMath::Clamp<float>(CurrentValue, 0, BaseValue);
+	CurrentValue = FMath::Clamp<float>(CurrentValue, 0, GetFinalValue());
+	UE_LOG(GameAttributes, Log, TEXT("FGAAttributeBase::Add:: CurrentValue: %f"), CurrentValue);
 }
 void FGAAttributeBase::Subtract(float ValueIn)
 {
 	float OldCurrentValue = CurrentValue;
+	UE_LOG(GameAttributes, Log, TEXT("FGAAttributeBase::Subtract:: OldCurrentValue: %f"), OldCurrentValue);
+	UE_LOG(GameAttributes, Log, TEXT("FGAAttributeBase::Subtract:: SubtractValue: %f"), ValueIn);
 	float Val = CurrentValue - (OldCurrentValue - ValueIn);
+	UE_LOG(GameAttributes, Log, TEXT("FGAAttributeBase::Subtract:: ActuallSubtractVal: %f"), Val);
 	CurrentValue -= Val;
 	CurrentValue = FMath::Clamp<float>(CurrentValue, 0, GetFinalValue());
+	UE_LOG(GameAttributes, Log, TEXT("FGAAttributeBase::Subtract:: CurrentValue: %f"), CurrentValue);
 }
 
 void FGAAttributeBase::InitializeAttribute()

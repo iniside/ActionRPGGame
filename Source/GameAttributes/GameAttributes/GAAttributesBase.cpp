@@ -202,3 +202,28 @@ void UGAAttributesBase::SetNetAddressable()
 {
 	bNetAddressable = true;
 }
+void UGAAttributesBase::ModifyAttribute(const FGAGameEffect& EffectIn)
+{
+	FGAAttributeBase* attr = nullptr;
+	switch(EffectIn.ChangeType)
+	{
+	case EGAAttributeChangeType::Damage:
+		attr = GetAttribute(EffectIn.Attribute);
+		if(attr)
+		{
+			attr->Subtract(EffectIn.Value);
+		}
+		break;
+	case EGAAttributeChangeType::DamagePercentage:
+		break;
+	case EGAAttributeChangeType::Heal:
+		attr = GetAttribute(EffectIn.Attribute);
+		if (attr)
+		{
+			attr->Add(EffectIn.Value);
+		}
+		break;
+	case EGAAttributeChangeType::HealPercentage:
+		break;
+	}
+}

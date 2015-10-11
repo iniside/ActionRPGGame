@@ -3,7 +3,7 @@
 #include "ActionRPGGame.h"
 
 //#include "GAAttributeComponent.h"
-#include "../Items/ARItemInfo.h"
+#include "Items/ARItemInfo.h"
 #include "Widgets/GISContainerBaseWidget.h"
 #include "Items/GSEquipmentComponent.h"
 #include "GAAttributesBase.h"
@@ -20,7 +20,7 @@
 //#include "Engine/ActorChannel.h"
 
 #include "GSPlayerController.h"
-#include "../ARPlayerController.h"
+#include "ARPlayerController.h"
 
 #include "ARCharacter.h"
 

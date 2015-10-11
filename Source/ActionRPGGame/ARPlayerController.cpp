@@ -1,7 +1,7 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 #pragma once
 #include "ActionRPGGame.h"
-#include "Public/ARCharacter.h"
+#include "ARCharacter.h"
 #include "GSHUD.h"
 #include "Abilities/GSAbilitiesComponent.h"
 #include "GISInventoryBaseComponent.h"

@@ -4,6 +4,7 @@
 #include "GAEffects.h"
 #include "GAEffectCueTypes.h"
 #include "GAAttributesBase.h"
+#include "GAGameEffect.h"
 #include "GAAttributeComponent.generated.h"
 
 DECLARE_STATS_GROUP(TEXT("AttributeComponent"), STATGROUP_AttributeComponent, STATCAT_Advanced);
@@ -47,6 +48,9 @@ class GAMEATTRIBUTES_API UGAAttributeComponent : public UActorComponent
 	GENERATED_UCLASS_BODY()
 public:
 	UPROPERTY(EditAnywhere, Category = "Test")
+		TArray<FGAGameEffectModifier> ModifierTest;
+
+	UPROPERTY(EditAnywhere, Category = "Test")
 		FGameplayTag TagTest;
 	/*
 		Set attribute which will be considered for indicating whether or not actor is dead.
@@ -89,7 +93,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Game Attributes")
 		FGAOnAttributeModifed OnAttributeModifed;
 
-	
+	/* NEW EFFECT SYSTEM */
+	FGAGameEffectContainer GameEffectContainer;
+
 	UFUNCTION(BlueprintCallable, Category = "Test")
 		void GetAttributeStructTest(FGAAttribute Name);
 
@@ -99,6 +105,14 @@ public:
 public:
 	/////////////////////////////////////////////////
 	//////////// EFFECTS HANDLING
+
+	FGAEffectHandle ApplyEffectToSelf(const FGAGameEffect& EffectIn);
+	FGAEffectHandle ApplyEffectToTarget(const FGAGameEffect& EffectIn);
+
+	FGAGameEffectHandle MakeGameEffect(TSubclassOf<class UGAGameEffectSpec> SpecIn,
+		const FGAEffectContext& ContextIn);
+
+	void ExecuteEffect(const FGAGameEffect& EffectIn);
 
 	/*
 		Apply to self probabaly shouldn't take Spec.

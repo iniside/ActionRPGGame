@@ -1,6 +1,6 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 #pragma once
-#include "../Public/GameAttributesEditor.h"
+#include "GameAttributesEditor.h"
 #include "GAAttributePin.h"
 #include "GAGlobalTypes.h"
 

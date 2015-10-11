@@ -14,6 +14,7 @@
 
 #include "GAEffectCue.h"
 #include "GAAttributeComponent.h"
+#include "GAGameEffect.h"
 
 DEFINE_STAT(STAT_ApplyEffect);
 DEFINE_STAT(STAT_ModifyAttribute);
@@ -35,6 +36,7 @@ void UGAAttributeComponent::UninitializeComponent()
 	ActiveEffects.Clean();
 	OnAttributeModifed.Clear();
 }
+
 void UGAAttributeComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
@@ -43,7 +45,39 @@ void UGAAttributeComponent::InitializeComponent()
 		DefaultAttributes->OwningAttributeComp = this;
 		DefaultAttributes->InitializeAttributes();
 	}
+	GameEffectContainer.OwningComp = this;
 	AppliedTags.AddTagContainer(DefaultTags);
+	for(const FGAGameEffectModifier& mod : ModifierTest)
+	{
+		GameEffectContainer.ApplyModifier(mod);
+	}
+	//"Damage.Fire"
+	//"Damage.Ice"
+}
+
+FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAGameEffect& EffectIn)
+{
+	GameEffectContainer.ApplyEffect(EffectIn);
+	return FGAEffectHandle();
+}
+FGAEffectHandle UGAAttributeComponent::ApplyEffectToTarget(const FGAGameEffect& EffectIn)
+{
+	if(EffectIn.IsValid())
+		return EffectIn.Context.TargetComp->ApplyEffectToSelf(EffectIn);
+	return FGAEffectHandle();
+}
+
+FGAGameEffectHandle UGAAttributeComponent::MakeGameEffect(TSubclassOf<class UGAGameEffectSpec> SpecIn,
+	const FGAEffectContext& ContextIn)
+{
+	FGAGameEffect* effect = new FGAGameEffect(SpecIn.GetDefaultObject(), ContextIn);
+	FGAGameEffectHandle handle = FGAGameEffectHandle::GenerateHandle(effect);
+	return handle;
+}
+
+void UGAAttributeComponent::ExecuteEffect(const FGAGameEffect& EffectIn)
+{
+	DefaultAttributes->ModifyAttribute(EffectIn);
 }
 
 FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(TSubclassOf<class UGAEffectSpecification> SpecIn,

@@ -2,6 +2,7 @@
 #include "GAGlobalTypes.h"
 #include "GAAttributeBase.h"
 #include "GAEffects.h"
+#include "GAGameEffect.h"
 #include "GAAttributesBase.generated.h"
 
 /*
@@ -104,6 +105,8 @@ public:
 		Intentionally non const. Attribute is in and out.
 	*/
 	virtual FGAAttributeData PreModifyAttribute(const FGAAttributeData& AttributeMod) { return FGAAttributeData(); };
+	
+	
 	//probabaly doesn't need to be vritual any longer. 
 	/*
 		Impelement your custom logic how changed attribute should affect other attributes.
@@ -160,6 +163,8 @@ public:
 		return true;
 	}
 	void SetNetAddressable();
+
+	void ModifyAttribute(const FGAGameEffect& EffectIn);
 protected:
 	bool bNetAddressable;
 

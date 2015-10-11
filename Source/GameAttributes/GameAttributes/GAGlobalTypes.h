@@ -1,4 +1,5 @@
 #pragma once
+#include "GameAttributes.h"
 #include "GameplayTagContainer.h"
 #include "GAGlobalTypes.generated.h"
 
@@ -25,6 +26,22 @@
 	HasTag("A.B.C.D", Explicit, IncludeParentTags) returns true.
 	HasTag("E.B.C", Explicit, IncludeParentTags) returns false.
 */
+
+/*
+Type of modification applied to attribute:
+Damage - Will damage attribute (ie, subtract value from Health)
+Heal - will heal attribute (ie. add value to health)
+*/
+UENUM()
+enum class EGAAttributeChangeType : uint8
+{
+	Damage,
+	DamagePercentage,
+	Heal,
+	HealPercentage,
+	Invalid
+};
+
 /*
 	I seriosuly need to clean this shit up.
 */
@@ -367,6 +384,40 @@ public:
 	 */
 	UPROPERTY(BlueprintReadOnly, Category = "Spec")
 		TWeakObjectPtr<class UGAAttributeComponent> InstigatorComp;
+
+	inline bool IsValid() const
+	{
+		if (Target.IsValid() && Causer.IsValid() && Instigator.IsValid() && TargetComp.IsValid() && InstigatorComp.IsValid())
+			return true;
+		UE_LOG(GameAttributesEffects, Error, TEXT("Effect Context Is Not Valid"));
+		return false;
+	}
+
+	inline FString ToString()
+	{
+		if (!IsValid())
+		{
+			UE_LOG(GameAttributesEffects, Error, TEXT("Effect Context Is Not Valid"));
+			return FString("Context Is not valid");
+		}
+		FString ret;
+		ret = "TargetHitLocation: ";
+		ret += TargetHitLocation.ToString();
+		ret += "\n";
+		ret += "Target: ";
+		ret += Target->GetName();
+		ret += "\n";
+		ret += "Causer: ";
+		ret += Causer->GetName();
+		ret += "\n";
+		ret += "Instigator: ";
+		ret += Instigator->GetName();
+		ret += "\n";
+		ret += "TargetComp: ";
+		return ret;
+	}
+
+	
 
 	void Reset();
 

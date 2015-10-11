@@ -14,4 +14,6 @@ public:
 
 	virtual FGAAttributeData OutgoingModifyEffect(const FGAAttributeData& DataIn) override;
 	virtual FGAAttributeData IncomingModifyEffect(const FGAAttributeData& DataIn) override;
+
+	virtual FGAGameEffect ModiifyEffect(const FGAGameEffect& EffectIn) override;
 };
