@@ -9,23 +9,46 @@
 #include "Effects/GAEffectSpecification.h"
 #include "GAEffectCue.h"
 #include "GACalculation.h"
-
+#include "GAAttributeComponent.h"
 #include "GAGameEffect.h"
 
 FGAGameEffect::FGAGameEffect(class UGAGameEffectSpec* GameEffectIn,
 	const FGAEffectContext& ContextIn)
 	: GameEffect(GameEffectIn),
-	Attribute(GameEffectIn->Attribute),
-	Value(GameEffectIn->Value),
-	ChangeType(GameEffectIn->ChangeType),
+	Calculation(GameEffect->CalculationType.GetDefaultObject()),
 	Context(ContextIn)
 {
 	OwnedTags = GameEffectIn->OwnedTags;
+
+	for(FGAGameEffectInfo& info : GameEffectIn->OnAppliedInfo)
+	{
+		FGAGameEffectMod Mod(info.Attribute, info.Value, info.ChangeType);
+		OnAppliedMods.Add(Mod);
+	}
 }
 
 void FGAGameEffect::SetContext(const FGAEffectContext& ContextIn)
 {
 	Context = ContextIn;
+}
+
+TArray<FGAEffectMod> FGAGameEffect::GetOnAppliedMods()
+{
+	return GetMods(GameEffect->OnAppliedInfo);
+}
+
+TArray<FGAEffectMod> FGAGameEffect::GetMods(TArray<FGAGameEffectInfo>& ModsInfoIn)
+{
+	TArray<FGAEffectMod> ModsOut;
+	if (GameEffect)
+	{
+		for (FGAGameEffectInfo& info : ModsInfoIn)
+		{
+			FGAEffectMod mod(info.Attribute, info.Value, info.ChangeType);
+			ModsOut.Add(mod);
+		}
+	}
+	return ModsOut;
 }
 
 FGAGameEffectHandle FGAGameEffectHandle::GenerateHandle(FGAGameEffect* EffectIn)
@@ -40,103 +63,97 @@ void FGAGameEffectContainer::ApplyEffect(const FGAGameEffect& EffectIn)
 {
 	//instant effect goes trough simplest application path
 	//just make effect and run it trough modifiers.
-	FGAGameEffect& EfNoConst = const_cast<FGAGameEffect&>(EffectIn);
-	FGAGameEffect Effect = EfNoConst.GetCalculation()->ModiifyEffect(EffectIn);
+	FGAGameEffect& Effect = const_cast<FGAGameEffect&>(EffectIn);
+	//FGAGameEffect Effect = EfNoConst.Calculation->ModiifyEffect(EffectIn);
+	if(Effect.GameEffect->EffectType == EGAEffectType::Periodic)
+	{
+		//add to map of active effects ?
+		//Or simply create timer here, execute by handle and simply add handle to array ?
+	}
 	ExecuteEffect(Effect);
 }
-void FGAGameEffectContainer::ExecuteEffect(const FGAGameEffect& EffectIn)
+void FGAGameEffectContainer::ExecuteEffect(FGAGameEffect& EffectIn)
 {
-	OwningComp->ExecuteEffect(EffectIn);
+	FGAGameEffect& Effect = const_cast<FGAGameEffect&>(EffectIn);
+	FGACalculationContext InstiContext(EffectIn.Context.InstigatorComp.Get(), EffectIn.Context.InstigatorComp->DefaultAttributes, EGAModifierDirection::Outgoing);
+	FGACalculationContext TargetContext(EffectIn.Context.TargetComp.Get(), EffectIn.Context.TargetComp->DefaultAttributes, EGAModifierDirection::Incoming);
+	
+	TArray<FGAEffectMod> OnAppliedMods = EffectIn.GetOnAppliedMods();
+	for(FGAEffectMod& mod : OnAppliedMods)
+	{
+		EffectIn.Calculation->ModifyEffect(mod, InstiContext);
+		EffectIn.Calculation->ModifyEffect(mod, TargetContext);
+		OwningComp->DefaultAttributes->ModifyAttribute(mod);
+	}
+	OwningComp->DefaultAttributes->ModifyAttribute(Effect);
+}
+
+void FGAGameEffectContainer::ExecutePeriodicEffect(FGAGameEffectHandle HandleIn)
+{
+	//FGAGameEffect Effect = *HandleIn.EffectPtr.Get();
+	//
+	//FGACalculationContext InstiContext(Effect.Context.InstigatorComp.Get(), Effect.Context.InstigatorComp->DefaultAttributes, EGAModifierDirection::Outgoing);
+	//FGACalculationContext TargetContext(Effect.Context.TargetComp.Get(), Effect.Context.TargetComp->DefaultAttributes, EGAModifierDirection::Incoming);
+	//for (FGAGameEffectMod& mod : Effect.OnAppliedMods)
+	//{
+	//	Effect.Calculation->ModifyEffectInstigator(Effect, mod, InstiContext);
+	//	Effect.Calculation->ModifyEffectTarget(Effect, mod, TargetContext);
+	//}
+}
+
+FGAGameEffectContainer::FGAGameEffectContainer()
+{
+	Modifiers.SetNum(2);
 }
 
 void FGAGameEffectContainer::ApplyModifier(const FGAGameEffectModifier& ModifierIn)
 {
-	switch (ModifierIn.Direction)
-	{
-	case EGAModifierDirection::Incoming:
-		IncomingModifiers.Add(ModifierIn);
-		break;
-	case EGAModifierDirection::Outgoing:
-		OutgoingModifiers.Add(ModifierIn);
-		break;
-	default:
-		break;
-	}
+	int32 Index = static_cast<int32>(ModifierIn.Direction);
+	Modifiers[Index].Add(ModifierIn);
 }
 
-FGAGameModifierStack FGAGameEffectContainer::GetQualifableMods(const FGAGameEffect& EffectIn, EGAModifierDirection Direction)
+FGAGameModifierStack FGAGameEffectContainer::GetQualifableMods(const FGAGameEffect& EffectIn
+	, const FGACalculationContext& Context)
 {
 	FGAGameModifierStack ModifierStackOut;
-	if (Direction == EGAModifierDirection::Outgoing)
+	int32 Index = static_cast<int32>(Context.Direction);
+	for (const FGAGameEffectModifier& mod : Modifiers[Index])
 	{
-		for (const FGAGameEffectModifier& mod : OutgoingModifiers)
+		if (mod.RequiredTags.MatchesAny(EffectIn.OwnedTags, false) && mod.Direction == Context.Direction)
 		{
-			if (mod.RequiredTags.MatchesAny(EffectIn.OwnedTags, false))
+			switch (mod.ModType)
 			{
-				switch (mod.ModType)
-				{
-				case EGAAttributeMod::Add:
-					UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::GetQualifableMods: %f , Value: %g : Outgoing"), *EffectIn.OwnedTags.ToString(), mod.Value);
-					ModifierStackOut.Additive += mod.Value;
-					UE_LOG(GameAttributesEffects, Log, TEXT("Total Additive Mod Value: %f"), ModifierStackOut.Additive);
-					break;
-				case EGAAttributeMod::Subtract:
-					UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::GetQualifableMods: %f , Value: %g : Outgoing"), *EffectIn.OwnedTags.ToString(), mod.Value);
-					ModifierStackOut.Subtractive += mod.Value;
-					UE_LOG(GameAttributesEffects, Log, TEXT("Total Subtractive Mod Value: %f"), ModifierStackOut.Additive);
-					break;
-				case EGAAttributeMod::Multiply:
-					UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::GetQualifableMods: %f , Value: %g : Outgoing"), *EffectIn.OwnedTags.ToString(), mod.Value);
-					ModifierStackOut.Multiply += mod.Value;
-					UE_LOG(GameAttributesEffects, Log, TEXT("Total Additive Multiply Value: %f"), ModifierStackOut.Additive);
-					break;
-				case EGAAttributeMod::Divide:
-					UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::GetQualifableMods: %f , Value: %g : Outgoing"), *EffectIn.OwnedTags.ToString(), mod.Value);
-					ModifierStackOut.Divide += mod.Value;
-					UE_LOG(GameAttributesEffects, Log, TEXT("Total Additive Divide Value: %f"), ModifierStackOut.Additive);
-					break;
-				default:
-					break;
-				}
+			case EGAAttributeMod::Add:
+				UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::GetQualifableMods: %f , Value: %g : %d"), *EffectIn.OwnedTags.ToString(), mod.Value, *EnumToString::GetModifierDirectionAsString(Context.Direction));
+				ModifierStackOut.Additive += mod.Value;
+				UE_LOG(GameAttributesEffects, Log, TEXT("Total Additive Mod Value: %f"), ModifierStackOut.Additive);
+				break;
+			case EGAAttributeMod::Subtract:
+				UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::GetQualifableMods: %f , Value: %g : %d"), *EffectIn.OwnedTags.ToString(), mod.Value, *EnumToString::GetModifierDirectionAsString(Context.Direction));
+				ModifierStackOut.Subtractive += mod.Value;
+				UE_LOG(GameAttributesEffects, Log, TEXT("Total Subtractive Mod Value: %f"), ModifierStackOut.Subtractive);
+				break;
+			case EGAAttributeMod::Multiply:
+				UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::GetQualifableMods: %f , Value: %g : %d"), *EffectIn.OwnedTags.ToString(), mod.Value, *EnumToString::GetModifierDirectionAsString(Context.Direction));
+				ModifierStackOut.Multiply += mod.Value;
+				UE_LOG(GameAttributesEffects, Log, TEXT("Total Additive Multiply Value: %f"), ModifierStackOut.Multiply);
+				break;
+			case EGAAttributeMod::Divide:
+				UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::GetQualifableMods: %f , Value: %g : %d"), *EffectIn.OwnedTags.ToString(), mod.Value, *EnumToString::GetModifierDirectionAsString(Context.Direction));
+				ModifierStackOut.Divide += mod.Value;
+				UE_LOG(GameAttributesEffects, Log, TEXT("Total Additive Divide Value: %f"), ModifierStackOut.Divide);
+				break;
+			default:
+				break;
 			}
 		}
-	}
-	else if(Direction == EGAModifierDirection::Incoming)
-	{
-		for (const FGAGameEffectModifier& mod : IncomingModifiers)
-		{
-			if (mod.RequiredTags.MatchesAny(EffectIn.OwnedTags, false))
-			{
-				switch (mod.ModType)
-				{
-				case EGAAttributeMod::Add:
-					UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::GetQualifableMods: %f , Value: %g : Incoming"), *EffectIn.OwnedTags.ToString(), mod.Value);
-					ModifierStackOut.Additive += mod.Value;
-					UE_LOG(GameAttributesEffects, Log, TEXT("Total Additive Mod Value: %f"), ModifierStackOut.Additive);
-					break;
-				case EGAAttributeMod::Subtract:
-					UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::GetQualifableMods: %f , Value: %g : Incoming"), *EffectIn.OwnedTags.ToString(), mod.Value);
-					ModifierStackOut.Subtractive += mod.Value;
-					UE_LOG(GameAttributesEffects, Log, TEXT("Total Subtractive Mod Value: %f"), ModifierStackOut.Additive);
-					break;
-				case EGAAttributeMod::Multiply:
-					UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::GetQualifableMods: %f , Value: %g : Incoming"), *EffectIn.OwnedTags.ToString(), mod.Value);
-					ModifierStackOut.Multiply += mod.Value;
-					UE_LOG(GameAttributesEffects, Log, TEXT("Total Additive Multiply Value: %f"), ModifierStackOut.Additive);
-					break;
-				case EGAAttributeMod::Divide:
-					UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::GetQualifableMods: %f , Value: %g : Incoming"), *EffectIn.OwnedTags.ToString(), mod.Value);
-					ModifierStackOut.Divide += mod.Value;
-					UE_LOG(GameAttributesEffects, Log, TEXT("Total Additive Divide Value: %f"), ModifierStackOut.Additive);
-					break;
-				default:
-					break;
-				}
-			}
-		}
-		
 	}
 	return ModifierStackOut;
+}
+FGAGameModifierStack FGACalculationContext::GetModifiers(const FGAGameEffect& EffectIn
+	, const FGACalculationContext& Context)
+{
+	return AttributeComp->GameEffectContainer.GetQualifableMods(EffectIn, Context);
 }
 
 UGAGameEffectSpec::UGAGameEffectSpec()

@@ -58,6 +58,8 @@ void UGAAttributeComponent::InitializeComponent()
 FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAGameEffect& EffectIn)
 {
 	GameEffectContainer.ApplyEffect(EffectIn);
+
+	//ExecuteEffect(EffectIn);
 	return FGAEffectHandle();
 }
 FGAEffectHandle UGAAttributeComponent::ApplyEffectToTarget(const FGAGameEffect& EffectIn)
@@ -77,7 +79,7 @@ FGAGameEffectHandle UGAAttributeComponent::MakeGameEffect(TSubclassOf<class UGAG
 
 void UGAAttributeComponent::ExecuteEffect(const FGAGameEffect& EffectIn)
 {
-	DefaultAttributes->ModifyAttribute(EffectIn);
+	//GameEffectContainer.ExecuteEffect(EffectIn);
 }
 
 FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(TSubclassOf<class UGAEffectSpecification> SpecIn,

@@ -205,25 +205,57 @@ void UGAAttributesBase::SetNetAddressable()
 void UGAAttributesBase::ModifyAttribute(const FGAGameEffect& EffectIn)
 {
 	FGAAttributeBase* attr = nullptr;
-	switch(EffectIn.ChangeType)
+	for (const FGAGameEffectMod& mod : EffectIn.OnAppliedMods)
 	{
-	case EGAAttributeChangeType::Damage:
-		attr = GetAttribute(EffectIn.Attribute);
-		if(attr)
+		switch (mod.ChangeType)
 		{
-			attr->Subtract(EffectIn.Value);
+		case EGAAttributeChangeType::Damage:
+			attr = GetAttribute(mod.Attribute);
+			if (attr)
+			{
+				attr->Subtract(mod.Value);
+			}
+			break;
+		case EGAAttributeChangeType::DamagePercentage:
+			break;
+		case EGAAttributeChangeType::Heal:
+			attr = GetAttribute(mod.Attribute);
+			if (attr)
+			{
+				attr->Add(mod.Value);
+			}
+			break;
+		case EGAAttributeChangeType::HealPercentage:
+			break;
 		}
-		break;
-	case EGAAttributeChangeType::DamagePercentage:
-		break;
-	case EGAAttributeChangeType::Heal:
-		attr = GetAttribute(EffectIn.Attribute);
-		if (attr)
-		{
-			attr->Add(EffectIn.Value);
-		}
-		break;
-	case EGAAttributeChangeType::HealPercentage:
-		break;
 	}
+}
+
+void UGAAttributesBase::ModifyAttribute(const FGAEffectMod& ModIn)
+{
+	FGAAttributeBase* attr = nullptr;
+	//for (const FGAGameEffectMod& mod : EffectIn.OnAppliedMods)
+	//{
+		switch (ModIn.ChangeType)
+		{
+		case EGAAttributeChangeType::Damage:
+			attr = GetAttribute(ModIn.Attribute);
+			if (attr)
+			{
+				attr->Subtract(ModIn.Value);
+			}
+			break;
+		case EGAAttributeChangeType::DamagePercentage:
+			break;
+		case EGAAttributeChangeType::Heal:
+			attr = GetAttribute(ModIn.Attribute);
+			if (attr)
+			{
+				attr->Add(ModIn.Value);
+			}
+			break;
+		case EGAAttributeChangeType::HealPercentage:
+			break;
+		}
+	//}
 }

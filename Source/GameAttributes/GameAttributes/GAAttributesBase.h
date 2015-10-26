@@ -165,6 +165,7 @@ public:
 	void SetNetAddressable();
 
 	void ModifyAttribute(const FGAGameEffect& EffectIn);
+	void ModifyAttribute(const FGAEffectMod& ModIn);
 protected:
 	bool bNetAddressable;
 

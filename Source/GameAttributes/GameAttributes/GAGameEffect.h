@@ -2,6 +2,7 @@
 #include "GAGlobalTypes.h"
 #include "GAAttributeBase.h"
 #include "GAGameEffect.generated.h"
+
 /*
 	Modifier type for simple attribute operatinos.
 	It's only additive or subtractive due to possible race conditions with multiplicative/divide 
@@ -45,11 +46,53 @@ public:
 		FGameplayTagContainer RequiredTags;
 };
 
+USTRUCT(BlueprintType)
+struct GAMEATTRIBUTES_API FGAGameEffectInfo
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(EditAnywhere, Category = "Instant Spec")
+		FGAAttribute Attribute;
+	UPROPERTY(EditAnywhere, Category = "Instant Spec")
+		float Value;
+	UPROPERTY(EditAnywhere, Category = "Instant Spec")
+		EGAAttributeChangeType ChangeType;
+};
+
 UCLASS(Blueprintable, BlueprintType)
 class GAMEATTRIBUTES_API UGAGameEffectSpec : public UObject
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(EditAnywhere, Category = "Effect Info")
+		EGAEffectType EffectType;
+	/* 
+		How effect should stack. Only relevelant for periodic effects
+		and modifiers applied on period.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Effect Info")
+		EGAEffectStacking EffectStacking;
+
+	/*
+		Who should aggregate this effect. Relevelant for stacking type
+		and by this only relevelant for periodic effects.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Effect Info")
+		EGAEffectAggregation EffectAggregation;
+
+	/* 
+		Modifiers applied upon application of effect. They are treated as instant effect
+		as never will be applied for duration.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
+		TArray<FGAGameEffectInfo> OnAppliedInfo;
+
+	/*
+		Modifiers applied on effect period.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
+		TArray<FGAGameEffectInfo> OnPeriodInfo;
+
 	/* For now just test instant application of direct value */
 	UPROPERTY(EditAnywhere, Category = "Instant Spec")
 		FGAAttribute Attribute;
@@ -75,34 +118,88 @@ public:
 	UGAGameEffectSpec();
 };
 
+struct FGAGameEffectMod
+{
+	FGAAttribute Attribute;
+	float Value;
+	EGAAttributeChangeType ChangeType;
+	FGAGameEffectMod()
+		: Attribute(NAME_None),
+		Value(0),
+		ChangeType(EGAAttributeChangeType::Invalid)
+	{};
 
+	FGAGameEffectMod(const FGAAttribute& AttributeIn, float ValueIn, EGAAttributeChangeType ChangeTypeIn)
+		: Attribute(AttributeIn),
+		Value(ValueIn),
+		ChangeType(ChangeTypeIn)
+	{};
+	
+};
+/* Final calculcated mod from effect, which can be modified by Calculation object. */
+struct FGAEffectMod
+{
+	FGAAttribute Attribute;
+	float Value;
+	EGAAttributeChangeType ChangeType;
+	FGAEffectMod()
+		: Attribute(NAME_None),
+		Value(0),
+		ChangeType(EGAAttributeChangeType::Invalid)
+	{};
+
+	FGAEffectMod(const FGAAttribute& AttributeIn, float ValueIn, EGAAttributeChangeType ChangeTypeIn)
+		: Attribute(AttributeIn),
+		Value(ValueIn),
+		ChangeType(ChangeTypeIn)
+	{};
+};
+
+struct FGAGameEffectBase
+{
+
+};
+
+struct FGAGameEffectActive
+{
+	
+};
 /*
 	Calculcated magnitudes, captured attributes and tags, set duration.
 	Final effect which then is used to apply custom calculations and attribute changes.
 */
-USTRUCT(BlueprintType)
 struct GAMEATTRIBUTES_API FGAGameEffect
 {
-	GENERATED_USTRUCT_BODY()
-public:
 	/* Cached pointer to original effect spec. */
 	class UGAGameEffectSpec* GameEffect;
 	class UGACalculation* Calculation;
-	FGAAttribute Attribute;
-	float Value;
-	EGAAttributeChangeType ChangeType;
+	
+	/* 
+		Calculated mods ready to be applied. 
+		These are perlimenarly calculcated mods, 
+		which can be furhter modified by Calculation object.
+
+
+	*/
+	TArray<FGAGameEffectMod> OnAppliedMods;
+	TArray<FGAGameEffectMod> OnPeriodMods;
+	TArray<FGAGameEffectMod> OnExpiredMods;
+	TArray<FGAGameEffectMod> OnRemovedMods;
 
 	FGAEffectContext Context;
-
 	FGameplayTagContainer OwnedTags;
 
 public:
 	void SetContext(const FGAEffectContext& ContextIn);
 
+	TArray<FGAEffectMod> GetOnAppliedMods();
+
 	class UGAAttributeComponent* GetInstigatorComp() { return Context.InstigatorComp.Get(); }
 	class UGAAttributeComponent* GetTargetComp() { return Context.TargetComp.Get(); }
 
-
+	void OnPeriod() {}; //internal timer - called by
+	void OnExpired() {}; //internal timer
+	void OnRemoved() {}; //internal timer
 
 	class UGACalculation* GetCalculation()
 	{
@@ -117,6 +214,8 @@ public:
 	{}
 	FGAGameEffect(class UGAGameEffectSpec* GameEffectIn, 
 		const FGAEffectContext& ContextIn);
+private:
+	TArray<FGAEffectMod> GetMods(TArray<FGAGameEffectInfo>& ModsInfoIn);
 };
 
 USTRUCT(BlueprintType)
@@ -241,6 +340,30 @@ struct GAMEATTRIBUTES_API FGAGameModifierStack
 		Divide(0)
 	{};
 };
+
+struct GAMEATTRIBUTES_API FGACalculationContext
+{
+	class UGAAttributeComponent* AttributeComp;
+
+	class UGAAttributesBase* Attributes;
+
+	EGAModifierDirection Direction;
+
+	FGAGameModifierStack GetModifiers(const FGAGameEffect& EffectIn
+		, const FGACalculationContext& Context);
+
+	FGACalculationContext()
+	{};
+	FGACalculationContext(class UGAAttributeComponent* AttrComp, 
+		class UGAAttributesBase* AttrIn,
+		EGAModifierDirection DirectionIn)
+		: AttributeComp(AttrComp),
+		Attributes(AttrIn),
+		Direction(DirectionIn)
+	{};
+
+};
+
 /*
 	Contains all active effects (which have duration, period or are infinite).
 */
@@ -250,16 +373,22 @@ struct GAMEATTRIBUTES_API FGAGameEffectContainer
 	GENERATED_USTRUCT_BODY()
 public:
 	TWeakObjectPtr<class UGAAttributeComponent> OwningComp;
+	TArray<TArray<FGAGameEffectModifier>> Modifiers;
 
-	TArray<FGAGameEffectModifier> OutgoingModifiers;
-	TArray<FGAGameEffectModifier> IncomingModifiers;
+	TArray<FGAGameEffectHandle> EffectsHandles;
+
+	TMap<FGAGameEffectHandle, TSharedPtr<FGAGameEffect>> ActiveEffects;
 public:
+	FGAGameEffectContainer();
+
 	void ApplyEffect(const FGAGameEffect& EffectIn);
-	void ExecuteEffect(const FGAGameEffect& EffectIn);
+	void ExecuteEffect(FGAGameEffect& EffectIn);
+	void ExecutePeriodicEffect(FGAGameEffectHandle HandleIn);
 
 	//modifiers
 	void ApplyModifier(const FGAGameEffectModifier& ModifierIn);
-	FGAGameModifierStack GetQualifableMods(const FGAGameEffect& EffectIn, EGAModifierDirection Direction);
+	FGAGameModifierStack GetQualifableMods(const FGAGameEffect& EffectIn
+		, const FGACalculationContext& Context);
 	void ApplyEffectsFromMods() {};
 	void DoesQualify() {};
 };

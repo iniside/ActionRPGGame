@@ -208,6 +208,22 @@ enum class EGAEffectAggregation : uint8
 	*/
 	AggregateByTarget
 };
+
+struct EnumToString
+{
+	static FString GetModifierDirectionAsString(EGAModifierDirection ModDir)
+	{
+		switch(ModDir)
+		{
+		case EGAModifierDirection::Incoming:
+			return FString("Incoming");
+		case EGAModifierDirection::Outgoing:
+			return FString("Outgoing");
+		}
+		return FString("");
+	}
+};
+
 /*
 	Special struct, which allows to yse FGameplayTagContainer as key, for TSet and TMap.
 	Bear in mind slower inserts/remove, but allow for complex keys.

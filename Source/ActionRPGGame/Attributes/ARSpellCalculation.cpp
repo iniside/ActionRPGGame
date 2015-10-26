@@ -49,21 +49,59 @@ FGAAttributeData UARSpellCalculation::IncomingModifyEffect(const FGAAttributeDat
 FGAGameEffect UARSpellCalculation::ModiifyEffect(const FGAGameEffect& EffectIn)
 {
 	FGAGameEffect EffectOut = EffectIn;
-	FGAGameModifierStack InstigatorStack = EffectOut.GetInstigatorComp()->GameEffectContainer.GetQualifableMods(EffectIn, EGAModifierDirection::Outgoing);
-	FGAGameModifierStack TargetStack = EffectOut.GetTargetComp()->GameEffectContainer.GetQualifableMods(EffectIn, EGAModifierDirection::Incoming);
-	
-	EffectOut.Value = EffectOut.Value + InstigatorStack.Additive;
-	EffectOut.Value = EffectOut.Value - InstigatorStack.Subtractive;
+	//FGAGameModifierStack InstigatorStack = EffectOut.GetInstigatorComp()->GameEffectContainer.GetQualifableMods(EffectIn, EGAModifierDirection::Outgoing);
+	//FGAGameModifierStack TargetStack = EffectOut.GetTargetComp()->GameEffectContainer.GetQualifableMods(EffectIn, EGAModifierDirection::Incoming);
+	//
+	//EffectOut.Value = EffectOut.Value + InstigatorStack.Additive;
+	//EffectOut.Value = EffectOut.Value - InstigatorStack.Subtractive;
 
-	EffectOut.Value = EffectOut.Value + (EffectOut.Value * InstigatorStack.Multiply);
-	EffectOut.Value = EffectOut.Value - (EffectOut.Value * InstigatorStack.Divide);
+	//EffectOut.Value = EffectOut.Value + (EffectOut.Value * InstigatorStack.Multiply);
+	//EffectOut.Value = EffectOut.Value - (EffectOut.Value * InstigatorStack.Divide);
 
-	//so additive bonus in defense would work like penalty and increas damage received ?
-	EffectOut.Value = EffectOut.Value + TargetStack.Additive;
-	EffectOut.Value = EffectOut.Value - TargetStack.Subtractive;
+	////so additive bonus in defense would work like penalty and increas damage received ?
+	//EffectOut.Value = EffectOut.Value + TargetStack.Additive;
+	//EffectOut.Value = EffectOut.Value - TargetStack.Subtractive;
 
-	EffectOut.Value = EffectOut.Value + (EffectOut.Value * TargetStack.Multiply);
-	EffectOut.Value = EffectOut.Value - (EffectOut.Value * TargetStack.Divide);
+	//EffectOut.Value = EffectOut.Value + (EffectOut.Value * TargetStack.Multiply);
+	//EffectOut.Value = EffectOut.Value - (EffectOut.Value * TargetStack.Divide);
 
 	return EffectOut;
+}
+
+FGAGameEffect UARSpellCalculation::ModifyEffectTarget(const FGAGameEffect& EffectIn, FGAGameEffectMod& Mod, FGACalculationContext& Context)
+{
+	FGAGameEffect EffectOut = EffectIn;
+	FGAGameModifierStack InstigatorStack = Context.GetModifiers(EffectIn, Context);
+
+	Mod.Value = Mod.Value + InstigatorStack.Additive;
+	Mod.Value = Mod.Value - InstigatorStack.Subtractive;
+
+	Mod.Value = Mod.Value + (Mod.Value * InstigatorStack.Multiply);
+	Mod.Value = Mod.Value - (Mod.Value * InstigatorStack.Divide);
+	return EffectOut;
+}
+
+FGAGameEffect UARSpellCalculation::ModifyEffectInstigator(const FGAGameEffect& EffectIn, FGAGameEffectMod& Mod, FGACalculationContext& Context)
+{
+	FGAGameEffect EffectOut = EffectIn;
+	FGAGameModifierStack InstigatorStack = Context.GetModifiers(EffectIn, Context);
+
+	Mod.Value = Mod.Value + InstigatorStack.Additive;
+	Mod.Value = Mod.Value - InstigatorStack.Subtractive;
+
+	Mod.Value = Mod.Value + (Mod.Value * InstigatorStack.Multiply);
+	Mod.Value = Mod.Value - (Mod.Value * InstigatorStack.Divide);
+	return EffectOut;
+}
+
+void UARSpellCalculation::ModifyEffect(FGAEffectMod& EffectIn, FGACalculationContext& Context)
+{
+	//FGAGameEffect EffectOut = EffectIn;
+	//FGAGameModifierStack InstigatorStack;// = Context.GetModifiers(EffectIn, Context);
+
+	//Mod.Value = Mod.Value + InstigatorStack.Additive;
+	//Mod.Value = Mod.Value - InstigatorStack.Subtractive;
+
+	//Mod.Value = Mod.Value + (Mod.Value * InstigatorStack.Multiply);
+	//Mod.Value = Mod.Value - (Mod.Value * InstigatorStack.Divide);
 }
