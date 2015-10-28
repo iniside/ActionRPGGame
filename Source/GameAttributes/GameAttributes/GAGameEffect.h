@@ -142,16 +142,25 @@ struct FGAEffectMod
 	FGAAttribute Attribute;
 	float Value;
 	EGAAttributeChangeType ChangeType;
+	
+	/* 
+		Spec from which this mod has been derived. 
+		Used to do not copy to much heavy data around.
+	*/
+	class UGAGameEffectSpec* EffectSpec;
+
 	FGAEffectMod()
 		: Attribute(NAME_None),
 		Value(0),
 		ChangeType(EGAAttributeChangeType::Invalid)
 	{};
 
-	FGAEffectMod(const FGAAttribute& AttributeIn, float ValueIn, EGAAttributeChangeType ChangeTypeIn)
+	FGAEffectMod(const FGAAttribute& AttributeIn, float ValueIn, 
+		EGAAttributeChangeType ChangeTypeIn, class UGAGameEffectSpec* EffectSpecIn)
 		: Attribute(AttributeIn),
 		Value(ValueIn),
-		ChangeType(ChangeTypeIn)
+		ChangeType(ChangeTypeIn),
+		EffectSpec(EffectSpecIn)
 	{};
 };
 
@@ -181,17 +190,18 @@ struct GAMEATTRIBUTES_API FGAGameEffect
 
 
 	*/
-	TArray<FGAGameEffectMod> OnAppliedMods;
-	TArray<FGAGameEffectMod> OnPeriodMods;
-	TArray<FGAGameEffectMod> OnExpiredMods;
-	TArray<FGAGameEffectMod> OnRemovedMods;
 
 	FGAEffectContext Context;
 	FGameplayTagContainer OwnedTags;
 
+	//FGAGameEffectHandle Handle;
+
+private:
+	FTimerHandle PeriodTimerHandle;
+
 public:
 	void SetContext(const FGAEffectContext& ContextIn);
-
+	void Initialize();
 	TArray<FGAEffectMod> GetOnAppliedMods();
 
 	class UGAAttributeComponent* GetInstigatorComp() { return Context.InstigatorComp.Get(); }
@@ -267,7 +277,6 @@ public:
 	{
 	}
 };
-
 
 USTRUCT(BlueprintType)
 struct GAMEATTRIBUTES_API FGAEffectAttributeModifier
@@ -363,7 +372,10 @@ struct GAMEATTRIBUTES_API FGACalculationContext
 	{};
 
 };
-
+struct FGAActiveGameEffect
+{
+	FGAActiveGameEffect();
+};
 /*
 	Contains all active effects (which have duration, period or are infinite).
 */
@@ -381,7 +393,7 @@ public:
 public:
 	FGAGameEffectContainer();
 
-	void ApplyEffect(const FGAGameEffect& EffectIn);
+	void ApplyEffect(const FGAGameEffect& EffectIn, const FGAGameEffectHandle& HandleIn);
 	void ExecuteEffect(FGAGameEffect& EffectIn);
 	void ExecutePeriodicEffect(FGAGameEffectHandle HandleIn);
 

@@ -12,6 +12,13 @@
 #include "GAAttributeComponent.h"
 #include "GAGameEffect.h"
 
+FGAGameEffectHandle FGAGameEffectHandle::GenerateHandle(FGAGameEffect* EffectIn)
+{
+	static int32 Handle;
+	Handle++;
+	return FGAGameEffectHandle(Handle, EffectIn);
+}
+
 FGAGameEffect::FGAGameEffect(class UGAGameEffectSpec* GameEffectIn,
 	const FGAEffectContext& ContextIn)
 	: GameEffect(GameEffectIn),
@@ -19,12 +26,6 @@ FGAGameEffect::FGAGameEffect(class UGAGameEffectSpec* GameEffectIn,
 	Context(ContextIn)
 {
 	OwnedTags = GameEffectIn->OwnedTags;
-
-	for(FGAGameEffectInfo& info : GameEffectIn->OnAppliedInfo)
-	{
-		FGAGameEffectMod Mod(info.Attribute, info.Value, info.ChangeType);
-		OnAppliedMods.Add(Mod);
-	}
 }
 
 void FGAGameEffect::SetContext(const FGAEffectContext& ContextIn)
@@ -44,33 +45,41 @@ TArray<FGAEffectMod> FGAGameEffect::GetMods(TArray<FGAGameEffectInfo>& ModsInfoI
 	{
 		for (FGAGameEffectInfo& info : ModsInfoIn)
 		{
-			FGAEffectMod mod(info.Attribute, info.Value, info.ChangeType);
+			FGAEffectMod mod(info.Attribute, info.Value, info.ChangeType, GameEffect);
 			ModsOut.Add(mod);
 		}
 	}
 	return ModsOut;
 }
 
-FGAGameEffectHandle FGAGameEffectHandle::GenerateHandle(FGAGameEffect* EffectIn)
+void FGAGameEffect::Initialize()
 {
-	static int32 GlobalEffectHandleID = 0;
-	FGAGameEffectHandle NewHandle(GlobalEffectHandleID++, EffectIn);
-
-	return NewHandle;
+	FTimerDelegate del = FTimerDelegate::CreateRaw(this, &FGAGameEffect::OnPeriod);
+	FTimerManager& timer = GetTargetComp()->GetWorld()->GetTimerManager();
 }
 
-void FGAGameEffectContainer::ApplyEffect(const FGAGameEffect& EffectIn)
+void FGAGameEffectContainer::ApplyEffect(const FGAGameEffect& EffectIn
+	, const FGAGameEffectHandle& HandleIn)
 {
 	//instant effect goes trough simplest application path
 	//just make effect and run it trough modifiers.
-	FGAGameEffect& Effect = const_cast<FGAGameEffect&>(EffectIn);
+	
 	//FGAGameEffect Effect = EfNoConst.Calculation->ModiifyEffect(EffectIn);
-	if(Effect.GameEffect->EffectType == EGAEffectType::Periodic)
+	switch(EffectIn.GameEffect->EffectType)
 	{
-		//add to map of active effects ?
-		//Or simply create timer here, execute by handle and simply add handle to array ?
+	case EGAEffectType::Instant:
+	{
+		//dont do anything fancy now simply execute effect and forget about it.
+		FGAGameEffect& Effect = const_cast<FGAGameEffect&>(EffectIn);
+		Effect.GetTargetComp()->ExecuteEffect(Effect);
+		break;
 	}
-	ExecuteEffect(Effect);
+	case EGAEffectType::Periodic:
+		break;
+	default:
+		return;
+	}
+	
 }
 void FGAGameEffectContainer::ExecuteEffect(FGAGameEffect& EffectIn)
 {
@@ -79,10 +88,14 @@ void FGAGameEffectContainer::ExecuteEffect(FGAGameEffect& EffectIn)
 	FGACalculationContext TargetContext(EffectIn.Context.TargetComp.Get(), EffectIn.Context.TargetComp->DefaultAttributes, EGAModifierDirection::Incoming);
 	
 	TArray<FGAEffectMod> OnAppliedMods = EffectIn.GetOnAppliedMods();
+	UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect: Number Of Mods to apply = %f"), OnAppliedMods.Num());
 	for(FGAEffectMod& mod : OnAppliedMods)
 	{
-		EffectIn.Calculation->ModifyEffect(mod, InstiContext);
-		EffectIn.Calculation->ModifyEffect(mod, TargetContext);
+		UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect: Premodified Mod Value = %f"), mod.Value);
+		EffectIn.Calculation->ModifyEffect(EffectIn, mod, InstiContext);
+		UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect: Post Instigator modified Value = %f"), mod.Value);
+		EffectIn.Calculation->ModifyEffect(EffectIn, mod, TargetContext);
+		UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect: Post Target modified Value = %f"), mod.Value);
 		OwningComp->DefaultAttributes->ModifyAttribute(mod);
 	}
 	OwningComp->DefaultAttributes->ModifyAttribute(Effect);

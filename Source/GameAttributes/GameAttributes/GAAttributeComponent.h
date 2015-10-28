@@ -106,13 +106,15 @@ public:
 	/////////////////////////////////////////////////
 	//////////// EFFECTS HANDLING
 
-	FGAEffectHandle ApplyEffectToSelf(const FGAGameEffect& EffectIn);
-	FGAEffectHandle ApplyEffectToTarget(const FGAGameEffect& EffectIn);
+	FGAEffectHandle ApplyEffectToSelf(const FGAGameEffect& EffectIn, 
+		const FGAGameEffectHandle& HandleIn);
+	FGAEffectHandle ApplyEffectToTarget(const FGAGameEffect& EffectIn, 
+		const FGAGameEffectHandle& HandleIn);
 
 	FGAGameEffectHandle MakeGameEffect(TSubclassOf<class UGAGameEffectSpec> SpecIn,
 		const FGAEffectContext& ContextIn);
 
-	void ExecuteEffect(const FGAGameEffect& EffectIn);
+	void ExecuteEffect(FGAGameEffect& EffectIn);
 
 	/*
 		Apply to self probabaly shouldn't take Spec.

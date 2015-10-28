@@ -94,14 +94,13 @@ FGAGameEffect UARSpellCalculation::ModifyEffectInstigator(const FGAGameEffect& E
 	return EffectOut;
 }
 
-void UARSpellCalculation::ModifyEffect(FGAEffectMod& EffectIn, FGACalculationContext& Context)
+void UARSpellCalculation::ModifyEffect(const FGAGameEffect& EffectIn, FGAEffectMod& ModIn, FGACalculationContext& Context)
 {
-	//FGAGameEffect EffectOut = EffectIn;
-	//FGAGameModifierStack InstigatorStack;// = Context.GetModifiers(EffectIn, Context);
+	FGAGameModifierStack InstigatorStack = Context.GetModifiers(EffectIn, Context);
 
-	//Mod.Value = Mod.Value + InstigatorStack.Additive;
-	//Mod.Value = Mod.Value - InstigatorStack.Subtractive;
+	ModIn.Value = ModIn.Value + InstigatorStack.Additive;
+	ModIn.Value = ModIn.Value - InstigatorStack.Subtractive;
 
-	//Mod.Value = Mod.Value + (Mod.Value * InstigatorStack.Multiply);
-	//Mod.Value = Mod.Value - (Mod.Value * InstigatorStack.Divide);
+	ModIn.Value = ModIn.Value + (ModIn.Value * InstigatorStack.Multiply);
+	ModIn.Value = ModIn.Value - (ModIn.Value * InstigatorStack.Divide);
 }

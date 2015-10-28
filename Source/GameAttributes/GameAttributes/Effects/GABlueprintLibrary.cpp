@@ -110,5 +110,5 @@ void UGABlueprintLibrary::ApplyGameEffect(FGAGameEffectHandle Handle)
 
 	FGAEffectContext& Context = Handle.GetContext();
 
-	Context.InstigatorComp->ApplyEffectToTarget(Handle.GetEffect());
+	Context.InstigatorComp->ApplyEffectToTarget(Handle.GetEffect(), Handle);
 }

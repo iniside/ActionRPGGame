@@ -55,17 +55,19 @@ void UGAAttributeComponent::InitializeComponent()
 	//"Damage.Ice"
 }
 
-FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAGameEffect& EffectIn)
+FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAGameEffect& EffectIn
+	, const FGAGameEffectHandle& HandleIn)
 {
-	GameEffectContainer.ApplyEffect(EffectIn);
+	GameEffectContainer.ApplyEffect(EffectIn, HandleIn);
 
 	//ExecuteEffect(EffectIn);
 	return FGAEffectHandle();
 }
-FGAEffectHandle UGAAttributeComponent::ApplyEffectToTarget(const FGAGameEffect& EffectIn)
+FGAEffectHandle UGAAttributeComponent::ApplyEffectToTarget(const FGAGameEffect& EffectIn
+	, const FGAGameEffectHandle& HandleIn)
 {
 	if(EffectIn.IsValid())
-		return EffectIn.Context.TargetComp->ApplyEffectToSelf(EffectIn);
+		return EffectIn.Context.TargetComp->ApplyEffectToSelf(EffectIn, HandleIn);
 	return FGAEffectHandle();
 }
 
@@ -74,12 +76,18 @@ FGAGameEffectHandle UGAAttributeComponent::MakeGameEffect(TSubclassOf<class UGAG
 {
 	FGAGameEffect* effect = new FGAGameEffect(SpecIn.GetDefaultObject(), ContextIn);
 	FGAGameEffectHandle handle = FGAGameEffectHandle::GenerateHandle(effect);
+	//effect->Handle = handle;
 	return handle;
 }
 
-void UGAAttributeComponent::ExecuteEffect(const FGAGameEffect& EffectIn)
+void UGAAttributeComponent::ExecuteEffect(FGAGameEffect& EffectIn)
 {
-	//GameEffectContainer.ExecuteEffect(EffectIn);
+	/* 
+		this patth will give effects chance to do any replicated events, like applying cues. 
+		WE do not make any replication at the ApplyEffect because some effect might want to apply cues
+		on periods on expiration etc, and all those will go trouch ExecuteEffect path.
+	*/
+	GameEffectContainer.ExecuteEffect(EffectIn);
 }
 
 FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(TSubclassOf<class UGAEffectSpecification> SpecIn,

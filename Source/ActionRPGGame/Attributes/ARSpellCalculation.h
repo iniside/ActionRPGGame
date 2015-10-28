@@ -22,5 +22,5 @@ public:
 	/* Modify Effect using instigator attributes/modifiers. */
 	virtual FGAGameEffect ModifyEffectInstigator(const FGAGameEffect& EffectIn, FGAGameEffectMod& Mod, FGACalculationContext& Context) override;
 	
-	virtual void ModifyEffect(FGAEffectMod& EffectIn, FGACalculationContext& Context) override;
+	virtual void ModifyEffect(const FGAGameEffect& EffectIn, FGAEffectMod& ModIn, FGACalculationContext& Context) override;
 };

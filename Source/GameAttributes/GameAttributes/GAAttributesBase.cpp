@@ -204,31 +204,7 @@ void UGAAttributesBase::SetNetAddressable()
 }
 void UGAAttributesBase::ModifyAttribute(const FGAGameEffect& EffectIn)
 {
-	FGAAttributeBase* attr = nullptr;
-	for (const FGAGameEffectMod& mod : EffectIn.OnAppliedMods)
-	{
-		switch (mod.ChangeType)
-		{
-		case EGAAttributeChangeType::Damage:
-			attr = GetAttribute(mod.Attribute);
-			if (attr)
-			{
-				attr->Subtract(mod.Value);
-			}
-			break;
-		case EGAAttributeChangeType::DamagePercentage:
-			break;
-		case EGAAttributeChangeType::Heal:
-			attr = GetAttribute(mod.Attribute);
-			if (attr)
-			{
-				attr->Add(mod.Value);
-			}
-			break;
-		case EGAAttributeChangeType::HealPercentage:
-			break;
-		}
-	}
+
 }
 
 void UGAAttributesBase::ModifyAttribute(const FGAEffectMod& ModIn)

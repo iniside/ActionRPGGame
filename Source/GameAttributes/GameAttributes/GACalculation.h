@@ -41,5 +41,5 @@ public:
 
 
 	/* Modify Effect using Target attributes/modifiers. */
-	virtual void ModifyEffect(FGAEffectMod& EffectIn, FGACalculationContext& Context) { };
+	virtual void ModifyEffect(const FGAGameEffect& EffectIn, FGAEffectMod& ModIn, FGACalculationContext& Context) { };
 };
