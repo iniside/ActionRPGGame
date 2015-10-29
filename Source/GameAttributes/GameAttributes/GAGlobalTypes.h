@@ -27,6 +27,15 @@
 	HasTag("E.B.C", Explicit, IncludeParentTags) returns false.
 */
 
+//tells execution function, which modifier should be executed from effect ?
+enum class EGAModifierApplication : uint8
+{
+	OnApplied,
+	OnPeriod,
+	OnExpired,
+	OnRemoved
+};
+
 /*
 Type of modification applied to attribute:
 Damage - Will damage attribute (ie, subtract value from Health)

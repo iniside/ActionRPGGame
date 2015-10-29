@@ -80,14 +80,14 @@ FGAGameEffectHandle UGAAttributeComponent::MakeGameEffect(TSubclassOf<class UGAG
 	return handle;
 }
 
-void UGAAttributeComponent::ExecuteEffect(FGAGameEffect& EffectIn)
+void UGAAttributeComponent::ExecuteEffect(FGAGameEffect& EffectIn, EGAModifierApplication ModAppType)
 {
 	/* 
 		this patth will give effects chance to do any replicated events, like applying cues. 
 		WE do not make any replication at the ApplyEffect because some effect might want to apply cues
 		on periods on expiration etc, and all those will go trouch ExecuteEffect path.
 	*/
-	GameEffectContainer.ExecuteEffect(EffectIn);
+	GameEffectContainer.ExecuteEffect(EffectIn, ModAppType);
 }
 
 FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(TSubclassOf<class UGAEffectSpecification> SpecIn,

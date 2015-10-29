@@ -114,7 +114,7 @@ public:
 	FGAGameEffectHandle MakeGameEffect(TSubclassOf<class UGAGameEffectSpec> SpecIn,
 		const FGAEffectContext& ContextIn);
 
-	void ExecuteEffect(FGAGameEffect& EffectIn);
+	void ExecuteEffect(FGAGameEffect& EffectIn, EGAModifierApplication ModAppType);
 
 	/*
 		Apply to self probabaly shouldn't take Spec.

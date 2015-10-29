@@ -173,11 +173,12 @@ struct FGAGameEffectActive
 {
 	
 };
+
 /*
 	Calculcated magnitudes, captured attributes and tags, set duration.
 	Final effect which then is used to apply custom calculations and attribute changes.
 */
-struct GAMEATTRIBUTES_API FGAGameEffect
+struct GAMEATTRIBUTES_API FGAGameEffect : public TSharedFromThis<FGAGameEffect>
 {
 	/* Cached pointer to original effect spec. */
 	class UGAGameEffectSpec* GameEffect;
@@ -194,20 +195,20 @@ struct GAMEATTRIBUTES_API FGAGameEffect
 	FGAEffectContext Context;
 	FGameplayTagContainer OwnedTags;
 
-	//FGAGameEffectHandle Handle;
+	struct FGAGameEffectHandle* Handle;
 
 private:
 	FTimerHandle PeriodTimerHandle;
 
 public:
 	void SetContext(const FGAEffectContext& ContextIn);
-	void Initialize();
+	void InitializePeriodic();
 	TArray<FGAEffectMod> GetOnAppliedMods();
 
 	class UGAAttributeComponent* GetInstigatorComp() { return Context.InstigatorComp.Get(); }
 	class UGAAttributeComponent* GetTargetComp() { return Context.TargetComp.Get(); }
 
-	void OnPeriod() {}; //internal timer - called by
+	void OnPeriod(); //internal timer - called by
 	void OnExpired() {}; //internal timer
 	void OnRemoved() {}; //internal timer
 
@@ -247,6 +248,10 @@ public:
 	inline int32 GetHandle() const { return Handle; }
 
 	inline FGAGameEffect GetEffect() { return *EffectPtr.Get(); }
+
+	inline FGAGameEffect& GetEffectRef() { return EffectPtr.ToSharedRef().Get(); }
+
+	inline TSharedPtr<FGAGameEffect> GetEffectPtr() { return EffectPtr; };
 
 	inline void SetContext(const FGAEffectContext& ContextIn) { EffectPtr->SetContext(ContextIn); }
 
@@ -394,7 +399,7 @@ public:
 	FGAGameEffectContainer();
 
 	void ApplyEffect(const FGAGameEffect& EffectIn, const FGAGameEffectHandle& HandleIn);
-	void ExecuteEffect(FGAGameEffect& EffectIn);
+	void ExecuteEffect(FGAGameEffect& EffectIn, EGAModifierApplication ModAppType);
 	void ExecutePeriodicEffect(FGAGameEffectHandle HandleIn);
 
 	//modifiers
