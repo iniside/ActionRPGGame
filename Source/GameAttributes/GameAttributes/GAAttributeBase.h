@@ -1,5 +1,6 @@
 #pragma once
 #include "GAGlobalTypes.h"
+#include "GAEffectGlobalTypes.h"
 #include "GAGameEffect.h"
 #include "GAAttributeBase.generated.h"
 /*
@@ -54,9 +55,7 @@ public:
 	//if this effect affected this attribute.
 	//hmp. Technically, one effect, can provide multiple modifiers
 	//like periodic.
-	TMap<FGAEffectHandle, TArray<FGAModifier>> Modifiers;
-
-	TMap<FGAGameEffectHandle, TArray<FGAModifier>> Modifiers_NEW;
+	TMap<FGAGameEffectHandle, TArray<FGAModifier>> Modifiers;
 
 public:
 	/*
@@ -86,6 +85,7 @@ public:
 
 	void Add(float ValueIn);
 	void Subtract(float ValueIn);
+	void ApplyDurationModifier(FGAGameEffectHandle& HandleIn, FGAEffectMod& ModIn) {};
 
 	//inline float GetCurrentValue()
 	//{
@@ -97,13 +97,9 @@ public:
 	*/
 	void InstantApplication(const FGAModifier& ModifierIn);
 
-	void AddBonus(const FGAModifier& ModifiersIn, const FGAEffectHandle& Handle
+	void AddBonus(const FGAModifier& ModifiersIn, const FGAGameEffectHandle& Handle
 		, EGAEffectStacking StackingType);
-	void RemoveBonus(const FGAEffectHandle& Handle);
-
-	void AddBonus_NEW(const FGAModifier& ModifiersIn, const FGAGameEffectHandle& Handle
-		, EGAEffectStacking StackingType);
-	void RemoveBonus_NEW(const FGAGameEffectHandle& Handle);
+	void RemoveBonus(const FGAGameEffectHandle& Handle);
 	/*
 		Removes bonus from this attribute based on it's type.
 	*/
@@ -394,79 +390,4 @@ public:
 		FCurveTableRowHandle CurveTable;
 
 	float GetMagnitude(const FGAEffectContext& Context);
-};
-/*
-	Spec for modifing attribute.
-*/
-USTRUCT(BlueprintType)
-struct FGAAttributeModifier
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	/*
-		Type of calculation we want to perform for this Magnitude.
-	*/
-	UPROPERTY(EditAnywhere)
-		EGAMagnitudeCalculation CalculationType;
-	/*
-		Attribute which will be modified.
-	*/
-	UPROPERTY(EditAnywhere)
-		FGAAttribute Attribute;
-	/*
-		How Attribute Will be modified
-	*/
-	UPROPERTY(EditAnywhere)
-		EGAAttributeMod Mod;
-
-	UPROPERTY(EditAnywhere)
-		FGADirectModifier DirectModifier;
-	/*
-		Simple calculation based on attribute:
-		(Coefficient * (PreMultiply + AttributeValue) + PostMultiply) * PostCoefficient
-
-		There is no any magic manipulation, it straight off pull attribute from selected source,
-		and make this operation on it.
-	*/
-	UPROPERTY(EditAnywhere)
-		FGAAttributeBasedModifier AttributeBased;
-	/*
-		Get value from selected CurveTable, based on selected attribute value.
-	*/
-	UPROPERTY(EditAnywhere)
-		FGACurveBasedModifier CurveBased;
-	/*
-		Provide custom calculation class.
-	*/
-	UPROPERTY(EditAnywhere)
-		FGACustomCalculationModifier Custom;
-
-	/*
-		Currently evaluated magnitude. Figured I should store it here, so it can be further modified
-		by other effects, or something.
-	*/
-	/*
-		Who will be target of this attribute change. 
-		Instigator - pawn which applied effect (regardless of to whom).
-		Target - targeted pawn (regardless of who applied).
-	*/
-	UPROPERTY(EditAnywhere)
-		EGAModifierTarget ModifierTarget;
-
-	/*
-		These tags must be present on target for this modifier to be applied.
-	*/
-	UPROPERTY(EditAnywhere)
-		FGameplayTagContainer RequiredTags;
-	/*
-		None of these tags must be present on target to apply this modifier.
-	*/
-	UPROPERTY(EditAnywhere)
-		FGameplayTagContainer DenyTags;
-
-	FGAAttributeData EvalData;
-
-	FGAAttributeData GetModifier(const FGAEffectContext& ContextIn);
-	FGAAttributeModifier()
-	{}
 };

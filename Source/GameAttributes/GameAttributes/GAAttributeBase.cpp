@@ -35,7 +35,7 @@ void FGAAttributeBase::InstantApplication(const FGAModifier& ModifierIn)
 	}
 }
 
-void FGAAttributeBase::AddBonus(const FGAModifier& ModifiersIn, const FGAEffectHandle& Handle
+void FGAAttributeBase::AddBonus(const FGAModifier& ModifiersIn, const FGAGameEffectHandle& Handle
 	, EGAEffectStacking StackingType)
 {
 	switch (StackingType)
@@ -51,31 +51,9 @@ void FGAAttributeBase::AddBonus(const FGAModifier& ModifiersIn, const FGAEffectH
 	modsTemp.Add(ModifiersIn);
 	CalculateBonus();
 }
-void FGAAttributeBase::RemoveBonus(const FGAEffectHandle& Handle)
+void FGAAttributeBase::RemoveBonus(const FGAGameEffectHandle& Handle)
 {
 	Modifiers.Remove(Handle);
-	CalculateBonus();
-}
-
-void FGAAttributeBase::AddBonus_NEW(const FGAModifier& ModifiersIn, const FGAGameEffectHandle& Handle
-	, EGAEffectStacking StackingType)
-{
-	switch (StackingType)
-	{
-	case EGAEffectStacking::Override:
-		RemoveBonusByType(ModifiersIn.AttributeMod);
-		break;
-	case EGAEffectStacking::StrongerOverride:
-		RemoveWeakerBonus(ModifiersIn.AttributeMod, ModifiersIn.Value);
-		break;
-	}
-	TArray<FGAModifier>& modsTemp = Modifiers_NEW.FindOrAdd(Handle);
-	modsTemp.Add(ModifiersIn);
-	CalculateBonus();
-}
-void FGAAttributeBase::RemoveBonus_NEW(const FGAGameEffectHandle& Handle)
-{
-	Modifiers_NEW.Remove(Handle);
 	CalculateBonus();
 }
 
@@ -280,22 +258,4 @@ float FGAModifierMagnitude::GetMagnitude(const FGAEffectContext& Context)
 	}
 	Result = CurveTable.Eval(attr->GetFinalValue());
 	return Result;
-}
-
-FGAAttributeData FGAAttributeModifier::GetModifier(const FGAEffectContext& ContextIn)
-{
-	switch (CalculationType)
-	{
-	case EGAMagnitudeCalculation::Direct:
-		return FGAAttributeData(Attribute, Mod, DirectModifier.GetValue(), ContextIn, ModifierTarget, RequiredTags, DenyTags);
-	case EGAMagnitudeCalculation::AttributeBased:
-		return FGAAttributeData(Attribute, Mod, AttributeBased.GetValue(ContextIn), ContextIn, ModifierTarget, RequiredTags, DenyTags);
-	case EGAMagnitudeCalculation::CurveBased:
-		return FGAAttributeData(Attribute, Mod, CurveBased.GetValue(ContextIn), ContextIn, ModifierTarget, RequiredTags, DenyTags);
-	case EGAMagnitudeCalculation::CustomCalculation:
-		break;
-	default:
-		break;
-	}
-	return FGAAttributeData(FGAAttribute(NAME_None), EGAAttributeMod::Invalid, FGameplayTagContainer(), -1);
 }

@@ -2,6 +2,7 @@
 #include "GAGlobalTypes.h"
 #include "GAAttributeBase.h"
 #include "GAGameEffect.h"
+#include "GAEffectGlobalTypes.h"
 #include "GAEffectExecution.generated.h"
 
 /*
@@ -21,8 +22,5 @@ class GAMEATTRIBUTES_API UGAEffectExecution : public UObject
 public:
 	UGAEffectExecution(const FObjectInitializer& ObjectInitializer);
 
-	virtual void ExecuteEffect(FGAGameEffect* EffectIn, FGAExecutionContext& Context) 
-	{ 
-		//UE_LOG(GameAttributesEffects, Log, TEXT("Execute Effect Is not Implemented"); 
-	}
+	virtual void ExecuteEffect(FGAGameEffect* EffectIn, FGAEffectMod& ModIn, FGAExecutionContext& Context);
 };

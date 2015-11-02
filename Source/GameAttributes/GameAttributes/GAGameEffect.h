@@ -1,6 +1,6 @@
 #pragma once
 #include "GAGlobalTypes.h"
-//#include "GAAttributeBase.h"
+#include "GAEffectGlobalTypes.h"
 #include "GAGameEffect.generated.h"
 
 /*
@@ -54,7 +54,7 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct GAMEATTRIBUTES_API FGAGameEffectInfo
+struct GAMEATTRIBUTES_API FGAAttributeModifier
 {
 	GENERATED_USTRUCT_BODY()
 public:
@@ -91,9 +91,28 @@ public:
 	*/
 	UPROPERTY(EditAnywhere)
 		FGACustomCalculationModifier Custom;
+
+	/*
+	Who will be target of this attribute change.
+	Instigator - pawn which applied effect (regardless of to whom).
+	Target - targeted pawn (regardless of who applied).
+	*/
+	UPROPERTY(EditAnywhere)
+		EGAModifierTarget ModifierTarget;
+
+	/*
+	These tags must be present on target for this modifier to be applied.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGameplayTagContainer RequiredTags;
+	/*
+	None of these tags must be present on target to apply this modifier.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGameplayTagContainer DenyTags;
 };
 
-UCLASS(Blueprintable, BlueprintType)
+UCLASS(Blueprintable, BlueprintType, EditInLineNew)
 class GAMEATTRIBUTES_API UGAGameEffectSpec : public UObject
 {
 	GENERATED_BODY()
@@ -119,13 +138,18 @@ public:
 		as never will be applied for duration.
 	*/
 	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-		TArray<FGAGameEffectInfo> OnAppliedInfo;
+		TArray<FGAAttributeModifier> OnAppliedInfo;
 
 	/*
 		Modifiers applied on effect period.
 	*/
 	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-		TArray<FGAGameEffectInfo> OnPeriodInfo;
+		TArray<FGAAttributeModifier> OnPeriodInfo;
+	/*
+		Modifiers applied for the duration of effect, and removed when effect is removed/expired.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
+		TArray<FGAAttributeModifier> OnDurationInfo;
 
 	/* For now just test instant application of direct value */
 	UPROPERTY(EditAnywhere, Category = "Instant Spec")
@@ -170,33 +194,6 @@ struct FGAGameEffectMod
 	{};
 	
 };
-/* Final calculcated mod from effect, which can be modified by Calculation object. */
-struct FGAEffectMod
-{
-	FGAAttribute Attribute;
-	float Value;
-	EGAAttributeChangeType ChangeType;
-	
-	/* 
-		Spec from which this mod has been derived. 
-		Used to do not copy to much heavy data around.
-	*/
-	class UGAGameEffectSpec* EffectSpec;
-
-	FGAEffectMod()
-		: Attribute(NAME_None),
-		Value(0),
-		ChangeType(EGAAttributeChangeType::Invalid)
-	{};
-
-	FGAEffectMod(const FGAAttribute& AttributeIn, float ValueIn, 
-		EGAAttributeChangeType ChangeTypeIn, class UGAGameEffectSpec* EffectSpecIn)
-		: Attribute(AttributeIn),
-		Value(ValueIn),
-		ChangeType(ChangeTypeIn),
-		EffectSpec(EffectSpecIn)
-	{};
-};
 
 struct FGAGameEffectBase
 {
@@ -208,6 +205,29 @@ struct FGAGameEffectActive
 	
 };
 
+struct GAMEATTRIBUTES_API FGAExecutionContext
+{
+	class UGAAttributeComponent* TargetAttributeComp;
+	class UGAAttributesBase* TargetAttributes;
+
+	class UGAAttributeComponent* InstigatorAttributeComp;
+	class UGAAttributesBase* InstigatorAttributes;
+	struct FGAAttributeBase* GetTargetAttribute(const FGAAttribute& AttributeIn);
+	struct FGAAttributeBase* GetInstigatorAttribute(const FGAAttribute& AttributeIn);
+	FGAExecutionContext()
+	{};
+	FGAExecutionContext(class UGAAttributeComponent* TarAttrComp,
+	class UGAAttributesBase* TarAttrIn,
+	class UGAAttributeComponent* InstiAttrComp,
+	class UGAAttributesBase* InstiAttrIn)
+		: TargetAttributeComp(TarAttrComp),
+		TargetAttributes(TarAttrIn),
+		InstigatorAttributeComp(InstiAttrComp),
+		InstigatorAttributes(InstiAttrIn)
+	{};
+
+};
+
 /*
 	Calculcated magnitudes, captured attributes and tags, set duration.
 	Final effect which then is used to apply custom calculations and attribute changes.
@@ -216,8 +236,7 @@ struct GAMEATTRIBUTES_API FGAGameEffect : public TSharedFromThis<FGAGameEffect>
 {
 	/* Cached pointer to original effect spec. */
 	class UGAGameEffectSpec* GameEffect;
-	class UGACalculation* Calculation;
-	
+	class UGAEffectExecution* Execution;
 	/* 
 		Calculated mods ready to be applied. 
 		These are perlimenarly calculcated mods, 
@@ -239,10 +258,11 @@ public:
 	void InitializePeriodic();
 	TArray<FGAEffectMod> GetOnAppliedMods();
 	TArray<FGAEffectMod> GetOnPeriodMods();
+	TArray<FGAEffectMod> GetOnDurationMods();
 
 	class UGAAttributeComponent* GetInstigatorComp() { return Context.InstigatorComp.Get(); }
 	class UGAAttributeComponent* GetTargetComp() { return Context.TargetComp.Get(); }
-
+	void ExecuteEffect(FGAGameEffect* Effect, FGAEffectMod& ModIn, FGAExecutionContext& ExecContextIn);
 	void OnPeriod(); //internal timer - called by
 	void OnExpired() {}; //internal timer
 	void OnRemoved() {}; //internal timer
@@ -257,7 +277,7 @@ public:
 	FGAGameEffect(class UGAGameEffectSpec* GameEffectIn, 
 		const FGAEffectContext& ContextIn);
 private:
-	TArray<FGAEffectMod> GetMods(TArray<FGAGameEffectInfo>& ModsInfoIn);
+	TArray<FGAEffectMod> GetMods(TArray<FGAAttributeModifier>& ModsInfoIn);
 };
 
 USTRUCT(BlueprintType)
@@ -409,27 +429,7 @@ struct GAMEATTRIBUTES_API FGACalculationContext
 
 };
 
-struct GAMEATTRIBUTES_API FGAExecutionContext
-{
-	class UGAAttributeComponent* TargetAttributeComp;
-	class UGAAttributesBase* TargetAttributes;
 
-	class UGAAttributeComponent* InstigatorAttributeComp;
-	class UGAAttributesBase* InstigatorAttributes;
-
-	FGAExecutionContext()
-	{};
-	FGAExecutionContext(class UGAAttributeComponent* TarAttrComp,
-	class UGAAttributesBase* TarAttrIn,
-	class UGAAttributeComponent* InstiAttrComp,
-	class UGAAttributesBase* InstiAttrIn)
-		: TargetAttributeComp(TarAttrComp),
-		TargetAttributes(TarAttrIn),
-		InstigatorAttributeComp(InstiAttrComp),
-		InstigatorAttributes(InstiAttrIn)
-	{};
-
-};
 struct FGAActiveGameEffect
 {
 	FGAActiveGameEffect();
@@ -448,6 +448,15 @@ public:
 	TArray<FGAGameEffectHandle> EffectsHandles;
 
 	TMap<FGAGameEffectHandle, TSharedPtr<FGAGameEffect>> ActiveEffects;
+	/*
+		Both of these maps are only relevelant for determining how modifiers
+		inside effects will stack.
+	*/
+	/* Effects grouped by their instigator. */
+	TMap<FGAGameEffectHandle, TSharedPtr<FGAGameEffect>> InstigatorEffects;
+	/* Effects grouped by their targer */
+	TMap<FGAGameEffectHandle, TSharedPtr<FGAGameEffect>> TargetEffects;
+
 public:
 	FGAGameEffectContainer();
 

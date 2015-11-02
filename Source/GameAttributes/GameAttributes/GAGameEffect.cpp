@@ -19,10 +19,19 @@ FGAGameEffectHandle FGAGameEffectHandle::GenerateHandle(FGAGameEffect* EffectIn)
 	return FGAGameEffectHandle(Handle, EffectIn);
 }
 
+FGAAttributeBase* FGAExecutionContext::GetTargetAttribute(const FGAAttribute& AttributeIn)
+{
+	return TargetAttributes->GetAttribute(AttributeIn);
+}
+FGAAttributeBase* FGAExecutionContext::GetInstigatorAttribute(const FGAAttribute& AttributeIn)
+{
+	return InstigatorAttributes->GetAttribute(AttributeIn);
+}
 FGAGameEffect::FGAGameEffect(class UGAGameEffectSpec* GameEffectIn,
 	const FGAEffectContext& ContextIn)
 	: GameEffect(GameEffectIn),
-	Context(ContextIn)
+	Context(ContextIn),
+	Execution(GameEffect->ExecutionType.GetDefaultObject())
 {
 	OwnedTags = GameEffectIn->OwnedTags;
 }
@@ -40,16 +49,20 @@ TArray<FGAEffectMod> FGAGameEffect::GetOnPeriodMods()
 {
 	return GetMods(GameEffect->OnPeriodInfo);
 }
+TArray<FGAEffectMod> FGAGameEffect::GetOnDurationMods()
+{
+	return GetMods(GameEffect->OnDurationInfo);
+}
 void FGAGameEffect::OnPeriod()
 {
 	GetTargetComp()->ExecuteEffect(*this, EGAModifierApplication::OnPeriod);
 };
-TArray<FGAEffectMod> FGAGameEffect::GetMods(TArray<FGAGameEffectInfo>& ModsInfoIn)
+TArray<FGAEffectMod> FGAGameEffect::GetMods(TArray<FGAAttributeModifier>& ModsInfoIn)
 {
 	TArray<FGAEffectMod> ModsOut;
 	if (GameEffect)
 	{
-		for (FGAGameEffectInfo& info : ModsInfoIn)
+		for (FGAAttributeModifier& info : ModsInfoIn)
 		{
 			switch (info.CalculationType)
 			{
@@ -95,7 +108,10 @@ void FGAGameEffect::InitializePeriodic()
 
 	timer.SetTimer(PeriodTimerHandle, del, 1, true);
 }
-
+void FGAGameEffect::ExecuteEffect(FGAGameEffect* Effect, FGAEffectMod& ModIn, FGAExecutionContext& ExecContextIn)
+{
+	Execution->ExecuteEffect(Effect, ModIn, ExecContextIn);
+}
 void FGAGameEffectContainer::ApplyEffect(const FGAGameEffect& EffectIn
 	, const FGAGameEffectHandle& HandleIn)
 {
@@ -147,13 +163,7 @@ void FGAGameEffectContainer::ExecuteEffect(FGAGameEffect& EffectIn,
 			UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect: Number Of Mods to apply = %f"), OnAppliedMods.Num());
 			for (FGAEffectMod& mod : OnAppliedMods)
 			{
-				Effect.GameEffect->ExecutionType.GetDefaultObject()->ExecuteEffect(&Effect, ExecContext);
-				//UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect:OnApplied Premodified Mod Value = %f"), mod.Value);
-				//EffectIn.Calculation->ModifyEffect(EffectIn, mod, InstiContext);
-				//UE_LOG(GameAttributesEffects, Log, TEXT("FGwAGameEffectContainer::ExecuteEffect:OnApplied Post Instigator modified Value = %f"), mod.Value);
-				//EffectIn.Calculation->ModifyEffect(EffectIn, mod, TargetContext);
-				//UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect:OnApplied Post Target modified Value = %f"), mod.Value);
-				//OwningComp->DefaultAttributes->ModifyAttribute(mod);
+				Effect.ExecuteEffect(&Effect, mod, ExecContext);
 			}
 			break;
 		}
@@ -164,14 +174,13 @@ void FGAGameEffectContainer::ExecuteEffect(FGAGameEffect& EffectIn,
 			UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect: Number Of Mods to apply = %f"), OnPeriodMods.Num());
 			for (FGAEffectMod& mod : OnPeriodMods)
 			{
-				Effect.GameEffect->ExecutionType.GetDefaultObject()->ExecuteEffect(&Effect, ExecContext);
-				//UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect:OnPeriod Premodified Mod Value = %f"), mod.Value);
-				//EffectIn.Calculation->ModifyEffect(EffectIn, mod, InstiContext);
-				//UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect:OnPeriod Post Instigator modified Value = %f"), mod.Value);
-				//EffectIn.Calculation->ModifyEffect(EffectIn, mod, TargetContext);
-				//UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect:OnPeriod Post Target modified Value = %f"), mod.Value);
-				//OwningComp->DefaultAttributes->ModifyAttribute(mod);
+				Effect.ExecuteEffect(&Effect, mod, ExecContext);
 			}
+			break;
+		}
+		case EGAModifierApplication::OnDuration:
+		{
+			UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffect::OnDuration not implemented"));
 			break;
 		}
 		case EGAModifierApplication::OnExpired:
