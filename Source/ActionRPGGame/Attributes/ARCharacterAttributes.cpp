@@ -84,17 +84,6 @@ void UARCharacterAttributes::PostEffectApplied()
 	//nam = nam.Append(Tag.ToString());
 	//UFunction* ModifyAttrFunc = GetClass()->FindFunctionByName(*nam);
 }
-void UARCharacterAttributes::PostEffectRemoved(const FGAEffectHandle& HandleIn, const FGAEffectSpec& SpecIn)
-{
-	//for (const FGAAttributeModifier& mod : SpecIn.AttributeModifiers)
-	//{
-	//	FName Tag = mod.Attribute.AttributeName;
-	//	FString nam = "OnEffectApplied_";
-	//	Tag = *Tag.ToString().Replace(TEXT("."), TEXT("_"));
-	//	nam = nam.Append(Tag.ToString());
-	//	UFunction* ModifyAttrFunc = GetClass()->FindFunctionByName(*nam);
-	//}
-}
 
 FGAAttributeData UARCharacterAttributes::PreModifyAttribute(const FGAAttributeData& AttributeMod)
 {

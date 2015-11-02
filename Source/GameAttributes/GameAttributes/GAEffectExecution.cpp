@@ -2,9 +2,9 @@
 
 #include "GameAttributes.h"
 #include "GAGlobalTypes.h"
-#include "GACustomCalculation.h"
+#include "GAEffectExecution.h"
 
-UGACustomCalculation::UGACustomCalculation(const FObjectInitializer& ObjectInitializer)
+UGAEffectExecution::UGAEffectExecution(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
 

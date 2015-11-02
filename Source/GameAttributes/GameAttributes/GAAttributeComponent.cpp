@@ -10,8 +10,6 @@
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
 
-#include "Effects/GAEffect.h"
-
 #include "GAEffectCue.h"
 #include "GAAttributeComponent.h"
 #include "GAGameEffect.h"
@@ -33,7 +31,6 @@ void UGAAttributeComponent::GetAttributeStructTest(FGAAttribute Name)
 void UGAAttributeComponent::UninitializeComponent()
 {
 	Super::UninitializeComponent();
-	ActiveEffects.Clean();
 	OnAttributeModifed.Clear();
 }
 
@@ -47,9 +44,10 @@ void UGAAttributeComponent::InitializeComponent()
 	}
 	GameEffectContainer.OwningComp = this;
 	AppliedTags.AddTagContainer(DefaultTags);
+	FGAGameEffect Efffect;
 	for(const FGAGameEffectModifier& mod : ModifierTest)
 	{
-		GameEffectContainer.ApplyModifier(mod);
+		GameEffectContainer.ApplyModifier(mod, Efffect);
 	}
 	//"Damage.Fire"
 	//"Damage.Ice"
@@ -90,76 +88,19 @@ void UGAAttributeComponent::ExecuteEffect(FGAGameEffect& EffectIn, EGAModifierAp
 	GameEffectContainer.ExecuteEffect(EffectIn, ModAppType);
 }
 
-FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(TSubclassOf<class UGAEffectSpecification> SpecIn,
-	const FGAEffectContext& Context, const FName& EffeftName)
-{
-	FGAEffectHandle handle;
-	if (GetOwnerRole() < ROLE_Authority)
-	{
-
-	}
-	else
-	{
-		handle = ActiveEffects.ApplyEffect(SpecIn, Context, EffeftName);
-	}
-
-	if (GetNetMode() == ENetMode::NM_Standalone)
-		OnRep_ActiveEffects();
-
-	return handle;
-}
-
-FGAEffectHandle UGAAttributeComponent::ApplyEffectToTarget(TSubclassOf<class UGAEffectSpecification> SpecIn,
-	const FGAEffectContext& Context, const FName& EffeftName)
-{
-	UE_LOG(GameAttributesEffects, Log, TEXT("Apply effect to Target: %f, From: %d Effect: %g"), *Context.Target->GetName(), *GetOwner()->GetName(), *EffeftName.ToString());
-	return Context.TargetComp->ApplyEffectToSelf(SpecIn, Context, EffeftName);
-}
-
-FGAEffectHandle UGAAttributeComponent::ApplySelfEffect(AActor* Target, APawn* Instigator,
-	UObject* Causer, FGAEffectSpec SpecIn)
-{
-	UE_LOG(GameAttributesEffects, Log, TEXT("Apply effect to self: %f , Effect: %d"), *GetOwner()->GetName(), *SpecIn.GetNameAsString());
-	//this is bad btw. I need to change it. LAter.
-	IIGAAttributes* targetAttr = Cast<IIGAAttributes>(Target);
-	IIGAAttributes* instiAttr = Cast<IIGAAttributes>(Instigator);
-	if (!targetAttr || !instiAttr)
-		return FGAEffectHandle();
-
-	UGAAttributeComponent* targetComp = targetAttr->GetAttributeComponent();
-	UGAAttributeComponent* instiComp = instiAttr->GetAttributeComponent();
-	FGAEffectContext context(Target->GetActorLocation(), Target, Causer,
-		Instigator, targetComp, instiComp);
-
-	SpecIn.Context = context;
-
-	//SpecIn.GetModifiers();
-	return FGAEffectHandle(); // ActiveEffects.ApplyEffect(SpecIn, context);
-}
-
 TArray<FGAEffectUIData> UGAAttributeComponent::GetEffectUIData()
 {
 	TArray<FGAEffectUIData> dataReturn;
-	for (auto It = ActiveEffects.RepActiveEffects.CreateIterator(); It; ++It)
-	{
-		FGAEffectUIData data;
-		data.RemainingTime = It->GetRemainingDuration(GetWorld()->GetTimeSeconds());
-		dataReturn.Add(data);
-	}
 	return dataReturn;
 }
 
 int32 UGAAttributeComponent::GetEffectUIIndex()
 {
-	return ActiveEffects.RepActiveEffects.Num() - 1;
+	return 1;
 }
 FGAEffectUIData UGAAttributeComponent::GetEffectUIDataByIndex(int32 IndexIn)
 {
 	FGAEffectUIData data;
-	if (ActiveEffects.RepActiveEffects.IsValidIndex(IndexIn))
-	{
-		data.RemainingTime = ActiveEffects.RepActiveEffects[IndexIn].GetRemainingDuration(GetWorld()->GetTimeSeconds());
-	}
 	return data;
 }
 void UGAAttributeComponent::MulticastRemoveEffectCue_Implementation(int32 Handle)
@@ -177,26 +118,13 @@ void UGAAttributeComponent::RemoveEffectCue(int32 Handle)
 	ActiveCues.CueRemoved(FGAEffectHandle(Handle));
 }
 
-FGAEffectInstant UGAAttributeComponent::MakeOutgoingInstantEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context)
-{
-	FGAEffectInstant InstatnEffect;
-	//ApplyEffectToTarget(SpecIn, Context);
-	return InstatnEffect;
-}
-void UGAAttributeComponent::MakeOutgoingPeriodicEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context)
-{
-
-}
-
 void UGAAttributeComponent::EffectExpired(const FGAEffectHandle& HandleIn)
 {
-	MulticastEffectCueExpired(HandleIn.GetHandle());
-	ActiveEffects.RemoveActiveEffect(HandleIn);
+
 }
 void UGAAttributeComponent::EffectRemoved(const FGAEffectHandle& HandleIn)
 {
-	MulticastRemoveEffectCue(HandleIn.GetHandle());
-	ActiveEffects.RemoveActiveEffect(HandleIn);
+
 }
 
 
@@ -254,31 +182,11 @@ void UGAAttributeComponent::GetLifetimeReplicatedProps(TArray< class FLifetimePr
 	DOREPLIFETIME(UGAAttributeComponent, DefaultAttributes);
 	DOREPLIFETIME(UGAAttributeComponent, ModifiedAttribute);
 	
-	DOREPLIFETIME(UGAAttributeComponent, ActiveEffects);
 	DOREPLIFETIME(UGAAttributeComponent, ActiveCues);
 }
 void UGAAttributeComponent::OnRep_ActiveEffects()
 {
-	//because Last return copy, and I don't need copy.
-	int32 LastIndex = ActiveEffects.RepActiveEffects.Num() - 1;
-	//activate newly added effect.
-	if (ActiveEffects.RepActiveEffects.IsValidIndex(LastIndex))
-	{
-		if (ActiveEffects.RepActiveEffects[LastIndex].bIsActivated
-			|| !ActiveEffects.RepActiveEffects[LastIndex].CueClass)
-			return;
 
-		FActorSpawnParameters SpawnParams;
-		AGAEffectCue* cue = GetWorld()->SpawnActor<AGAEffectCue>(ActiveEffects.RepActiveEffects[LastIndex].CueClass,
-			ActiveEffects.RepActiveEffects[LastIndex].Context.TargetHitLocation, FRotator(0, 0, 0), SpawnParams);
-		
-		FGAActiveEffectCue ActiveCue(ActiveEffects.RepActiveEffects[LastIndex].MyHandle, cue);
-		ActiveCue.Context = ActiveEffects.RepActiveEffects[LastIndex].Context;
-		ActiveCue.EffectCue = cue;
-		ActiveCue.Duration = ActiveEffects.RepActiveEffects[LastIndex].Duration;
-		ActiveCue.Period = ActiveEffects.RepActiveEffects[LastIndex].Period;
-		ActiveCues.AddCue(ActiveCue);
-	}
 }
 void UGAAttributeComponent::OnRep_ActiveCues()
 {

@@ -1,7 +1,8 @@
 #pragma once
 #include "GAGlobalTypes.h"
 #include "GAAttributeBase.h"
-#include "GACustomCalculation.generated.h"
+#include "GAGameEffect.h"
+#include "GAEffectExecution.generated.h"
 
 /*
 	Simple base class for custom magnitude calculation.
@@ -14,15 +15,14 @@
 	generally not purpose of this class, but if you really want.. (;.
 */
 UCLASS(BlueprintType, Blueprintable, EditInLineNew)
-class GAMEATTRIBUTES_API UGACustomCalculation : public UObject
+class GAMEATTRIBUTES_API UGAEffectExecution : public UObject
 {
 	GENERATED_BODY()
 public:
-	UGACustomCalculation(const FObjectInitializer& ObjectInitializer);
+	UGAEffectExecution(const FObjectInitializer& ObjectInitializer);
 
-	//UFUNCTION(BlueprintNativeEvent, Category = "Attributes")
-	//	float CalculateMagnitude(const FGAEffectContext& ContextIn);
-	
-
-	virtual float NativeCalculateMagnitude(const FGAEffectContext& ContextIn) { return 0; }
+	virtual void ExecuteEffect(FGAGameEffect* EffectIn, FGAExecutionContext& Context) 
+	{ 
+		//UE_LOG(GameAttributesEffects, Log, TEXT("Execute Effect Is not Implemented"); 
+	}
 };

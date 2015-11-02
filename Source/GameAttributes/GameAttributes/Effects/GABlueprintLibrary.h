@@ -9,13 +9,6 @@ class GAMEATTRIBUTES_API UGABlueprintLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_UCLASS_BODY()
 public:
-	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
-		static FGAEffectHandle ApplyEffectSpec(const FHitResult& Target, APawn* Instigator,
-		UObject* Causer, TSubclassOf<class UGAEffectSpecification> SpecIn);
-
-	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
-		static FGAEffectHandle ApplyEffectActorSpec(AActor* Target, APawn* Instigator,
-		UObject* Causer, TSubclassOf<class UGAEffectSpecification> SpecIn);
 
 	UFUNCTION(BlueprintCallable, meta=(ExpandEnumAsExecs="ResultOut"), Category = "Game Effect System")
 		static FGAGameEffectHandle MakeOutgoingSpec(FGAGameEffectHandle Handle,

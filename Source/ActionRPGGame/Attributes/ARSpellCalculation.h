@@ -1,26 +1,14 @@
 #pragma once
-#include "GACalculation.h"
+#include "GACustomCalculation.h"
 #include "ARSpellCalculation.generated.h"
 
 /*
 
 */
 UCLASS(BlueprintType, Blueprintable)
-class ACTIONRPGGAME_API UARSpellCalculation : public UGACalculation
+class ACTIONRPGGAME_API UARSpellCalculation : public UGACustomCalculation
 {
 	GENERATED_BODY()
 public:
 	UARSpellCalculation(const FObjectInitializer& ObjectInitializer);
-
-	virtual FGAAttributeData OutgoingModifyEffect(const FGAAttributeData& DataIn) override;
-	virtual FGAAttributeData IncomingModifyEffect(const FGAAttributeData& DataIn) override;
-
-	virtual FGAGameEffect ModiifyEffect(const FGAGameEffect& EffectIn) override;
-
-	/* Modify Effect using Target attributes/modifiers. */
-	virtual FGAGameEffect ModifyEffectTarget(const FGAGameEffect& EffectIn, FGAGameEffectMod& Mod, FGACalculationContext& Context) override;
-	/* Modify Effect using instigator attributes/modifiers. */
-	virtual FGAGameEffect ModifyEffectInstigator(const FGAGameEffect& EffectIn, FGAGameEffectMod& Mod, FGACalculationContext& Context) override;
-	
-	virtual void ModifyEffect(const FGAGameEffect& EffectIn, FGAEffectMod& ModIn, FGACalculationContext& Context) override;
 };

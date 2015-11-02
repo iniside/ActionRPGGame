@@ -5,11 +5,11 @@
 #include "GAAttributeComponent.h"
 #include "GAAttributesBase.h"
 #include "IGAAttributes.h"
-#include "Effects/GAEffect.h"
-#include "Effects/GAEffectSpecification.h"
+
 #include "GAEffectCue.h"
-#include "GACalculation.h"
+
 #include "GAAttributeComponent.h"
+#include "GAEffectExecution.h"
 #include "GAGameEffect.h"
 
 FGAGameEffectHandle FGAGameEffectHandle::GenerateHandle(FGAGameEffect* EffectIn)
@@ -22,7 +22,6 @@ FGAGameEffectHandle FGAGameEffectHandle::GenerateHandle(FGAGameEffect* EffectIn)
 FGAGameEffect::FGAGameEffect(class UGAGameEffectSpec* GameEffectIn,
 	const FGAEffectContext& ContextIn)
 	: GameEffect(GameEffectIn),
-	Calculation(GameEffect->CalculationType.GetDefaultObject()),
 	Context(ContextIn)
 {
 	OwnedTags = GameEffectIn->OwnedTags;
@@ -37,6 +36,10 @@ TArray<FGAEffectMod> FGAGameEffect::GetOnAppliedMods()
 {
 	return GetMods(GameEffect->OnAppliedInfo);
 }
+TArray<FGAEffectMod> FGAGameEffect::GetOnPeriodMods()
+{
+	return GetMods(GameEffect->OnPeriodInfo);
+}
 void FGAGameEffect::OnPeriod()
 {
 	GetTargetComp()->ExecuteEffect(*this, EGAModifierApplication::OnPeriod);
@@ -48,8 +51,35 @@ TArray<FGAEffectMod> FGAGameEffect::GetMods(TArray<FGAGameEffectInfo>& ModsInfoI
 	{
 		for (FGAGameEffectInfo& info : ModsInfoIn)
 		{
-			FGAEffectMod mod(info.Attribute, info.Value, info.ChangeType, GameEffect);
-			ModsOut.Add(mod);
+			switch (info.CalculationType)
+			{
+			case EGAMagnitudeCalculation::Direct:
+			{
+				FGAEffectMod mod(info.Attribute, info.DirectModifier.GetValue() , info.ChangeType, GameEffect);
+				ModsOut.Add(mod);
+				break;
+			}
+			case EGAMagnitudeCalculation::AttributeBased:
+			{
+				FGAEffectMod mod(info.Attribute, info.AttributeBased.GetValue(Context), info.ChangeType, GameEffect);
+				ModsOut.Add(mod);
+				break;
+			}
+			case EGAMagnitudeCalculation::CurveBased:
+			{
+				FGAEffectMod mod(info.Attribute, info.CurveBased.GetValue(Context), info.ChangeType, GameEffect);
+				ModsOut.Add(mod);
+				break;
+			}
+			case EGAMagnitudeCalculation::CustomCalculation:
+			{
+				FGAEffectMod mod(info.Attribute, info.Custom.GetValue(Context), info.ChangeType, GameEffect);
+				ModsOut.Add(mod);
+				break;
+			}
+			default:
+				break;
+			}
 		}
 	}
 	return ModsOut;
@@ -90,7 +120,12 @@ void FGAGameEffectContainer::ApplyEffect(const FGAGameEffect& EffectIn
 		break;
 	}
 	default:
-		return;
+		break;
+	}
+	//regardless of what happen try to apply modifiers
+	for (FGAGameEffectModifier& mod : EffectIn.GameEffect->Modifiers)
+	{
+		ApplyModifier(mod, EffectIn);
 	}
 	
 }
@@ -100,6 +135,10 @@ void FGAGameEffectContainer::ExecuteEffect(FGAGameEffect& EffectIn,
 	FGAGameEffect& Effect = const_cast<FGAGameEffect&>(EffectIn);
 	FGACalculationContext InstiContext(EffectIn.Context.InstigatorComp.Get(), EffectIn.Context.InstigatorComp->DefaultAttributes, EGAModifierDirection::Outgoing);
 	FGACalculationContext TargetContext(EffectIn.Context.TargetComp.Get(), EffectIn.Context.TargetComp->DefaultAttributes, EGAModifierDirection::Incoming);
+	
+	FGAExecutionContext ExecContext(EffectIn.Context.TargetComp.Get(), EffectIn.Context.TargetComp->DefaultAttributes,
+		EffectIn.Context.InstigatorComp.Get(), EffectIn.Context.InstigatorComp->DefaultAttributes);
+	
 	switch(ModAppType)
 	{
 		case EGAModifierApplication::OnApplied:
@@ -108,18 +147,31 @@ void FGAGameEffectContainer::ExecuteEffect(FGAGameEffect& EffectIn,
 			UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect: Number Of Mods to apply = %f"), OnAppliedMods.Num());
 			for (FGAEffectMod& mod : OnAppliedMods)
 			{
-				UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect: Premodified Mod Value = %f"), mod.Value);
-				EffectIn.Calculation->ModifyEffect(EffectIn, mod, InstiContext);
-				UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect: Post Instigator modified Value = %f"), mod.Value);
-				EffectIn.Calculation->ModifyEffect(EffectIn, mod, TargetContext);
-				UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect: Post Target modified Value = %f"), mod.Value);
-				OwningComp->DefaultAttributes->ModifyAttribute(mod);
+				Effect.GameEffect->ExecutionType.GetDefaultObject()->ExecuteEffect(&Effect, ExecContext);
+				//UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect:OnApplied Premodified Mod Value = %f"), mod.Value);
+				//EffectIn.Calculation->ModifyEffect(EffectIn, mod, InstiContext);
+				//UE_LOG(GameAttributesEffects, Log, TEXT("FGwAGameEffectContainer::ExecuteEffect:OnApplied Post Instigator modified Value = %f"), mod.Value);
+				//EffectIn.Calculation->ModifyEffect(EffectIn, mod, TargetContext);
+				//UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect:OnApplied Post Target modified Value = %f"), mod.Value);
+				//OwningComp->DefaultAttributes->ModifyAttribute(mod);
 			}
 			break;
 		}
 		case EGAModifierApplication::OnPeriod:
 		{
-			UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffect::OnPeriod not implemented"));
+			//UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffect::OnPeriod not implemented"));
+			TArray<FGAEffectMod> OnPeriodMods = EffectIn.GetOnPeriodMods();
+			UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect: Number Of Mods to apply = %f"), OnPeriodMods.Num());
+			for (FGAEffectMod& mod : OnPeriodMods)
+			{
+				Effect.GameEffect->ExecutionType.GetDefaultObject()->ExecuteEffect(&Effect, ExecContext);
+				//UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect:OnPeriod Premodified Mod Value = %f"), mod.Value);
+				//EffectIn.Calculation->ModifyEffect(EffectIn, mod, InstiContext);
+				//UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect:OnPeriod Post Instigator modified Value = %f"), mod.Value);
+				//EffectIn.Calculation->ModifyEffect(EffectIn, mod, TargetContext);
+				//UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer::ExecuteEffect:OnPeriod Post Target modified Value = %f"), mod.Value);
+				//OwningComp->DefaultAttributes->ModifyAttribute(mod);
+			}
 			break;
 		}
 		case EGAModifierApplication::OnExpired:
@@ -155,10 +207,25 @@ FGAGameEffectContainer::FGAGameEffectContainer()
 	Modifiers.SetNum(2);
 }
 
-void FGAGameEffectContainer::ApplyModifier(const FGAGameEffectModifier& ModifierIn)
+void FGAGameEffectContainer::ApplyModifier(const FGAGameEffectModifier& ModifierIn,
+	const FGAGameEffect& EffectIn)
 {
-	int32 Index = static_cast<int32>(ModifierIn.Direction);
-	Modifiers[Index].Add(ModifierIn);
+	//if there is valid attribute specified, we go different path and ignore any tags modifiers.
+	if (ModifierIn.Attribute.IsValid())
+	{
+		FGAGameEffect& effect = const_cast<FGAGameEffect&>(EffectIn);
+		UGAAttributesBase* attr = effect.Context.GetTargetAttributes();
+		//it shouldn't ever be null
+		if (attr)
+		{
+			FGAAttributeBase* baseAttribute =  attr->GetAttribute(ModifierIn.Attribute);
+		}
+	}
+	else
+	{
+		int32 Index = static_cast<int32>(ModifierIn.Direction);
+		Modifiers[Index].Add(ModifierIn);
+	}
 }
 
 FGAGameModifierStack FGAGameEffectContainer::GetQualifableMods(const FGAGameEffect& EffectIn

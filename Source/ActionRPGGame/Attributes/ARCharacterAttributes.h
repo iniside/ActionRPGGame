@@ -277,7 +277,6 @@ public:
 		void InternalEffectParams();
 
 	virtual void PostEffectApplied() override;
-	virtual void PostEffectRemoved(const FGAEffectHandle& HandleIn, const FGAEffectSpec& SpecIn) override;
 	
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = AttributeTags, meta = (BlueprintInternalUseOnly = "true"))
 		FGAAttributeData InternalPreModifyAttribute(const FGAAttributeData& AttributeMod);

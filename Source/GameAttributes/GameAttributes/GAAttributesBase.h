@@ -1,7 +1,6 @@
 #pragma once
 #include "GAGlobalTypes.h"
 #include "GAAttributeBase.h"
-#include "GAEffects.h"
 #include "GAGameEffect.h"
 #include "GAAttributesBase.generated.h"
 
@@ -96,7 +95,6 @@ public:
 
 		These function MUST be in category PostEffectRemoved
 	*/
-	virtual void PostEffectRemoved(const FGAEffectHandle& HandleIn, const FGAEffectSpec& SpecIn) {};
 	/*
 		Called before attribute will be modified.
 		On both instigator (first, as an outgoing),

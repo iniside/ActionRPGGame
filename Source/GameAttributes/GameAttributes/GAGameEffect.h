@@ -1,6 +1,6 @@
 #pragma once
 #include "GAGlobalTypes.h"
-#include "GAAttributeBase.h"
+//#include "GAAttributeBase.h"
 #include "GAGameEffect.generated.h"
 
 /*
@@ -32,6 +32,10 @@ struct GAMEATTRIBUTES_API FGAGameEffectModifier
 {
 	GENERATED_USTRUCT_BODY()
 public:
+	/*
+		If there is specified attribute, modifier will only be applied to this attribute.
+		All tag based effect modifiers, will be ignored.
+	*/
 	UPROPERTY(EditAnywhere)
 		FGAAttribute Attribute;
 	UPROPERTY(EditAnywhere)
@@ -41,7 +45,10 @@ public:
 
 	UPROPERTY(EditAnywhere)
 		EGAModifierDirection Direction;
-
+	/*
+		Tags, which incoming/outgoing effect must have to be affected by this modifier 
+		(in case of tag based modifier).
+	*/
 	UPROPERTY(EditAnywhere)
 		FGameplayTagContainer RequiredTags;
 };
@@ -53,10 +60,37 @@ struct GAMEATTRIBUTES_API FGAGameEffectInfo
 public:
 	UPROPERTY(EditAnywhere, Category = "Instant Spec")
 		FGAAttribute Attribute;
-	UPROPERTY(EditAnywhere, Category = "Instant Spec")
-		float Value;
+
 	UPROPERTY(EditAnywhere, Category = "Instant Spec")
 		EGAAttributeChangeType ChangeType;
+
+	/*
+	Type of calculation we want to perform for this Magnitude.
+	*/
+	UPROPERTY(EditAnywhere)
+		EGAMagnitudeCalculation CalculationType;
+
+	UPROPERTY(EditAnywhere)
+		FGADirectModifier DirectModifier;
+	/*
+	Simple calculation based on attribute:
+	(Coefficient * (PreMultiply + AttributeValue) + PostMultiply) * PostCoefficient
+
+	There is no any magic manipulation, it straight off pull attribute from selected source,
+	and make this operation on it.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGAAttributeBasedModifier AttributeBased;
+	/*
+	Get value from selected CurveTable, based on selected attribute value.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGACurveBasedModifier CurveBased;
+	/*
+	Provide custom calculation class.
+	*/
+	UPROPERTY(EditAnywhere)
+		FGACustomCalculationModifier Custom;
 };
 
 UCLASS(Blueprintable, BlueprintType)
@@ -101,11 +135,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Instant Spec")
 		EGAAttributeChangeType ChangeType;
 
-	UPROPERTY(EditAnywhere, Category = "Calculation Type")
-		TSubclassOf<class UGACalculation> CalculationType;
+	UPROPERTY(EditAnywhere, Category = "Execution Type")
+		TSubclassOf<class UGAEffectExecution> ExecutionType;
 
 	UPROPERTY(EditAnywhere, Category = "Modifiers")
-		FGAGameEffectModifier Modifiers;
+		TArray<FGAGameEffectModifier> Modifiers;
 
 	/* Tags I own and I don't apply */
 	UPROPERTY(EditAnywhere, Category = "Tags")
@@ -204,6 +238,7 @@ public:
 	void SetContext(const FGAEffectContext& ContextIn);
 	void InitializePeriodic();
 	TArray<FGAEffectMod> GetOnAppliedMods();
+	TArray<FGAEffectMod> GetOnPeriodMods();
 
 	class UGAAttributeComponent* GetInstigatorComp() { return Context.InstigatorComp.Get(); }
 	class UGAAttributeComponent* GetTargetComp() { return Context.TargetComp.Get(); }
@@ -212,10 +247,6 @@ public:
 	void OnExpired() {}; //internal timer
 	void OnRemoved() {}; //internal timer
 
-	class UGACalculation* GetCalculation()
-	{
-		return GameEffect->CalculationType.GetDefaultObject();
-	}
 	bool IsValid() const
 	{
 		return GameEffect != nullptr;
@@ -360,7 +391,7 @@ struct GAMEATTRIBUTES_API FGACalculationContext
 	class UGAAttributeComponent* AttributeComp;
 
 	class UGAAttributesBase* Attributes;
-
+	
 	EGAModifierDirection Direction;
 
 	FGAGameModifierStack GetModifiers(const FGAGameEffect& EffectIn
@@ -374,6 +405,28 @@ struct GAMEATTRIBUTES_API FGACalculationContext
 		: AttributeComp(AttrComp),
 		Attributes(AttrIn),
 		Direction(DirectionIn)
+	{};
+
+};
+
+struct GAMEATTRIBUTES_API FGAExecutionContext
+{
+	class UGAAttributeComponent* TargetAttributeComp;
+	class UGAAttributesBase* TargetAttributes;
+
+	class UGAAttributeComponent* InstigatorAttributeComp;
+	class UGAAttributesBase* InstigatorAttributes;
+
+	FGAExecutionContext()
+	{};
+	FGAExecutionContext(class UGAAttributeComponent* TarAttrComp,
+	class UGAAttributesBase* TarAttrIn,
+	class UGAAttributeComponent* InstiAttrComp,
+	class UGAAttributesBase* InstiAttrIn)
+		: TargetAttributeComp(TarAttrComp),
+		TargetAttributes(TarAttrIn),
+		InstigatorAttributeComp(InstiAttrComp),
+		InstigatorAttributes(InstiAttrIn)
 	{};
 
 };
@@ -403,7 +456,7 @@ public:
 	void ExecutePeriodicEffect(FGAGameEffectHandle HandleIn);
 
 	//modifiers
-	void ApplyModifier(const FGAGameEffectModifier& ModifierIn);
+	void ApplyModifier(const FGAGameEffectModifier& ModifierIn, const FGAGameEffect& EffectIn);
 	FGAGameModifierStack GetQualifableMods(const FGAGameEffect& EffectIn
 		, const FGACalculationContext& Context);
 	void ApplyEffectsFromMods() {};

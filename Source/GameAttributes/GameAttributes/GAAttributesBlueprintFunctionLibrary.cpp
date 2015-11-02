@@ -5,7 +5,7 @@
 #include "IGAAttributes.h"
 #include "GAAttributesBase.h"
 #include "GAAttributeComponent.h"
-#include "Effects/GAEffect.h"
+
 #include "GAAttributesBlueprintFunctionLibrary.h"
 
 

@@ -1,7 +1,6 @@
 #pragma once
 #include "GAGlobalTypes.h"
 #include "GAAttributeBase.h"
-#include "GAEffects.h"
 #include "GAEffectCueTypes.h"
 #include "GAAttributesBase.h"
 #include "GAGameEffect.h"
@@ -64,8 +63,6 @@ public:
 	UPROPERTY()
 		FGACountedTagContainer AppliedTags;
 	
-	UPROPERTY(ReplicatedUsing=OnRep_ActiveEffects)
-		FGAActiveEffectContainer ActiveEffects;
 	UFUNCTION()
 		void OnRep_ActiveEffects();
 
@@ -116,27 +113,9 @@ public:
 
 	void ExecuteEffect(FGAGameEffect& EffectIn, EGAModifierApplication ModAppType);
 
-	/*
-		Apply to self probabaly shouldn't take Spec.
-	*/
-	FGAEffectHandle ApplyEffectToSelf(TSubclassOf<class UGAEffectSpecification> SpecIn, 
-		const FGAEffectContext& Context, const FName& EffeftName);
-	/*
-		As matter of fact I'm no sure if apply to target should either.
-	*/
-	FGAEffectHandle ApplyEffectToTarget(TSubclassOf<class UGAEffectSpecification> SpecIn, 
-		const FGAEffectContext& Context, const FName& EffeftName);
-
-	FGAEffectInstant MakeOutgoingInstantEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
-	void MakeOutgoingPeriodicEffect(const FGAEffectSpec& SpecIn, const FGAEffectContext& Context);
-
 	void EffectExpired(const FGAEffectHandle& HandleIn);
 
 	void EffectRemoved(const FGAEffectHandle& HandleIn);
-
-	UFUNCTION(BlueprintCallable, Category = "Attribute Tests")
-		FGAEffectHandle ApplySelfEffect(AActor* Target, APawn* Instigator,
-		UObject* Causer, FGAEffectSpec SpecIn);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes | UI")
 		TArray<FGAEffectUIData> GetEffectUIData();
