@@ -19,14 +19,7 @@ FGAGameEffectHandle FGAGameEffectHandle::GenerateHandle(FGAGameEffect* EffectIn)
 	return FGAGameEffectHandle(Handle, EffectIn);
 }
 
-FGAAttributeBase* FGAExecutionContext::GetTargetAttribute(const FGAAttribute& AttributeIn)
-{
-	return TargetAttributes->GetAttribute(AttributeIn);
-}
-FGAAttributeBase* FGAExecutionContext::GetInstigatorAttribute(const FGAAttribute& AttributeIn)
-{
-	return InstigatorAttributes->GetAttribute(AttributeIn);
-}
+
 FGAGameEffect::FGAGameEffect(class UGAGameEffectSpec* GameEffectIn,
 	const FGAEffectContext& ContextIn)
 	: GameEffect(GameEffectIn),
@@ -56,7 +49,11 @@ TArray<FGAEffectMod> FGAGameEffect::GetOnDurationMods()
 void FGAGameEffect::OnPeriod()
 {
 	GetTargetComp()->ExecuteEffect(*this, EGAModifierApplication::OnPeriod);
-};
+}
+void FGAGameEffect::OnDuration()
+{
+	
+}
 TArray<FGAEffectMod> FGAGameEffect::GetMods(TArray<FGAAttributeModifier>& ModsInfoIn)
 {
 	TArray<FGAEffectMod> ModsOut;
@@ -68,25 +65,25 @@ TArray<FGAEffectMod> FGAGameEffect::GetMods(TArray<FGAAttributeModifier>& ModsIn
 			{
 			case EGAMagnitudeCalculation::Direct:
 			{
-				FGAEffectMod mod(info.Attribute, info.DirectModifier.GetValue() , info.ChangeType, GameEffect);
+				FGAEffectMod mod(info.Attribute, info.DirectModifier.GetValue() , info.ChangeType, GameEffect, info.ExecutionType.GetDefaultObject());
 				ModsOut.Add(mod);
 				break;
 			}
 			case EGAMagnitudeCalculation::AttributeBased:
 			{
-				FGAEffectMod mod(info.Attribute, info.AttributeBased.GetValue(Context), info.ChangeType, GameEffect);
+				FGAEffectMod mod(info.Attribute, info.AttributeBased.GetValue(Context), info.ChangeType, GameEffect, info.ExecutionType.GetDefaultObject());
 				ModsOut.Add(mod);
 				break;
 			}
 			case EGAMagnitudeCalculation::CurveBased:
 			{
-				FGAEffectMod mod(info.Attribute, info.CurveBased.GetValue(Context), info.ChangeType, GameEffect);
+				FGAEffectMod mod(info.Attribute, info.CurveBased.GetValue(Context), info.ChangeType, GameEffect, info.ExecutionType.GetDefaultObject());
 				ModsOut.Add(mod);
 				break;
 			}
 			case EGAMagnitudeCalculation::CustomCalculation:
 			{
-				FGAEffectMod mod(info.Attribute, info.Custom.GetValue(Context), info.ChangeType, GameEffect);
+				FGAEffectMod mod(info.Attribute, info.Custom.GetValue(Context), info.ChangeType, GameEffect, info.ExecutionType.GetDefaultObject());
 				ModsOut.Add(mod);
 				break;
 			}
@@ -98,7 +95,7 @@ TArray<FGAEffectMod> FGAGameEffect::GetMods(TArray<FGAAttributeModifier>& ModsIn
 	return ModsOut;
 }
 
-void FGAGameEffect::InitializePeriodic()
+void FGAGameEffect::ApplyPeriodic()
 {
 	//apply OnApplied modifiers once, if there are any.
 	GetTargetComp()->ExecuteEffect(*this, EGAModifierApplication::OnApplied);
@@ -107,6 +104,22 @@ void FGAGameEffect::InitializePeriodic()
 	FTimerManager& timer = GetTargetComp()->GetWorld()->GetTimerManager();
 
 	timer.SetTimer(PeriodTimerHandle, del, 1, true);
+}
+void FGAGameEffect::ApplyDuration()
+{
+	//apply OnApplied modifiers once, if there are any.
+	GetTargetComp()->ExecuteEffect(*this, EGAModifierApplication::OnApplied);
+	//apply duration modifier.
+	GetTargetComp()->ExecuteEffect(*this, EGAModifierApplication::OnDuration);
+
+	FTimerDelegate del = FTimerDelegate::CreateRaw(this, &FGAGameEffect::DurationExpired);
+	FTimerManager& timer = GetTargetComp()->GetWorld()->GetTimerManager();
+
+	timer.SetTimer(PeriodTimerHandle, del, 5, false);
+}
+void FGAGameEffect::DurationExpired()
+{
+
 }
 void FGAGameEffect::ExecuteEffect(FGAGameEffect* Effect, FGAEffectMod& ModIn, FGAExecutionContext& ExecContextIn)
 {
@@ -132,13 +145,20 @@ void FGAGameEffectContainer::ApplyEffect(const FGAGameEffect& EffectIn
 	{
 		FGAGameEffectHandle& Handle = const_cast<FGAGameEffectHandle&>(HandleIn);
 		ActiveEffects.Add(HandleIn, Handle.GetEffectPtr());
-		Handle.GetEffectRef().InitializePeriodic();
+		Handle.GetEffectRef().ApplyPeriodic();
+		break;
+	}
+	case EGAEffectType::Duration:
+	{
+		FGAGameEffectHandle& Handle = const_cast<FGAGameEffectHandle&>(HandleIn);
+		ActiveEffects.Add(HandleIn, Handle.GetEffectPtr());
+		Handle.GetEffectRef().ApplyDuration();
 		break;
 	}
 	default:
 		break;
 	}
-	//regardless of what happen try to apply modifiers
+	//regardless of what happen try to apply effect modifiers
 	for (FGAGameEffectModifier& mod : EffectIn.GameEffect->Modifiers)
 	{
 		ApplyModifier(mod, EffectIn);
@@ -180,6 +200,13 @@ void FGAGameEffectContainer::ExecuteEffect(FGAGameEffect& EffectIn,
 		}
 		case EGAModifierApplication::OnDuration:
 		{
+			TArray<FGAEffectMod> OnDurationMods = EffectIn.GetOnDurationMods();
+			for (FGAEffectMod& mod : OnDurationMods)
+			{
+				mod.ExecuteEffect(&Effect, mod, ExecContext);
+				//Effect.ExecuteEffect(&Effect, mod, ExecContext);
+			}
+			//apply modifier for duration. How in the fuck ?
 			UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffect::OnDuration not implemented"));
 			break;
 		}

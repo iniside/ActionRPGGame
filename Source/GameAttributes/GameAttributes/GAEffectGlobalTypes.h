@@ -4,18 +4,43 @@
 #include "GAGlobalTypes.h"
 #include "GAEffectGlobalTypes.generated.h"
 
+struct GAMEATTRIBUTES_API FGAExecutionContext
+{
+	class UGAAttributeComponent* TargetAttributeComp;
+	class UGAAttributesBase* TargetAttributes;
+
+	class UGAAttributeComponent* InstigatorAttributeComp;
+	class UGAAttributesBase* InstigatorAttributes;
+	struct FGAAttributeBase* GetTargetAttribute(const FGAAttribute& AttributeIn);
+	struct FGAAttributeBase* GetInstigatorAttribute(const FGAAttribute& AttributeIn);
+	FGAExecutionContext()
+	{};
+	FGAExecutionContext(class UGAAttributeComponent* TarAttrComp,
+	class UGAAttributesBase* TarAttrIn,
+	class UGAAttributeComponent* InstiAttrComp,
+	class UGAAttributesBase* InstiAttrIn)
+		: TargetAttributeComp(TarAttrComp),
+		TargetAttributes(TarAttrIn),
+		InstigatorAttributeComp(InstiAttrComp),
+		InstigatorAttributes(InstiAttrIn)
+	{};
+
+};
+
 /* Final calculcated mod from effect, which can be modified by Calculation object. */
 struct FGAEffectMod
 {
 	FGAAttribute Attribute;
 	float Value;
 	EGAAttributeChangeType ChangeType;
-
+	class UGAEffectExecution* Execution;
 	/*
 	Spec from which this mod has been derived.
 	Used to do not copy to much heavy data around.
 	*/
 	class UGAGameEffectSpec* EffectSpec;
+
+	void ExecuteEffect(struct FGAGameEffect* Effect, FGAEffectMod& ModIn, FGAExecutionContext& ExecContextIn);
 
 	FGAEffectMod()
 		: Attribute(NAME_None),
@@ -24,11 +49,13 @@ struct FGAEffectMod
 	{};
 
 	FGAEffectMod(const FGAAttribute& AttributeIn, float ValueIn,
-		EGAAttributeChangeType ChangeTypeIn, class UGAGameEffectSpec* EffectSpecIn)
+		EGAAttributeChangeType ChangeTypeIn, class UGAGameEffectSpec* EffectSpecIn,
+		class UGAEffectExecution* ExecutionIn)
 		: Attribute(AttributeIn),
 		Value(ValueIn),
 		ChangeType(ChangeTypeIn),
-		EffectSpec(EffectSpecIn)
+		EffectSpec(EffectSpecIn),
+		Execution(ExecutionIn)
 	{};
 };
 

@@ -110,6 +110,11 @@ public:
 	*/
 	UPROPERTY(EditAnywhere)
 		FGameplayTagContainer DenyTags;
+	/*
+		How modifier will be executed on target.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Execution Type")
+		TSubclassOf<class UGAEffectExecution> ExecutionType;
 };
 
 UCLASS(Blueprintable, BlueprintType, EditInLineNew)
@@ -151,19 +156,36 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
 		TArray<FGAAttributeModifier> OnDurationInfo;
 
-	/* For now just test instant application of direct value */
-	UPROPERTY(EditAnywhere, Category = "Instant Spec")
-		FGAAttribute Attribute;
-	UPROPERTY(EditAnywhere, Category = "Instant Spec")
-		float Value;
-	UPROPERTY(EditAnywhere, Category = "Instant Spec")
-		EGAAttributeChangeType ChangeType;
-
 	UPROPERTY(EditAnywhere, Category = "Execution Type")
 		TSubclassOf<class UGAEffectExecution> ExecutionType;
 
 	UPROPERTY(EditAnywhere, Category = "Modifiers")
 		TArray<FGAGameEffectModifier> Modifiers;
+
+	/* Effects applied when this effect is applied. */
+	UPROPERTY(EditAnywhere, Category = "Linked Effects")
+		TArray<TSubclassOf<UGAGameEffectSpec>> OnAppliedEffects;
+
+	/* Effects applied when this effect expire*/
+	UPROPERTY(EditAnywhere, Category = "Linked Effects")
+		TArray<TSubclassOf<UGAGameEffectSpec>> OnExpiredEffects;
+
+	/* Effects applied when this effect is removed. */
+	UPROPERTY(EditAnywhere, Category = "Linked Effects")
+		TArray<TSubclassOf<UGAGameEffectSpec>> OnRemovedEffects;
+
+	/* 
+		Effects applied only when certain criteria are met.
+		Just dumbed here it needs it's own structure that will actually alow to setup those conditions.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Linked Effects")
+		TArray<TSubclassOf<UGAGameEffectSpec>> ConditonalEffects;
+
+	/*
+		Effects also need special behaviors, like search in radius, 
+		Complex checking for attributes values, and passing data from and to other effects
+		(I deal 40hp damage, other effect might want to apply energy damage equal to 40hp*2
+	*/
 
 	/* Tags I own and I don't apply */
 	UPROPERTY(EditAnywhere, Category = "Tags")
@@ -175,7 +197,14 @@ public:
 public:
 	UGAGameEffectSpec();
 };
-
+USTRUCT(BlueprintType)
+struct GAMEATTRIBUTES_API FGAEffectSpec
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(EditAnywhere, Instanced, Category = "Effect")
+		UGAGameEffectSpec* Spec;
+};
 struct FGAGameEffectMod
 {
 	FGAAttribute Attribute;
@@ -205,29 +234,6 @@ struct FGAGameEffectActive
 	
 };
 
-struct GAMEATTRIBUTES_API FGAExecutionContext
-{
-	class UGAAttributeComponent* TargetAttributeComp;
-	class UGAAttributesBase* TargetAttributes;
-
-	class UGAAttributeComponent* InstigatorAttributeComp;
-	class UGAAttributesBase* InstigatorAttributes;
-	struct FGAAttributeBase* GetTargetAttribute(const FGAAttribute& AttributeIn);
-	struct FGAAttributeBase* GetInstigatorAttribute(const FGAAttribute& AttributeIn);
-	FGAExecutionContext()
-	{};
-	FGAExecutionContext(class UGAAttributeComponent* TarAttrComp,
-	class UGAAttributesBase* TarAttrIn,
-	class UGAAttributeComponent* InstiAttrComp,
-	class UGAAttributesBase* InstiAttrIn)
-		: TargetAttributeComp(TarAttrComp),
-		TargetAttributes(TarAttrIn),
-		InstigatorAttributeComp(InstiAttrComp),
-		InstigatorAttributes(InstiAttrIn)
-	{};
-
-};
-
 /*
 	Calculcated magnitudes, captured attributes and tags, set duration.
 	Final effect which then is used to apply custom calculations and attribute changes.
@@ -255,7 +261,8 @@ private:
 
 public:
 	void SetContext(const FGAEffectContext& ContextIn);
-	void InitializePeriodic();
+	void ApplyPeriodic();
+	void ApplyDuration();
 	TArray<FGAEffectMod> GetOnAppliedMods();
 	TArray<FGAEffectMod> GetOnPeriodMods();
 	TArray<FGAEffectMod> GetOnDurationMods();
@@ -264,8 +271,11 @@ public:
 	class UGAAttributeComponent* GetTargetComp() { return Context.TargetComp.Get(); }
 	void ExecuteEffect(FGAGameEffect* Effect, FGAEffectMod& ModIn, FGAExecutionContext& ExecContextIn);
 	void OnPeriod(); //internal timer - called by
+	void OnDuration();
 	void OnExpired() {}; //internal timer
 	void OnRemoved() {}; //internal timer
+
+	void DurationExpired();
 
 	bool IsValid() const
 	{

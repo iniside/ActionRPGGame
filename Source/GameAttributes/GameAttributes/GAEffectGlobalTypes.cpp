@@ -2,9 +2,23 @@
 #include "GameAttributes.h"
 #include "GAGlobalTypes.h"
 #include "GAAttributeComponent.h"
+#include "GAAttributeBase.h"
+#include "GAEffectExecution.h"
 #include "GACustomCalculation.h"
 
+FGAAttributeBase* FGAExecutionContext::GetTargetAttribute(const FGAAttribute& AttributeIn)
+{
+	return TargetAttributes->GetAttribute(AttributeIn);
+}
+FGAAttributeBase* FGAExecutionContext::GetInstigatorAttribute(const FGAAttribute& AttributeIn)
+{
+	return InstigatorAttributes->GetAttribute(AttributeIn);
+}
 
+void FGAEffectMod::ExecuteEffect(FGAGameEffect* Effect, FGAEffectMod& ModIn, FGAExecutionContext& ExecContextIn)
+{
+	Execution->ExecuteEffect(Effect, ModIn, ExecContextIn);
+}
 float FGAAttributeBasedModifier::GetValue(const FGAEffectContext& Context)
 {
 	FGAAttributeBase* attr = nullptr;

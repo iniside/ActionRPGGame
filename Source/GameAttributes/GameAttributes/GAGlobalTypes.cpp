@@ -51,11 +51,16 @@ void FGAEffectContext::Reset()
 }
 class UGAAttributesBase* FGAEffectContext::GetTargetAttributes()
 { 
-	return TargetComp->DefaultAttributes; 
+	if (TargetComp.IsValid())
+		return TargetComp->DefaultAttributes;
+	else
+		return nullptr;
 }
 class UGAAttributesBase* FGAEffectContext::GetInstigatorAttributes()
 { 
-	return InstigatorComp->DefaultAttributes; 
+	if(InstigatorComp.IsValid())
+		return InstigatorComp->DefaultAttributes; 
+	return nullptr;
 }
 FGAEffectContext::~FGAEffectContext()
 {

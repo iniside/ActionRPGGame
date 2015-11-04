@@ -74,7 +74,7 @@ FGAGameEffectHandle UGAAttributeComponent::MakeGameEffect(TSubclassOf<class UGAG
 {
 	FGAGameEffect* effect = new FGAGameEffect(SpecIn.GetDefaultObject(), ContextIn);
 	FGAGameEffectHandle handle = FGAGameEffectHandle::GenerateHandle(effect);
-	//effect->Handle = handle;
+	effect->Handle = &handle;
 	return handle;
 }
 

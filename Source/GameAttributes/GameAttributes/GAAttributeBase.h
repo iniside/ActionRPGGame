@@ -85,7 +85,7 @@ public:
 
 	void Add(float ValueIn);
 	void Subtract(float ValueIn);
-	void ApplyDurationModifier(FGAGameEffectHandle& HandleIn, FGAEffectMod& ModIn) {};
+	void ApplyDurationModifier(const FGAGameEffectHandle& HandleIn, FGAEffectMod& ModIn) {};
 
 	//inline float GetCurrentValue()
 	//{
