@@ -145,24 +145,17 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
 		TArray<FGAAttributeModifier> OnAppliedInfo;
 
-	/*
-		Modifiers applied on effect period.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-		TArray<FGAAttributeModifier> OnPeriodInfo;
-	/*
-		Modifiers applied for the duration of effect, and removed when effect is removed/expired.
-	*/
-	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-		TArray<FGAAttributeModifier> OnDurationInfo;
-
 	UPROPERTY(EditAnywhere, Category = "Execution Type")
 		TSubclassOf<class UGAEffectExecution> ExecutionType;
 
 	UPROPERTY(EditAnywhere, Category = "Modifiers")
 		TArray<FGAGameEffectModifier> Modifiers;
 
-	/* Effects applied when this effect is applied. */
+	/* 
+		Effects applied when this effect is applied. 
+		These effects will be applied with the same context and the same target as
+		effect, which stores them.
+	*/
 	UPROPERTY(EditAnywhere, Category = "Linked Effects")
 		TArray<TSubclassOf<UGAGameEffectSpec>> OnAppliedEffects;
 
@@ -256,21 +249,17 @@ struct GAMEATTRIBUTES_API FGAGameEffect : public TSharedFromThis<FGAGameEffect>
 
 	struct FGAGameEffectHandle* Handle;
 
-private:
 	FTimerHandle PeriodTimerHandle;
 
 public:
 	void SetContext(const FGAEffectContext& ContextIn);
-	void ApplyPeriodic();
-	void ApplyDuration();
 	TArray<FGAEffectMod> GetOnAppliedMods();
 	TArray<FGAEffectMod> GetOnPeriodMods();
 	TArray<FGAEffectMod> GetOnDurationMods();
 
 	class UGAAttributeComponent* GetInstigatorComp() { return Context.InstigatorComp.Get(); }
 	class UGAAttributeComponent* GetTargetComp() { return Context.TargetComp.Get(); }
-	void ExecuteEffect(FGAGameEffect* Effect, FGAEffectMod& ModIn, FGAExecutionContext& ExecContextIn);
-	void OnPeriod(); //internal timer - called by
+
 	void OnDuration();
 	void OnExpired() {}; //internal timer
 	void OnRemoved() {}; //internal timer
@@ -467,11 +456,16 @@ public:
 	/* Effects grouped by their targer */
 	TMap<FGAGameEffectHandle, TSharedPtr<FGAGameEffect>> TargetEffects;
 
+	/* Keeps effects instanced per instigator */
+	TMap<UObject*, class UGAEffectInstanced*> InstigatorInstancedEffects;
+
+	/* Keeps effects instanced per target actor. */
+	TArray<class UGAEffectInstanced*> TargetInstancedEffects;
 public:
 	FGAGameEffectContainer();
 
 	void ApplyEffect(const FGAGameEffect& EffectIn, const FGAGameEffectHandle& HandleIn);
-	void ExecuteEffect(FGAGameEffect& EffectIn, EGAModifierApplication ModAppType);
+	void ExecuteEffect(FGAGameEffectHandle& HandleIn, FGAGameEffect& EffectIn);
 	void ExecutePeriodicEffect(FGAGameEffectHandle HandleIn);
 
 	//modifiers

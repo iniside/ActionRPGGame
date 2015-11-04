@@ -23,5 +23,5 @@ class GAMEATTRIBUTES_API UGADurationEffectExecution : public UGAEffectExecution
 public:
 	UGADurationEffectExecution(const FObjectInitializer& ObjectInitializer);
 
-	virtual void ExecuteEffect(FGAGameEffect* EffectIn, FGAEffectMod& ModIn, FGAExecutionContext& Context) override;
+	virtual void ExecuteEffect(const FGAGameEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAExecutionContext& Context) override;
 };

@@ -57,6 +57,39 @@ FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAGameEffect& Ef
 	, const FGAGameEffectHandle& HandleIn)
 {
 	GameEffectContainer.ApplyEffect(EffectIn, HandleIn);
+	OnEffectApplied.Broadcast(HandleIn);
+
+	switch (EffectIn.GameEffect->EffectType)
+	{
+	case EGAEffectType::Instant:
+	{
+		//dont do anything fancy now simply execute effect and forget about it.
+		FGAGameEffectHandle& Handle = const_cast<FGAGameEffectHandle&>(HandleIn);
+		FGAGameEffect& Effect = const_cast<FGAGameEffect&>(EffectIn);
+		ExecuteEffect(Handle);
+		break;
+	}
+	case EGAEffectType::Periodic:
+	{
+		//FGAGameEffectHandle& Handle = const_cast<FGAGameEffectHandle&>(HandleIn);
+		//ActiveEffects.Add(HandleIn, Handle.GetEffectPtr());
+		//Handle.GetEffectRef().ApplyPeriodic();
+
+		FGAGameEffectHandle& Handle = const_cast<FGAGameEffectHandle&>(HandleIn);
+		FGAGameEffect& Effect = const_cast<FGAGameEffect&>(EffectIn);
+		FTimerDelegate del = FTimerDelegate::CreateUObject(this, &UGAAttributeComponent::ExecuteEffect, Handle);
+		FTimerManager& timer = Handle.GetEffectRef().Context.TargetComp->GetWorld()->GetTimerManager();
+
+		timer.SetTimer(Handle.GetEffectRef().PeriodTimerHandle, del, 1, true);
+		break;
+	}
+	case EGAEffectType::Duration:
+	{
+		break;
+	}
+	default:
+		break;
+	}
 
 	//ExecuteEffect(EffectIn);
 	return FGAEffectHandle();
@@ -78,14 +111,15 @@ FGAGameEffectHandle UGAAttributeComponent::MakeGameEffect(TSubclassOf<class UGAG
 	return handle;
 }
 
-void UGAAttributeComponent::ExecuteEffect(FGAGameEffect& EffectIn, EGAModifierApplication ModAppType)
+void UGAAttributeComponent::ExecuteEffect(FGAGameEffectHandle HandleIn)
 {
 	/* 
 		this patth will give effects chance to do any replicated events, like applying cues. 
 		WE do not make any replication at the ApplyEffect because some effect might want to apply cues
 		on periods on expiration etc, and all those will go trouch ExecuteEffect path.
 	*/
-	GameEffectContainer.ExecuteEffect(EffectIn, ModAppType);
+	OnEffectExecuted.Broadcast(HandleIn);
+	GameEffectContainer.ExecuteEffect(HandleIn, HandleIn.GetEffectRef());
 }
 
 TArray<FGAEffectUIData> UGAAttributeComponent::GetEffectUIData()

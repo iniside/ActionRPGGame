@@ -1,6 +1,7 @@
 #pragma once
 #include "GameplayTagContainer.h"
 #include "GAGlobalTypes.h"
+#include "GAGameEffect.h"
 #include "GAEffectInstanced.generated.h"
 /*
 	Instanced effect with active event graph, where you can bind events
@@ -20,21 +21,43 @@ class GAMEATTRIBUTES_API UGAEffectInstanced : public UObject
 {
 	GENERATED_BODY()
 public:
-	UGAEffectInstanced(const FObjectInitializer& ObjectInitializer);
-	UFUNCTION(BlueprintNativeEvent, Category = "Effect")
-		bool OnEffectApplied(const FGAEffectContext& Context);
-	virtual bool OnEffectApplied_Implementation(const FGAEffectContext& Context);
+	UPROPERTY(EditAnywhere, Category = "Effect Info")
+		float Duration;
+
+	UPROPERTY(EditAnywhere, Category = "Effect Info")
+		EGAEffectAggregation EffectAggregation;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Context")
+		FGAEffectContext Context;
 
 	/*
-		This event is only executed is effect, is instanced, and it's executed when 
-		effect is first time applied to target.
+		Effects owned by this instance, they will be removed when this instance is removed.
+	*/
+	UPROPERTY()
+		TArray<FGAGameEffectHandle> OwnedEffects;
+
+public:
+	UGAEffectInstanced(const FObjectInitializer& ObjectInitializer);
+
+	void Initialize(const FGAEffectContext& ContextIn);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Attributes | Effects")
+	FGAGameEffectHandle ApplyEffect(TSubclassOf<class UGAGameEffectSpec> SpecIn);
+	/*
+		This event is always executed once upon application.
 	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
 		void OnEffectInstanceApplied();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
 		void OnEffectInstanceContinious();
+	/*
+		Event executed when this effect is removed by force.
+	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
 		void OnEffectInstanceRemoved();
+	/*
+		Event executed when effet naturally expires.
+	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
 		void OnEffectInstanceExpired();
 };

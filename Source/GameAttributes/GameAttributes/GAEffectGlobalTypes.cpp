@@ -15,10 +15,6 @@ FGAAttributeBase* FGAExecutionContext::GetInstigatorAttribute(const FGAAttribute
 	return InstigatorAttributes->GetAttribute(AttributeIn);
 }
 
-void FGAEffectMod::ExecuteEffect(FGAGameEffect* Effect, FGAEffectMod& ModIn, FGAExecutionContext& ExecContextIn)
-{
-	Execution->ExecuteEffect(Effect, ModIn, ExecContextIn);
-}
 float FGAAttributeBasedModifier::GetValue(const FGAEffectContext& Context)
 {
 	FGAAttributeBase* attr = nullptr;

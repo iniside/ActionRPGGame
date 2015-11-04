@@ -22,5 +22,5 @@ class GAMEATTRIBUTES_API UGAEffectExecution : public UObject
 public:
 	UGAEffectExecution(const FObjectInitializer& ObjectInitializer);
 
-	virtual void ExecuteEffect(FGAGameEffect* EffectIn, FGAEffectMod& ModIn, FGAExecutionContext& Context);
+	virtual void ExecuteEffect(const FGAGameEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAExecutionContext& Context);
 };

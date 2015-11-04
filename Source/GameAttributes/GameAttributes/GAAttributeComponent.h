@@ -13,6 +13,8 @@ DECLARE_CYCLE_STAT_EXTERN(TEXT("AttributeComponentModifyAttribute"), STAT_Modify
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGAOnAttributeChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGAOnAttributeModifed, const FGAModifiedAttribute&, attr);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGAGenericEffectDelegate, const FGAGameEffectHandle&, Handle);
+
 USTRUCT()
 struct FGAModifiedAttributeData
 {
@@ -90,6 +92,14 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Game Attributes")
 		FGAOnAttributeModifed OnAttributeModifed;
 
+
+	/* Effect/Attribute System Delegates */
+	UPROPERTY(BlueprintAssignable, Category = "Effect")
+		FGAGenericEffectDelegate OnEffectApplied;
+
+	UPROPERTY(BlueprintAssignable, Category = "Effect")
+		FGAGenericEffectDelegate OnEffectExecuted;
+
 	/* NEW EFFECT SYSTEM */
 	FGAGameEffectContainer GameEffectContainer;
 
@@ -111,7 +121,7 @@ public:
 	FGAGameEffectHandle MakeGameEffect(TSubclassOf<class UGAGameEffectSpec> SpecIn,
 		const FGAEffectContext& ContextIn);
 
-	void ExecuteEffect(FGAGameEffect& EffectIn, EGAModifierApplication ModAppType);
+	void ExecuteEffect(FGAGameEffectHandle HandleIn);
 
 	void EffectExpired(const FGAEffectHandle& HandleIn);
 

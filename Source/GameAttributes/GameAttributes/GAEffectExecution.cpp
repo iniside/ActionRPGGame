@@ -11,7 +11,7 @@ UGAEffectExecution::UGAEffectExecution(const FObjectInitializer& ObjectInitializ
 
 }
 
-void UGAEffectExecution::ExecuteEffect(FGAGameEffect* EffectIn, FGAEffectMod& ModIn, FGAExecutionContext& Context)
+void UGAEffectExecution::ExecuteEffect(const FGAGameEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAExecutionContext& Context)
 {
 	UE_LOG(GameAttributesEffects, Log, TEXT("Sample execution class implementation"));
 	
