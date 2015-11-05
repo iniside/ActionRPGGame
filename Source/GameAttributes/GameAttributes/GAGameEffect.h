@@ -250,7 +250,7 @@ struct GAMEATTRIBUTES_API FGAGameEffect : public TSharedFromThis<FGAGameEffect>
 	struct FGAGameEffectHandle* Handle;
 
 	FTimerHandle PeriodTimerHandle;
-
+	FTimerHandle DurationTimerHandle;
 public:
 	void SetContext(const FGAEffectContext& ContextIn);
 	TArray<FGAEffectMod> GetOnAppliedMods();
@@ -467,6 +467,7 @@ public:
 	void ApplyEffect(const FGAGameEffect& EffectIn, const FGAGameEffectHandle& HandleIn);
 	void ExecuteEffect(FGAGameEffectHandle& HandleIn, FGAGameEffect& EffectIn);
 	void ExecutePeriodicEffect(FGAGameEffectHandle HandleIn);
+	void RemoveEffect(FGAGameEffectHandle& HandleIn);
 
 	//modifiers
 	void ApplyModifier(const FGAGameEffectModifier& ModifierIn, const FGAGameEffect& EffectIn);

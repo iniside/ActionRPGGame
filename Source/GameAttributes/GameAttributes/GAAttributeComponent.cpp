@@ -71,16 +71,18 @@ FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAGameEffect& Ef
 	}
 	case EGAEffectType::Periodic:
 	{
-		//FGAGameEffectHandle& Handle = const_cast<FGAGameEffectHandle&>(HandleIn);
-		//ActiveEffects.Add(HandleIn, Handle.GetEffectPtr());
-		//Handle.GetEffectRef().ApplyPeriodic();
-
 		FGAGameEffectHandle& Handle = const_cast<FGAGameEffectHandle&>(HandleIn);
 		FGAGameEffect& Effect = const_cast<FGAGameEffect&>(EffectIn);
 		FTimerDelegate del = FTimerDelegate::CreateUObject(this, &UGAAttributeComponent::ExecuteEffect, Handle);
 		FTimerManager& timer = Handle.GetEffectRef().Context.TargetComp->GetWorld()->GetTimerManager();
 
-		timer.SetTimer(Handle.GetEffectRef().PeriodTimerHandle, del, 1, true);
+		timer.SetTimer(Handle.GetEffectRef().PeriodTimerHandle, del, 1, true, 0);
+
+		FTimerDelegate delDuration = FTimerDelegate::CreateUObject(this, &UGAAttributeComponent::ExpireEffect, Handle);
+		FTimerManager& timerDuration = Handle.GetEffectRef().Context.TargetComp->GetWorld()->GetTimerManager();
+
+		timerDuration.SetTimer(Handle.GetEffectRef().DurationTimerHandle, delDuration, 10, false);
+
 		break;
 	}
 	case EGAEffectType::Duration:
@@ -121,6 +123,24 @@ void UGAAttributeComponent::ExecuteEffect(FGAGameEffectHandle HandleIn)
 	OnEffectExecuted.Broadcast(HandleIn);
 	GameEffectContainer.ExecuteEffect(HandleIn, HandleIn.GetEffectRef());
 }
+void UGAAttributeComponent::ExpireEffect(FGAGameEffectHandle HandleIn)
+{
+	InternalRemoveEffect(HandleIn);
+	OnEffectExpired.Broadcast(HandleIn);
+}
+void UGAAttributeComponent::RemoveEffect(FGAGameEffectHandle& HandleIn)
+{
+	InternalRemoveEffect(HandleIn);
+	OnEffectRemoved.Broadcast(HandleIn);
+}
+void UGAAttributeComponent::InternalRemoveEffect(FGAGameEffectHandle& HandleIn)
+{
+	FTimerManager& timer = GetWorld()->GetTimerManager();
+	timer.ClearTimer(HandleIn.GetEffectRef().PeriodTimerHandle);
+	timer.ClearTimer(HandleIn.GetEffectRef().DurationTimerHandle);
+	UE_LOG(GameAttributesEffects, Log, TEXT("UGAAttributeComponent:: Reset Timers and Remove Effect"));
+	GameEffectContainer.RemoveEffect(HandleIn);
+}
 
 TArray<FGAEffectUIData> UGAAttributeComponent::GetEffectUIData()
 {
@@ -151,16 +171,6 @@ void UGAAttributeComponent::RemoveEffectCue(int32 Handle)
 {
 	ActiveCues.CueRemoved(FGAEffectHandle(Handle));
 }
-
-void UGAAttributeComponent::EffectExpired(const FGAEffectHandle& HandleIn)
-{
-
-}
-void UGAAttributeComponent::EffectRemoved(const FGAEffectHandle& HandleIn)
-{
-
-}
-
 
 void UGAAttributeComponent::ModifyAttributesOnSelf(const FGAAttributeData& EvalData, const FGAEffectContext& Context,
 	const FGameplayTagContainer& EffectTags, FGAEffectHandle& HandleIn)

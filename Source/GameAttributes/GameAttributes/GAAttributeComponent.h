@@ -100,6 +100,12 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Effect")
 		FGAGenericEffectDelegate OnEffectExecuted;
 
+	UPROPERTY(BlueprintAssignable, Category = "Effect")
+		FGAGenericEffectDelegate OnEffectExpired;
+
+	UPROPERTY(BlueprintAssignable, Category = "Effect")
+		FGAGenericEffectDelegate OnEffectRemoved;
+
 	/* NEW EFFECT SYSTEM */
 	FGAGameEffectContainer GameEffectContainer;
 
@@ -121,11 +127,14 @@ public:
 	FGAGameEffectHandle MakeGameEffect(TSubclassOf<class UGAGameEffectSpec> SpecIn,
 		const FGAEffectContext& ContextIn);
 
+	/* Have to to copy handle around, because timer delegates do not support references. */
 	void ExecuteEffect(FGAGameEffectHandle HandleIn);
-
-	void EffectExpired(const FGAEffectHandle& HandleIn);
-
-	void EffectRemoved(const FGAEffectHandle& HandleIn);
+	/* ExpireEffect is used to remove existing effect naturally when their time expires. */
+	void ExpireEffect(FGAGameEffectHandle HandleIn);
+	/* RemoveEffect is used to remove effect by force. */
+	void RemoveEffect(FGAGameEffectHandle& HandleIn);
+	void InternalRemoveEffect(FGAGameEffectHandle& HandleIn);
+	
 
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes | UI")
 		TArray<FGAEffectUIData> GetEffectUIData();

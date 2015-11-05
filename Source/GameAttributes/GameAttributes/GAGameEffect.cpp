@@ -166,6 +166,16 @@ void FGAGameEffectContainer::ExecutePeriodicEffect(FGAGameEffectHandle HandleIn)
 	//}
 }
 
+void FGAGameEffectContainer::RemoveEffect(FGAGameEffectHandle& HandleIn)
+{
+	TSharedPtr<FGAGameEffect> effect = ActiveEffects.FindRef(HandleIn);
+	if (effect.IsValid())
+	{
+		UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer:: Removing Effect"))
+		effect.Reset();
+	}
+}
+
 FGAGameEffectContainer::FGAGameEffectContainer()
 {
 	Modifiers.SetNum(2);
