@@ -76,12 +76,14 @@ FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAGameEffect& Ef
 		FTimerDelegate del = FTimerDelegate::CreateUObject(this, &UGAAttributeComponent::ExecuteEffect, Handle);
 		FTimerManager& timer = Handle.GetEffectRef().Context.TargetComp->GetWorld()->GetTimerManager();
 
-		timer.SetTimer(Handle.GetEffectRef().PeriodTimerHandle, del, 1, true, 0);
+		timer.SetTimer(Handle.GetEffectRef().PeriodTimerHandle, del, 
+			EffectIn.GameEffect->Period, true, 0);
 
 		FTimerDelegate delDuration = FTimerDelegate::CreateUObject(this, &UGAAttributeComponent::ExpireEffect, Handle);
 		FTimerManager& timerDuration = Handle.GetEffectRef().Context.TargetComp->GetWorld()->GetTimerManager();
 
-		timerDuration.SetTimer(Handle.GetEffectRef().DurationTimerHandle, delDuration, 10, false);
+		timerDuration.SetTimer(Handle.GetEffectRef().DurationTimerHandle, delDuration, 
+			EffectIn.GameEffect->Duration, false);
 
 		break;
 	}

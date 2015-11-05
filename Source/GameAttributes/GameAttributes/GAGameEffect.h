@@ -138,6 +138,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Effect Info")
 		EGAEffectAggregation EffectAggregation;
 
+	/* Total duration of effect (if applicable) */
+	UPROPERTY(EditAnywhere, Category = "Duration")
+		float Duration;
+	/* Duration of single period. */
+	UPROPERTY(EditAnywhere, Category = "Duration")
+		float Period;
 	/* 
 		Modifiers applied upon application of effect. They are treated as instant effect
 		as never will be applied for duration.
