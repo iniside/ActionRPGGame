@@ -62,7 +62,7 @@ public:
 		FGAAttribute Attribute;
 
 	UPROPERTY(EditAnywhere, Category = "Instant Spec")
-		EGAAttributeChangeType ChangeType;
+		EGAAttributeMod AttributeMod;
 
 	/*
 	Type of calculation we want to perform for this Magnitude.
@@ -301,6 +301,8 @@ public:
 		return Handle != INDEX_NONE && EffectPtr.IsValid();
 	}
 
+	inline FGAEffectContext& GetContextRef() { return EffectPtr->Context; }
+
 	inline int32 GetHandle() const { return Handle; }
 
 	inline FGAGameEffect GetEffect() { return *EffectPtr.Get(); }
@@ -312,6 +314,8 @@ public:
 	inline void SetContext(const FGAEffectContext& ContextIn) { EffectPtr->SetContext(ContextIn); }
 
 	inline FGAEffectContext& GetContext() { return EffectPtr->Context; }
+	/* Executes effect trough provided execution class. */
+	void ExecuteEffect(FGAGameEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAExecutionContext& Context);
 
 	static FGAGameEffectHandle GenerateHandle(FGAGameEffect* EffectIn);
 
@@ -458,7 +462,7 @@ public:
 		inside effects will stack.
 	*/
 	/* Effects grouped by their instigator. */
-	TMap<FGAGameEffectHandle, TSharedPtr<FGAGameEffect>> InstigatorEffects;
+	TMap<UObject*, TMap<FGAGameEffectHandle, TSharedPtr<FGAGameEffect>>> InstigatorEffects;
 	/* Effects grouped by their targer */
 	TMap<FGAGameEffectHandle, TSharedPtr<FGAGameEffect>> TargetEffects;
 
@@ -471,8 +475,6 @@ public:
 	FGAGameEffectContainer();
 
 	void ApplyEffect(const FGAGameEffect& EffectIn, const FGAGameEffectHandle& HandleIn);
-	void ExecuteEffect(FGAGameEffectHandle& HandleIn, FGAGameEffect& EffectIn);
-	void ExecutePeriodicEffect(FGAGameEffectHandle HandleIn);
 	void RemoveEffect(FGAGameEffectHandle& HandleIn);
 
 	//modifiers

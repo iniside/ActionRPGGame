@@ -212,25 +212,21 @@ void UGAAttributesBase::ModifyAttribute(const FGAEffectMod& ModIn)
 	FGAAttributeBase* attr = nullptr;
 	//for (const FGAGameEffectMod& mod : EffectIn.OnAppliedMods)
 	//{
-		switch (ModIn.ChangeType)
+		switch (ModIn.AttributeMod)
 		{
-		case EGAAttributeChangeType::Damage:
+		case EGAAttributeMod::Subtract:
 			attr = GetAttribute(ModIn.Attribute);
 			if (attr)
 			{
 				attr->Subtract(ModIn.Value);
 			}
 			break;
-		case EGAAttributeChangeType::DamagePercentage:
-			break;
-		case EGAAttributeChangeType::Heal:
+		case EGAAttributeMod::Add:
 			attr = GetAttribute(ModIn.Attribute);
 			if (attr)
 			{
 				attr->Add(ModIn.Value);
 			}
-			break;
-		case EGAAttributeChangeType::HealPercentage:
 			break;
 		}
 	//}

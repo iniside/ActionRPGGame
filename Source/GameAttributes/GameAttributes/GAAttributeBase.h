@@ -35,14 +35,6 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 		float CurrentValue;
 protected:
-	UPROPERTY()
-		float AdditiveBonus;
-	UPROPERTY()
-		float SubtractBonus;
-	UPROPERTY()
-		float MultiplyBonus;
-	UPROPERTY()
-		float DivideBonus;
 	/*
 		Bonus value calculated from stack of affecting effects.
 	*/
@@ -58,23 +50,6 @@ public:
 	TMap<FGAGameEffectHandle, TArray<FGAModifier>> Modifiers;
 
 public:
-	/*
-		Return value of additive bonus, without BaseValue.
-	*/
-	inline float GetAdditiveBonus() { return AdditiveBonus; }
-	/*
-		Return value of subtract bonus, without BaseValue.
-	*/
-	inline float GetSubtractBonus() { return SubtractBonus; }
-	/*
-		Return value of Multiply bonus, without BaseValue.
-	*/
-	inline float GetMultiplyBonus() { return MultiplyBonus; }
-	/*
-		Return value of Divide bonus, without BaseValue.
-	*/
-	inline float GetDivideBonus() { return DivideBonus; }
-
 	inline void SetBaseValue(float ValueIn){ BaseValue = ValueIn; }
 	inline float GetFinalValue()
 	{
@@ -128,22 +103,13 @@ public:
 	//}
 
 	FGAAttributeBase()
-		: BaseValue(0),
-		BonusValue(0),
-		AdditiveBonus(0),
-		SubtractBonus(0),
-		MultiplyBonus(0),
-		DivideBonus(0),
+		: BonusValue(0),
 		CurrentValue(BaseValue)
 	{
 	};
 	FGAAttributeBase(float BaseValueIn)
 		: BaseValue(BaseValueIn),
 		BonusValue(0),
-		AdditiveBonus(0),
-		SubtractBonus(0),
-		MultiplyBonus(0),
-		DivideBonus(0),
 		CurrentValue(BaseValue)
 	{
 	};

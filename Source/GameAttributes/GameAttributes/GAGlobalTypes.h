@@ -67,7 +67,8 @@ enum class EGAAttributeMod : uint8
 	Multiply, //Value =  Value * X
 	Divide,//Value =  Value * X - ok its's not really divide.
 	Set, //Value = X
-
+	PercentageAdd,
+	PercentageSubtract,
 	Invalid
 };
 

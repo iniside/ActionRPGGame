@@ -47,6 +47,7 @@ void FGAAttributeBase::AddBonus(const FGAModifier& ModifiersIn, const FGAGameEff
 		RemoveWeakerBonus(ModifiersIn.AttributeMod, ModifiersIn.Value);
 		break;
 	}
+
 	TArray<FGAModifier>& modsTemp = Modifiers.FindOrAdd(Handle);
 	modsTemp.Add(ModifiersIn);
 	CalculateBonus();
@@ -127,10 +128,10 @@ void FGAAttributeBase::RemoveBonusType(EGAAttributeMod ModType)
 
 void FGAAttributeBase::CalculateBonus()
 {
-	AdditiveBonus = 0;
-	SubtractBonus = 0;
-	MultiplyBonus = 0;
-	DivideBonus = 0;
+	float AdditiveBonus = 0;
+	float SubtractBonus = 0;
+	float MultiplyBonus = 0;
+	float DivideBonus = 0;
 	auto ModIt = Modifiers.CreateConstIterator();
 	for (ModIt; ModIt; ++ModIt)
 	{

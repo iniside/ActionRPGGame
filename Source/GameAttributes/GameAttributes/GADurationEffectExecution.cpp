@@ -12,7 +12,7 @@ UGADurationEffectExecution::UGADurationEffectExecution(const FObjectInitializer&
 
 }
 
-void UGADurationEffectExecution::ExecuteEffect(const FGAGameEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAExecutionContext& Context)
+void UGADurationEffectExecution::ExecuteEffect(FGAGameEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAExecutionContext& Context)
 {
 	UE_LOG(GameAttributesEffects, Log, TEXT("Sample execution class implementation"));
 }

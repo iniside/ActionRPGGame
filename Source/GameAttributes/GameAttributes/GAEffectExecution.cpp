@@ -3,6 +3,7 @@
 #include "GameAttributes.h"
 #include "GAGlobalTypes.h"
 #include "GAAttributeBase.h"
+#include "GAAttributeComponent.h"
 #include "GAEffectExecution.h"
 
 UGAEffectExecution::UGAEffectExecution(const FObjectInitializer& ObjectInitializer)
@@ -11,26 +12,9 @@ UGAEffectExecution::UGAEffectExecution(const FObjectInitializer& ObjectInitializ
 
 }
 
-void UGAEffectExecution::ExecuteEffect(const FGAGameEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAExecutionContext& Context)
+void UGAEffectExecution::ExecuteEffect(FGAGameEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAExecutionContext& Context)
 {
 	UE_LOG(GameAttributesEffects, Log, TEXT("Sample execution class implementation"));
-	
-	FGAAttributeBase* TargetAttribute = Context.GetTargetAttribute(ModIn.Attribute);
-	if (TargetAttribute)
-	{
-		switch (ModIn.ChangeType)
-		{
-		case EGAAttributeChangeType::Damage:
-			UE_LOG(GameAttributesEffects, Log, TEXT("Sample execution::Damage Value = %f"), ModIn.Value);
-			TargetAttribute->Subtract(ModIn.Value);
-			break;
-		case EGAAttributeChangeType::DamagePercentage:
-			break;
-		case EGAAttributeChangeType::Heal:
-			TargetAttribute->Add(ModIn.Value);
-			break;
-		case EGAAttributeChangeType::HealPercentage:
-			break;
-		}
-	}
+
+	Context.TargetAttributeComp->ModifyAttribute(ModIn, HandleIn);
 }

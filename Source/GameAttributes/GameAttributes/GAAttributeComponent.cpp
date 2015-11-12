@@ -10,6 +10,8 @@
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
 
+#include "GAEffectExecution.h"
+
 #include "GAEffectCue.h"
 #include "GAAttributeComponent.h"
 #include "GAGameEffect.h"
@@ -59,41 +61,7 @@ FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAGameEffect& Ef
 	GameEffectContainer.ApplyEffect(EffectIn, HandleIn);
 	OnEffectApplied.Broadcast(HandleIn);
 
-	switch (EffectIn.GameEffect->EffectType)
-	{
-	case EGAEffectType::Instant:
-	{
-		//dont do anything fancy now simply execute effect and forget about it.
-		FGAGameEffectHandle& Handle = const_cast<FGAGameEffectHandle&>(HandleIn);
-		FGAGameEffect& Effect = const_cast<FGAGameEffect&>(EffectIn);
-		ExecuteEffect(Handle);
-		break;
-	}
-	case EGAEffectType::Periodic:
-	{
-		FGAGameEffectHandle& Handle = const_cast<FGAGameEffectHandle&>(HandleIn);
-		FGAGameEffect& Effect = const_cast<FGAGameEffect&>(EffectIn);
-		FTimerDelegate del = FTimerDelegate::CreateUObject(this, &UGAAttributeComponent::ExecuteEffect, Handle);
-		FTimerManager& timer = Handle.GetEffectRef().Context.TargetComp->GetWorld()->GetTimerManager();
 
-		timer.SetTimer(Handle.GetEffectRef().PeriodTimerHandle, del, 
-			EffectIn.GameEffect->Period, true, 0);
-
-		FTimerDelegate delDuration = FTimerDelegate::CreateUObject(this, &UGAAttributeComponent::ExpireEffect, Handle);
-		FTimerManager& timerDuration = Handle.GetEffectRef().Context.TargetComp->GetWorld()->GetTimerManager();
-
-		timerDuration.SetTimer(Handle.GetEffectRef().DurationTimerHandle, delDuration, 
-			EffectIn.GameEffect->Duration, false);
-
-		break;
-	}
-	case EGAEffectType::Duration:
-	{
-		break;
-	}
-	default:
-		break;
-	}
 
 	//ExecuteEffect(EffectIn);
 	return FGAEffectHandle();
@@ -115,6 +83,26 @@ FGAGameEffectHandle UGAAttributeComponent::MakeGameEffect(TSubclassOf<class UGAG
 	return handle;
 }
 
+void UGAAttributeComponent::ApplyEffectForDuration(FGAGameEffectHandle& HandleIn)
+{
+	FGAGameEffect& Effect = HandleIn.GetEffectRef();
+	TArray<FGAEffectMod> Mods = Effect.GetOnAppliedMods();
+
+	for (FGAEffectMod& mod : Mods)
+	{
+		FGAAttributeBase* attr = DefaultAttributes->GetAttribute(mod.Attribute);
+		if (attr)
+		{
+			FGAModifier Modifier(mod.AttributeMod, mod.Value);
+			float val = attr->GetFinalValue();
+			UE_LOG(GameAttributes, Log, TEXT("Value Before bonus of attribute = %d"), val);
+			attr->AddBonus(Modifier, HandleIn, EGAEffectStacking::Override);
+			val = attr->GetFinalValue();
+			UE_LOG(GameAttributes, Log, TEXT("Value After bonus of attribute = %d"), val);
+		}
+	}
+}
+
 void UGAAttributeComponent::ExecuteEffect(FGAGameEffectHandle HandleIn)
 {
 	/* 
@@ -123,7 +111,17 @@ void UGAAttributeComponent::ExecuteEffect(FGAGameEffectHandle HandleIn)
 		on periods on expiration etc, and all those will go trouch ExecuteEffect path.
 	*/
 	OnEffectExecuted.Broadcast(HandleIn);
-	GameEffectContainer.ExecuteEffect(HandleIn, HandleIn.GetEffectRef());
+	
+	FGAGameEffect Effect = HandleIn.GetEffect();
+	TArray<FGAEffectMod> Mods = Effect.GetOnAppliedMods();
+	FGAExecutionContext ExecContext(Effect.Context.TargetComp.Get(), Effect.Context.TargetComp->DefaultAttributes,
+		Effect.Context.InstigatorComp.Get(), Effect.Context.InstigatorComp->DefaultAttributes);
+	for (FGAEffectMod& mod : Mods)
+	{
+		HandleIn.ExecuteEffect(HandleIn, mod, ExecContext);
+	}
+
+	//GameEffectContainer.ExecuteEffect(HandleIn, HandleIn.GetEffectRef());
 }
 void UGAAttributeComponent::ExpireEffect(FGAGameEffectHandle HandleIn)
 {
@@ -141,7 +139,25 @@ void UGAAttributeComponent::InternalRemoveEffect(FGAGameEffectHandle& HandleIn)
 	timer.ClearTimer(HandleIn.GetEffectRef().PeriodTimerHandle);
 	timer.ClearTimer(HandleIn.GetEffectRef().DurationTimerHandle);
 	UE_LOG(GameAttributesEffects, Log, TEXT("UGAAttributeComponent:: Reset Timers and Remove Effect"));
+	
+	FGAGameEffect& Effect = HandleIn.GetEffectRef();
+	TArray<FGAEffectMod> Mods = Effect.GetOnAppliedMods();
+
+	for (FGAEffectMod& mod : Mods)
+	{
+		FGAAttributeBase* attr = DefaultAttributes->GetAttribute(mod.Attribute);
+		if (attr)
+		{
+			UE_LOG(GameAttributes, Log, TEXT("Value Before bonus of attribute = %d"), attr->GetFinalValue());
+			attr->RemoveBonus(HandleIn);
+			UE_LOG(GameAttributes, Log, TEXT("Value After bonus of attribute = %d"), attr->GetFinalValue());
+			
+		}
+	}
+	
 	GameEffectContainer.RemoveEffect(HandleIn);
+
+
 }
 
 TArray<FGAEffectUIData> UGAAttributeComponent::GetEffectUIData()
@@ -172,6 +188,11 @@ void UGAAttributeComponent::MulticastEffectCueExpired_Implementation(int32 Handl
 void UGAAttributeComponent::RemoveEffectCue(int32 Handle)
 {
 	ActiveCues.CueRemoved(FGAEffectHandle(Handle));
+}
+
+void UGAAttributeComponent::ModifyAttribute(FGAEffectMod& ModIn, FGAGameEffectHandle& HandleIn)
+{
+	DefaultAttributes->ModifyAttribute(ModIn);
 }
 
 void UGAAttributeComponent::ModifyAttributesOnSelf(const FGAAttributeData& EvalData, const FGAEffectContext& Context,

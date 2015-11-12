@@ -32,7 +32,7 @@ struct FGAEffectMod
 {
 	FGAAttribute Attribute;
 	float Value;
-	EGAAttributeChangeType ChangeType;
+	EGAAttributeMod AttributeMod;
 	/*
 	Spec from which this mod has been derived.
 	Used to do not copy to much heavy data around.
@@ -41,14 +41,14 @@ struct FGAEffectMod
 	FGAEffectMod()
 		: Attribute(NAME_None),
 		Value(0),
-		ChangeType(EGAAttributeChangeType::Invalid)
+		AttributeMod(EGAAttributeMod::Invalid)
 	{};
 
 	FGAEffectMod(const FGAAttribute& AttributeIn, float ValueIn,
-		EGAAttributeChangeType ChangeTypeIn, class UGAGameEffectSpec* EffectSpecIn)
+		EGAAttributeMod AttributeModIn, class UGAGameEffectSpec* EffectSpecIn)
 		: Attribute(AttributeIn),
 		Value(ValueIn),
-		ChangeType(ChangeTypeIn),
+		AttributeMod(AttributeModIn),
 		EffectSpec(EffectSpecIn)
 	{};
 };

@@ -127,6 +127,8 @@ public:
 	FGAGameEffectHandle MakeGameEffect(TSubclassOf<class UGAGameEffectSpec> SpecIn,
 		const FGAEffectContext& ContextIn);
 
+	void ApplyEffectForDuration(FGAGameEffectHandle& HandleIn);
+
 	/* Have to to copy handle around, because timer delegates do not support references. */
 	void ExecuteEffect(FGAGameEffectHandle HandleIn);
 	/* ExpireEffect is used to remove existing effect naturally when their time expires. */
@@ -135,7 +137,7 @@ public:
 	void RemoveEffect(FGAGameEffectHandle& HandleIn);
 	void InternalRemoveEffect(FGAGameEffectHandle& HandleIn);
 	
-
+	void ModifyAttribute(FGAEffectMod& ModIn, FGAGameEffectHandle& HandleIn);
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes | UI")
 		TArray<FGAEffectUIData> GetEffectUIData();
 	/*
