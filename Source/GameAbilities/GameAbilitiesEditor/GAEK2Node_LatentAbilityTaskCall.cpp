@@ -56,7 +56,7 @@ bool UGAEK2Node_LatentAbilityTaskCall::IsCompatibleWithGraph(UEdGraph const* Tar
 void UGAEK2Node_LatentAbilityTaskCall::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
 	//UK2Node_BaseAsyncTask::GetMenuActions(ActionRegistrar);
-	struct GetMenuActions_Utils2
+	struct GetMenuActions_Utils
 	{
 		static void SetNodeFunc(UEdGraphNode* NewNode, bool /*bIsTemplateNode*/, TWeakObjectPtr<UFunction> FunctionPtr)
 		{
@@ -75,27 +75,48 @@ void UGAEK2Node_LatentAbilityTaskCall::GetMenuActions(FBlueprintActionDatabaseRe
 
 	UClass* NodeClass = GetClass();
 	//FBlueprintActionDatabaseRegistrar::FMakeFuncSpawnerDelegate::CreateUObject(this, &UGAEK2Node_LatentAbilityTaskCall::CreateNodeSpawner);
-	ActionRegistrar.RegisterClassFactoryActions<UGASAbilityTask>(FBlueprintActionDatabaseRegistrar::FMakeFuncSpawnerDelegate::CreateLambda([NodeClass, this](const UFunction* FactoryFunc)->UBlueprintNodeSpawner*
+	ActionRegistrar.RegisterClassFactoryActions<UGASAbilityTask>(FBlueprintActionDatabaseRegistrar::FMakeFuncSpawnerDelegate::CreateLambda([NodeClass](const UFunction* FactoryFunc)->UBlueprintNodeSpawner*
 	{
 		UBlueprintNodeSpawner* NodeSpawner = UBlueprintFunctionNodeSpawner::Create(FactoryFunc);
 		check(NodeSpawner != nullptr);
 		NodeSpawner->NodeClass = NodeClass;
 
 		TWeakObjectPtr<UFunction> FunctionPtr = FactoryFunc;
-		NodeSpawner->CustomizeNodeDelegate = UBlueprintNodeSpawner::FCustomizeNodeDelegate::CreateStatic(GetMenuActions_Utils2::SetNodeFunc, FunctionPtr);
-		UGAEK2Node_LatentAbilityTaskCall* chuj = const_cast<UGAEK2Node_LatentAbilityTaskCall*>(this);
-		UGAEK2Node_LatentAbilityTaskCall* AsyncTaskNode = Cast<UGAEK2Node_LatentAbilityTaskCall>(chuj);
-		if (FunctionPtr.IsValid())
-		{
-			UFunction* Func = FunctionPtr.Get();
-			UObjectProperty* ReturnProp = CastChecked<UObjectProperty>(Func->GetReturnProperty());
-
-			AsyncTaskNode->ProxyFactoryFunctionName = Func->GetFName();
-			AsyncTaskNode->ProxyFactoryClass = Func->GetOuterUClass();
-			AsyncTaskNode->ProxyClass = ReturnProp->PropertyClass;
-		}
+		NodeSpawner->CustomizeNodeDelegate = UBlueprintNodeSpawner::FCustomizeNodeDelegate::CreateStatic(GetMenuActions_Utils::SetNodeFunc, FunctionPtr);
 		return NodeSpawner;
 	}));
+}
+
+UEdGraphPin* UGAEK2Node_LatentAbilityTaskCall::GetClassPin(const TArray<UEdGraphPin*>* InPinsToSearch /*= NULL*/) const
+{
+	const TArray<UEdGraphPin*>* PinsToSearch = InPinsToSearch ? InPinsToSearch : &Pins;
+
+	UEdGraphPin* Pin = NULL;
+	for (auto PinIt = PinsToSearch->CreateConstIterator(); PinIt; ++PinIt)
+	{
+		UEdGraphPin* TestPin = *PinIt;
+		if (TestPin && TestPin->PinName == "Class" || TestPin->PinName == "InClass")
+		{
+			Pin = TestPin;
+			break;
+		}
+	}
+	check(Pin == NULL || Pin->Direction == EGPD_Input);
+	return Pin;
+}
+
+UClass* UGAEK2Node_LatentAbilityTaskCall::GetClassToSpawn(const TArray<UEdGraphPin*>* InPinsToSearch) const
+{
+	UClass* UseSpawnClass = NULL;
+	const TArray<UEdGraphPin*>* PinsToSearch = InPinsToSearch ? InPinsToSearch : &Pins;
+
+	UEdGraphPin* ClassPin = GetClassPin(PinsToSearch);
+	if (ClassPin && ClassPin->DefaultObject != NULL && ClassPin->LinkedTo.Num() == 0)
+	{
+		UseSpawnClass = CastChecked<UClass>(ClassPin->DefaultObject);
+	}
+
+	return UseSpawnClass;
 }
 
 struct FK2Node_LatentAbilityCallHelper
@@ -138,10 +159,21 @@ FString FK2Node_LatentAbilityCallHelper::SpawnedActorPinName(TEXT("SpawnedActor"
 */
 void UGAEK2Node_LatentAbilityTaskCall::ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
 {
-
-
 	UEdGraphPin* ClassPin = GetClassPin();
-	if (ClassPin == nullptr)
+	const TArray<UEdGraphPin*>* PinsToSearch = &Pins;
+
+	UEdGraphPin* ObjPin = NULL;
+	for (auto PinIt = PinsToSearch->CreateConstIterator(); PinIt; ++PinIt)
+	{
+		UEdGraphPin* TestPin = *PinIt;
+		if (TestPin && TestPin->PinName == "InClass")
+		{
+			ObjPin = TestPin;
+			break;
+		}
+	}
+	
+	if (ClassPin == nullptr && ObjPin == nullptr)
 	{
 		// Nothing special about this task, just call super
 		Super::ExpandNode(CompilerContext, SourceGraph);
@@ -149,8 +181,6 @@ void UGAEK2Node_LatentAbilityTaskCall::ExpandNode(class FKismetCompilerContext& 
 	}
 
 	UK2Node::ExpandNode(CompilerContext, SourceGraph);
-
-
 
 	const UEdGraphSchema_K2* Schema = CompilerContext.GetSchema();
 	check(SourceGraph && Schema);
@@ -216,9 +246,9 @@ void UGAEK2Node_LatentAbilityTaskCall::ExpandNode(class FKismetCompilerContext& 
 	}
 
 
-	UClass* IsActor = GetClassToSpawn();
+	/*UClass* IsActor = GetClassToSpawn();
 	if (IsActor && IsActor->GetDefaultObject()->IsA(AActor::StaticClass()))
-	{
+	{*/
 		bool bValidatedActorSpawn = ValidateActorSpawning(CompilerContext, false);
 		bool bValidatedActorArraySpawn = ValidateActorArraySpawning(CompilerContext, false);
 		if (!bValidatedActorSpawn && !bValidatedActorArraySpawn)
@@ -445,57 +475,60 @@ void UGAEK2Node_LatentAbilityTaskCall::ExpandNode(class FKismetCompilerContext& 
 		{
 			CompilerContext.MessageLog.Error(*LOCTEXT("InternalConnectionError", "BaseAsyncTask: Internal connection error. @@").ToString(), this);
 		}
-	}
-	else if (IsActor && IsActor->GetDefaultObject()->IsA(UGASAbilityMod::StaticClass()))
-	{
-		//UK2Node_CallFunction* CallCreateNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-		//UFunction* PreSpawnFunction = ProxyFactoryClass->FindFunctionByName(TEXT("SpawnObject"));
-		//CallCreateNode->FunctionReference.SetExternalMember(TEXT("SpawnObject"), ProxyFactoryClass);
-		//CallCreateNode->AllocateDefaultPins();
+	//}
+	//else if (IsActor && IsActor->GetDefaultObject()->IsA(UGASAbilityMod::StaticClass()))
+	//{
+	//	UK2Node_CallFunction* CallCreateNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+	//	UFunction* PreSpawnFunction = ProxyFactoryClass->FindFunctionByName(TEXT("SpawnObject"));
+	//	CallCreateNode->FunctionReference.SetExternalMember(TEXT("SpawnObject"), ProxyFactoryClass);
+	//	CallCreateNode->AllocateDefaultPins();
+	//	UEdGraphPin* ResultPin = CreatePin(EGPD_Output, Schema->PC_Object, TEXT(""), UGASAbilityMod::StaticClass(), false, false, Schema->PN_ReturnValue);
+	//	//SetPinToolTip(*ResultPin, LOCTEXT("ResultPinDescription", "The spawned object"));
 
-		//bool bSucceeded = true;
-		////connect exe
-		//{
-		//	auto SpawnExecPin = GetExecPin();
-		//	auto CallExecPin = CallCreateNode->GetExecPin();
-		//	bSucceeded &= SpawnExecPin && CallExecPin && CompilerContext.MovePinLinksToIntermediate(*SpawnExecPin, *CallExecPin).CanSafeConnect();
-		//}
+	//	bool bSucceeded = true;
+	//	//connect exe
+	//	{
+	//		auto SpawnExecPin = GetExecPin();
+	//		auto CallExecPin = CallCreateNode->GetExecPin();
+	//		bSucceeded &= SpawnExecPin && CallExecPin && CompilerContext.MovePinLinksToIntermediate(*SpawnExecPin, *CallExecPin).CanSafeConnect();
+	//	}
 
-		////connect class
-		//{
-		//	auto SpawnClassPin = GetClassPin();
-		//	auto CallClassPin = CallCreateNode->FindPin(TEXT("InClass"));
-		//	bSucceeded &= SpawnClassPin && CallClassPin && CompilerContext.MovePinLinksToIntermediate(*SpawnClassPin, *CallClassPin).CanSafeConnect();
-		//}
+	//	//connect class
+	//	{
+	//		auto SpawnClassPin = FindPinChecked("InClass"); //GetClassPin();
+	//		auto CallClassPin = CallCreateNode->FindPin(TEXT("InClass"));
+	//		bSucceeded &= SpawnClassPin && CallClassPin && CompilerContext.MovePinLinksToIntermediate(*SpawnClassPin, *CallClassPin).CanSafeConnect();
+	//	}
 
-		////connect outer
-		//{
-		//	auto SpawnOuterPin = CallCreateNode->FindPinChecked("Outer"); //GetOuterPin();
-		//	auto CallOuterPin = CallCreateNode->FindPin(TEXT("Outer"));
-		//	bSucceeded &= SpawnOuterPin && CallOuterPin && CompilerContext.MovePinLinksToIntermediate(*SpawnOuterPin, *CallOuterPin).CanSafeConnect();
-		//}
+	//	//connect outer
+	//	{
+	//		auto SpawnOuterPin = FindPinChecked("Outer"); //GetOuterPin();
+	//		auto CallOuterPin = CallCreateNode->FindPin(TEXT("Outer"));
+	//		bSucceeded &= SpawnOuterPin && CallOuterPin && CompilerContext.MovePinLinksToIntermediate(*SpawnOuterPin, *CallOuterPin).CanSafeConnect();
+	//	}
 
-		//UEdGraphPin* CallResultPin = nullptr;
-		////connect result
-		//{
-		//	auto SpawnResultPin = CallCreateNode->FindPinChecked(Schema->PN_ReturnValue); // GetResultPin();
-		//	CallResultPin = CallCreateNode->GetReturnValuePin();
+	//	UEdGraphPin* CallResultPin = nullptr;
+	//	//connect result
+	//	{
+	//		auto SpawnResultPin = FindPinChecked(Schema->PN_ReturnValue); // GetResultPin();
+	//		CallResultPin = CallCreateNode->GetReturnValuePin();
 
-		//	// cast HACK. It should be safe. The only problem is native code generation.
-		//	if (SpawnResultPin && CallResultPin)
-		//	{
-		//		CallResultPin->PinType = SpawnResultPin->PinType;
-		//	}
-		//	bSucceeded &= SpawnResultPin && CallResultPin && CompilerContext.MovePinLinksToIntermediate(*SpawnResultPin, *CallResultPin).CanSafeConnect();
-		//}
+	//		// cast HACK. It should be safe. The only problem is native code generation.
+	//		if (SpawnResultPin && CallResultPin)
+	//		{
+	//			CallResultPin->PinType = SpawnResultPin->PinType;
+	//		}
+	//		bSucceeded &= SpawnResultPin && CallResultPin && CompilerContext.MovePinLinksToIntermediate(*SpawnResultPin, *CallResultPin).CanSafeConnect();
+	//	}
 
-		////assign exposed values and connect then
-		//{
-		//	auto LastThen = FKismetCompilerUtilities::GenerateAssignmentNodes(CompilerContext, SourceGraph, CallCreateNode, this, CallResultPin, GetClassToSpawn());
-		//	auto SpawnNodeThen = CallCreateNode->FindPinChecked(Schema->PN_Then); //GetThenPin();
-		//	bSucceeded &= SpawnNodeThen && LastThen && CompilerContext.MovePinLinksToIntermediate(*SpawnNodeThen, *LastThen).CanSafeConnect();
-		//}
-	}
+	//	//assign exposed values and connect then
+	//	{
+	//		//auto LastThen = FindPinChecked(Schema->PN_Then);
+	//		auto LastThen = FKismetCompilerUtilities::GenerateAssignmentNodes(CompilerContext, SourceGraph, CallCreateNode, this, CallResultPin, GetClassToSpawn());
+	//		auto SpawnNodeThen = FindPinChecked(Schema->PN_Then); //GetThenPin();
+	//		bSucceeded &= SpawnNodeThen && LastThen && CompilerContext.MovePinLinksToIntermediate(*SpawnNodeThen, *LastThen).CanSafeConnect();
+	//	}
+	//}
 	// Make sure we caught everything
 	BreakAllNodeLinks();
 }
