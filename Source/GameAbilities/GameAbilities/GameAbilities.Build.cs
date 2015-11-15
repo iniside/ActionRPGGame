@@ -36,6 +36,7 @@ namespace UnrealBuildTool.Rules
                     "UMG",
                     "Slate",
                     "SlateCore",
+                    "GameplayTasks",
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);

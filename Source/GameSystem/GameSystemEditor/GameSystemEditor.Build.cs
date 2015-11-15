@@ -67,6 +67,7 @@ namespace UnrealBuildTool.Rules
                     "AssetTools",
                     "MainFrame",
                     "InputCore",
+                    "GameplayTasksEditor",
                     "GameSystem",
                     "GameAbilities",
                     "GameWeapons",

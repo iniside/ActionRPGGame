@@ -3,7 +3,7 @@
 #include "GameAbilities.h"
 #include "GameAbilitiesPrivatePCH.h"
 
-
+DEFINE_LOG_CATEGORY(GameAbilities);
 class FGameAbilities : public IGameAbilities
 {
 	/** IModuleInterface implementation */

@@ -1,5 +1,8 @@
 #pragma once
-#include "GSAbilityBase.generated.h"
+#include "GameplayTasksComponent.h"
+#include "GameplayTask.h"
+#include "GameplayTaskOwnerInterface.h"
+#include "GASAbilityBase.generated.h"
 /*
 	TODO::
 	1. Add virtual functions, for default behaviours inside ability.
@@ -32,9 +35,39 @@
 	More complicated abilities, can be actions in their own right. Like spells.
 */
 UCLASS(BlueprintType, Blueprintable)
-class GAMEABILITIES_API UGSAbilityBase : public UObject
+class GAMEABILITIES_API UGASAbilityBase : public UObject, public IGameplayTaskOwnerInterface
 {
 	GENERATED_BODY()
 public:
-	UGSAbilityBase(const FObjectInitializer& ObjectInitializer);
+	UPROPERTY()
+		TArray<class UGameplayTask*> ActiveTasks;
+public:
+	UGASAbilityBase(const FObjectInitializer& ObjectInitializer);
+
+	/* 
+		Called when ability received input.
+		One ability can receive multiple input calls, how those will be handled 
+		is up to ability.
+	*/
+	virtual void OnAbilityExecutedNative();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
+		void OnAbilityExecuted();
+
+	virtual void OnAbilityCancelNative();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
+		void OnAbilityCancel();
+
+	/** GameplayTaskOwnerInterface - Begin */
+	virtual void OnTaskInitialized(UGameplayTask& Task) override;
+	virtual UGameplayTasksComponent* GetGameplayTasksComponent(const UGameplayTask& Task) const override;
+	/** this gets called both when task starts and when task gets resumed. Check Task.GetStatus() if you want to differenciate */
+	virtual void OnTaskActivated(UGameplayTask& Task) override;
+	/** this gets called both when task finished and when task gets paused. Check Task.GetStatus() if you want to differenciate */
+	virtual void OnTaskDeactivated(UGameplayTask& Task) override;
+	virtual AActor* GetOwnerActor(const UGameplayTask* Task) const override;
+	virtual AActor* GetAvatarActor(const UGameplayTask* Task) const override;
+	virtual uint8 GetDefaultPriority() const override { return 0; }
+
+	/** GameplayTaskOwnerInterface - end */
+
 };

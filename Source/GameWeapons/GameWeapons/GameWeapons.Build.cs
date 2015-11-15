@@ -31,6 +31,9 @@ namespace UnrealBuildTool.Rules
 				    "Engine",
                     "GameInterfaces",
                     "GameplayTags",
+                    "GameAttributes",
+                    "GameAbilities",
+
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);

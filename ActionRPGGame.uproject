@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{3472D3AE-474C-9DBE-5B56-038A2C02FCFF}",
+	"EngineAssociation": "{EA6D74B6-495E-1575-8E52-2DA8D6D4FEBE}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -22,7 +22,10 @@
 		{
 			"Name": "GameWeapons",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"GameAbilities"
+			]
 		},
 		{
 			"Name": "GameWeaponsEditor",

@@ -1,5 +1,5 @@
 #pragma once
-#include "GASAbilityMods.generated.h"
+#include "GASAbilityMod.generated.h"
 /*
 	AbilityMod is base class for ability modifications. 
 	It can change or define things like ability resource cost, timers (cooldown, casting time).
@@ -13,7 +13,7 @@
 	support for multiple modifications per single mod.
 */
 UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GASAbility)
-class GAMEABILITIES_API UGASAbilityMods : public UObject
+class GAMEABILITIES_API UGASAbilityMod : public UObject
 {
 	GENERATED_UCLASS_BODY()
 public:

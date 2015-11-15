@@ -29,7 +29,8 @@ public class ActionRPGGameEditor : ModuleRules
             "GameInventorySystemEditor",
             "GameAttributes",
             "GameAttributesEditor",
-            "GameplayAbilitiesEditor",
+            "GameAbilities",
+            "GameAbilitiesEditor",
 		});
         PrivateDependencyModuleNames.AddRange(new string[] 
 		{

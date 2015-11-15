@@ -38,7 +38,7 @@ FGAGameEffectHandle UGABlueprintLibrary::MakeOutgoingSpec(FGAGameEffectHandle Ha
 
 	FGAEffectContext Context(Target.Location, Target.GetActor(), Causer,
 		Instigator, targetComp, instiComp);
-	UE_LOG(GameAttributesEffects, Log, TEXT("Created new Context: %f"), *Context.ToString());
+	UE_LOG(GameAttributesEffects, Log, TEXT("Created new Context: %s"), *Context.ToString());
 
 	if (Handle.IsValid())
 	{

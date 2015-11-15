@@ -2,14 +2,14 @@
 
 #include "GameAbilities.h"
 #include "../GASAbility.h"
-#include "GASAbilityMods.h"
+#include "GASAbilityMod.h"
 
-UGASAbilityMods::UGASAbilityMods(const FObjectInitializer& ObjectInitializer)
+UGASAbilityMod::UGASAbilityMod(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
 
 }
-UWorld* UGASAbilityMods::GetWorld() const
+UWorld* UGASAbilityMod::GetWorld() const
 {
 	return GetOuterUGASAbility()->GetWorld();
 }

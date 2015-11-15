@@ -47,7 +47,7 @@ void UGASAbilitiesComponent::InputPressed(int32 AbilityId)
 		//no ability on client. No RPC.
 		if (InstancedAbilities[AbilityId].ActiveAbility)
 		{
-			InstancedAbilities[AbilityId].ActiveAbility->InputPressed();
+			InstancedAbilities[AbilityId].ActiveAbility->OnAbilityExecutedNative();
 			ServerInputPressed(AbilityId);
 		}
 		//right now we will use simple prediction, which means just run ability on client
@@ -58,7 +58,7 @@ void UGASAbilitiesComponent::InputPressed(int32 AbilityId)
 	else
 	{
 		if (InstancedAbilities[AbilityId].ActiveAbility)
-			InstancedAbilities[AbilityId].ActiveAbility->InputPressed();
+			InstancedAbilities[AbilityId].ActiveAbility->OnAbilityExecutedNative();
 	}
 }
 void UGASAbilitiesComponent::ServerInputPressed_Implementation(int32 AbilityId)

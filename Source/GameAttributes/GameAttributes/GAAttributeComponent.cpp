@@ -95,10 +95,10 @@ void UGAAttributeComponent::ApplyEffectForDuration(FGAGameEffectHandle& HandleIn
 		{
 			FGAModifier Modifier(mod.AttributeMod, mod.Value);
 			float val = attr->GetFinalValue();
-			UE_LOG(GameAttributes, Log, TEXT("Value Before bonus of attribute = %d"), val);
+			UE_LOG(GameAttributes, Log, TEXT("Value Before bonus of attribute = %f"), val);
 			attr->AddBonus(Modifier, HandleIn, EGAEffectStacking::Override);
 			val = attr->GetFinalValue();
-			UE_LOG(GameAttributes, Log, TEXT("Value After bonus of attribute = %d"), val);
+			UE_LOG(GameAttributes, Log, TEXT("Value After bonus of attribute = %f"), val);
 		}
 	}
 }
@@ -148,9 +148,9 @@ void UGAAttributeComponent::InternalRemoveEffect(FGAGameEffectHandle& HandleIn)
 		FGAAttributeBase* attr = DefaultAttributes->GetAttribute(mod.Attribute);
 		if (attr)
 		{
-			UE_LOG(GameAttributes, Log, TEXT("Value Before bonus of attribute = %d"), attr->GetFinalValue());
+			UE_LOG(GameAttributes, Log, TEXT("Value Before bonus of attribute = %f"), attr->GetFinalValue());
 			attr->RemoveBonus(HandleIn);
-			UE_LOG(GameAttributes, Log, TEXT("Value After bonus of attribute = %d"), attr->GetFinalValue());
+			UE_LOG(GameAttributes, Log, TEXT("Value After bonus of attribute = %f"), attr->GetFinalValue());
 			
 		}
 	}

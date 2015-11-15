@@ -34,9 +34,12 @@ void UGASAbility::Initialize()
 {
 	CurrentState = ActiveState;
 	GISkeletalMesh = Cast<IIGISkeletalMesh>(POwner);
-	Targeting->Initialize();
-	Targeting->SetTraceRange(Range);
-	Targeting->SetTraceArea(AbilityArea);
+	if (Targeting)
+	{
+		Targeting->Initialize();
+		Targeting->SetTraceRange(Range);
+		Targeting->SetTraceArea(AbilityArea);
+	}
 	bIsInitialized = true;
 }
 void UGASAbility::InputPressed()

@@ -41,6 +41,8 @@ namespace UnrealBuildTool.Rules
                     "AssetTools",
                     "MainFrame",
                     "InputCore",
+                    "GameplayTasks",
+                    "GameplayTasksEditor",
                     "GameAbilities",
 					// ... add other public dependencies that you statically link with here ...
 				}

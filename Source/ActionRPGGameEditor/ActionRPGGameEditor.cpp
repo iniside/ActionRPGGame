@@ -2,11 +2,13 @@
 #include "ActionRPGGameEditor.h"
 #include "GameplayTagsModule.h"
 #include "IGameAttributesEditor.h"
+#include "IGameAbilitiesEditor.h"
 //#include "ISocketNameCustomization.h"
 class FActionRPGGameEditor : public IModuleInterface
 {
 	virtual void StartupModule() override
 	{
+		IGameAbilitiesEditor::Get();
 		//ISocketNameCustomization::Get();
 		//because for some reason this module refuses to load automatically 0o.
 	}

@@ -1,7 +1,7 @@
 #pragma once
 #include "IGIPawn.h"
 #include "IGISkeletalMesh.h"
-#include "GSAbilityBase.h"
+#include "GASAbilityBase.h"
 #include "GASAbility.generated.h"
 
 USTRUCT(BlueprintType)
@@ -20,12 +20,10 @@ public:
 DECLARE_DELEGATE(FGASOnAbilityCasted)
 /*
 	TODO::
-	1. Move some functionality up to UGSAbilityBase.
-	2. Change name of this class to UGSAbilityState (?). It will better describe,
-	that this particular ability type, implement state machine.
+	1. Remove all this shit and redo it again, this time more blueprint friendly.
 */
-UCLASS(BlueprintType, Blueprintable, DefaultToInstanced)
-class GAMEABILITIES_API UGASAbility : public UGSAbilityBase, public FTickableGameObject, public IIGIPawn
+UCLASS(BlueprintType, Blueprintable)
+class GAMEABILITIES_API UGASAbility : public UGASAbilityBase, public FTickableGameObject, public IIGIPawn
 	, public IIGISkeletalMesh
 {
 	GENERATED_BODY()
