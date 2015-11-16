@@ -19,6 +19,19 @@ void UGASAbilityBase::OnAbilityCancelNative()
 	OnAbilityCancel();
 }
 
+bool UGASAbilityBase::IsWaitingForConfirm()
+{
+	if (ConfirmDelegate.IsBound())
+		return true;
+	else
+		return false;
+}
+void UGASAbilityBase::ConfirmAbility()
+{
+	if (ConfirmDelegate.IsBound())
+		ConfirmDelegate.Execute();
+}
+
 void UGASAbilityBase::OnTaskInitialized(UGameplayTask& Task)
 {
 	if (UGASAbilityTask* task = Cast<UGASAbilityTask>(&Task))

@@ -12,7 +12,10 @@
 		{
 			"Name": "GameAbilities",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"CoreUObject"
+			]
 		},
 		{
 			"Name": "GameAbilitiesEditor",

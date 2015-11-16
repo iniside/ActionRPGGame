@@ -15,20 +15,6 @@ UGASAbilityTask_CreateObject* UGASAbilityTask_CreateObject::CreateObject(UObject
 
 // ---------------------------------------------------------------------------------------
 
-//class UGASAbilityMod* UGASAbilityTask_CreateObject::SpawnObject(UObject* WorldContextObject, TSubclassOf<class UGASAbilityMod> InClass, UObject* Outer)
-//{
-//	UGASAbilityMod* SpawnedObject = NewObject<UGASAbilityMod>(Outer, InClass);
-//	if (SpawnedObject == nullptr)
-//	{
-//		Failure.Broadcast(nullptr);
-//		return false;
-//	}
-//	UE_LOG(GameAbilities, Log, TEXT("Begin Spawning Actor in GASAbilityTask_SpawnActor"));
-//	Success.Broadcast(SpawnedObject);
-//	EndTask();
-//	return SpawnedObject;
-//}
-
 bool UGASAbilityTask_CreateObject::BeginSpawningActor(UObject* WorldContextObject, TSubclassOf<UGASAbilityMod> Class, UGASAbilityMod*& SpawnedActor)
 {
 	//if (Ability.IsValid() && Ability.Get()->GetCurrentActorInfo()->IsNetAuthority())

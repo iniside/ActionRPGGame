@@ -41,6 +41,9 @@ class GAMEABILITIES_API UGASAbilityBase : public UObject, public IGameplayTaskOw
 public:
 	UPROPERTY()
 		TArray<class UGameplayTask*> ActiveTasks;
+
+	FSimpleDelegate ConfirmDelegate;
+
 public:
 	UGASAbilityBase(const FObjectInitializer& ObjectInitializer);
 
@@ -56,6 +59,9 @@ public:
 	virtual void OnAbilityCancelNative();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
 		void OnAbilityCancel();
+
+	bool IsWaitingForConfirm();
+	void ConfirmAbility();
 
 	/** GameplayTaskOwnerInterface - Begin */
 	virtual void OnTaskInitialized(UGameplayTask& Task) override;
