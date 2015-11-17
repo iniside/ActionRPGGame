@@ -47,8 +47,16 @@ void UGASAbilitiesComponent::InputPressed(int32 AbilityId)
 		//no ability on client. No RPC.
 		if (InstancedAbilities[AbilityId].ActiveAbility)
 		{
-			InstancedAbilities[AbilityId].ActiveAbility->OnAbilityExecutedNative();
-			ServerInputPressed(AbilityId);
+			//waiting for confirmation is exclusive at least now, ability either wait or not.
+			if (InstancedAbilities[AbilityId].ActiveAbility->IsWaitingForConfirm())
+			{
+				InstancedAbilities[AbilityId].ActiveAbility->ConfirmAbility();
+			}
+			else
+			{
+				InstancedAbilities[AbilityId].ActiveAbility->OnAbilityExecutedNative();
+				ServerInputPressed(AbilityId);
+			}
 		}
 		//right now we will use simple prediction, which means just run ability on client
 		//and then use RPCs/repnotifies from server to controll it state on clien,
@@ -58,7 +66,17 @@ void UGASAbilitiesComponent::InputPressed(int32 AbilityId)
 	else
 	{
 		if (InstancedAbilities[AbilityId].ActiveAbility)
-			InstancedAbilities[AbilityId].ActiveAbility->OnAbilityExecutedNative();
+		{
+			if (InstancedAbilities[AbilityId].ActiveAbility->IsWaitingForConfirm())
+			{
+				InstancedAbilities[AbilityId].ActiveAbility->ConfirmAbility();
+			}
+			else
+			{
+				InstancedAbilities[AbilityId].ActiveAbility->OnAbilityExecutedNative();
+			}
+		}
+			
 	}
 }
 void UGASAbilitiesComponent::ServerInputPressed_Implementation(int32 AbilityId)
@@ -106,10 +124,12 @@ int32 UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbili
 			if (ab.ActiveAbility == nullptr)
 			{
 				ability->AbilityComponent = this;
+				ability->OwningComp = this;
 				if (PawnInterface)
 				{
 					ability->POwner = PawnInterface->GetGamePawn();
 					ability->PCOwner = PawnInterface->GetGamePlayerController();
+					
 					//ability->AIOwner = PawnInterface->GetGameController();
 				}
 				ability->Initialize();

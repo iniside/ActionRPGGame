@@ -21,15 +21,16 @@ void UGASAbilityBase::OnAbilityCancelNative()
 
 bool UGASAbilityBase::IsWaitingForConfirm()
 {
-	if (ConfirmDelegate.IsBound())
+	if (OnConfirmDelegate.IsBound())
 		return true;
 	else
 		return false;
 }
 void UGASAbilityBase::ConfirmAbility()
 {
-	if (ConfirmDelegate.IsBound())
-		ConfirmDelegate.Execute();
+	if (OnConfirmDelegate.IsBound())
+		OnConfirmDelegate.Broadcast();
+	OnConfirmDelegate.Clear();
 }
 
 void UGASAbilityBase::OnTaskInitialized(UGameplayTask& Task)
@@ -41,13 +42,14 @@ void UGASAbilityBase::OnTaskInitialized(UGameplayTask& Task)
 }
 UGameplayTasksComponent* UGASAbilityBase::GetGameplayTasksComponent(const UGameplayTask& Task) const
 {
-	return nullptr;
+	return OwningComp.Get();
 }
 /** this gets called both when task starts and when task gets resumed. Check Task.GetStatus() if you want to differenciate */
 void UGASAbilityBase::OnTaskActivated(UGameplayTask& Task)
 {
 	UE_LOG(GameAbilities, Log, TEXT("Task Started; %s in ability: %s"), *Task.GetName(), *GetName());
 	ActiveTasks.Add(&Task);
+	float blabla = 0;
 }
 /** this gets called both when task finished and when task gets paused. Check Task.GetStatus() if you want to differenciate */
 void UGASAbilityBase::OnTaskDeactivated(UGameplayTask& Task)

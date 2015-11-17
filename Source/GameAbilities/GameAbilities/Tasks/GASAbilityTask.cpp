@@ -7,7 +7,16 @@
 UGASAbilityTask::UGASAbilityTask(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
+	bTickingTask = false;
+	bSimulatedTask = false;
+	bIsSimulating = false;
+	bOwnedByTasksComponent = false;
+	bClaimRequiredResources = true;
+	TaskState = EGameplayTaskState::Uninitialized;
+	ResourceOverlapPolicy = ETaskResourceOverlapPolicy::StartOnTop;
+	Priority = FGameplayTasks::DefaultPriority;
 
+	SetFlags(RF_StrongRefOnFrame);
 }
 //UWorld* UGASAbilityTask::GetWorld() const
 //{

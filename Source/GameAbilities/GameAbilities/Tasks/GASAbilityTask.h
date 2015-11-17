@@ -12,7 +12,7 @@
 	active state, which means it's ready to be fired and display helpers, but did not yet received input,
 	or should designer in blueprint decide when to launch actions ?).
 */
-UCLASS(BlueprintType, Blueprintable)
+UCLASS(BlueprintType, Blueprintable, Within=GASAbilityBase)
 class GAMEABILITIES_API UGASAbilityTask : public UGameplayTask
 {
 	GENERATED_UCLASS_BODY()
@@ -23,13 +23,14 @@ public:
 	//virtual UWorld* GetWorld() const override;
 
 	//virtual void Tick(float DeltaSecondsIn);
+
 	virtual void Initialize();
 	template <class T>
 	static T* NewAbilityTask(UObject* WorldContextObject, FName InstanceName = FName())
 	{
 		check(WorldContextObject);
 
-		T* MyObj = NewObject<T>();
+		T* MyObj = NewObject<T>(WorldContextObject);
 		UGASAbilityBase* ThisAbility = CastChecked<UGASAbilityBase>(WorldContextObject);
 		MyObj->InitTask(*ThisAbility, ThisAbility->GetDefaultPriority());
 		MyObj->InstanceName = InstanceName;

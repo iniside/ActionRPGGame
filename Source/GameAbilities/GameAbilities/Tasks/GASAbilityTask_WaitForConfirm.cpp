@@ -1,26 +1,37 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GameAbilities.h"
+#include "../GASAbilityBase.h"
 #include "GASAbilityTask_WaitForConfirm.h"
 
 
 
 
-UGASAbilityTask_WaitForConfirm* UGASAbilityTask_WaitForConfirm::CreateTargetDataTask(UObject* WorldContextObject, TSubclassOf<class UGASAbilityMod> Class, UObject* Outer)
+UGASAbilityTask_WaitForConfirm* UGASAbilityTask_WaitForConfirm::CreateWaitConfirmTask(UObject* WorldContextObject)
 {
 	auto MyObj = NewAbilityTask<UGASAbilityTask_WaitForConfirm>(WorldContextObject);
-	//if(MyObj)
-	//	MyObj->SpawnObject(WorldContextObject, InClass, Outer);
+	UGASAbilityBase* ability = Cast<UGASAbilityBase>(WorldContextObject);
+	//if (ability)
+	//{
+	//	ability->ActiveTasks.Add(MyObj);
+	//}
+	//if (MyObj)
+	//	MyObj->Initialize();
 	//MyObj->CachedTargetDataHandle = TargetData;
 	return MyObj;
 }
-
-void UGASAbilityTask_WaitForConfirm::Initialize()
+void UGASAbilityTask_WaitForConfirm::Activate()
 {
 	if (Ability.IsValid())
 	{
-		Ability.ConfirmDelegate.CreateUObject(this, &UGASAbilityTask_WaitForConfirm::OnConfirm);
+		if (!Ability->OnConfirmDelegate.IsBoundToObject(this))
+			Ability->OnConfirmDelegate.AddUObject(this, &UGASAbilityTask_WaitForConfirm::OnConfirm);
+		//Ability->ConfirmDelegate.CreateUObject(this, &UGASAbilityTask_WaitForConfirm::OnConfirm);
 	}
+}
+void UGASAbilityTask_WaitForConfirm::Initialize()
+{
+
 }
 
 void UGASAbilityTask_WaitForConfirm::OnConfirm()

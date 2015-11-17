@@ -1,5 +1,9 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 #pragma once
+#include "GameplayTaskOwnerInterface.h"
+#include "GameplayTaskTypes.h"
+#include "GameplayTask.h"
+#include "GameplayTasksComponent.h"
 #include "GASAbilitiesComponent.generated.h"
 
 USTRUCT(BlueprintType)
@@ -43,7 +47,7 @@ public:
 };
 
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
-class GAMEABILITIES_API UGASAbilitiesComponent : public UActorComponent
+class GAMEABILITIES_API UGASAbilitiesComponent : public UGameplayTasksComponent// UActorComponent
 {
 	GENERATED_BODY()
 public:

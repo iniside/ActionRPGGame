@@ -55,6 +55,7 @@ namespace UnrealBuildTool.Rules
                     "SlateCore",
                     "GameInterfaces",
                     "GameTrace",
+                    "GameplayTasks",
                     "GameAbilities",
                     "GameWeapons",
                     "GameAttributes",

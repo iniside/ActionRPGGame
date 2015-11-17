@@ -34,14 +34,19 @@
 
 	More complicated abilities, can be actions in their own right. Like spells.
 */
+DECLARE_MULTICAST_DELEGATE(FGASSimpleAbilityDynamicDelegate);
+
 UCLASS(BlueprintType, Blueprintable)
 class GAMEABILITIES_API UGASAbilityBase : public UObject, public IGameplayTaskOwnerInterface
 {
 	GENERATED_BODY()
 public:
+	TWeakObjectPtr<class UGASAbilitiesComponent> OwningComp;
+
 	UPROPERTY()
 		TArray<class UGameplayTask*> ActiveTasks;
 
+	FGASSimpleAbilityDynamicDelegate OnConfirmDelegate;
 	FSimpleDelegate ConfirmDelegate;
 
 public:
@@ -72,7 +77,7 @@ public:
 	virtual void OnTaskDeactivated(UGameplayTask& Task) override;
 	virtual AActor* GetOwnerActor(const UGameplayTask* Task) const override;
 	virtual AActor* GetAvatarActor(const UGameplayTask* Task) const override;
-	virtual uint8 GetDefaultPriority() const override { return 0; }
+	virtual uint8 GetDefaultPriority() const override { return 1; }
 
 	/** GameplayTaskOwnerInterface - end */
 
