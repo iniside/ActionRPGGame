@@ -79,7 +79,7 @@ float UGSAbilitiesComponent::GetCurrentCastTime()
 {
 	if (CurrentAbility > -1)
 	{
-		return GetGSAbility(CurrentAbility)->CurrentCastTime;
+		//return GetGSAbility(CurrentAbility)->CurrentCastTime;
 	}
 	return 0;
 }
@@ -87,7 +87,7 @@ float UGSAbilitiesComponent::GetCastTime()
 {
 	if (CurrentAbility > -1)
 	{
-		return GetGSAbility(CurrentAbility)->CastTime;
+		//return GetGSAbility(CurrentAbility)->CastTime;
 	}
 	return 0;
 }
@@ -99,11 +99,11 @@ void UGSAbilitiesComponent::InputPressed(int32 SetIndex, int32 SlotIndex)
 	UGASAbilitiesComponent::InputPressed(CurrentAbility);
 	OnGetAbilityIndex.ExecuteIfBound(CurrentAbility);
 	OnAbilityPressedIndex.Broadcast(CurrentAbility);
-	if (InstancedAbilities[CurrentAbility].ActiveAbility
-		&& !InstancedAbilities[CurrentAbility].ActiveAbility->OnAbilityCastedDel.IsBound())
-	{
-		InstancedAbilities[CurrentAbility].ActiveAbility->OnAbilityCastedDel.BindUObject(this, &UGSAbilitiesComponent::Del_OnAbilityCasted);
-	}
+	//if (InstancedAbilities[CurrentAbility].ActiveAbility
+	//	&& !InstancedAbilities[CurrentAbility].ActiveAbility->OnAbilityCastedDel.IsBound())
+	//{
+	//	InstancedAbilities[CurrentAbility].ActiveAbility->OnAbilityCastedDel.BindUObject(this, &UGSAbilitiesComponent::Del_OnAbilityCasted);
+	//}
 }
 void UGSAbilitiesComponent::InputReleased(int32 SetIndex, int32 SlotIndex)
 {
@@ -282,7 +282,7 @@ void UGSAbilitiesComponent::Del_OnAbilityCasted()
 	}
 	if (InstancedAbilities[CurrentAbility].ActiveAbility)
 	{
-		InstancedAbilities[CurrentAbility].ActiveAbility->OnAbilityCastedDel.Unbind();
+		//InstancedAbilities[CurrentAbility].ActiveAbility->OnAbilityCastedDel.Unbind();
 	}
 }
 

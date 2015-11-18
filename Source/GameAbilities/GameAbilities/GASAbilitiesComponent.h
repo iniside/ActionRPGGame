@@ -12,7 +12,7 @@ struct GAMEABILITIES_API FGASOwnedAbilities
 	GENERATED_USTRUCT_BODY()
 public:
 	UPROPERTY()
-		TSubclassOf<class UGASAbility> AbilityClass;
+		TSubclassOf<class UGASAbilityBase> AbilityClass;
 };
 
 USTRUCT(BlueprintType)
@@ -24,7 +24,7 @@ public:
 	int32 SlotIndex;
 
 	UPROPERTY()
-	class UGASAbility* ActiveAbility;
+	class UGASAbilityBase* ActiveAbility;
 
 	void OnAbilityAdded()
 	{
@@ -76,7 +76,7 @@ public:
 
 	virtual void InitializeComponent() override;
 
-	inline class UGASAbility* GetGASAbility(int32 IndexIn)
+	inline class UGASAbilityBase* GetGASAbility(int32 IndexIn)
 	{
 		if (InstancedAbilities.IsValidIndex(IndexIn))
 			return InstancedAbilities[IndexIn].ActiveAbility;
@@ -96,19 +96,19 @@ public:
 	virtual bool ServerInputReleased_Validate(int32 AbilityId);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
-		void BP_AddAbility(TSubclassOf<class UGASAbility> AbilityClass);
+		void BP_AddAbility(TSubclassOf<class UGASAbilityBase> AbilityClass);
 	/*
 		Should be called on server.
 		Adds new ability to ActiveAbilities;
 	*/
-	int32 AddAbilityToActiveList(TSubclassOf<class UGASAbility> AbilityClass);
+	int32 AddAbilityToActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
-		void BP_GiveAbility(TSubclassOf<class UGASAbility> AbilityClass);
+		void BP_GiveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass);
 
 
 
-	void GiveAbility(TSubclassOf<class UGASAbility> AbilityClass);
+	void GiveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass);
 
 	bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags) override;
 	void GetSubobjectsWithStableNamesForNetworking(TArray<UObject*>& Objs) override;

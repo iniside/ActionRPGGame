@@ -1,4 +1,5 @@
 #pragma once
+#include "IGIPawn.h"
 #include "GameplayTasksComponent.h"
 #include "GameplayTask.h"
 #include "GameplayTaskOwnerInterface.h"
@@ -37,10 +38,22 @@
 DECLARE_MULTICAST_DELEGATE(FGASSimpleAbilityDynamicDelegate);
 
 UCLASS(BlueprintType, Blueprintable)
-class GAMEABILITIES_API UGASAbilityBase : public UObject, public IGameplayTaskOwnerInterface
+class GAMEABILITIES_API UGASAbilityBase : public UObject, public IIGIPawn, public IGameplayTaskOwnerInterface
 {
 	GENERATED_BODY()
 public:
+	/* By default all abilities are considered to be replicated. */
+	UPROPERTY(EditAnywhere, Category = "Replication")
+		bool bReplicate;
+
+	bool bIsNameStable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base")
+		float Cooldown;
+
+	bool bIsAbilityExecuting;
+	bool bIsOnCooldown;
+
 	TWeakObjectPtr<class UGASAbilitiesComponent> OwningComp;
 
 	UPROPERTY()
@@ -49,9 +62,38 @@ public:
 	FGASSimpleAbilityDynamicDelegate OnConfirmDelegate;
 	FSimpleDelegate ConfirmDelegate;
 
+	UPROPERTY()
+	class UWorld* World; 
+
+	UPROPERTY(BlueprintReadOnly, Category = "Default")
+		APawn* POwner;
+	UPROPERTY(BlueprintReadOnly, Category = "Default")
+		APlayerController* PCOwner;
+	/**
+	*	Default state to which ability will always return upon finishing (either immidielty or after cooldown).
+	*/
+	UPROPERTY(EditAnywhere, Instanced, Category = "Ability State")
+	class UGASAbilityState* DefaultState;
+	/**
+	*	State used when ability is on cooldown.
+	*/
+	UPROPERTY(EditAnywhere, Instanced, meta = (MetaClass = "UGASAbilityStateCooldown"), Category = "Ability State")
+	class UGASAbilityState* CooldownState;
+	/**
+	*	State used when ability is activated. After preperation state.
+	*/
+	UPROPERTY(EditAnywhere, Instanced, meta = (AllowedClasses = "GASAbilityStateCastingBase"), Category = "Ability State")
+	class UGASAbilityState* ActivationState;
+
+	UPROPERTY()
+	class UGASAbilityState* CurrentState;
+
+protected:
+	FTimerHandle CooldownTimerHandle;
+
 public:
 	UGASAbilityBase(const FObjectInitializer& ObjectInitializer);
-
+	virtual void InitAbility();
 	/* 
 		Called when ability received input.
 		One ability can receive multiple input calls, how those will be handled 
@@ -65,8 +107,14 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
 		void OnAbilityCancel();
 
+	UFUNCTION(BlueprintCallable, Category = "Game Abilities")
+		void FinishExecution();
+	void NativeFinishExecution();
+
 	bool IsWaitingForConfirm();
 	void ConfirmAbility();
+
+	
 
 	/** GameplayTaskOwnerInterface - Begin */
 	virtual void OnTaskInitialized(UGameplayTask& Task) override;
@@ -78,7 +126,27 @@ public:
 	virtual AActor* GetOwnerActor(const UGameplayTask* Task) const override;
 	virtual AActor* GetAvatarActor(const UGameplayTask* Task) const override;
 	virtual uint8 GetDefaultPriority() const override { return 1; }
-
 	/** GameplayTaskOwnerInterface - end */
 
+	/* Replication */
+	bool IsNameStableForNetworking() const override;
+
+	bool IsSupportedForNetworking() const override
+	{
+		return bReplicate;
+	}
+	void SetNetAddressable();
+
+	/** IIGIPawn */
+	virtual APawn* GetGamePawn() { return POwner; }
+	virtual ACharacter* GetGameCharacter() { return nullptr; }
+	virtual AController* GetGameController() { return nullptr; }
+	virtual APlayerController* GetGamePlayerController() { return PCOwner; }
+	/* IIGIPawn **/
+
+
+	virtual class UWorld* GetWorld() const override;
+protected:
+	UFUNCTION()
+		void OnCooldownEndTimer();
 };

@@ -1,7 +1,7 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
 #include "GameAbilities.h"
-#include "../GASAbility.h"
+#include "../GASAbilityBase.h"
 #include "GASAbilityCue.h"
 
 UGASAbilityCue::UGASAbilityCue(const FObjectInitializer& ObjectInitializer)
@@ -11,5 +11,5 @@ UGASAbilityCue::UGASAbilityCue(const FObjectInitializer& ObjectInitializer)
 }
 UWorld* UGASAbilityCue::GetWorld() const
 {
-	return GetOuterUGASAbility()->GetWorld();
+	return GetOuterUGASAbilityBase()->GetWorld();
 }

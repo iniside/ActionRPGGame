@@ -1,7 +1,7 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
 #include "GameAbilities.h"
-#include "../GASAbility.h"
+#include "../GASAbilityBase.h"
 #include "GASAbilityStatePreparationWaitForInput.h"
 
 UGASAbilityStatePreparationWaitForInput::UGASAbilityStatePreparationWaitForInput(const FObjectInitializer& ObjectInitializer)
@@ -11,7 +11,7 @@ UGASAbilityStatePreparationWaitForInput::UGASAbilityStatePreparationWaitForInput
 }
 UWorld* UGASAbilityStatePreparationWaitForInput::GetWorld() const
 {
-	return GetOuterUGASAbility()->GetWorld();
+	return GetOuterUGASAbilityBase()->GetWorld();
 }
 
 void UGASAbilityStatePreparationWaitForInput::Tick(float DeltaSeconds)
@@ -26,20 +26,20 @@ void UGASAbilityStatePreparationWaitForInput::BeginState(UGASAbilityState* PrevS
 
 	//GetOuterUGASAbility()->AbilityPreparationStart();
 
-	GetOuterUGASAbility()->SetTickEnabled(true);
-	GetOuterUGASAbility()->RunPreparationActions();
+	//GetOuterUGASAbility()->SetTickEnabled(true);
+	//GetOuterUGASAbility()->RunPreparationActions();
 	//BeginActionSequence();
 }
 void UGASAbilityStatePreparationWaitForInput::EndState()
 {
 	//clean up.
 	//GetOuterUGASAbility()->AbilityPreparationEnd();
-	GetOuterUGASAbility()->SetTickEnabled(false);
+	//GetOuterUGASAbility()->SetTickEnabled(false);
 }
 void UGASAbilityStatePreparationWaitForInput::BeginActionSequence()
 {
-	GetOuterUGASAbility()->SetTickEnabled(false);
-	GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->ActivationState);
+	//GetOuterUGASAbility()->SetTickEnabled(false);
+	//GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->ActivationState);
 }
 void UGASAbilityStatePreparationWaitForInput::EndActionSequence()
 {

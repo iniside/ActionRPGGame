@@ -1,7 +1,7 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
 #include "GameAbilities.h"
-#include "../GASAbility.h"
+#include "../GASAbilityBase.h"
 #include "GASAbilityStatePreparation.h"
 
 UGASAbilityStatePreparation::UGASAbilityStatePreparation(const FObjectInitializer& ObjectInitializer)
@@ -11,7 +11,7 @@ UGASAbilityStatePreparation::UGASAbilityStatePreparation(const FObjectInitialize
 }
 UWorld* UGASAbilityStatePreparation::GetWorld() const
 {
-	return GetOuterUGASAbility()->GetWorld();
+	return GetOuterUGASAbilityBase()->GetWorld();
 }
 
 void UGASAbilityStatePreparation::Tick(float DeltaSeconds)

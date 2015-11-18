@@ -2,50 +2,50 @@
 
 #include "GameAbilities.h"
 
-#include "../GASAbility.h"
+#include "../GASAbilityBase.h"
 
 #include "GASAbilityStateCasting.h"
 
 UGASAbilityStateCasting::UGASAbilityStateCasting(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	CurrentCastTime = 0;
+	//CurrentCastTime = 0;
 }
 
 void UGASAbilityStateCasting::Tick(float DeltaSeconds)
 {
-	GetOuterUGASAbility()->CurrentCastTime += DeltaSeconds;
-	CurrentCastTime += DeltaSeconds;
-	if (CurrentCastTime >= GetOuterUGASAbility()->CastTime)
-	{
-		GetOuterUGASAbility()->CurrentCastTime = 0;
-		CurrentCastTime = 0;
-		GetOuterUGASAbility()->SetTickEnabled(false);
-		ExecuteAbility();
-	}
+	//GetOuterUGASAbility()->CurrentCastTime += DeltaSeconds;
+	//CurrentCastTime += DeltaSeconds;
+	//if (CurrentCastTime >= GetOuterUGASAbility()->CastTime)
+	//{
+	//	GetOuterUGASAbility()->CurrentCastTime = 0;
+	//	CurrentCastTime = 0;
+	//	GetOuterUGASAbility()->SetTickEnabled(false);
+	//	ExecuteAbility();
+	//}
 }
 
 void UGASAbilityStateCasting::ExecuteAbility()
 {
 	//GetOuterUGASAbility()->bIsBeingCast = false;
 	//GetOuterUGASAbility()->ExecuteAbility();
-	GetOuterUGASAbility()->CastAbility();
-	GetOuterUGASAbility()->SetTickEnabled(false);
-	GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->CooldownState);
+	//GetOuterUGASAbility()->CastAbility();
+	//GetOuterUGASAbility()->SetTickEnabled(false);
+	//GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->CooldownState);
 }
 
 void UGASAbilityStateCasting::BeginState(UGASAbilityState* PrevState)
 {
-	GetOuterUGASAbility()->CurrentCastTime = 0;
-	if (GetOuterUGASAbility()->CommitAbility())
-	{
-		GetOuterUGASAbility()->SetTickEnabled(true);
-	}
-	else
-	{
-		//can commit ability, back to active state.
-		GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->ActiveState);
-	}
+	//GetOuterUGASAbility()->CurrentCastTime = 0;
+	//if (GetOuterUGASAbility()->CommitAbility())
+	//{
+	//	GetOuterUGASAbility()->SetTickEnabled(true);
+	//}
+	//else
+	//{
+	//	//can commit ability, back to active state.
+	//	GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->ActiveState);
+	//}
 	
 }
 void UGASAbilityStateCasting::EndState()

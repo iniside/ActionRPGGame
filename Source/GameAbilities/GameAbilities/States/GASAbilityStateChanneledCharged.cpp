@@ -2,7 +2,7 @@
 
 #include "GameAbilities.h"
 
-#include "../GASAbility.h"
+#include "../GASAbilityBase.h"
 
 #include "GASAbilityStateChanneledCharged.h"
 
@@ -14,15 +14,15 @@ UGASAbilityStateChanneledCharged::UGASAbilityStateChanneledCharged(const FObject
 
 void UGASAbilityStateChanneledCharged::Tick(float DeltaSeconds)
 {
-	GetOuterUGASAbility()->CurrentCastTime += DeltaSeconds;
+	//GetOuterUGASAbility()->CurrentCastTime += DeltaSeconds;
 	CurrentCastTime += DeltaSeconds;
-	if (CurrentCastTime >= GetOuterUGASAbility()->CastTime)
-		//&& GetOuterUGASAbility()->PeriodCount > CurrentPeriodCount)
-	{
-		CurrentCastTime = 0;
-		CurrentPeriodCount += 1;
-		ExecuteAbility();
-	}
+	//if (CurrentCastTime >= GetOuterUGASAbility()->CastTime)
+	//	//&& GetOuterUGASAbility()->PeriodCount > CurrentPeriodCount)
+	//{
+	//	CurrentCastTime = 0;
+	//	CurrentPeriodCount += 1;
+	//	ExecuteAbility();
+	//}
 	//else if (CurrentPeriodCount >= GetOuterUGASAbility()->PeriodCount)
 	//{
 	//	CurrentPeriodCount = 0;
@@ -33,7 +33,7 @@ void UGASAbilityStateChanneledCharged::Tick(float DeltaSeconds)
 
 void UGASAbilityStateChanneledCharged::ExecuteAbility()
 {
-	GetOuterUGASAbility()->CastAbility();
+	//GetOuterUGASAbility()->CastAbility();
 }
 
 void UGASAbilityStateChanneledCharged::ChannelFinished()
@@ -50,7 +50,7 @@ void UGASAbilityStateChanneledCharged::BeginState(UGASAbilityState* PrevState)
 {
 	//GetOuterUGASAbility()->bIsBeingCast = true;
 	//GetOuterUGASAbility()->AbilityCastStart();
-	GetOuterUGASAbility()->SetTickEnabled(true);
+	//GetOuterUGASAbility()->SetTickEnabled(true);
 }
 void UGASAbilityStateChanneledCharged::EndState()
 {
@@ -62,8 +62,8 @@ void UGASAbilityStateChanneledCharged::BeginActionSequence()
 {}
 void UGASAbilityStateChanneledCharged::EndActionSequence()
 {
-	GetOuterUGASAbility()->SetTickEnabled(false);
-	CurrentCastTime = 0;
-	CurrentPeriodCount = 0;
-	GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->CooldownState);
+	//GetOuterUGASAbility()->SetTickEnabled(false);
+	//CurrentCastTime = 0;
+	//CurrentPeriodCount = 0;
+	//GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->CooldownState);
 }

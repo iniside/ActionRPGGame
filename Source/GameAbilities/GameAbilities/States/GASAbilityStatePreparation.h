@@ -2,7 +2,7 @@
 #include "GASAbilityState.h"
 #include "GASAbilityStatePreparation.generated.h"
 
-UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GASAbility, meta = (DisplayName = "Prepare - Prepare base - Dont Use!"))
+UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GASAbilityBase, meta = (DisplayName = "Prepare - Prepare base - Dont Use!"))
 class GAMEABILITIES_API UGASAbilityStatePreparation : public UGASAbilityState
 {
 	GENERATED_UCLASS_BODY()

@@ -3,7 +3,7 @@
 #include "GASAbilityState.h"
 #include "GASAbilityStateActive.generated.h"
 
-UCLASS(DefaultToInstanced, EditInLineNew, Within = GASAbility)
+UCLASS(DefaultToInstanced, EditInLineNew, Within = GASAbilityBase)
 class UGASAbilityStateActive : public UGASAbilityState
 {
 	GENERATED_UCLASS_BODY()

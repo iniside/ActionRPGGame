@@ -1,5 +1,6 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
+#include "Net/UnrealNetwork.h"
 #include "GameAbilities.h"
 #include "Tasks/GASAbilityTask.h"
 #include "GASAbilityBase.h"
@@ -7,16 +8,49 @@
 UGASAbilityBase::UGASAbilityBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	bIsAbilityExecuting = false;
+	bIsOnCooldown = false;
+	bReplicate = true;
+	bIsNameStable = false;
+}
+
+void UGASAbilityBase::InitAbility()
+{
+	if (OwningComp.IsValid())
+	{
+		World = OwningComp->GetWorld();
+	}
 }
 
 void UGASAbilityBase::OnAbilityExecutedNative()
 {
+	if (Cooldown > 0)
+	{
+		if (GetWorld())
+		{
+			FTimerDelegate del = FTimerDelegate::CreateUObject(this, &UGASAbilityBase::OnCooldownEndTimer);
+			FTimerManager& TimerManager = World->GetTimerManager();
+
+			TimerManager.SetTimer(CooldownTimerHandle, del, Cooldown, false, Cooldown);
+			bIsOnCooldown = true;
+		}
+	}
 	OnAbilityExecuted();
+	bIsAbilityExecuting = true;
 }
 
 void UGASAbilityBase::OnAbilityCancelNative()
 {
 	OnAbilityCancel();
+}
+
+void UGASAbilityBase::FinishExecution()
+{
+	bIsAbilityExecuting = false;
+}
+void UGASAbilityBase::NativeFinishExecution()
+{
+	bIsAbilityExecuting = false;
 }
 
 bool UGASAbilityBase::IsWaitingForConfirm()
@@ -64,4 +98,26 @@ AActor* UGASAbilityBase::GetOwnerActor(const UGameplayTask* Task) const
 AActor* UGASAbilityBase::GetAvatarActor(const UGameplayTask* Task) const
 {
 	return nullptr;
+}
+
+void UGASAbilityBase::OnCooldownEndTimer()
+{
+	bIsOnCooldown = false;
+	FTimerManager& TimerManager = World->GetTimerManager();
+	TimerManager.ClearTimer(CooldownTimerHandle);
+}
+
+bool UGASAbilityBase::IsNameStableForNetworking() const
+{
+	return bIsNameStable;
+}
+
+void UGASAbilityBase::SetNetAddressable()
+{
+	bIsNameStable = true;
+}
+
+class UWorld* UGASAbilityBase::GetWorld() const
+{
+	return World;
 }

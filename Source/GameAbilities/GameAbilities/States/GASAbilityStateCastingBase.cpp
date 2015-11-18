@@ -2,7 +2,7 @@
 
 #include "GameAbilities.h"
 
-#include "../GASAbility.h"
+#include "../GASAbilityBase.h"
 
 #include "GASAbilityStateCastingBase.h"
 
@@ -14,12 +14,12 @@ UGASAbilityStateCastingBase::UGASAbilityStateCastingBase(const FObjectInitialize
 
 void UGASAbilityStateCastingBase::Tick(float DeltaSeconds)
 {
-	CurrentCastTime += DeltaSeconds;
-	if (CurrentCastTime >= GetOuterUGASAbility()->CastTime)
-	{
-		CurrentCastTime = 0;
-		ExecuteAbility();
-	}
+	//CurrentCastTime += DeltaSeconds;
+	//if (CurrentCastTime >= GetOuterUGASAbility()->CastTime)
+	//{
+	//	CurrentCastTime = 0;
+	//	ExecuteAbility();
+	//}
 }
 
 void UGASAbilityStateCastingBase::ExecuteAbility()
@@ -27,7 +27,7 @@ void UGASAbilityStateCastingBase::ExecuteAbility()
 	//GetOuterUGASAbility()->ExecuteAbility();
 	//GetOuterUGASAbility()->OnAbilityActivated();
 	//GetOuterUGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
-	GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->CooldownState);
+	//GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->CooldownState);
 }
 
 void UGASAbilityStateCastingBase::BeginState(UGASAbilityState* PrevState)

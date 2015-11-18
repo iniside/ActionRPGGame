@@ -3,7 +3,7 @@
 #include "GASAbilityStatePreparation.h"
 #include "GASAbilityStatePreparationNoPrep.generated.h"
 
-UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GASAbility, meta = (DisplayName = "Prepare - No Preparation"))
+UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GASAbilityBase, meta = (DisplayName = "Prepare - No Preparation"))
 class GAMEABILITIES_API UGASAbilityStatePreparationNoPrep : public UGASAbilityStatePreparation
 {
 	GENERATED_UCLASS_BODY()

@@ -2,7 +2,7 @@
 
 #include "GameAbilities.h"
 
-#include "../GASAbility.h"
+#include "../GASAbilityBase.h"
 
 #include "GASAbilityStateChanneledChargedLocked.h"
 

@@ -2,26 +2,26 @@
 
 #include "GameAbilities.h"
 
-#include "../GASAbility.h"
+#include "../GASAbilityBase.h"
 
 #include "GASAbilityStateCastingCharged.h"
 
 UGASAbilityStateCastingCharged::UGASAbilityStateCastingCharged(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	CurrentCastTime = 0;
+	//CurrentCastTime = 0;
 }
 
 void UGASAbilityStateCastingCharged::Tick(float DeltaSeconds)
 {
-	GetOuterUGASAbility()->CurrentCastTime += DeltaSeconds;
-	CurrentCastTime += DeltaSeconds;
-	if (CurrentCastTime >= GetOuterUGASAbility()->CastTime)
-	{
-		GetOuterUGASAbility()->CurrentCastTime = 0;
-		CurrentCastTime = 0;
-		ExecuteAbility();
-	}
+	//GetOuterUGASAbility()->CurrentCastTime += DeltaSeconds;
+	//CurrentCastTime += DeltaSeconds;
+	//if (CurrentCastTime >= GetOuterUGASAbility()->CastTime)
+	//{
+	//	GetOuterUGASAbility()->CurrentCastTime = 0;
+	//	CurrentCastTime = 0;
+	//	ExecuteAbility();
+	//}
 }
 
 void UGASAbilityStateCastingCharged::ExecuteAbility()

@@ -3,7 +3,7 @@
 /*
 	I could, probabaly remake it with interface instead of within.
 */
-UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GASAbility)
+UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GASAbilityBase)
 class GAMEABILITIES_API UGASAbilityState : public UObject
 {
 	GENERATED_UCLASS_BODY()

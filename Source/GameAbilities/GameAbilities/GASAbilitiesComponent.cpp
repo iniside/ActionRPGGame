@@ -2,7 +2,7 @@
 
 #include "GameAbilities.h"
 
-#include "GASAbility.h"
+#include "GASAbilityBase.h"
 
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
@@ -21,7 +21,7 @@ bool UGASAbilitiesComponent::CanActivateAbility()
 {
 	//if there are no activate abilities, we can activate the selected one.
 	//this should be configarable ie. how many abilities can be activated at the same time ?
-	if (!bIsAnyAbilityActive) 
+	if (!bIsAnyAbilityActive)
 	{
 		return true;
 	}
@@ -76,7 +76,7 @@ void UGASAbilitiesComponent::InputPressed(int32 AbilityId)
 				InstancedAbilities[AbilityId].ActiveAbility->OnAbilityExecutedNative();
 			}
 		}
-			
+
 	}
 }
 void UGASAbilitiesComponent::ServerInputPressed_Implementation(int32 AbilityId)
@@ -109,31 +109,30 @@ bool UGASAbilitiesComponent::ServerInputReleased_Validate(int32 AbilityId)
 	return true;
 }
 
-void UGASAbilitiesComponent::BP_AddAbility(TSubclassOf<class UGASAbility> AbilityClass)
+void UGASAbilitiesComponent::BP_AddAbility(TSubclassOf<class UGASAbilityBase> AbilityClass)
 {
 	AddAbilityToActiveList(AbilityClass);
 }
-int32 UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbility> AbilityClass)
+int32 UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass)
 {
 	if (AbilityClass)
 	{
-		UGASAbility* ability = NewObject<UGASAbility>(GetOwner(), AbilityClass);
+		UGASAbilityBase* ability = NewObject<UGASAbilityBase>(GetOwner(), AbilityClass);
 		int32 slotCounter = 0;
 		for (FGASActiveAbilitySlot& ab : InstancedAbilities)
 		{
 			if (ab.ActiveAbility == nullptr)
 			{
-				ability->AbilityComponent = this;
 				ability->OwningComp = this;
 				if (PawnInterface)
 				{
 					ability->POwner = PawnInterface->GetGamePawn();
 					ability->PCOwner = PawnInterface->GetGamePlayerController();
-					
+
 					//ability->AIOwner = PawnInterface->GetGameController();
 				}
-				ability->Initialize();
 				ab.ActiveAbility = ability;
+				ability->InitAbility();
 				return slotCounter;
 			}
 			slotCounter++;
@@ -142,12 +141,12 @@ int32 UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbili
 	return -1;
 }
 
-void UGASAbilitiesComponent::BP_GiveAbility(TSubclassOf<class UGASAbility> AbilityClass)
+void UGASAbilitiesComponent::BP_GiveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass)
 {
 	GiveAbility(AbilityClass);
 }
 
-void UGASAbilitiesComponent::GiveAbility(TSubclassOf<class UGASAbility> AbilityClass)
+void UGASAbilitiesComponent::GiveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass)
 {
 
 }
@@ -164,7 +163,7 @@ bool UGASAbilitiesComponent::ReplicateSubobjects(class UActorChannel *Channel, c
 	{
 		if (ability.ActiveAbility)
 		{
-			WroteSomething |= Channel->ReplicateSubobject(const_cast<UGASAbility*>(ability.ActiveAbility), *Bunch, *RepFlags);
+			WroteSomething |= Channel->ReplicateSubobject(const_cast<UGASAbilityBase*>(ability.ActiveAbility), *Bunch, *RepFlags);
 		}
 	}
 	return WroteSomething;
@@ -178,15 +177,17 @@ void UGASAbilitiesComponent::OnRep_InstancedAbilities()
 {
 	for (FGASActiveAbilitySlot& ab : InstancedAbilities)
 	{
-		if (ab.ActiveAbility && !ab.ActiveAbility->GetIsInitialized())
+		if (ab.ActiveAbility)// && !ab.ActiveAbility->GetIsInitialized())
 		{
-			ab.ActiveAbility->AbilityComponent = this;
+			ab.ActiveAbility->OwningComp = this;
 			if (PawnInterface)
 			{
 				ab.ActiveAbility->POwner = PawnInterface->GetGamePawn();
 				ab.ActiveAbility->PCOwner = PawnInterface->GetGamePlayerController();
+
+				//ability->AIOwner = PawnInterface->GetGameController();
 			}
-			ab.ActiveAbility->Initialize();
+			ab.ActiveAbility->InitAbility();
 		}
 	}
 }

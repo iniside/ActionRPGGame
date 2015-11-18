@@ -25,7 +25,7 @@ float const UGSAbilityCastTimeWidget::GetCurrentCastTime() const
 {
 	if (CurrentAbilityIndex != INDEX_NONE)
 	{
-		return AbilityComponent->GetGASAbility(CurrentAbilityIndex)->CurrentCastTime;
+		//return AbilityComponent->GetGASAbility(CurrentAbilityIndex)->CurrentCastTime;
 	}
 	//if (AbilityComponent && AbilityComponent->ActiveAbility)
 	//{
@@ -38,7 +38,7 @@ float const UGSAbilityCastTimeWidget::GetMaxCastTime() const
 {
 	if (CurrentAbilityIndex != INDEX_NONE)
 	{
-		return AbilityComponent->GetGASAbility(CurrentAbilityIndex)->CastTime;
+		//return AbilityComponent->GetGASAbility(CurrentAbilityIndex)->CastTime;
 	}
 	//if (AbilityComponent && AbilityComponent->ActiveAbility)
 	//{

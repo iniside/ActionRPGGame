@@ -3,7 +3,7 @@
 #include "GASAbilityStatePreparation.h"
 #include "GASAbilityStatePreparationWaitForInput.generated.h"
 
-UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GASAbility, meta = (DisplayName = "Prepare - Wait For Input"))
+UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GASAbilityBase, meta = (DisplayName = "Prepare - Wait For Input"))
 class GAMEABILITIES_API UGASAbilityStatePreparationWaitForInput : public UGASAbilityStatePreparation
 {
 	GENERATED_UCLASS_BODY()

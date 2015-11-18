@@ -2,7 +2,7 @@
 
 #include "GameAbilities.h"
 
-#include "../GASAbility.h"
+#include "../GASAbilityBase.h"
 
 #include "GASAbilityStateActive.h"
 
@@ -19,7 +19,7 @@ void UGASAbilityStateActive::EndState()
 }
 void UGASAbilityStateActive::BeginActionSequence()
 {
-	GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->PreparationState);
+	//GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->PreparationState);
 }
 void UGASAbilityStateActive::EndActionSequence()
 {

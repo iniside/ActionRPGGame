@@ -2,7 +2,7 @@
 
 #include "GameAbilities.h"
 
-#include "../GASAbility.h"
+#include "../GASAbilityBase.h"
 
 #include "GASAbilityStateChanneled.h"
 
@@ -15,7 +15,7 @@ UGASAbilityStateChanneled::UGASAbilityStateChanneled(const FObjectInitializer& O
 
 void UGASAbilityStateChanneled::Tick(float DeltaSeconds)
 {
-	GetOuterUGASAbility()->CurrentCastTime += DeltaSeconds;
+	//GetOuterUGASAbility()->CurrentCastTime += DeltaSeconds;
 	CurrentCastTime += DeltaSeconds;
 	//if (CurrentCastTime >= GetOuterUGASAbility()->PeriodLenght
 	//	&& GetOuterUGASAbility()->PeriodCount > CurrentPeriodCount)

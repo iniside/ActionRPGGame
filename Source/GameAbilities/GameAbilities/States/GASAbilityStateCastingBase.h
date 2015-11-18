@@ -3,7 +3,7 @@
 #include "GASAbilityState.h"
 #include "GASAbilityStateCastingBase.generated.h"
 
-UCLASS(DefaultToInstanced, EditInLineNew, Within = GASAbility, meta = (DisplayName = "Casting - Cast Base Dont use!"))
+UCLASS(DefaultToInstanced, EditInLineNew, Within = GASAbilityBase, meta = (DisplayName = "Casting - Cast Base Dont use!"))
 class UGASAbilityStateCastingBase : public UGASAbilityState
 {
 	GENERATED_UCLASS_BODY()

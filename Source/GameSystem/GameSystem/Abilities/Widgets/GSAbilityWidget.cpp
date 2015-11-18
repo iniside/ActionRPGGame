@@ -22,8 +22,8 @@ float UGSAbilityWidget::GetAbilityCooldown() const
 {
 	if (AbilityIndex != INDEX_NONE)
 	{
-		if (AbilityComponent)
-			return AbilityComponent->GetGASAbility(AbilityIndex)->CurrentRechargeTime;
+		//if (AbilityComponent)
+			//return AbilityComponent->GetGASAbility(AbilityIndex)->CurrentRechargeTime;
 	}
 	return 0;
 }

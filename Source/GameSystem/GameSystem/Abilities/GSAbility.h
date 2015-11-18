@@ -1,5 +1,5 @@
 #pragma once
-#include "GASAbility.h"
+#include "GASAbilityBase.h"
 
 #include "../Cues/GSCueTypes.h"
 #include "../Cues/IGSCue.h"
@@ -24,7 +24,7 @@ public:
 };
 
 UCLASS(BlueprintType, Blueprintable)
-class GAMESYSTEM_API UGSAbility : public UGASAbility, public IIGSCue
+class GAMESYSTEM_API UGSAbility : public UGASAbilityBase, public IIGSCue
 {
 	GENERATED_UCLASS_BODY()
 public:
@@ -41,6 +41,9 @@ protected:
 		2. It must right type of weapon for this particular ability.
 		3. At least one weapon must meet  criteria, unless ability specifies otherwise
 		4. Lack of weapon is considere bare hands.
+
+		Weapons are two way coupled. Abilities require weapons to work, and weapons provide abilities that
+		make them work ;)
 	*/
 	UPROPERTY()
 	class UGSItemWeaponInfo* CurrentLeftWeapon;

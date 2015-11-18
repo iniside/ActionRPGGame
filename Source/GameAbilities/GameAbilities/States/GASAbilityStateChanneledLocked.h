@@ -9,7 +9,7 @@
  *	amount of time. Locked mean, that trace is done only once, and all subsequent periods, are
  *	targeted at initial hit location.
  */
-UCLASS(DefaultToInstanced, EditInLineNew, Within = GASAbility, meta = (DisplayName = "Casting - Channeled Locked"))
+UCLASS(DefaultToInstanced, EditInLineNew, Within = GASAbilityBase, meta = (DisplayName = "Casting - Channeled Locked"))
 class UGASAbilityStateChanneledLocked : public UGASAbilityStateCastingBase
 {
 	GENERATED_UCLASS_BODY()

@@ -21,7 +21,7 @@
 
 	Base class for trace actions.
 */
-UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GASAbility)
+UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GASAbilityBase)
 class GAMEABILITIES_API UGASTrace_SphereTrace : public UGASTrace
 {
 	GENERATED_UCLASS_BODY()

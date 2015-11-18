@@ -12,7 +12,7 @@
 	One Mod should modify one property of owning ability. Though I will try to add
 	support for multiple modifications per single mod.
 */
-UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GASAbility)
+UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew, Within = GASAbilityBase)
 class GAMEABILITIES_API UGASAbilityMod : public UObject
 {
 	GENERATED_UCLASS_BODY()
