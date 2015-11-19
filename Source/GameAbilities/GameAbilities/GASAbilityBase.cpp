@@ -1,8 +1,11 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
-#include "Net/UnrealNetwork.h"
+
 #include "GameAbilities.h"
 #include "Tasks/GASAbilityTask.h"
+#include "States/GASAbilityStateActive.h"
+#include "States/GASAbilityStateCasting.h"
+#include "States/GASAbilityStateCooldown.h"
 #include "GASAbilityBase.h"
 
 UGASAbilityBase::UGASAbilityBase(const FObjectInitializer& ObjectInitializer)
@@ -12,6 +15,10 @@ UGASAbilityBase::UGASAbilityBase(const FObjectInitializer& ObjectInitializer)
 	bIsOnCooldown = false;
 	bReplicate = true;
 	bIsNameStable = false;
+
+	DefaultState = ObjectInitializer.CreateDefaultSubobject<UGASAbilityStateActive>(this, TEXT("AbilityDefaultState"));
+	//ActivationState = ObjectInitializer.CreateDefaultSubobject<UGASAbilityStateCasting>(this, TEXT("AbilityActivationState"));
+	//CurrentState = ObjectInitializer.CreateDefaultSubobject<UGASAbilityStateCooldown>(this, TEXT("AbilityCooldownState"));
 }
 
 void UGASAbilityBase::InitAbility()
@@ -20,23 +27,45 @@ void UGASAbilityBase::InitAbility()
 	{
 		World = OwningComp->GetWorld();
 	}
+	CurrentState = DefaultState;
+}
+
+void UGASAbilityBase::OnNativeInputPressed()
+{
+	UE_LOG(GameAbilities, Log, TEXT("OnNativeInputPressed in ability %s"), *GetName());
+	OnInputPressed();
+}
+
+void UGASAbilityBase::OnNativeInputReleased()
+{
+	UE_LOG(GameAbilities, Log, TEXT("OnNativeInputReleased in ability %s"), *GetName());
+	OnInputReleased();
 }
 
 void UGASAbilityBase::OnAbilityExecutedNative()
 {
-	if (Cooldown > 0)
-	{
-		if (GetWorld())
-		{
-			FTimerDelegate del = FTimerDelegate::CreateUObject(this, &UGASAbilityBase::OnCooldownEndTimer);
-			FTimerManager& TimerManager = World->GetTimerManager();
-
-			TimerManager.SetTimer(CooldownTimerHandle, del, Cooldown, false, Cooldown);
-			bIsOnCooldown = true;
-		}
-	}
+	UE_LOG(GameAbilities, Log, TEXT("Begin Executing Ability: %s"), *GetName());
 	OnAbilityExecuted();
 	bIsAbilityExecuting = true;
+}
+
+void UGASAbilityBase::ExecuteAbility()
+{
+	if (CurrentState)
+		CurrentState->BeginActionSequence();
+	//OnAbilityExecutedNative();
+}
+
+void UGASAbilityBase::StopAbility()
+{
+	if (CurrentState)
+		CurrentState->EndActionSequence();
+	//OnAbilityExecutedNative();
+}
+
+void UGASAbilityBase::OnNativeStopAbility()
+{
+	OnStopAbility();
 }
 
 void UGASAbilityBase::OnAbilityCancelNative()
@@ -65,6 +94,35 @@ void UGASAbilityBase::ConfirmAbility()
 	if (OnConfirmDelegate.IsBound())
 		OnConfirmDelegate.Broadcast();
 	OnConfirmDelegate.Clear();
+}
+
+bool UGASAbilityBase::CanUseAbility()
+{
+	bool CanUse = true;
+	CanUse = !bIsOnCooldown;
+	return CanUse;
+
+}
+
+void UGASAbilityBase::GotoState(class UGASAbilityState* NextState)
+{
+	if (NextState == NULL || !NextState->IsIn(this))
+	{
+
+	}
+	else if (CurrentState != NextState)
+	{
+		UGASAbilityState* PrevState = CurrentState;
+		if (CurrentState != NULL)
+		{
+			CurrentState->EndState();
+		}
+		if (CurrentState == PrevState)
+		{
+			CurrentState = NextState;
+			CurrentState->BeginState(PrevState);
+		}
+	}
 }
 
 void UGASAbilityBase::OnTaskInitialized(UGameplayTask& Task)
@@ -98,13 +156,6 @@ AActor* UGASAbilityBase::GetOwnerActor(const UGameplayTask* Task) const
 AActor* UGASAbilityBase::GetAvatarActor(const UGameplayTask* Task) const
 {
 	return nullptr;
-}
-
-void UGASAbilityBase::OnCooldownEndTimer()
-{
-	bIsOnCooldown = false;
-	FTimerManager& TimerManager = World->GetTimerManager();
-	TimerManager.ClearTimer(CooldownTimerHandle);
 }
 
 bool UGASAbilityBase::IsNameStableForNetworking() const

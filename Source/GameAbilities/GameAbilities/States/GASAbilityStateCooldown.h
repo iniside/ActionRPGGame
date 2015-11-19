@@ -8,11 +8,16 @@ class UGASAbilityStateCooldown : public UGASAbilityState
 {
 	GENERATED_UCLASS_BODY()
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ExposeOnSpawn), Category = "Config")
+		float Cooldown;
+protected:
+	FTimerHandle CooldownTimerDelegate;
+public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginState(UGASAbilityState* PrevState) override;
 	virtual void EndState() override;
 	virtual void BeginActionSequence() override;
 	virtual void EndActionSequence() override;
-
-	void FinishCooldown();
+	UFUNCTION()
+		void FinishCooldown();
 };

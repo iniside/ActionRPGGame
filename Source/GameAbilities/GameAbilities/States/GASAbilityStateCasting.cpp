@@ -44,13 +44,15 @@ void UGASAbilityStateCasting::BeginState(UGASAbilityState* PrevState)
 	//else
 	//{
 	//	//can commit ability, back to active state.
-	//	GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->ActiveState);
+	UE_LOG(GameAbilities, Log, TEXT("Begining State: %s"), *GetName());
+		GetOuterUGASAbilityBase()->GotoState(GetOuterUGASAbilityBase()->CooldownState);
 	//}
 	
 }
 void UGASAbilityStateCasting::EndState()
 {
-	//GetOuterUGASAbility()->AbilityCastEnd();
+	UE_LOG(GameAbilities, Log, TEXT("Ending State: %s"), *GetName());
+	GetOuterUGASAbilityBase()->OnAbilityExecutedNative();
 }
 void UGASAbilityStateCasting::BeginActionSequence()
 {}

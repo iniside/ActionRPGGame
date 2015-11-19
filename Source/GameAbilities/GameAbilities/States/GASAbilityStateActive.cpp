@@ -13,13 +13,15 @@ UGASAbilityStateActive::UGASAbilityStateActive(const FObjectInitializer& ObjectI
 }
 void UGASAbilityStateActive::BeginState(UGASAbilityState* PrevState)
 {
+	UE_LOG(GameAbilities, Log, TEXT("Begining State: %s"), *GetName());
 }
 void UGASAbilityStateActive::EndState()
 {
 }
 void UGASAbilityStateActive::BeginActionSequence()
 {
-	//GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->PreparationState);
+	UE_LOG(GameAbilities, Log, TEXT("BBeginActionSequence in: %s go to state: %s"), *GetName(), *GetOuterUGASAbilityBase()->ActivationState->GetName());
+	GetOuterUGASAbilityBase()->GotoState(GetOuterUGASAbilityBase()->ActivationState);
 }
 void UGASAbilityStateActive::EndActionSequence()
 {

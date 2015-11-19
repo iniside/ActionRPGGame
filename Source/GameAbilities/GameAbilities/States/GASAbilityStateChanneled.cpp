@@ -34,10 +34,13 @@ void UGASAbilityStateChanneled::Tick(float DeltaSeconds)
 
 void UGASAbilityStateChanneled::ExecuteAbility()
 {
-	//GetOuterUGASAbility()->ExecuteAbility();
+	GetOuterUGASAbilityBase()->OnAbilityExecuted();
 
 }
-
+void UGASAbilityStateChanneled::ExecuteChannel()
+{
+	GetOuterUGASAbilityBase()->OnAbilityExecuted();
+}
 void UGASAbilityStateChanneled::ChannelFinished()
 {
 	//GetOuterUGASAbility()->bIsBeingCast = false;
@@ -47,15 +50,21 @@ void UGASAbilityStateChanneled::ChannelFinished()
 
 void UGASAbilityStateChanneled::BeginState(UGASAbilityState* PrevState)
 {
-	//GetOuterUGASAbility()->bIsBeingCast = true;
-	//GetOuterUGASAbility()->AbilityCastStart();
-	//GetOuterUGASAbility()->PrimaryActorTick.SetTickFunctionEnable(true);
+	UE_LOG(GameAbilities, Log, TEXT("Begining State: %s"), *GetName());
+	FTimerManager& TimerManager = GetOuterUGASAbilityBase()->GetWorld()->GetTimerManager();
+	FTimerDelegate del = FTimerDelegate::CreateUObject(this, &UGASAbilityStateChanneled::ExecuteChannel);
+	TimerManager.SetTimer(ChannelTimerHandle, del, Interval, true, 0);
 }
 void UGASAbilityStateChanneled::EndState()
 {
-//	GetOuterUGASAbility()->AbilityCastEnd();
+
 }
 void UGASAbilityStateChanneled::BeginActionSequence()
 {}
 void UGASAbilityStateChanneled::EndActionSequence()
-{}
+{
+	FTimerManager& TimerManager = GetOuterUGASAbilityBase()->GetWorld()->GetTimerManager();
+	TimerManager.ClearTimer(ChannelTimerHandle);
+	GetOuterUGASAbilityBase()->OnNativeStopAbility();
+	GetOuterUGASAbilityBase()->GotoState(GetOuterUGASAbilityBase()->CooldownState);
+}

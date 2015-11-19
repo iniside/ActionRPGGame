@@ -45,7 +45,8 @@ void UGASAbilitiesComponent::InputPressed(int32 AbilityId)
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
 		//no ability on client. No RPC.
-		if (InstancedAbilities[AbilityId].ActiveAbility)
+		if (InstancedAbilities[AbilityId].ActiveAbility 
+			&& InstancedAbilities[AbilityId].ActiveAbility->CanUseAbility())
 		{
 			//waiting for confirmation is exclusive at least now, ability either wait or not.
 			if (InstancedAbilities[AbilityId].ActiveAbility->IsWaitingForConfirm())
@@ -54,7 +55,7 @@ void UGASAbilitiesComponent::InputPressed(int32 AbilityId)
 			}
 			else
 			{
-				InstancedAbilities[AbilityId].ActiveAbility->OnAbilityExecutedNative();
+				InstancedAbilities[AbilityId].ActiveAbility->OnNativeInputPressed();
 				ServerInputPressed(AbilityId);
 			}
 		}
@@ -65,7 +66,8 @@ void UGASAbilitiesComponent::InputPressed(int32 AbilityId)
 	}
 	else
 	{
-		if (InstancedAbilities[AbilityId].ActiveAbility)
+		if (InstancedAbilities[AbilityId].ActiveAbility
+			&& InstancedAbilities[AbilityId].ActiveAbility->CanUseAbility())
 		{
 			if (InstancedAbilities[AbilityId].ActiveAbility->IsWaitingForConfirm())
 			{
@@ -73,7 +75,7 @@ void UGASAbilitiesComponent::InputPressed(int32 AbilityId)
 			}
 			else
 			{
-				InstancedAbilities[AbilityId].ActiveAbility->OnAbilityExecutedNative();
+				InstancedAbilities[AbilityId].ActiveAbility->OnNativeInputPressed();
 			}
 		}
 
@@ -93,11 +95,20 @@ void UGASAbilitiesComponent::InputReleased(int32 AbilityId)
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
+		if (InstancedAbilities[AbilityId].ActiveAbility
+			&& InstancedAbilities[AbilityId].ActiveAbility->CanUseAbility())
+		{
+			InstancedAbilities[AbilityId].ActiveAbility->OnNativeInputReleased();
+		}
 		ServerInputReleased(AbilityId);
 	}
 	else
 	{
-
+		if (InstancedAbilities[AbilityId].ActiveAbility
+			&& InstancedAbilities[AbilityId].ActiveAbility->CanUseAbility())
+		{
+			InstancedAbilities[AbilityId].ActiveAbility->OnNativeInputReleased();
+		}
 	}
 }
 void UGASAbilitiesComponent::ServerInputReleased_Implementation(int32 AbilityId)

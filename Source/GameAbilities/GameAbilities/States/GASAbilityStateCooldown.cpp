@@ -28,18 +28,29 @@ void UGASAbilityStateCooldown::FinishCooldown()
 
 	//GetOuterUGASAbility()->SetTickEnabled(false);
 	//GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->ActiveState);
+	FTimerManager& TimerManager = GetOuterUGASAbilityBase()->GetWorld()->GetTimerManager();
+	TimerManager.ClearTimer(CooldownTimerDelegate);
+	GetOuterUGASAbilityBase()->bIsOnCooldown = false;
+	GetOuterUGASAbilityBase()->GotoState(GetOuterUGASAbilityBase()->DefaultState);
 }
 void UGASAbilityStateCooldown::BeginState(UGASAbilityState* PrevState)
 {
 	//GetOuterUGASAbility()->bIsOnCooldown = true;
 	//GetOuterAARAbility()->EnterCooldown();
-	//GetOuterUGASAbility()->bIsOnCooldown = true;
+	GetOuterUGASAbilityBase()->bIsOnCooldown = true;
 	//GetOuterUGASAbility()->SetTickEnabled(true);
+	UE_LOG(GameAbilities, Log, TEXT("Begining State: %s"), *GetName());
+	FTimerManager& TimerManager = GetOuterUGASAbilityBase()->GetWorld()->GetTimerManager();
+	FTimerDelegate del = FTimerDelegate::CreateUObject(this, &UGASAbilityStateCooldown::FinishCooldown);
+	TimerManager.SetTimer(CooldownTimerDelegate, del, Cooldown, false, Cooldown);
+	//FinishCooldown();
 }
 void UGASAbilityStateCooldown::EndState()
 {
+	UE_LOG(GameAbilities, Log, TEXT("Ending State: %s"), *GetName());
 	//GetOuterAARAbility()->bIsCooldownFinished = true;
 	//GetOuterUGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
+
 }
 void UGASAbilityStateCooldown::BeginActionSequence()
 {

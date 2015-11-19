@@ -9,6 +9,11 @@ class UGASAbilityStateChanneled : public UGASAbilityStateCastingBase
 {
 	GENERATED_UCLASS_BODY()
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ExposeOnSpawn), Category = "Config")
+		float Interval;
+protected:
+	FTimerHandle ChannelTimerHandle;
+public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginState(UGASAbilityState* PrevState) override;
 	virtual void EndState() override;
@@ -16,7 +21,8 @@ public:
 	virtual void EndActionSequence() override;
 
 	virtual void ExecuteAbility() override;
-
+	UFUNCTION()
+		void ExecuteChannel();
 	void ChannelFinished();
 private:
 	float CurrentCastTime;

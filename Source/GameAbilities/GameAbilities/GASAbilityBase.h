@@ -99,9 +99,48 @@ public:
 		One ability can receive multiple input calls, how those will be handled 
 		is up to ability.
 	*/
+	void OnNativeInputPressed();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
+		void OnInputPressed();
+
+	void OnNativeInputReleased();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
+		void OnInputReleased();
+
+
 	virtual void OnAbilityExecutedNative();
+	/*
+		In blueprint, call this function to trigger event of the same name,
+		after ability is ready to be executed (like after targeting is done, input is confirmed,
+		or simply after receiving first input press.
+
+		This function will trigger selected Activation State, which then will trigger Event OnAbilityExecuted.
+		In C++ it will trigger OnAbilityExecutedNative()
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+		void ExecuteAbility();
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
 		void OnAbilityExecuted();
+	/*
+		Call this to stop ability. Usually should be connected to OnInputReleased Event.
+		Though nothing really stops you from connecting it's elsewhere, most of the cases when ability should 
+		end will be handled trough states automatically.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+		void StopAbility();
+
+	void OnNativeStopAbility();
+	/*
+		Special Case event, can will be called trough specific ability states, like
+		Channeled or Charged.
+		What exacty will happen depends on state/ability implementation.
+		In case of Channeled state which requires input to pressed to remain active
+		it will stop ability channel, go to cooldown and call this event to give
+		ability chance to do something.
+	*/
+	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
+		void OnStopAbility();
 
 	virtual void OnAbilityCancelNative();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
@@ -114,7 +153,11 @@ public:
 	bool IsWaitingForConfirm();
 	void ConfirmAbility();
 
-	
+	bool CanUseAbility();
+
+	/* State Handling Begin */
+	void GotoState(class UGASAbilityState* NextState);
+	/* State HAndling End */
 
 	/** GameplayTaskOwnerInterface - Begin */
 	virtual void OnTaskInitialized(UGameplayTask& Task) override;
@@ -146,7 +189,4 @@ public:
 
 
 	virtual class UWorld* GetWorld() const override;
-protected:
-	UFUNCTION()
-		void OnCooldownEndTimer();
 };
