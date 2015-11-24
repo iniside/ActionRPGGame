@@ -141,12 +141,11 @@ void UGASAbilityBase::OnTaskActivated(UGameplayTask& Task)
 {
 	UE_LOG(GameAbilities, Log, TEXT("Task Started; %s in ability: %s"), *Task.GetName(), *GetName());
 	ActiveTasks.Add(&Task);
-	float blabla = 0;
 }
 /** this gets called both when task finished and when task gets paused. Check Task.GetStatus() if you want to differenciate */
 void UGASAbilityBase::OnTaskDeactivated(UGameplayTask& Task)
 {
-	UE_LOG(GameAbilities, Log, TEXT("Task Removed: %s in ability: "), *Task.GetName(), *GetName());
+	UE_LOG(GameAbilities, Log, TEXT("Task Removed: %s in ability: %s"), *Task.GetName(), *GetName());
 	ActiveTasks.Remove(&Task);
 }
 AActor* UGASAbilityBase::GetOwnerActor(const UGameplayTask* Task) const

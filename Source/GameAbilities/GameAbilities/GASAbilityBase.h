@@ -69,6 +69,19 @@ public:
 		APawn* POwner;
 	UPROPERTY(BlueprintReadOnly, Category = "Default")
 		APlayerController* PCOwner;
+	/* 
+		Actor which either represents this ability in the world, or
+		is used as required "prop" for ability to work.
+
+		Ie Ability granted by machine gun, might simply represented by this weapon.
+		Ability which is spell equiped by player, might use Staff or Scepter as representation
+		needed to cast (ie access to socket at tip of the staff for spawning effects).
+	*/
+	UPROPERTY(BlueprintReadOnly, Category = "Default")
+		AActor* AvatarActor;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Default")
+		UCameraComponent* OwnerCamera;
 	/**
 	*	Default state to which ability will always return upon finishing (either immidielty or after cooldown).
 	*/

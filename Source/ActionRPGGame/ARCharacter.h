@@ -56,6 +56,7 @@ public:
     virtual ACharacter* GetGameCharacter() override { return this; }
     virtual AController* GetGameController() override { return GetController(); }
     virtual APlayerController* GetGamePlayerController() override;
+	virtual UCameraComponent* GetPawnCamera() override { return FollowCamera; };
     /* IIGIPawn **/
 
 

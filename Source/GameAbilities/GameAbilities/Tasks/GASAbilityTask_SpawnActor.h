@@ -29,5 +29,5 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "Game Abilities")
 		void FinishSpawningActor(UObject* WorldContextObject, AActor* SpawnedActor);
 
-	
+	virtual void Activate() override;
 };

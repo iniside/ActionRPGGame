@@ -15,6 +15,11 @@ public:
 			TSubclassOf<class UGAGameEffectSpec> SpecIn, const FHitResult& Target, APawn* Instigator,
 			UObject* Causer, EGAMakeSpecResult& ResultOut);
 
+	UFUNCTION(BlueprintCallable, meta = (ExpandEnumAsExecs = "ResultOut"), Category = "Game Effect System")
+		static FGAGameEffectHandle MakeOutgoingSpecObj(FGAGameEffectHandle Handle,
+			const FGAEffectSpec& SpecIn, const FHitResult& Target, APawn* Instigator,
+			UObject* Causer, EGAMakeSpecResult& ResultOut);
+
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
 		static void ApplyGameEffect(FGAGameEffectHandle Handle);
 };

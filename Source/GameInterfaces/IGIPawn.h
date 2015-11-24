@@ -20,5 +20,5 @@ public:
 	virtual ACharacter* GetGameCharacter() { return nullptr; }
 	virtual AController* GetGameController() { return nullptr; }
 	virtual APlayerController* GetGamePlayerController() { return nullptr; }
-
+	virtual UCameraComponent* GetPawnCamera() { return nullptr; }
 };

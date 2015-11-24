@@ -44,6 +44,8 @@ void UGASAbilitiesComponent::InputPressed(int32 AbilityId)
 		return;
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
+		if (InstancedAbilities.Num() <= 0)
+			return;
 		//no ability on client. No RPC.
 		if (InstancedAbilities[AbilityId].ActiveAbility 
 			&& InstancedAbilities[AbilityId].ActiveAbility->CanUseAbility())
@@ -66,6 +68,9 @@ void UGASAbilitiesComponent::InputPressed(int32 AbilityId)
 	}
 	else
 	{
+		if (InstancedAbilities.Num() <= 0)
+			return;
+
 		if (InstancedAbilities[AbilityId].ActiveAbility
 			&& InstancedAbilities[AbilityId].ActiveAbility->CanUseAbility())
 		{
@@ -95,19 +100,26 @@ void UGASAbilitiesComponent::InputReleased(int32 AbilityId)
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
+		if (InstancedAbilities.Num() <= 0)
+			return;
+
 		if (InstancedAbilities[AbilityId].ActiveAbility
 			&& InstancedAbilities[AbilityId].ActiveAbility->CanUseAbility())
 		{
-			InstancedAbilities[AbilityId].ActiveAbility->OnNativeInputReleased();
+			if(!InstancedAbilities[AbilityId].ActiveAbility->IsWaitingForConfirm())
+				InstancedAbilities[AbilityId].ActiveAbility->OnNativeInputReleased();
 		}
 		ServerInputReleased(AbilityId);
 	}
 	else
 	{
+		if (InstancedAbilities.Num() <= 0)
+			return;
 		if (InstancedAbilities[AbilityId].ActiveAbility
 			&& InstancedAbilities[AbilityId].ActiveAbility->CanUseAbility())
 		{
-			InstancedAbilities[AbilityId].ActiveAbility->OnNativeInputReleased();
+			if (!InstancedAbilities[AbilityId].ActiveAbility->IsWaitingForConfirm())
+				InstancedAbilities[AbilityId].ActiveAbility->OnNativeInputReleased();
 		}
 	}
 }
@@ -195,6 +207,7 @@ void UGASAbilitiesComponent::OnRep_InstancedAbilities()
 			{
 				ab.ActiveAbility->POwner = PawnInterface->GetGamePawn();
 				ab.ActiveAbility->PCOwner = PawnInterface->GetGamePlayerController();
+				ab.ActiveAbility->OwnerCamera = PawnInterface->GetPawnCamera();
 
 				//ability->AIOwner = PawnInterface->GetGameController();
 			}

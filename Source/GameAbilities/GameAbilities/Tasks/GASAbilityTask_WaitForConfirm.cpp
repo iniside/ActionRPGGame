@@ -15,8 +15,6 @@ UGASAbilityTask_WaitForConfirm* UGASAbilityTask_WaitForConfirm::CreateWaitConfir
 	//{
 	//	ability->ActiveTasks.Add(MyObj);
 	//}
-	//if (MyObj)
-	//	MyObj->Initialize();
 	//MyObj->CachedTargetDataHandle = TargetData;
 	return MyObj;
 }

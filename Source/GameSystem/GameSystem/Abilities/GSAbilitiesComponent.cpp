@@ -3,7 +3,8 @@
 #include "GameSystem.h"
 
 #include "GSAbility.h"
-
+#include "../GSPlayerController.h"
+#include "UserWidget.h"
 #include "Net/UnrealNetwork.h"
 #include "Widgets/GSAbilityContainerWidget.h"
 #include "Widgets/GSAbilityCastTimeWidget.h"

@@ -15,6 +15,11 @@ UGASAbilityTask_SpawnActor* UGASAbilityTask_SpawnActor::SpawnActor(UObject* Worl
 }
 
 // ---------------------------------------------------------------------------------------
+void UGASAbilityTask_SpawnActor::Activate()
+{
+	UE_LOG(GameAbilities, Log, TEXT("TArget object spawned"));
+	//EndTask();
+}
 
 bool UGASAbilityTask_SpawnActor::BeginSpawningActor(UObject* WorldContextObject, TSubclassOf<AActor> InClass, AActor*& SpawnedActor)
 {
@@ -60,5 +65,5 @@ void UGASAbilityTask_SpawnActor::FinishSpawningActor(UObject* WorldContextObject
 		Success.Broadcast(SpawnedActor);
 	}
 	UE_LOG(GameAbilities, Log, TEXT("Finish Spawning Actor in GASAbilityTask_SpawnActor"));
-	EndTask();
+	//EndTask();
 }
