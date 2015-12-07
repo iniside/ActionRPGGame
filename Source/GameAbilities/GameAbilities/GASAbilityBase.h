@@ -69,6 +69,8 @@ public:
 		APawn* POwner;
 	UPROPERTY(BlueprintReadOnly, Category = "Default")
 		APlayerController* PCOwner;
+	UPROPERTY(BlueprintReadOnly, Category = "Default")
+		class AAIController* AICOwner;
 	/* 
 		Actor which either represents this ability in the world, or
 		is used as required "prop" for ability to work.

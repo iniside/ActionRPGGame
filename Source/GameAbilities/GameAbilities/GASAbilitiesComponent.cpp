@@ -11,6 +11,31 @@
 
 #include "GASAbilitiesComponent.h"
 
+void FGASActiveAbility::Reset()
+{
+	SetIndex = -1;
+	SlotIndex = -1;
+	ActiveAbility->MarkPendingKill();
+	ActiveAbility = nullptr;
+}
+
+void FGASActiveAbilityContainer::RemoveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex)
+{
+	if (AbilitySets.IsValidIndex(SetIndex))
+	{
+		if (AbilitySets[SetIndex].Abilities.IsValidIndex(SlotIndex))
+		{
+			if (AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility)
+			{
+				if (AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility->StaticClass() == AbilityClass)
+				{
+					AbilitySets[SetIndex].Abilities[SlotIndex].Reset();
+				}
+			}
+		}
+	}
+}
+
 UGASAbilitiesComponent::UGASAbilitiesComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -136,13 +161,33 @@ void UGASAbilitiesComponent::BP_AddAbility(TSubclassOf<class UGASAbilityBase> Ab
 {
 	AddAbilityToActiveList(AbilityClass);
 }
+void UGASAbilitiesComponent::RemoveAbilityFromActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass)
+{
+	int32 num = InstancedAbilities.Num();
+	
+	
+	bool found = false;
+	while (!found)
+	{
+		int32 randIdx = FMath::RandRange(0, num - 1);
+		if (InstancedAbilities[randIdx].ActiveAbility->StaticClass() == AbilityClass)
+		{
+			InstancedAbilities.RemoveAt(randIdx);
+			found = true;
+		}
+	}
+}
+void UGASAbilitiesComponent::BP_RemoveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass)
+{
+	RemoveAbilityFromActiveList(AbilityClass);
+}
 int32 UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass)
 {
 	if (AbilityClass)
 	{
 		UGASAbilityBase* ability = NewObject<UGASAbilityBase>(GetOwner(), AbilityClass);
 		int32 slotCounter = 0;
-		for (FGASActiveAbilitySlot& ab : InstancedAbilities)
+		for (FGASActiveAbility& ab : InstancedAbilities)
 		{
 			if (ab.ActiveAbility == nullptr)
 			{
@@ -151,7 +196,7 @@ int32 UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbili
 				{
 					ability->POwner = PawnInterface->GetGamePawn();
 					ability->PCOwner = PawnInterface->GetGamePlayerController();
-
+					ability->OwnerCamera = PawnInterface->GetPawnCamera();
 					//ability->AIOwner = PawnInterface->GetGameController();
 				}
 				ab.ActiveAbility = ability;
@@ -162,6 +207,28 @@ int32 UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbili
 		}
 	}
 	return -1;
+}
+
+void UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex)
+{
+	if (!AbilityClass)
+		return;
+	UGASAbilityBase* ability = NewObject<UGASAbilityBase>(GetOwner(), AbilityClass);
+	ability->OwningComp = this;
+	if (PawnInterface)
+	{
+		ability->POwner = PawnInterface->GetGamePawn();
+		ability->PCOwner = PawnInterface->GetGamePlayerController();
+		ability->OwnerCamera = PawnInterface->GetPawnCamera();
+		//ability->AIOwner = PawnInterface->GetGameController();
+	}
+	ActiveAbilityContainer.AddAbility(ability, SetIndex, SlotIndex);
+	ability->InitAbility();
+}
+
+void UGASAbilitiesComponent::RemoveAbilityFromActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex)
+{
+	ActiveAbilityContainer.RemoveAbility(AbilityClass, SetIndex, SlotIndex);
 }
 
 void UGASAbilitiesComponent::BP_GiveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass)
@@ -178,15 +245,24 @@ void UGASAbilitiesComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeP
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UGASAbilitiesComponent, InstancedAbilities);
+	DOREPLIFETIME(UGASAbilitiesComponent, ActiveAbilityContainer);
 }
+
 bool UGASAbilitiesComponent::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
 {
 	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
-	for (const FGASActiveAbilitySlot& ability : InstancedAbilities)
+	for (const FGASActiveAbility& ability : InstancedAbilities)
 	{
 		if (ability.ActiveAbility)
 		{
 			WroteSomething |= Channel->ReplicateSubobject(const_cast<UGASAbilityBase*>(ability.ActiveAbility), *Bunch, *RepFlags);
+		}
+	}
+	for (const FGASActiveAbilitySet& Set : ActiveAbilityContainer.AbilitySets)
+	{
+		for (const FGASActiveAbility& Ability : Set.Abilities)
+		{
+			WroteSomething |= Channel->ReplicateSubobject(const_cast<UGASAbilityBase*>(Ability.ActiveAbility), *Bunch, *RepFlags);
 		}
 	}
 	return WroteSomething;
@@ -198,7 +274,7 @@ void UGASAbilitiesComponent::GetSubobjectsWithStableNamesForNetworking(TArray<UO
 
 void UGASAbilitiesComponent::OnRep_InstancedAbilities()
 {
-	for (FGASActiveAbilitySlot& ab : InstancedAbilities)
+	for (FGASActiveAbility& ab : InstancedAbilities)
 	{
 		if (ab.ActiveAbility)// && !ab.ActiveAbility->GetIsInitialized())
 		{
@@ -218,9 +294,22 @@ void UGASAbilitiesComponent::OnRep_InstancedAbilities()
 
 void UGASAbilitiesComponent::InitializeInstancedAbilities()
 {
+	int32 SetIdx = 0;
+	for (FGASAbilitySetConfig& Set : InstancedAbilitiesConfig.Sets)
+	{
+		FGASActiveAbilitySet AbSet;
+		for (int32 Idx = 0; Idx < Set.MaxAbilities; Idx++)
+		{
+			FGASActiveAbility ab;
+			ab.SetIndex = SetIdx;
+			ab.SlotIndex = Idx;
+			AbSet.Abilities.Add(ab);
+		}
+		SetIdx++;
+	}
 	for (int32 Index = 0; Index < InstancedAbilitiesConfig.MaxAbilities; Index++)
 	{
-		FGASActiveAbilitySlot ActiveAbility;
+		FGASActiveAbility ActiveAbility;
 		ActiveAbility.SlotIndex = Index;
 		InstancedAbilities.Add(ActiveAbility);
 	}

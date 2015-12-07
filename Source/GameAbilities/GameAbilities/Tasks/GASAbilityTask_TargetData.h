@@ -11,7 +11,7 @@ UENUM()
 enum class EGASConfirmType : uint8
 {
 	Instant,
-	WaitForPlayer
+	WaitForConfirm
 };
 
 
@@ -19,7 +19,7 @@ enum class EGASConfirmType : uint8
  * 
  */
 UCLASS()
-class GAMEABILITIES_API UGASAbilityTask_TargetData : public UGASAbilityTask
+class GAMEABILITIES_API UGASAbilityTask_TargetData : public UGASAbilityTask, public FTickableGameObject
 {
 	GENERATED_BODY()
 public:
@@ -31,19 +31,31 @@ public:
 
 	EGASConfirmType ConfirmType;
 
+	float Range;
+	bool bIsTickable;
+	bool bDrawDebug;
+	bool bDrawCorrectedDebug;
+	bool bUseCorrectedTrace;
 public:
 	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "Game Abilities | Tasks")
-		static UGASAbilityTask_TargetData* CreateTargetDataTask(UObject* WorldContextObject, TSubclassOf<class UGASAbilityTargetingObject> Class, EGASConfirmType ConfirmTypeIn);
+		static UGASAbilityTask_TargetData* CreateTargetDataTask(UObject* WorldContextObject, 
+			bool bDrawDebug,
+			bool bDrawCorrectedDebug,
+			bool bUseCorrectedTrace,
+			EGASConfirmType ConfirmTypeIn,
+			float Range);
 
 	virtual void Activate() override;
 
-	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "Game Abilities")
-		bool BeginSpawningActor(UObject* WorldContextObject, TSubclassOf<class UGASAbilityTargetingObject> Class, class UGASAbilityTargetingObject*& SpawnedActor);
-
-	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "Game Abilities")
-		void FinishSpawningActor(UObject* WorldContextObject, class UGASAbilityTargetingObject* SpawnedActor);
-	//
-
 	UFUNCTION()
 		void OnConfirm();
+
+	/* FTickableGameObject Begin */
+	virtual void Tick(float DeltaTime) override;
+	virtual bool IsTickable() const override { return bIsTickable; }
+	virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UGASAbilityTask_TargetData, STATGROUP_Tickables); };
+	/* FTickableGameObject End */
+
+protected:
+	FHitResult LineTrace();
 };

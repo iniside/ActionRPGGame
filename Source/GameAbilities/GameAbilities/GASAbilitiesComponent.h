@@ -6,6 +6,8 @@
 #include "GameplayTasksComponent.h"
 #include "GASAbilitiesComponent.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_TwoParams(FGASOnActiveAbilityAdded, int32, int32);
+
 USTRUCT(BlueprintType)
 struct GAMEABILITIES_API FGASOwnedAbilities
 {
@@ -16,25 +18,88 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct GAMEABILITIES_API FGASActiveAbilitySlot
+struct GAMEABILITIES_API FGASActiveAbility
 {
 	GENERATED_USTRUCT_BODY()
 public:
 	UPROPERTY()
-	int32 SlotIndex;
+		int32 SetIndex;
+	UPROPERTY()
+		int32 SlotIndex;
 
 	UPROPERTY()
 	class UGASAbilityBase* ActiveAbility;
+
+	void SetAbility(class UGASAbilityBase* Ability, int32 SetIndexIn, int32 SlotIndexIn)
+	{
+		ActiveAbility = Ability;
+		SetIndex = SetIndexIn;
+		SlotIndex = SlotIndexIn;
+	}
+	
+	void Reset();
 
 	void OnAbilityAdded()
 	{
 	};
 
-	FGASActiveAbilitySlot()
+	FGASActiveAbility()
+		: SetIndex(INDEX_NONE),
+		SlotIndex(INDEX_NONE),
+		ActiveAbility(nullptr)
 	{
-		ActiveAbility = nullptr;
-		SlotIndex = INDEX_NONE;
 	};
+};
+/*
+	Contains sets of active abilities, which might coresspond to particular item slots/ability bars/etc.
+*/
+USTRUCT(BlueprintType)
+struct GAMEABILITIES_API FGASActiveAbilitySet
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY()
+		TArray<FGASActiveAbility> Abilities;
+
+	void SetAbility(class UGASAbilityBase* Ability, int32 SetIndexIn, int32 SlotIndexIn)
+	{
+		Abilities[SlotIndexIn].SetAbility(Ability, SetIndexIn, SlotIndexIn);
+	}
+};
+
+USTRUCT(BlueprintType)
+struct GAMEABILITIES_API FGASActiveAbilityContainer
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY()
+		TArray<FGASActiveAbilitySet> AbilitySets;
+
+	void AddAbility(class UGASAbilityBase* Ability, int32 SetIndex, int32 SlotIndex)
+	{
+		if (AbilitySets.IsValidIndex(SetIndex))
+		{
+			if (AbilitySets[SetIndex].Abilities.IsValidIndex(SlotIndex))
+			{
+				AbilitySets[SetIndex].SetAbility(Ability, SetIndex, SlotIndex);
+			}
+		}
+	}
+
+	void RemoveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex);
+};
+
+USTRUCT(BlueprintType)
+struct GAMEABILITIES_API FGASAbilitySetConfig
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	/* Name of the set. It's only for description purpose. */
+	UPROPERTY(EditAnywhere, Category = "Config")
+		FString SetName;
+
+	UPROPERTY(EditAnywhere, Category = "Config")
+		int32 MaxAbilities;
 };
 
 USTRUCT(BlueprintType)
@@ -42,6 +107,10 @@ struct GAMEABILITIES_API FGASActiveAbilitiesConfig
 {
 	GENERATED_USTRUCT_BODY()
 public:
+	/* Each element in this array coresponds to single set of abilities in FGASActiveAbilityContainer */
+	UPROPERTY(EditAnywhere, Category = "Config")
+		TArray<FGASAbilitySetConfig> Sets;
+
 	UPROPERTY(EditAnywhere, Category = "Config")
 		int32 MaxAbilities;
 };
@@ -54,7 +123,10 @@ public:
 	UGASAbilitiesComponent(const FObjectInitializer& ObjectInitializer);
 
 	UPROPERTY(ReplicatedUsing = OnRep_InstancedAbilities)
-		TArray<FGASActiveAbilitySlot> InstancedAbilities;
+		FGASActiveAbilityContainer ActiveAbilityContainer;
+
+	UPROPERTY(ReplicatedUsing = OnRep_InstancedAbilities)
+		TArray<FGASActiveAbility> InstancedAbilities;
 	UFUNCTION()
 		void OnRep_InstancedAbilities();
 
@@ -97,12 +169,18 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
 		void BP_AddAbility(TSubclassOf<class UGASAbilityBase> AbilityClass);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
+		void BP_RemoveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass);
 	/*
 		Should be called on server.
 		Adds new ability to ActiveAbilities;
 	*/
 	int32 AddAbilityToActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass);
+	void AddAbilityToActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex);
 
+	void RemoveAbilityFromActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex);
+	void RemoveAbilityFromActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass);
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
 		void BP_GiveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass);
 

@@ -37,6 +37,7 @@ namespace UnrealBuildTool.Rules
                     "Slate",
                     "SlateCore",
                     "GameplayTasks",
+                    "AIModule"
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);

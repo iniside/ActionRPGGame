@@ -6,13 +6,23 @@
 #include "GASAbilityTask_TargetData.h"
 
 
-UGASAbilityTask_TargetData* UGASAbilityTask_TargetData::CreateTargetDataTask(UObject* WorldContextObject, TSubclassOf<class UGASAbilityTargetingObject> Class, EGASConfirmType ConfirmTypeIn)
+UGASAbilityTask_TargetData* UGASAbilityTask_TargetData::CreateTargetDataTask(UObject* WorldContextObject, 
+	bool bDrawDebug,
+	bool bDrawCorrectedDebug,
+	bool bUseCorrectedTrace,
+	EGASConfirmType ConfirmTypeIn,
+	float Range)
 {
 	auto MyObj = NewAbilityTask<UGASAbilityTask_TargetData>(WorldContextObject);
 
 	if (MyObj)
 	{
+		MyObj->Range = Range;
 		MyObj->ConfirmType = ConfirmTypeIn;
+		MyObj->bIsTickable = false;
+		MyObj->bDrawDebug = bDrawDebug;
+		MyObj->bDrawCorrectedDebug = bDrawCorrectedDebug;
+		MyObj->bUseCorrectedTrace = bUseCorrectedTrace;
 	}
 	return MyObj;
 }
@@ -23,15 +33,18 @@ void UGASAbilityTask_TargetData::Activate()
 	{
 		case EGASConfirmType::Instant:
 		{
-			TargetObj->GetTarget();
+			FHitResult Hit = LineTrace();
+			OnReceiveTargetData.Broadcast(Hit);
+			EndTask();
 		}
-		case EGASConfirmType::WaitForPlayer:
+		case EGASConfirmType::WaitForConfirm:
 		{
 			if (Ability.IsValid())
 			{
 				if (!Ability->OnConfirmDelegate.IsBoundToObject(this))
 				{
 					Ability->OnConfirmDelegate.AddUObject(this, &UGASAbilityTask_TargetData::OnConfirm);
+					bIsTickable = true;
 				}
 			}
 		}
@@ -44,41 +57,95 @@ void UGASAbilityTask_TargetData::Activate()
 	{
 		UE_LOG(GameAbilities, Log, TEXT("TArget object is null."));
 	}
-	//EndTask();
 }
 
 // ---------------------------------------------------------------------------------------
 
-bool UGASAbilityTask_TargetData::BeginSpawningActor(UObject* WorldContextObject, TSubclassOf<UGASAbilityTargetingObject> Class, UGASAbilityTargetingObject*& SpawnedActor)
+void UGASAbilityTask_TargetData::OnConfirm()
 {
-	SpawnedActor = Class.GetDefaultObject();//NewObject<UGASAbilityTargetingObject>(WorldContextObject, Class);
+	FHitResult Hit = LineTrace();
+	OnReceiveTargetData.Broadcast(Hit);
+	bIsTickable = false;
+	EndTask();
+}
 
-	if (SpawnedActor == nullptr)
+void UGASAbilityTask_TargetData::Tick(float DeltaTime)
+{
+	FHitResult HitOut = LineTrace();
+}
+
+FHitResult UGASAbilityTask_TargetData::LineTrace()
+{
+	FHitResult HitOut;
+	APlayerController* PC = Ability->PCOwner;
+	APawn* P = Ability->POwner;
+	UCameraComponent* Camera = Ability->OwnerCamera;
+	FVector TraceStart;
+	FRotator UnusedRot;
+	if (PC)
 	{
-		//Failure.Broadcast(nullptr);
-		return false;
+		PC->PlayerCameraManager->GetCameraViewPoint(TraceStart, UnusedRot);
+//		TraceStart = Camera->GetComponentLocation();
 	}
 	else
 	{
-		TargetObj = SpawnedActor;
-		SpawnedActor->AbilityOwner = Ability;
+		UnusedRot = P->GetBaseAimRotation();
+		TraceStart = P->GetPawnViewLocation();
 	}
-	UE_LOG(GameAbilities, Log, TEXT("Begin Spawning Actor in GASAbilityTask_SpawnActor"));
-	return true;
-}
 
-void UGASAbilityTask_TargetData::FinishSpawningActor(UObject* WorldContextObject, UGASAbilityTargetingObject* SpawnedActor)
-{
-	if (SpawnedActor)
+	FVector TraceEnd = UnusedRot.Vector() * Range + TraceStart;
+	UWorld* World = GetWorld();
+	FCollisionQueryParams ColParams;
+	ColParams.AddIgnoredActor(P);
+	FCollisionResponseParams ColResp;
+	World->LineTraceSingleByChannel(HitOut, TraceStart, TraceEnd, ECollisionChannel::ECC_WorldStatic, ColParams, ColResp);
+	if (HitOut.bBlockingHit)
 	{
-		//Success.Broadcast(SpawnedActor);
+		FHitResult NewHit;
+		FVector Start = P->GetPawnViewLocation();
+		FVector NewDir = (HitOut.Location - Start).GetSafeNormal();
+		float Distance = FVector::Dist(Start, HitOut.Location);
+		FVector End = Start + (NewDir * Range);
+		World->LineTraceSingleByChannel(NewHit, Start, End, ECollisionChannel::ECC_WorldStatic, ColParams, ColResp);
+	
+		if (bDrawCorrectedDebug)
+		{
+			DrawDebugLine(GetWorld(), Start, End, FColor::Green, true, GetWorld()->DeltaTimeSeconds);
+			if (NewHit.bBlockingHit)
+			{
+				DrawDebugLine(GetWorld(), Start, NewHit.Location, FColor::Magenta, true, GetWorld()->DeltaTimeSeconds);
+				DrawDebugPoint(GetWorld(), NewHit.Location, 8, FColor::Magenta, true, GetWorld()->DeltaTimeSeconds);
+			}
+		}
 	}
-	UE_LOG(GameAbilities, Log, TEXT("Finish Spawning Actor in GASAbilityTask_SpawnActor"));
-	ReadyForActivation();
-}
+	else
+	{
+		FHitResult NewHit;
+		FVector Start = P->GetPawnViewLocation();
+		FVector NewDir = (TraceEnd - Start).GetSafeNormal();
+		float Distance = Range - FVector::Dist(TraceStart, Start);
+		FVector End = Start + (NewDir * Distance);
 
-void UGASAbilityTask_TargetData::OnConfirm()
-{
-	TargetObj->GetTarget();
-	EndTask();
+		World->LineTraceSingleByChannel(NewHit, Start, End, ECollisionChannel::ECC_WorldStatic, ColParams, ColResp);
+
+		if (bDrawCorrectedDebug)
+		{
+			DrawDebugLine(GetWorld(), Start, End, FColor::Green, true, GetWorld()->DeltaTimeSeconds);
+			if (NewHit.bBlockingHit)
+			{
+				DrawDebugLine(GetWorld(), Start, NewHit.Location, FColor::Magenta, true, GetWorld()->DeltaTimeSeconds);
+				DrawDebugPoint(GetWorld(), NewHit.Location, 8, FColor::Magenta, true, GetWorld()->DeltaTimeSeconds);
+			}
+		}
+	}
+	if (bDrawDebug)
+	{
+		if (HitOut.bBlockingHit)
+		{
+			DrawDebugLine(GetWorld(), TraceStart, HitOut.ImpactPoint, FColor::Red, true, GetWorld()->DeltaTimeSeconds);
+			DrawDebugPoint(GetWorld(), HitOut.Location, 8, FColor::Red, true, GetWorld()->DeltaTimeSeconds);
+		}
+		DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Green, true, GetWorld()->DeltaTimeSeconds);
+	}
+	return HitOut;
 }
