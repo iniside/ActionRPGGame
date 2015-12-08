@@ -35,7 +35,32 @@ void FGASActiveAbilityContainer::RemoveAbility(TSubclassOf<class UGASAbilityBase
 		}
 	}
 }
-
+bool FGASActiveAbilityContainer::CanUseAbility(int32 SetIndex, int32 SlotIndex)
+{
+	if (AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility
+		&& AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility->CanUseAbility())
+	{
+		return true;
+	}
+	return false;
+}
+bool FGASActiveAbilityContainer::IsWaitingForConfirm(int32 SetIndex, int32 SlotIndex)
+{
+	if (AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility
+		&& AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility->IsWaitingForConfirm())
+	{
+		return true;
+	}
+	return false;
+}
+void FGASActiveAbilityContainer::ConfirmAbility(int32 SetIndex, int32 SlotIndex)
+{
+	AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility->ConfirmAbility();
+}
+void FGASActiveAbilityContainer::OnNativeInputPressed(int32 SetIndex, int32 SlotIndex)
+{
+	AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility->OnNativeInputPressed();
+}
 UGASAbilitiesComponent::UGASAbilitiesComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -59,31 +84,32 @@ void UGASAbilitiesComponent::InitializeComponent()
 
 	InitializeInstancedAbilities();
 }
-
-void UGASAbilitiesComponent::InputPressed(int32 AbilityId)
+void UGASAbilitiesComponent::BP_InputPressed(int32 SetIndex, int32 SlotIndex)
 {
-	//if we can't activate ability there is no reason to go further.
-	if (AbilityId < 0)
+	NativeInputPressed(SetIndex, SlotIndex);
+}
+void UGASAbilitiesComponent::NativeInputPressed(int32 SetIndex, int32 SlotIndex)
+{
+	if (SetIndex < 0 || SlotIndex < 0)
 		return;
 	if (!CanActivateAbility())
 		return;
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
-		if (InstancedAbilities.Num() <= 0)
+		if (!ActiveAbilityContainer.IsValid(SetIndex, SlotIndex))
 			return;
 		//no ability on client. No RPC.
-		if (InstancedAbilities[AbilityId].ActiveAbility 
-			&& InstancedAbilities[AbilityId].ActiveAbility->CanUseAbility())
+		if (ActiveAbilityContainer.CanUseAbility(SetIndex, SlotIndex))
 		{
 			//waiting for confirmation is exclusive at least now, ability either wait or not.
-			if (InstancedAbilities[AbilityId].ActiveAbility->IsWaitingForConfirm())
+			if (ActiveAbilityContainer.IsWaitingForConfirm(SetIndex, SlotIndex))
 			{
-				InstancedAbilities[AbilityId].ActiveAbility->ConfirmAbility();
+				ActiveAbilityContainer.ConfirmAbility(SetIndex, SlotIndex);
 			}
 			else
 			{
-				InstancedAbilities[AbilityId].ActiveAbility->OnNativeInputPressed();
-				ServerInputPressed(AbilityId);
+				ActiveAbilityContainer.OnNativeInputPressed(SetIndex, SlotIndex);
+				ServerNativeInputPressed(SetIndex, SlotIndex);
 			}
 		}
 		//right now we will use simple prediction, which means just run ability on client
@@ -93,33 +119,33 @@ void UGASAbilitiesComponent::InputPressed(int32 AbilityId)
 	}
 	else
 	{
-		if (InstancedAbilities.Num() <= 0)
+		if (!ActiveAbilityContainer.IsValid(SetIndex, SlotIndex))
 			return;
-
-		if (InstancedAbilities[AbilityId].ActiveAbility
-			&& InstancedAbilities[AbilityId].ActiveAbility->CanUseAbility())
+		//no ability on client. No RPC.
+		if (ActiveAbilityContainer.CanUseAbility(SetIndex, SlotIndex))
 		{
-			if (InstancedAbilities[AbilityId].ActiveAbility->IsWaitingForConfirm())
+			//waiting for confirmation is exclusive at least now, ability either wait or not.
+			if (ActiveAbilityContainer.IsWaitingForConfirm(SetIndex, SlotIndex))
 			{
-				InstancedAbilities[AbilityId].ActiveAbility->ConfirmAbility();
+				ActiveAbilityContainer.ConfirmAbility(SetIndex, SlotIndex);
 			}
 			else
 			{
-				InstancedAbilities[AbilityId].ActiveAbility->OnNativeInputPressed();
+				ActiveAbilityContainer.OnNativeInputPressed(SetIndex, SlotIndex);
 			}
 		}
 
 	}
 }
-void UGASAbilitiesComponent::ServerInputPressed_Implementation(int32 AbilityId)
+
+void UGASAbilitiesComponent::ServerNativeInputPressed_Implementation(int32 SetIndex, int32 SlotIndex)
 {
-	InputPressed(AbilityId);
+	NativeInputPressed(SetIndex, SlotIndex);
 }
-bool UGASAbilitiesComponent::ServerInputPressed_Validate(int32 AbilityId)
+bool UGASAbilitiesComponent::ServerNativeInputPressed_Validate(int32 SetIndex, int32 SlotIndex)
 {
 	return true;
 }
-
 
 void UGASAbilitiesComponent::InputReleased(int32 AbilityId)
 {
@@ -156,7 +182,10 @@ bool UGASAbilitiesComponent::ServerInputReleased_Validate(int32 AbilityId)
 {
 	return true;
 }
-
+void UGASAbilitiesComponent::BP_AddAbility2(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex)
+{
+	AddAbilityToActiveList(AbilityClass, SetIndex, SlotIndex);
+}
 void UGASAbilitiesComponent::BP_AddAbility(TSubclassOf<class UGASAbilityBase> AbilityClass)
 {
 	AddAbilityToActiveList(AbilityClass);
@@ -177,6 +206,7 @@ void UGASAbilitiesComponent::RemoveAbilityFromActiveList(TSubclassOf<class UGASA
 		}
 	}
 }
+
 void UGASAbilitiesComponent::BP_RemoveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass)
 {
 	RemoveAbilityFromActiveList(AbilityClass);
@@ -305,6 +335,7 @@ void UGASAbilitiesComponent::InitializeInstancedAbilities()
 			ab.SlotIndex = Idx;
 			AbSet.Abilities.Add(ab);
 		}
+		ActiveAbilityContainer.AbilitySets.Add(AbSet);
 		SetIdx++;
 	}
 	for (int32 Index = 0; Index < InstancedAbilitiesConfig.MaxAbilities; Index++)

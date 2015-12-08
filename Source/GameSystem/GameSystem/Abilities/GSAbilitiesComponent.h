@@ -103,13 +103,13 @@ public:
 		Automatically inserts ability into action bar.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Ability System")
-		void GiveAbilityAndInsert(TSubclassOf<class  UGSAbility> AbilityIn);
+		void GiveAbilityAndInsert(TSubclassOf<class  UGSAbility> AbilityIn, int32 SetIndex, int32 SlotIndex);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerGiveAbilityAndInsert(TSubclassOf<class  UGSAbility> AbilityIn);
+		void ServerGiveAbilityAndInsert(TSubclassOf<class  UGSAbility> AbilityIn, int32 SetIndex, int32 SlotIndex);
 
-	virtual void ServerGiveAbilityAndInsert_Implementation(TSubclassOf<class  UGSAbility> AbilityIn);
-	virtual bool ServerGiveAbilityAndInsert_Validate(TSubclassOf<class  UGSAbility> AbilityIn);
+	virtual void ServerGiveAbilityAndInsert_Implementation(TSubclassOf<class  UGSAbility> AbilityIn, int32 SetIndex, int32 SlotIndex);
+	virtual bool ServerGiveAbilityAndInsert_Validate(TSubclassOf<class  UGSAbility> AbilityIn, int32 SetIndex, int32 SlotIndex );
 	/*
 		Gives Ability to this pawn, inserting into list of available abilities.
 	*/

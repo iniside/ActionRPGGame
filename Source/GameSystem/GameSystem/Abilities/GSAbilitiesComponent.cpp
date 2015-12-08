@@ -97,7 +97,7 @@ void UGSAbilitiesComponent::InputPressed(int32 SetIndex, int32 SlotIndex)
 	CurrentAbility = AbilitySets[SetIndex].AbilitySlots[SlotIndex].AbilityIndex;
 	if (CurrentAbility < 0)
 		return;
-	UGASAbilitiesComponent::InputPressed(CurrentAbility);
+	UGASAbilitiesComponent::NativeInputPressed(SetIndex, SlotIndex);
 	OnGetAbilityIndex.ExecuteIfBound(CurrentAbility);
 	OnAbilityPressedIndex.Broadcast(CurrentAbility);
 	//if (InstancedAbilities[CurrentAbility].ActiveAbility
@@ -111,15 +111,16 @@ void UGSAbilitiesComponent::InputReleased(int32 SetIndex, int32 SlotIndex)
 	UGASAbilitiesComponent::InputReleased(AbilitySets[SetIndex].AbilitySlots[SlotIndex].AbilityIndex);
 }
 
-void UGSAbilitiesComponent::GiveAbilityAndInsert(TSubclassOf<class  UGSAbility> AbilityIn)
+void UGSAbilitiesComponent::GiveAbilityAndInsert(TSubclassOf<class  UGSAbility> AbilityIn, int32 SetIndex, int32 SlotIndex)
 {
 	if (GetOwnerRole() < ROLE_Authority)
 	{
-		ServerGiveAbilityAndInsert(AbilityIn);
+		ServerGiveAbilityAndInsert(AbilityIn, SetIndex, SlotIndex);
 	}
 	else
 	{
-		int32 abIndex = AddAbilityToActiveList(AbilityIn);
+		int32 abIndex = 0;
+		AddAbilityToActiveList(AbilityIn, SetIndex, SlotIndex);
 
 		if (abIndex != -1)
 		{
@@ -141,11 +142,11 @@ void UGSAbilitiesComponent::GiveAbilityAndInsert(TSubclassOf<class  UGSAbility> 
 		}
 	}
 }
-void UGSAbilitiesComponent::ServerGiveAbilityAndInsert_Implementation(TSubclassOf<class  UGSAbility> AbilityIn)
+void UGSAbilitiesComponent::ServerGiveAbilityAndInsert_Implementation(TSubclassOf<class  UGSAbility> AbilityIn, int32 SetIndex, int32 SlotIndex)
 {
-	GiveAbilityAndInsert(AbilityIn);
+	GiveAbilityAndInsert(AbilityIn, SetIndex, SlotIndex);
 }
-bool UGSAbilitiesComponent::ServerGiveAbilityAndInsert_Validate(TSubclassOf<class  UGSAbility> AbilityIn)
+bool UGSAbilitiesComponent::ServerGiveAbilityAndInsert_Validate(TSubclassOf<class  UGSAbility> AbilityIn, int32 SetIndex, int32 SlotIndex)
 {
 	return true;
 }

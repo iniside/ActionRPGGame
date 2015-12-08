@@ -74,6 +74,20 @@ struct GAMEABILITIES_API FGASActiveAbilityContainer
 public:
 	UPROPERTY()
 		TArray<FGASActiveAbilitySet> AbilitySets;
+	bool IsValid(int32 SetIndex, int32 SlotIndex)
+	{
+		if (AbilitySets.IsValidIndex(SetIndex))
+		{
+			if (AbilitySets[SetIndex].Abilities.IsValidIndex(SlotIndex))
+			{
+				if (AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility)
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	void AddAbility(class UGASAbilityBase* Ability, int32 SetIndex, int32 SlotIndex)
 	{
@@ -86,6 +100,10 @@ public:
 		}
 	}
 
+	bool CanUseAbility(int32 SetIndex, int32 SlotIndex);
+	bool IsWaitingForConfirm(int32 SetIndex, int32 SlotIndex);
+	void ConfirmAbility(int32 SetIndex, int32 SlotIndex);
+	void OnNativeInputPressed(int32 SetIndex, int32 SlotIndex);
 	void RemoveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex);
 };
 
@@ -155,11 +173,14 @@ public:
 		return nullptr;
 	}
 
-	void InputPressed(int32 AbilityId);
+	UFUNCTION(BlueprintCallable, meta=(DisplayName="Input Pressed"), Category = "Game Abilities")
+		void BP_InputPressed(int32 SetIndex, int32 SlotIndex);
+
+	void NativeInputPressed(int32 SetIndex, int32 SlotIndex);
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerInputPressed(int32 AbilityId);
-	virtual void ServerInputPressed_Implementation(int32 AbilityId);
-	virtual bool ServerInputPressed_Validate(int32 AbilityId);
+		void ServerNativeInputPressed(int32 SetIndex, int32 SlotIndex);
+	virtual void ServerNativeInputPressed_Implementation(int32 SetIndex, int32 SlotIndex);
+	virtual bool ServerNativeInputPressed_Validate(int32 SetIndex, int32 SlotIndex);
 
 	void InputReleased(int32 AbilityId);
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -169,6 +190,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
 		void BP_AddAbility(TSubclassOf<class UGASAbilityBase> AbilityClass);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
+		void BP_AddAbility2(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
 		void BP_RemoveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass);
@@ -181,6 +205,7 @@ public:
 
 	void RemoveAbilityFromActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex);
 	void RemoveAbilityFromActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass);
+
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
 		void BP_GiveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass);
 
