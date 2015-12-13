@@ -71,6 +71,8 @@ public:
 		APlayerController* PCOwner;
 	UPROPERTY(BlueprintReadOnly, Category = "Default")
 		class AAIController* AICOwner;
+	UPROPERTY(BlueprintReadOnly, Category = "Default")
+		class UGASAbilitiesComponent* AbilityComponent;
 	/* 
 		Actor which either represents this ability in the world, or
 		is used as required "prop" for ability to work.
@@ -160,6 +162,10 @@ public:
 	virtual void OnAbilityCancelNative();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
 		void OnAbilityCancel();
+
+	/* Event called when ability finishes it's execution. Called AFTER OnAbilityExecuted. */
+	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
+		void OnFinishExecution();
 
 	UFUNCTION(BlueprintCallable, Category = "Game Abilities")
 		void FinishExecution();

@@ -7,6 +7,8 @@
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
 
+#include "GASInputOverride.h"
+
 #include "IGIPawn.h"
 
 #include "GASAbilitiesComponent.h"
@@ -61,6 +63,10 @@ void FGASActiveAbilityContainer::OnNativeInputPressed(int32 SetIndex, int32 Slot
 {
 	AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility->OnNativeInputPressed();
 }
+void FGASActiveAbilityContainer::OnNativeInputReleased(int32 SetIndex, int32 SlotIndex)
+{
+	AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility->OnNativeInputReleased();
+}
 UGASAbilitiesComponent::UGASAbilitiesComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -88,7 +94,7 @@ void UGASAbilitiesComponent::BP_InputPressed(int32 SetIndex, int32 SlotIndex)
 {
 	NativeInputPressed(SetIndex, SlotIndex);
 }
-void UGASAbilitiesComponent::NativeInputPressed(int32 SetIndex, int32 SlotIndex)
+void UGASAbilitiesComponent::NativeInputPressed(int32 SetIndex, int32 SlotIndex, int32 AbilityIndex)
 {
 	if (SetIndex < 0 || SlotIndex < 0)
 		return;
@@ -96,6 +102,11 @@ void UGASAbilitiesComponent::NativeInputPressed(int32 SetIndex, int32 SlotIndex)
 		return;
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
+		if (ActiveAbilityContainer.AbilitySets[SetIndex].InputOverride)
+		{
+			ActiveAbilityContainer.AbilitySets[SetIndex].InputOverride->NativeInputPressed(SlotIndex);
+			return;
+		}
 		if (!ActiveAbilityContainer.IsValid(SetIndex, SlotIndex))
 			return;
 		//no ability on client. No RPC.
@@ -109,7 +120,7 @@ void UGASAbilitiesComponent::NativeInputPressed(int32 SetIndex, int32 SlotIndex)
 			else
 			{
 				ActiveAbilityContainer.OnNativeInputPressed(SetIndex, SlotIndex);
-				ServerNativeInputPressed(SetIndex, SlotIndex);
+				ServerNativeInputPressed(SetIndex, SlotIndex, AbilityIndex);
 			}
 		}
 		//right now we will use simple prediction, which means just run ability on client
@@ -119,6 +130,11 @@ void UGASAbilitiesComponent::NativeInputPressed(int32 SetIndex, int32 SlotIndex)
 	}
 	else
 	{
+		if (ActiveAbilityContainer.AbilitySets[SetIndex].InputOverride)
+		{
+			ActiveAbilityContainer.AbilitySets[SetIndex].InputOverride->NativeInputPressed(SlotIndex);
+			return;
+		}
 		if (!ActiveAbilityContainer.IsValid(SetIndex, SlotIndex))
 			return;
 		//no ability on client. No RPC.
@@ -131,60 +147,75 @@ void UGASAbilitiesComponent::NativeInputPressed(int32 SetIndex, int32 SlotIndex)
 			}
 			else
 			{
-				ActiveAbilityContainer.OnNativeInputPressed(SetIndex, SlotIndex);
+				ActiveAbilityContainer.AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities[AbilityIndex]->OnNativeInputPressed();
+				//ActiveAbilityContainer.OnNativeInputPressed(SetIndex, SlotIndex);
 			}
 		}
 
 	}
 }
 
-void UGASAbilitiesComponent::ServerNativeInputPressed_Implementation(int32 SetIndex, int32 SlotIndex)
+void UGASAbilitiesComponent::ServerNativeInputPressed_Implementation(int32 SetIndex, int32 SlotIndex, int32 AbilityIndex)
 {
-	NativeInputPressed(SetIndex, SlotIndex);
+	NativeInputPressed(SetIndex, SlotIndex, AbilityIndex);
 }
-bool UGASAbilitiesComponent::ServerNativeInputPressed_Validate(int32 SetIndex, int32 SlotIndex)
+bool UGASAbilitiesComponent::ServerNativeInputPressed_Validate(int32 SetIndex, int32 SlotIndex, int32 AbilityIndex)
 {
 	return true;
 }
 
-void UGASAbilitiesComponent::InputReleased(int32 AbilityId)
+void UGASAbilitiesComponent::BP_InputReleased(int32 SetIndex, int32 SlotIndex)
+{
+	NativeInputReleased(SetIndex, SlotIndex);
+}
+
+void UGASAbilitiesComponent::NativeInputReleased(int32 SetIndex, int32 SlotIndex, int32 AbilityIndex)
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
-		if (InstancedAbilities.Num() <= 0)
+		if (!ActiveAbilityContainer.IsValid(SetIndex, SlotIndex))
 			return;
 
-		if (InstancedAbilities[AbilityId].ActiveAbility
-			&& InstancedAbilities[AbilityId].ActiveAbility->CanUseAbility())
+		if (ActiveAbilityContainer.CanUseAbility(SetIndex, SlotIndex))
 		{
-			if(!InstancedAbilities[AbilityId].ActiveAbility->IsWaitingForConfirm())
-				InstancedAbilities[AbilityId].ActiveAbility->OnNativeInputReleased();
+			if (!ActiveAbilityContainer.IsWaitingForConfirm(SetIndex, SlotIndex))
+				ActiveAbilityContainer.OnNativeInputReleased(SetIndex, SlotIndex);
 		}
-		ServerInputReleased(AbilityId);
+		ServerNativeInputReleased(SetIndex, SlotIndex, AbilityIndex);
 	}
 	else
 	{
-		if (InstancedAbilities.Num() <= 0)
-			return;
-		if (InstancedAbilities[AbilityId].ActiveAbility
-			&& InstancedAbilities[AbilityId].ActiveAbility->CanUseAbility())
+		if (ActiveAbilityContainer.AbilitySets[SetIndex].InputOverride)
 		{
-			if (!InstancedAbilities[AbilityId].ActiveAbility->IsWaitingForConfirm())
-				InstancedAbilities[AbilityId].ActiveAbility->OnNativeInputReleased();
+			ActiveAbilityContainer.AbilitySets[SetIndex].InputOverride->NativeInputReleased(SlotIndex);
+			return;
+		}
+
+		if (!ActiveAbilityContainer.IsValid(SetIndex, SlotIndex))
+			return;
+
+		if (ActiveAbilityContainer.CanUseAbility(SetIndex, SlotIndex))
+		{
+			if (!ActiveAbilityContainer.IsWaitingForConfirm(SetIndex, SlotIndex))
+				ActiveAbilityContainer.AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities[AbilityIndex]->OnNativeInputReleased();
+
+			//	ActiveAbilityContainer.OnNativeInputReleased(SetIndex, SlotIndex);
 		}
 	}
 }
-void UGASAbilitiesComponent::ServerInputReleased_Implementation(int32 AbilityId)
+
+void UGASAbilitiesComponent::ServerNativeInputReleased_Implementation(int32 SetIndex, int32 SlotIndex, int32 AbilityIndex)
 {
-	InputReleased(AbilityId);
+	NativeInputReleased(SetIndex, SlotIndex, AbilityIndex);
 }
-bool UGASAbilitiesComponent::ServerInputReleased_Validate(int32 AbilityId)
+bool UGASAbilitiesComponent::ServerNativeInputReleased_Validate(int32 SetIndex, int32 SlotIndex, int32 AbilityIndex)
 {
 	return true;
 }
-void UGASAbilitiesComponent::BP_AddAbility2(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex)
+
+void UGASAbilitiesComponent::BP_AddAbility2(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 AbilityIndex)
 {
-	AddAbilityToActiveList(AbilityClass, SetIndex, SlotIndex);
+	AddAbilityToActiveList(AbilityClass, SetIndex, SlotIndex, AbilityIndex);
 }
 void UGASAbilitiesComponent::BP_AddAbility(TSubclassOf<class UGASAbilityBase> AbilityClass)
 {
@@ -230,6 +261,7 @@ int32 UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbili
 					//ability->AIOwner = PawnInterface->GetGameController();
 				}
 				ab.ActiveAbility = ability;
+				ability->AbilityComponent = this;
 				ability->InitAbility();
 				return slotCounter;
 			}
@@ -239,7 +271,7 @@ int32 UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbili
 	return -1;
 }
 
-void UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex)
+void UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 AbilityIndex)
 {
 	if (!AbilityClass)
 		return;
@@ -253,6 +285,8 @@ void UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbilit
 		//ability->AIOwner = PawnInterface->GetGameController();
 	}
 	ActiveAbilityContainer.AddAbility(ability, SetIndex, SlotIndex);
+	ActiveAbilityContainer.AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities[AbilityIndex] = ability;
+	ability->AbilityComponent = this;
 	ability->InitAbility();
 }
 
@@ -294,6 +328,13 @@ bool UGASAbilitiesComponent::ReplicateSubobjects(class UActorChannel *Channel, c
 		{
 			WroteSomething |= Channel->ReplicateSubobject(const_cast<UGASAbilityBase*>(Ability.ActiveAbility), *Bunch, *RepFlags);
 		}
+		for (const FGASActiveAbility& ability : Set.Abilities)
+		{
+			for (const UGASAbilityBase* Ability : ability.ActiveAbilities)
+			{
+				WroteSomething |= Channel->ReplicateSubobject(const_cast<UGASAbilityBase*>(Ability), *Bunch, *RepFlags);
+			}
+		}
 	}
 	return WroteSomething;
 }
@@ -317,6 +358,7 @@ void UGASAbilitiesComponent::OnRep_InstancedAbilities()
 
 				//ability->AIOwner = PawnInterface->GetGameController();
 			}
+			ab.ActiveAbility->AbilityComponent = this;
 			ab.ActiveAbility->InitAbility();
 		}
 	}
@@ -325,23 +367,27 @@ void UGASAbilitiesComponent::OnRep_InstancedAbilities()
 void UGASAbilitiesComponent::InitializeInstancedAbilities()
 {
 	int32 SetIdx = 0;
-	for (FGASAbilitySetConfig& Set : InstancedAbilitiesConfig.Sets)
+	for (FGASAbilitySetConfig& Set : AbilitiesConfig.Sets)
 	{
 		FGASActiveAbilitySet AbSet;
-		for (int32 Idx = 0; Idx < Set.MaxAbilities; Idx++)
+		for (int32 Idx = 0; Idx < Set.MaxSlots; Idx++)
 		{
 			FGASActiveAbility ab;
 			ab.SetIndex = SetIdx;
 			ab.SlotIndex = Idx;
+			if (Set.MaxAbilitiesInSlot > 0)
+				ab.ActiveAbilities.SetNum(Set.MaxAbilitiesInSlot);
+			else
+				ab.ActiveAbilities.SetNum(1);
 			AbSet.Abilities.Add(ab);
 		}
 		ActiveAbilityContainer.AbilitySets.Add(AbSet);
 		SetIdx++;
 	}
-	for (int32 Index = 0; Index < InstancedAbilitiesConfig.MaxAbilities; Index++)
+	if (ActiveAbilityContainer.AbilitySets.IsValidIndex(0))
 	{
-		FGASActiveAbility ActiveAbility;
-		ActiveAbility.SlotIndex = Index;
-		InstancedAbilities.Add(ActiveAbility);
+		ActiveAbilityContainer.AbilitySets[0].InputOverride = NewObject<UGASInputOverride>();
+		ActiveAbilityContainer.AbilitySets[0].InputOverride->AbilityComp = this;
+		ActiveAbilityContainer.AbilitySets[0].InputOverride->SetIndex = 0;
 	}
 }

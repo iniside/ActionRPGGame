@@ -7,7 +7,8 @@
 #include "GASAbilitiesComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FGASOnActiveAbilityAdded, int32, int32);
-
+/* TODO:: Implement fast serialization for structs. */
+/**/
 USTRUCT(BlueprintType)
 struct GAMEABILITIES_API FGASOwnedAbilities
 {
@@ -29,6 +30,10 @@ public:
 
 	UPROPERTY()
 	class UGASAbilityBase* ActiveAbility;
+
+	/* by default there is single active ability, at index 0 */
+	UPROPERTY()
+		TArray<class UGASAbilityBase*> ActiveAbilities;
 
 	void SetAbility(class UGASAbilityBase* Ability, int32 SetIndexIn, int32 SlotIndexIn)
 	{
@@ -58,6 +63,14 @@ struct GAMEABILITIES_API FGASActiveAbilitySet
 {
 	GENERATED_USTRUCT_BODY()
 public:
+	/* 
+		Class designited for handling input for abilities in set.
+		Makes possible to encapsule behaviors like chained abilities and combos (press 1,1 and then 3
+		to get special ability), within single object, which will depend on abilities in particular set.
+	*/
+	UPROPERTY()
+		class UGASInputOverride* InputOverride;
+
 	UPROPERTY()
 		TArray<FGASActiveAbility> Abilities;
 
@@ -74,6 +87,10 @@ struct GAMEABILITIES_API FGASActiveAbilityContainer
 public:
 	UPROPERTY()
 		TArray<FGASActiveAbilitySet> AbilitySets;
+	//SetIndex, SlotIndex, AbilityIndex (??? LOLLMAO ROFL?)
+	UPROPERTY()
+		TArray<FGASActiveAbilitySet> AbilitySets2;
+
 	bool IsValid(int32 SetIndex, int32 SlotIndex)
 	{
 		if (AbilitySets.IsValidIndex(SetIndex))
@@ -104,6 +121,7 @@ public:
 	bool IsWaitingForConfirm(int32 SetIndex, int32 SlotIndex);
 	void ConfirmAbility(int32 SetIndex, int32 SlotIndex);
 	void OnNativeInputPressed(int32 SetIndex, int32 SlotIndex);
+	void OnNativeInputReleased(int32 SetIndex, int32 SlotIndex);
 	void RemoveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex);
 };
 
@@ -116,8 +134,15 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Config")
 		FString SetName;
 
+	/* Maximum amount of slots in single set.*/
 	UPROPERTY(EditAnywhere, Category = "Config")
-		int32 MaxAbilities;
+		int32 MaxSlots;
+	/* 
+		Maximum amount of abilities in single slot. If left at 0 or less it will assume
+		one ability per slot.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Config")
+		int32 MaxAbilitiesInSlot;
 };
 
 USTRUCT(BlueprintType)
@@ -149,7 +174,10 @@ public:
 		void OnRep_InstancedAbilities();
 
 	UPROPERTY(EditAnywhere, Category = "Config")
-		FGASActiveAbilitiesConfig InstancedAbilitiesConfig;
+		FGASActiveAbilitiesConfig AbilitiesConfig;
+	/* Ability which is currently being executed. */
+	UPROPERTY(BlueprintReadOnly, Category = "Game Abilities")
+		class UGASAbilityBase* ExecutingAbility;
 
 	/*
 		True if player is currently casting/channeling/activating(?)
@@ -176,23 +204,26 @@ public:
 	UFUNCTION(BlueprintCallable, meta=(DisplayName="Input Pressed"), Category = "Game Abilities")
 		void BP_InputPressed(int32 SetIndex, int32 SlotIndex);
 
-	void NativeInputPressed(int32 SetIndex, int32 SlotIndex);
+	void NativeInputPressed(int32 SetIndex, int32 SlotIndex, int32 AbilityIndex = 0);
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerNativeInputPressed(int32 SetIndex, int32 SlotIndex);
-	virtual void ServerNativeInputPressed_Implementation(int32 SetIndex, int32 SlotIndex);
-	virtual bool ServerNativeInputPressed_Validate(int32 SetIndex, int32 SlotIndex);
+		void ServerNativeInputPressed(int32 SetIndex, int32 SlotIndex, int32 AbilityIndex = 0);
+	virtual void ServerNativeInputPressed_Implementation(int32 SetIndex, int32 SlotIndex, int32 AbilityIndex = 0);
+	virtual bool ServerNativeInputPressed_Validate(int32 SetIndex, int32 SlotIndex, int32 AbilityIndex = 0);
 
-	void InputReleased(int32 AbilityId);
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Input Released"), Category = "Game Abilities")
+		void BP_InputReleased(int32 SetIndex, int32 SlotIndex);
+
+	void NativeInputReleased(int32 SetIndex, int32 SlotIndex, int32 AbilityIndex = 0);
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerInputReleased(int32 AbilityId);
-	virtual void ServerInputReleased_Implementation(int32 AbilityId);
-	virtual bool ServerInputReleased_Validate(int32 AbilityId);
+		void ServerNativeInputReleased(int32 SetIndex, int32 SlotIndex, int32 AbilityIndex = 0);
+	virtual void ServerNativeInputReleased_Implementation(int32 SetIndex, int32 SlotIndex, int32 AbilityIndex = 0);
+	virtual bool ServerNativeInputReleased_Validate(int32 SetIndex, int32 SlotIndex, int32 AbilityIndex = 0);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
 		void BP_AddAbility(TSubclassOf<class UGASAbilityBase> AbilityClass);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
-		void BP_AddAbility2(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex);
+		void BP_AddAbility2(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 AbilityIndex = 0);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
 		void BP_RemoveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass);
@@ -201,7 +232,7 @@ public:
 		Adds new ability to ActiveAbilities;
 	*/
 	int32 AddAbilityToActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass);
-	void AddAbilityToActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex);
+	void AddAbilityToActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 AbilityIndex = 0);
 
 	void RemoveAbilityFromActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex);
 	void RemoveAbilityFromActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass);

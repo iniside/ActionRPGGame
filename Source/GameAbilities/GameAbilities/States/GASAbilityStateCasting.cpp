@@ -53,6 +53,7 @@ void UGASAbilityStateCasting::EndState()
 {
 	UE_LOG(GameAbilities, Log, TEXT("Ending State: %s"), *GetName());
 	GetOuterUGASAbilityBase()->OnAbilityExecutedNative();
+	GetOuterUGASAbilityBase()->NativeFinishExecution();
 }
 void UGASAbilityStateCasting::BeginActionSequence()
 {}

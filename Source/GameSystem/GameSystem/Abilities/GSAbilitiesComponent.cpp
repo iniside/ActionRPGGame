@@ -108,7 +108,7 @@ void UGSAbilitiesComponent::InputPressed(int32 SetIndex, int32 SlotIndex)
 }
 void UGSAbilitiesComponent::InputReleased(int32 SetIndex, int32 SlotIndex)
 {
-	UGASAbilitiesComponent::InputReleased(AbilitySets[SetIndex].AbilitySlots[SlotIndex].AbilityIndex);
+	UGASAbilitiesComponent::NativeInputReleased(SetIndex, SlotIndex);
 }
 
 void UGSAbilitiesComponent::GiveAbilityAndInsert(TSubclassOf<class  UGSAbility> AbilityIn, int32 SetIndex, int32 SlotIndex)

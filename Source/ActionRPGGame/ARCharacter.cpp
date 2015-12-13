@@ -186,6 +186,12 @@ void AARCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
     InputComponent->BindAction("ShowInventory", IE_Pressed, this, &AARCharacter::ShowHideInventory);
     InputComponent->BindAction("ShowHideAbilityBook", IE_Pressed, this, &AARCharacter::ShowHideAbilityBook);
 
+	InputComponent->BindAction("LeftMouseButton", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 0>);
+	InputComponent->BindAction("LeftMouseButton", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 0>);
+
+	InputComponent->BindAction("RightMouseButton", IE_Pressed, this, &AARCharacter::InputActionBarPressed<1, 1>);
+	InputComponent->BindAction("RightMouseButton", IE_Released, this, &AARCharacter::InputActionBarReleased<1, 1>);
+
     InputComponent->BindAction("ActionButtonTab0Slot0", IE_Pressed, this, &AARCharacter::InputActionBarPressed<0, 0>);
     InputComponent->BindAction("ActionButtonTab0Slot1", IE_Pressed, this, &AARCharacter::InputActionBarPressed<0, 1>);
     InputComponent->BindAction("ActionButtonTab0Slot2", IE_Pressed, this, &AARCharacter::InputActionBarPressed<0, 2>);

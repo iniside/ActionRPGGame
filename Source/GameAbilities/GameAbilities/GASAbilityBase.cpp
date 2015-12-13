@@ -6,6 +6,7 @@
 #include "States/GASAbilityStateActive.h"
 #include "States/GASAbilityStateCasting.h"
 #include "States/GASAbilityStateCooldown.h"
+#include "GASAbilitiesComponent.h"
 #include "GASAbilityBase.h"
 
 UGASAbilityBase::UGASAbilityBase(const FObjectInitializer& ObjectInitializer)
@@ -53,6 +54,8 @@ void UGASAbilityBase::ExecuteAbility()
 {
 	if (CurrentState)
 		CurrentState->BeginActionSequence();
+
+	AbilityComponent->ExecutingAbility = this;
 	//OnAbilityExecutedNative();
 }
 
@@ -60,6 +63,7 @@ void UGASAbilityBase::StopAbility()
 {
 	if (CurrentState)
 		CurrentState->EndActionSequence();
+	OnStopAbility();
 	//OnAbilityExecutedNative();
 }
 
@@ -76,10 +80,13 @@ void UGASAbilityBase::OnAbilityCancelNative()
 void UGASAbilityBase::FinishExecution()
 {
 	bIsAbilityExecuting = false;
+	AbilityComponent->ExecutingAbility = nullptr;
 }
 void UGASAbilityBase::NativeFinishExecution()
 {
 	bIsAbilityExecuting = false;
+	AbilityComponent->ExecutingAbility = nullptr;
+	OnFinishExecution();
 }
 
 bool UGASAbilityBase::IsWaitingForConfirm()
