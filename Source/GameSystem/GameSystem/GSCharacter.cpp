@@ -158,3 +158,8 @@ void AGSCharacter::SetOnLeftCurrentWeaponChanged(class UGSItemWeaponInfo* Weapon
 {
 
 }
+
+class UGASAbilitiesComponent* AGSCharacter::GetAbilityComp()
+{ 
+	return Abilities;
+}

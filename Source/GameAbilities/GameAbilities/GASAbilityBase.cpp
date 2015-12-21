@@ -178,3 +178,7 @@ class UWorld* UGASAbilityBase::GetWorld() const
 {
 	return World;
 }
+void UGASAbilityBase::PlayMontage(UAnimMontage* MontageIn, FName SectionName)
+{
+	AbilityComponent->PlayMontage(MontageIn, SectionName);
+}

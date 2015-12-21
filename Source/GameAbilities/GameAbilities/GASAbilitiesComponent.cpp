@@ -8,17 +8,35 @@
 #include "Engine/ActorChannel.h"
 
 #include "GASInputOverride.h"
-
+#include "GASGlobals.h"
+#include "GASAbilitySet.h"
 #include "IGIPawn.h"
 
 #include "GASAbilitiesComponent.h"
 
-void FGASActiveAbility::Reset()
+void FGASActiveAbility::SetAbility(class UGASAbilityBase* Ability, int32 SetIndexIn, int32 SlotIndexIn, int32 SubSlotIndex)
 {
-	SetIndex = -1;
-	SlotIndex = -1;
-	ActiveAbility->MarkPendingKill();
-	ActiveAbility = nullptr;
+	if (ActiveAbilities[SubSlotIndex])
+	{
+		ActiveAbilities[SubSlotIndex]->MarkPendingKill();
+	}
+	ActiveAbilities[SubSlotIndex] = nullptr;
+	ActiveAbilities[SubSlotIndex] = Ability;
+	SetIndex = SetIndexIn;
+	SlotIndex = SlotIndexIn;
+}
+
+void FGASActiveAbility::Reset(TSubclassOf<class UGASAbilityBase> AbilityClass)
+{
+	int32 AbilityNum = ActiveAbilities.Num();
+	for (int32 Idx = 0; Idx < AbilityNum; Idx++)
+	{
+		if (ActiveAbilities[Idx] && ActiveAbilities[Idx]->StaticClass() == AbilityClass)
+		{
+			ActiveAbilities[Idx]->MarkPendingKill();
+			ActiveAbilities[Idx] = nullptr;
+		}
+	}
 }
 
 void FGASActiveAbilityContainer::RemoveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex)
@@ -27,46 +45,48 @@ void FGASActiveAbilityContainer::RemoveAbility(TSubclassOf<class UGASAbilityBase
 	{
 		if (AbilitySets[SetIndex].Abilities.IsValidIndex(SlotIndex))
 		{
-			if (AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility)
-			{
-				if (AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility->StaticClass() == AbilityClass)
-				{
-					AbilitySets[SetIndex].Abilities[SlotIndex].Reset();
-				}
-			}
+			AbilitySets[SetIndex].Abilities[SlotIndex].Reset(AbilityClass);
 		}
 	}
 }
-bool FGASActiveAbilityContainer::CanUseAbility(int32 SetIndex, int32 SlotIndex)
+bool FGASActiveAbilityContainer::CanUseAbility(int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex)
 {
-	if (AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility
-		&& AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility->CanUseAbility())
+	if (AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities[SubSlotIndex]
+		&& AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities[SubSlotIndex]->CanUseAbility())
 	{
 		return true;
 	}
 	return false;
 }
-bool FGASActiveAbilityContainer::IsWaitingForConfirm(int32 SetIndex, int32 SlotIndex)
+bool FGASActiveAbilityContainer::IsWaitingForConfirm(int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex)
 {
-	if (AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility
-		&& AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility->IsWaitingForConfirm())
+	if (AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities[SubSlotIndex]
+		&& AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities[SubSlotIndex]->IsWaitingForConfirm())
 	{
 		return true;
 	}
 	return false;
 }
-void FGASActiveAbilityContainer::ConfirmAbility(int32 SetIndex, int32 SlotIndex)
+void FGASActiveAbilityContainer::ConfirmAbility(int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex)
 {
-	AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility->ConfirmAbility();
+	AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities[SubSlotIndex]->ConfirmAbility();
 }
-void FGASActiveAbilityContainer::OnNativeInputPressed(int32 SetIndex, int32 SlotIndex)
+void FGASActiveAbilityContainer::OnNativeInputPressed(int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex)
 {
-	AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility->OnNativeInputPressed();
+	AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities[SubSlotIndex]->OnNativeInputPressed();
 }
-void FGASActiveAbilityContainer::OnNativeInputReleased(int32 SetIndex, int32 SlotIndex)
+void FGASActiveAbilityContainer::OnNativeInputReleased(int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex)
 {
-	AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility->OnNativeInputReleased();
+	AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities[SubSlotIndex]->OnNativeInputReleased();
 }
+
+void FGASActiveAbilityContainer::ClearAndResizeAbilitiesCount(int32 SetIndex, int32 SlotIndex, int32 NewSize)
+{
+	AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities.Empty();
+	AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities.Shrink();
+	AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities.SetNum(NewSize);
+}
+
 UGASAbilitiesComponent::UGASAbilitiesComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -102,6 +122,7 @@ void UGASAbilitiesComponent::NativeInputPressed(int32 SetIndex, int32 SlotIndex,
 		return;
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
+		//If this set have custom input, let it handle it completly.
 		if (ActiveAbilityContainer.AbilitySets[SetIndex].InputOverride)
 		{
 			ActiveAbilityContainer.AbilitySets[SetIndex].InputOverride->NativeInputPressed(SlotIndex);
@@ -223,19 +244,6 @@ void UGASAbilitiesComponent::BP_AddAbility(TSubclassOf<class UGASAbilityBase> Ab
 }
 void UGASAbilitiesComponent::RemoveAbilityFromActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass)
 {
-	int32 num = InstancedAbilities.Num();
-	
-	
-	bool found = false;
-	while (!found)
-	{
-		int32 randIdx = FMath::RandRange(0, num - 1);
-		if (InstancedAbilities[randIdx].ActiveAbility->StaticClass() == AbilityClass)
-		{
-			InstancedAbilities.RemoveAt(randIdx);
-			found = true;
-		}
-	}
 }
 
 void UGASAbilitiesComponent::BP_RemoveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass)
@@ -244,30 +252,6 @@ void UGASAbilitiesComponent::BP_RemoveAbility(TSubclassOf<class UGASAbilityBase>
 }
 int32 UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass)
 {
-	if (AbilityClass)
-	{
-		UGASAbilityBase* ability = NewObject<UGASAbilityBase>(GetOwner(), AbilityClass);
-		int32 slotCounter = 0;
-		for (FGASActiveAbility& ab : InstancedAbilities)
-		{
-			if (ab.ActiveAbility == nullptr)
-			{
-				ability->OwningComp = this;
-				if (PawnInterface)
-				{
-					ability->POwner = PawnInterface->GetGamePawn();
-					ability->PCOwner = PawnInterface->GetGamePlayerController();
-					ability->OwnerCamera = PawnInterface->GetPawnCamera();
-					//ability->AIOwner = PawnInterface->GetGameController();
-				}
-				ab.ActiveAbility = ability;
-				ability->AbilityComponent = this;
-				ability->InitAbility();
-				return slotCounter;
-			}
-			slotCounter++;
-		}
-	}
 	return -1;
 }
 
@@ -275,24 +259,60 @@ void UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbilit
 {
 	if (!AbilityClass)
 		return;
-	UGASAbilityBase* ability = NewObject<UGASAbilityBase>(GetOwner(), AbilityClass);
-	ability->OwningComp = this;
-	if (PawnInterface)
-	{
-		ability->POwner = PawnInterface->GetGamePawn();
-		ability->PCOwner = PawnInterface->GetGamePlayerController();
-		ability->OwnerCamera = PawnInterface->GetPawnCamera();
-		//ability->AIOwner = PawnInterface->GetGameController();
-	}
-	ActiveAbilityContainer.AddAbility(ability, SetIndex, SlotIndex);
-	ActiveAbilityContainer.AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities[AbilityIndex] = ability;
-	ability->AbilityComponent = this;
-	ability->InitAbility();
+	InstanceAbility(AbilityClass, SetIndex, SlotIndex, AbilityIndex);
 }
 
 void UGASAbilitiesComponent::RemoveAbilityFromActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex)
 {
 	ActiveAbilityContainer.RemoveAbility(AbilityClass, SetIndex, SlotIndex);
+}
+void UGASAbilitiesComponent::InstanceAbility(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex)
+{
+	if (AbilityClass)
+	{
+		UGASAbilityBase* ability = NewObject<UGASAbilityBase>(GetOwner(), AbilityClass);
+		ability->OwningComp = this;
+		ability->AbilityComponent = this;
+		if (PawnInterface)
+		{
+			ability->POwner = PawnInterface->GetGamePawn();
+			ability->PCOwner = PawnInterface->GetGamePlayerController();
+			ability->OwnerCamera = PawnInterface->GetPawnCamera();
+			//ability->AIOwner = PawnInterface->GetGameController();
+		}
+		ability->InitAbility();
+		ActiveAbilityContainer.AddAbility(ability, SlotIndex, SetIndex, SubSlotIndex);
+	}
+}
+
+void UGASAbilitiesComponent::NativeAddAbilitiesFromSet(TSubclassOf<class UGASAbilitySet> AbilitySet, int32 SetIndex)
+{
+	//do not let add abilities on non authority.
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+		return;
+
+	UGASAbilitySet* Set = AbilitySet.GetDefaultObject();
+	ActiveAbilityContainer.AbilitySets[SetIndex].InputOverride = NewObject<UGASInputOverride>(this, Set->AbilitySet.CustomInputClass);
+	ActiveAbilityContainer.AbilitySets[SetIndex].InputOverride->AbilityComp = this;
+	ActiveAbilityContainer.AbilitySets[SetIndex].InputOverride->SetIndex = SetIndex;
+	int32 AbilityIdx = 0;
+	int32 SubAbilityIdx = 0;
+	for (const FGASAbilitySetItem& Item : Set->AbilitySet.Abilities)
+	{
+		ActiveAbilityContainer.ClearAndResizeAbilitiesCount(SetIndex, AbilityIdx, Item.AbilityClass.Num());
+		for (TSubclassOf<UGASAbilityBase> AbilityClass : Item.AbilityClass)
+		{
+			InstanceAbility(AbilityClass, SetIndex, AbilityIdx, SubAbilityIdx);
+			SubAbilityIdx++;
+		}
+		SubAbilityIdx = 0;
+		AbilityIdx++;
+	}
+}
+
+void UGASAbilitiesComponent::BP_AddAbilitiesFromSet(TSubclassOf<class UGASAbilitySet> AbilitySet, int32 SetIndex)
+{
+	NativeAddAbilitiesFromSet(AbilitySet, SetIndex);
 }
 
 void UGASAbilitiesComponent::BP_GiveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass)
@@ -308,31 +328,25 @@ void UGASAbilitiesComponent::GiveAbility(TSubclassOf<class UGASAbilityBase> Abil
 void UGASAbilitiesComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(UGASAbilitiesComponent, InstancedAbilities);
 	DOREPLIFETIME(UGASAbilitiesComponent, ActiveAbilityContainer);
+	DOREPLIFETIME_CONDITION(UGASAbilitiesComponent, RepMontage, COND_SkipOwner);
+	//DOREPLIFETIME(UGASAbilitiesComponent, RepMontage);
 }
 
 bool UGASAbilitiesComponent::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
 {
 	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
-	for (const FGASActiveAbility& ability : InstancedAbilities)
-	{
-		if (ability.ActiveAbility)
-		{
-			WroteSomething |= Channel->ReplicateSubobject(const_cast<UGASAbilityBase*>(ability.ActiveAbility), *Bunch, *RepFlags);
-		}
-	}
 	for (const FGASActiveAbilitySet& Set : ActiveAbilityContainer.AbilitySets)
 	{
-		for (const FGASActiveAbility& Ability : Set.Abilities)
-		{
-			WroteSomething |= Channel->ReplicateSubobject(const_cast<UGASAbilityBase*>(Ability.ActiveAbility), *Bunch, *RepFlags);
-		}
+		if (Set.InputOverride)
+			WroteSomething |= Channel->ReplicateSubobject(const_cast<UGASInputOverride*>(Set.InputOverride), *Bunch, *RepFlags);
+		
 		for (const FGASActiveAbility& ability : Set.Abilities)
 		{
 			for (const UGASAbilityBase* Ability : ability.ActiveAbilities)
 			{
-				WroteSomething |= Channel->ReplicateSubobject(const_cast<UGASAbilityBase*>(Ability), *Bunch, *RepFlags);
+				if(Ability)
+					WroteSomething |= Channel->ReplicateSubobject(const_cast<UGASAbilityBase*>(Ability), *Bunch, *RepFlags);
 			}
 		}
 	}
@@ -345,21 +359,27 @@ void UGASAbilitiesComponent::GetSubobjectsWithStableNamesForNetworking(TArray<UO
 
 void UGASAbilitiesComponent::OnRep_InstancedAbilities()
 {
-	for (FGASActiveAbility& ab : InstancedAbilities)
+	for (FGASActiveAbilitySet& Set : ActiveAbilityContainer.AbilitySets)
 	{
-		if (ab.ActiveAbility)// && !ab.ActiveAbility->GetIsInitialized())
+		for (FGASActiveAbility& AbilitySlot : Set.Abilities)
 		{
-			ab.ActiveAbility->OwningComp = this;
-			if (PawnInterface)
+			for (UGASAbilityBase* Ability : AbilitySlot.ActiveAbilities)
 			{
-				ab.ActiveAbility->POwner = PawnInterface->GetGamePawn();
-				ab.ActiveAbility->PCOwner = PawnInterface->GetGamePlayerController();
-				ab.ActiveAbility->OwnerCamera = PawnInterface->GetPawnCamera();
+				if (Ability)// && !ab.ActiveAbility->GetIsInitialized())
+				{
+					Ability->OwningComp = this;
+					if (PawnInterface)
+					{
+						Ability->POwner = PawnInterface->GetGamePawn();
+						Ability->PCOwner = PawnInterface->GetGamePlayerController();
+						Ability->OwnerCamera = PawnInterface->GetPawnCamera();
 
-				//ability->AIOwner = PawnInterface->GetGameController();
+						//ability->AIOwner = PawnInterface->GetGameController();
+					}
+					Ability->AbilityComponent = this;
+					Ability->InitAbility();
+				}
 			}
-			ab.ActiveAbility->AbilityComponent = this;
-			ab.ActiveAbility->InitAbility();
 		}
 	}
 }
@@ -370,6 +390,7 @@ void UGASAbilitiesComponent::InitializeInstancedAbilities()
 	for (FGASAbilitySetConfig& Set : AbilitiesConfig.Sets)
 	{
 		FGASActiveAbilitySet AbSet;
+		AbSet.InputOverride = nullptr;
 		for (int32 Idx = 0; Idx < Set.MaxSlots; Idx++)
 		{
 			FGASActiveAbility ab;
@@ -389,5 +410,42 @@ void UGASAbilitiesComponent::InitializeInstancedAbilities()
 		ActiveAbilityContainer.AbilitySets[0].InputOverride = NewObject<UGASInputOverride>();
 		ActiveAbilityContainer.AbilitySets[0].InputOverride->AbilityComp = this;
 		ActiveAbilityContainer.AbilitySets[0].InputOverride->SetIndex = 0;
+	}
+}
+
+void UGASAbilitiesComponent::OnRep_PlayMontage()
+{
+	ACharacter* MyChar = Cast<ACharacter>(GetOwner());
+	if (MyChar)
+	{
+		UAnimInstance* AnimInst = MyChar->GetMesh()->GetAnimInstance();
+		AnimInst->Montage_Play(RepMontage.CurrentMontage);
+		if (RepMontage.SectionName != NAME_None)
+		{
+			AnimInst->Montage_JumpToSection(RepMontage.SectionName, RepMontage.CurrentMontage);
+		}
+		UE_LOG(GameAbilities, Log, TEXT("OnRep_PlayMontage MontageName: %s SectionNAme: %s ForceRep: %s"), *RepMontage.CurrentMontage->GetName(), *RepMontage.SectionName.ToString(), *FString::FormatAsNumber(RepMontage.ForceRep)); 
+	}
+}
+void UGASAbilitiesComponent::PlayMontage(UAnimMontage* MontageIn, FName SectionName)
+{
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		//Probabaly want to do something different here for client non authority montage plays.
+		//return;
+	}
+	ACharacter* MyChar = Cast<ACharacter>(GetOwner());
+	if (MyChar)
+	{
+		UAnimInstance* AnimInst = MyChar->GetMesh()->GetAnimInstance();
+		AnimInst->Montage_Play(MontageIn);
+		if (SectionName != NAME_None)
+		{
+			AnimInst->Montage_JumpToSection(SectionName, MontageIn);
+		}
+		UE_LOG(GameAbilities, Log, TEXT("PlayMontage MontageName: %s SectionNAme: %s Where: %s"), *MontageIn->GetName(), *SectionName.ToString(), (GetOwnerRole() < ENetRole::ROLE_Authority ? TEXT("Client") : TEXT("Server")));
+		RepMontage.SectionName = SectionName;
+		RepMontage.CurrentMontage = MontageIn;
+		RepMontage.ForceRep++;
 	}
 }

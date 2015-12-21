@@ -14,4 +14,5 @@ class IIGASAbilities
 	GENERATED_IINTERFACE_BODY()
 public:
 	virtual FVector GetSocketLocation(FName SocketNameIn){ return FVector::ZeroVector; };
+	virtual class UGASAbilitiesComponent* GetAbilityComp() { return nullptr; };
 };

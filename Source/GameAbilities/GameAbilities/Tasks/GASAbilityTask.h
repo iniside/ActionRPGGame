@@ -1,6 +1,7 @@
 #pragma once
 #include "GameplayTask.h"
 #include "../GASAbilityBase.h"
+#include "../GASAbilitiesComponent.h"
 #include "GASAbilityTask.generated.h"
 /*
 	AbilityActions are generic (preferably C++) defined actions, which then can be added to ability and
@@ -19,6 +20,8 @@ class GAMEABILITIES_API UGASAbilityTask : public UGameplayTask
 public:
 	/* Ability owning this task */
 	TWeakObjectPtr<UGASAbilityBase> Ability;
+	/* Ability owning this task */
+	TWeakObjectPtr<UGASAbilitiesComponent> AbilityComponent;
 public:
 	//virtual UWorld* GetWorld() const override;
 
@@ -34,6 +37,7 @@ public:
 		UGASAbilityBase* ThisAbility = CastChecked<UGASAbilityBase>(WorldContextObject);
 		MyObj->InitTask(*ThisAbility, ThisAbility->GetDefaultPriority());
 		MyObj->InstanceName = InstanceName;
+		MyObj->AbilityComponent = ThisAbility->AbilityComponent;
 		return MyObj;
 	}
 

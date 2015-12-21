@@ -74,15 +74,13 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Default")
 		class UGASAbilitiesComponent* AbilityComponent;
 	/* 
-		Actor which either represents this ability in the world, or
-		is used as required "prop" for ability to work.
+		Physical reprsentation of ability in game world. It might be sword, gun, or character.
+		What differs it from pawn or controller is that Avatar is actually used by ability to perform actions.
 
-		Ie Ability granted by machine gun, might simply represented by this weapon.
-		Ability which is spell equiped by player, might use Staff or Scepter as representation
-		needed to cast (ie access to socket at tip of the staff for spawning effects).
+		It will some some common interfaces for getting data out.
 	*/
 	UPROPERTY(BlueprintReadOnly, Category = "Default")
-		AActor* AvatarActor;
+		class AActor* AvatarActor;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Default")
 		UCameraComponent* OwnerCamera;
@@ -110,6 +108,10 @@ protected:
 
 public:
 	UGASAbilityBase(const FObjectInitializer& ObjectInitializer);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Abilities")
+		void PlayMontage(UAnimMontage* MontageIn, FName SectionName);
+
 	virtual void InitAbility();
 	/* 
 		Called when ability received input.
@@ -117,6 +119,12 @@ public:
 		is up to ability.
 	*/
 	void OnNativeInputPressed();
+	/*
+		Called when ability receive input press. Does not start ability execution automatically, so it
+		is safe to make any pre execution preparations of ability here.
+
+		To start ability execution you must call ExecuteAbility.
+	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
 		void OnInputPressed();
 
@@ -132,11 +140,17 @@ public:
 		or simply after receiving first input press.
 
 		This function will trigger selected Activation State, which then will trigger Event OnAbilityExecuted.
-		In C++ it will trigger OnAbilityExecutedNative()
+		In C++ it will trigger OnAbilityExecutedNative().
+
+		ActiveState will always be called first, so it is possible to bypass entire state stage if ActivationState will
+		go straight away for event call.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 		void ExecuteAbility();
+	/*
+		Event triggered after State called by ExecuteAbility has finished (ie cast time, channel time).
 
+	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
 		void OnAbilityExecuted();
 	/*

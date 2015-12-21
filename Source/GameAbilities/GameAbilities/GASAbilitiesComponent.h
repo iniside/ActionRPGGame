@@ -4,9 +4,11 @@
 #include "GameplayTaskTypes.h"
 #include "GameplayTask.h"
 #include "GameplayTasksComponent.h"
+#include "GASGlobals.h"
 #include "GASAbilitiesComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FGASOnActiveAbilityAdded, int32, int32);
+DECLARE_DELEGATE_OneParam(FGASMontageGenericDelegate, const FGASAbilityNotifyData&);
 /* TODO:: Implement fast serialization for structs. */
 /**/
 USTRUCT(BlueprintType)
@@ -19,6 +21,21 @@ public:
 };
 
 USTRUCT(BlueprintType)
+struct GAMEABILITIES_API FGASMontageRepData
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY()
+		UAnimMontage* CurrentMontage;
+
+	UPROPERTY()
+		FName SectionName;
+
+	UPROPERTY()
+		uint8 ForceRep;
+};
+
+USTRUCT(BlueprintType)
 struct GAMEABILITIES_API FGASActiveAbility
 {
 	GENERATED_USTRUCT_BODY()
@@ -28,21 +45,13 @@ public:
 	UPROPERTY()
 		int32 SlotIndex;
 
-	UPROPERTY()
-	class UGASAbilityBase* ActiveAbility;
-
 	/* by default there is single active ability, at index 0 */
 	UPROPERTY()
 		TArray<class UGASAbilityBase*> ActiveAbilities;
 
-	void SetAbility(class UGASAbilityBase* Ability, int32 SetIndexIn, int32 SlotIndexIn)
-	{
-		ActiveAbility = Ability;
-		SetIndex = SetIndexIn;
-		SlotIndex = SlotIndexIn;
-	}
+	void SetAbility(class UGASAbilityBase* Ability, int32 SetIndexIn, int32 SlotIndexIn, int32 SubSlotIndex = 0);
 	
-	void Reset();
+	void Reset(TSubclassOf<class UGASAbilityBase> AbilityClass);
 
 	void OnAbilityAdded()
 	{
@@ -50,8 +59,7 @@ public:
 
 	FGASActiveAbility()
 		: SetIndex(INDEX_NONE),
-		SlotIndex(INDEX_NONE),
-		ActiveAbility(nullptr)
+		SlotIndex(INDEX_NONE)
 	{
 	};
 };
@@ -74,9 +82,9 @@ public:
 	UPROPERTY()
 		TArray<FGASActiveAbility> Abilities;
 
-	void SetAbility(class UGASAbilityBase* Ability, int32 SetIndexIn, int32 SlotIndexIn)
+	void SetAbility(class UGASAbilityBase* Ability, int32 SetIndexIn, int32 SlotIndexIn, int32 SubSlotIndex = 0)
 	{
-		Abilities[SlotIndexIn].SetAbility(Ability, SetIndexIn, SlotIndexIn);
+		Abilities[SlotIndexIn].SetAbility(Ability, SetIndexIn, SlotIndexIn, SubSlotIndex);
 	}
 };
 
@@ -97,7 +105,8 @@ public:
 		{
 			if (AbilitySets[SetIndex].Abilities.IsValidIndex(SlotIndex))
 			{
-				if (AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbility)
+				if (AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities.Num() > 0
+					&& AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities[0])
 				{
 					return true;
 				}
@@ -106,23 +115,24 @@ public:
 		return false;
 	}
 
-	void AddAbility(class UGASAbilityBase* Ability, int32 SetIndex, int32 SlotIndex)
+	void AddAbility(class UGASAbilityBase* Ability, int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex = 0)
 	{
 		if (AbilitySets.IsValidIndex(SetIndex))
 		{
 			if (AbilitySets[SetIndex].Abilities.IsValidIndex(SlotIndex))
 			{
-				AbilitySets[SetIndex].SetAbility(Ability, SetIndex, SlotIndex);
+				AbilitySets[SetIndex].SetAbility(Ability, SetIndex, SlotIndex, SubSlotIndex);
 			}
 		}
 	}
 
-	bool CanUseAbility(int32 SetIndex, int32 SlotIndex);
-	bool IsWaitingForConfirm(int32 SetIndex, int32 SlotIndex);
-	void ConfirmAbility(int32 SetIndex, int32 SlotIndex);
-	void OnNativeInputPressed(int32 SetIndex, int32 SlotIndex);
-	void OnNativeInputReleased(int32 SetIndex, int32 SlotIndex);
+	bool CanUseAbility(int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex = 0);
+	bool IsWaitingForConfirm(int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex = 0);
+	void ConfirmAbility(int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex = 0);
+	void OnNativeInputPressed(int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex = 0);
+	void OnNativeInputReleased(int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex = 0);
 	void RemoveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex);
+	void ClearAndResizeAbilitiesCount(int32 SetIndex, int32 SlotIndex, int32 NewSize);
 };
 
 USTRUCT(BlueprintType)
@@ -168,8 +178,6 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_InstancedAbilities)
 		FGASActiveAbilityContainer ActiveAbilityContainer;
 
-	UPROPERTY(ReplicatedUsing = OnRep_InstancedAbilities)
-		TArray<FGASActiveAbility> InstancedAbilities;
 	UFUNCTION()
 		void OnRep_InstancedAbilities();
 
@@ -184,8 +192,23 @@ public:
 		any ability.
 	*/
 	bool bIsAnyAbilityActive;
+
+	FGASMontageGenericDelegate OnAbilityStartNotify;
+	FGASMontageGenericDelegate OnAbilityEndNotify;
+	FGASMontageGenericDelegate OnAbilityNotify;
+	FGASMontageGenericDelegate OnAbilityNotifyStateStart;
+	FGASMontageGenericDelegate OnAbilityNotifyStateTick;
+	FGASMontageGenericDelegate OnAbilityNotifyStateEnd;
 private:
 	class IIGIPawn* PawnInterface;
+
+	UPROPERTY(ReplicatedUsing=OnRep_PlayMontage)
+		FGASMontageRepData RepMontage;
+	UFUNCTION()
+		void OnRep_PlayMontage();
+public:
+	UFUNCTION(BlueprintCallable, Category = "Game Abilities")
+	void PlayMontage(UAnimMontage* MontageIn, FName SectionName);
 public:
 	/*
 		Checks on client and server, if we can activate ability. Called from InputPressed
@@ -196,8 +219,6 @@ public:
 
 	inline class UGASAbilityBase* GetGASAbility(int32 IndexIn)
 	{
-		if (InstancedAbilities.IsValidIndex(IndexIn))
-			return InstancedAbilities[IndexIn].ActiveAbility;
 		return nullptr;
 	}
 
@@ -237,6 +258,11 @@ public:
 	void RemoveAbilityFromActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex);
 	void RemoveAbilityFromActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass);
 
+	void NativeAddAbilitiesFromSet(TSubclassOf<class UGASAbilitySet> AbilitySet, int32 SetIndex);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
+	void BP_AddAbilitiesFromSet(TSubclassOf<class UGASAbilitySet> AbilitySet, int32 SetIndex);
+
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
 		void BP_GiveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass);
 
@@ -248,6 +274,7 @@ public:
 	void GetSubobjectsWithStableNamesForNetworking(TArray<UObject*>& Objs) override;
 protected:
 	void InitializeInstancedAbilities();
+	void InstanceAbility(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex = 0);
 };
 
 

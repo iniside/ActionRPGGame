@@ -5,12 +5,13 @@
 #include "GameplayTagAssetInterface.h"
 #include "IGISocket.h"
 #include "IGISkeletalMesh.h"
+#include "IGASAbilities.h"
 #include "Items/IGSEquipment.h"
 
 #include "GSCharacter.generated.h"
 
 UCLASS(config=Game)
-class GAMESYSTEM_API AGSCharacter : public ACharacter, public IIGSEquipment, public IIGISocket, public IIGISkeletalMesh, public IGameplayTagAssetInterface
+class GAMESYSTEM_API AGSCharacter : public ACharacter, public IIGSEquipment, public IIGISocket, public IIGISkeletalMesh, public IGameplayTagAssetInterface, public IIGASAbilities
 {
 	GENERATED_BODY()
 public:
@@ -118,7 +119,10 @@ public:
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	/* IGameplayTagAssetInterface **/
 
-
+	/** IIGASAbilities */
+	virtual class UGASAbilitiesComponent* GetAbilityComp() override;
+	/* IIGASAbilities **/
+	
 	FVector GetStartLocationForCrosshair();
 	float GetCurrentWeaponSpread();
 

@@ -282,13 +282,9 @@ void UGSAbilitiesComponent::Del_OnAbilityCasted()
 	{
 		CastTimeWidget->MarkWidgetDirty();
 	}
-	if (InstancedAbilities[CurrentAbility].ActiveAbility)
-	{
-		//InstancedAbilities[CurrentAbility].ActiveAbility->OnAbilityCastedDel.Unbind();
-	}
 }
 
 class UGSAbility* UGSAbilitiesComponent::GetGSAbility(int32 IndexIn)
 {
-	return Cast<UGSAbility>(InstancedAbilities[IndexIn].ActiveAbility);
+	return nullptr;
 }

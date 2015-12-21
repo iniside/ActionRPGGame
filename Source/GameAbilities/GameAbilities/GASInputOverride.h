@@ -41,4 +41,15 @@ public:
 	*/
 	virtual void NativeInputPressed(int32 Index);
 	virtual void NativeInputReleased(int32 Index);
+
+	bool IsNameStableForNetworking() const override
+	{
+		return false;
+	}
+
+	bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}
+	void SetNetAddressable() {}
 };
