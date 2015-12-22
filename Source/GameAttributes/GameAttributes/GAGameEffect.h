@@ -295,25 +295,32 @@ protected:
 
 	TSharedPtr<FGAGameEffect> EffectPtr;
 public:
-
-	bool IsValid()
+	bool IsValid() const
 	{
 		return Handle != INDEX_NONE && EffectPtr.IsValid();
 	}
 
 	inline FGAEffectContext& GetContextRef() { return EffectPtr->Context; }
-
+	inline FGAEffectContext& GetContextRef() const { return EffectPtr->Context; }
+	
+	inline UGAGameEffectSpec* GetEffectSpec() { return EffectPtr->GameEffect; }
+	inline UGAGameEffectSpec* GetEffectSpec() const { return EffectPtr->GameEffect; }
+	
 	inline int32 GetHandle() const { return Handle; }
 
 	inline FGAGameEffect GetEffect() { return *EffectPtr.Get(); }
 
 	inline FGAGameEffect& GetEffectRef() { return EffectPtr.ToSharedRef().Get(); }
+	//no kurwa!
+	inline FGAGameEffect& GetEffectRef() const { return EffectPtr.ToSharedRef().Get(); };
 
 	inline TSharedPtr<FGAGameEffect> GetEffectPtr() { return EffectPtr; };
+	inline TSharedPtr<FGAGameEffect> GetEffectPtr() const { return EffectPtr; };
 
 	inline void SetContext(const FGAEffectContext& ContextIn) { EffectPtr->SetContext(ContextIn); }
 
 	inline FGAEffectContext& GetContext() { return EffectPtr->Context; }
+	inline FGAEffectContext& GetContext() const { return EffectPtr->Context; }
 	/* Executes effect trough provided execution class. */
 	void ExecuteEffect(FGAGameEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAExecutionContext& Context);
 
@@ -458,14 +465,16 @@ public:
 
 	TMap<FGAGameEffectHandle, TSharedPtr<FGAGameEffect>> ActiveEffects;
 	/*
-		Both of these maps are only relevelant for determining how modifiers
-		inside effects will stack.
+		Both of these maps are for determining how effects should stack.
 	*/
 	/* Effects grouped by their instigator. */
 	TMap<UObject*, TMap<FGAGameEffectHandle, TSharedPtr<FGAGameEffect>>> InstigatorEffects;
+	TMap<UObject*, TMap<UClass*, FGAGameEffectHandle>> InstigatorEffectHandles;
+
 	/* Effects grouped by their targer */
 	TMap<FGAGameEffectHandle, TSharedPtr<FGAGameEffect>> TargetEffects;
 
+	/* Add Handle for instanced effects ? */
 	/* Keeps effects instanced per instigator */
 	TMap<UObject*, class UGAEffectInstanced*> InstigatorInstancedEffects;
 
@@ -477,10 +486,19 @@ public:
 	void ApplyEffect(const FGAGameEffect& EffectIn, const FGAGameEffectHandle& HandleIn);
 	void RemoveEffect(FGAGameEffectHandle& HandleIn);
 
+	void ApplyEffectInstance(class UGAEffectInstanced* EffectIn);
+
 	//modifiers
 	void ApplyModifier(const FGAGameEffectModifier& ModifierIn, const FGAGameEffect& EffectIn);
 	FGAGameModifierStack GetQualifableMods(const FGAGameEffect& EffectIn
 		, const FGACalculationContext& Context);
 	void ApplyEffectsFromMods() {};
 	void DoesQualify() {};
+protected:
+	void InternalApplyModifiers(const FGAGameEffectHandle& HandleIn);
+	void InternalCheckEffectStacking(const FGAGameEffectHandle& HandleIn);
+	void InternalApplyEffectByAggregation(const FGAGameEffectHandle& HandleIn);
+	void InternalApplyEffect(const FGAGameEffectHandle& HandleIn);
+	void InternalExtendEffectDuration(const FGAGameEffectHandle& HandleIn, const FGAGameEffectHandle& ExtendingHandleIn);
+	
 };

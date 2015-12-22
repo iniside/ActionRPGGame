@@ -82,9 +82,17 @@ void FGASActiveAbilityContainer::OnNativeInputReleased(int32 SetIndex, int32 Slo
 
 void FGASActiveAbilityContainer::ClearAndResizeAbilitiesCount(int32 SetIndex, int32 SlotIndex, int32 NewSize)
 {
-	AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities.Empty();
-	AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities.Shrink();
-	AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities.SetNum(NewSize);
+	int32 MaxAbilities = AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities.Num();
+	for (int32 Idx = 0; Idx < MaxAbilities; Idx++)
+	{
+		if (AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities[Idx])
+		{
+			AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities[Idx]->MarkPendingKill();
+			AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities[Idx] = nullptr;
+		}
+	}
+	//AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities.Shrink();
+	//AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities.SetNum(NewSize);
 }
 
 UGASAbilitiesComponent::UGASAbilitiesComponent(const FObjectInitializer& ObjectInitializer)
@@ -281,7 +289,7 @@ void UGASAbilitiesComponent::InstanceAbility(TSubclassOf<class UGASAbilityBase> 
 			//ability->AIOwner = PawnInterface->GetGameController();
 		}
 		ability->InitAbility();
-		ActiveAbilityContainer.AddAbility(ability, SlotIndex, SetIndex, SubSlotIndex);
+		ActiveAbilityContainer.AddAbility(ability, SetIndex , SlotIndex, SubSlotIndex);
 	}
 }
 

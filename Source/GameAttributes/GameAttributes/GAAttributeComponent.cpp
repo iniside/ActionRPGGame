@@ -15,6 +15,7 @@
 #include "GAEffectCue.h"
 #include "GAAttributeComponent.h"
 #include "GAGameEffect.h"
+#include "GAEffectInstanced.h"
 
 DEFINE_STAT(STAT_ApplyEffect);
 DEFINE_STAT(STAT_ModifyAttribute);
@@ -83,7 +84,7 @@ FGAGameEffectHandle UGAAttributeComponent::MakeGameEffect(TSubclassOf<class UGAG
 	return handle;
 }
 
-void UGAAttributeComponent::ApplyEffectForDuration(FGAGameEffectHandle& HandleIn)
+void UGAAttributeComponent::ApplyEffectForDuration(const FGAGameEffectHandle& HandleIn)
 {
 	FGAGameEffect& Effect = HandleIn.GetEffectRef();
 	TArray<FGAEffectMod> Mods = Effect.GetOnAppliedMods();
@@ -160,6 +161,14 @@ void UGAAttributeComponent::InternalRemoveEffect(FGAGameEffectHandle& HandleIn)
 
 }
 
+void UGAAttributeComponent::ApplyInstacnedEffectToSelf(class UGAEffectInstanced* EffectIn)
+{
+	GameEffectContainer.ApplyEffectInstance(EffectIn);
+}
+void UGAAttributeComponent::ApplyInstancedToTarget(class UGAEffectInstanced* EffectIn)
+{
+	EffectIn->Context.TargetComp->ApplyInstacnedEffectToSelf(EffectIn);
+}
 TArray<FGAEffectUIData> UGAAttributeComponent::GetEffectUIData()
 {
 	TArray<FGAEffectUIData> dataReturn;

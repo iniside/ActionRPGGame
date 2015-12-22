@@ -7,6 +7,7 @@
 #include "GABlueprintLibrary.h"
 #include "../IGAAttributes.h"
 #include "GABlueprintLibrary.h"
+#include "../GAEffectInstanced.h"
 
 UGABlueprintLibrary::UGABlueprintLibrary(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -106,4 +107,35 @@ void UGABlueprintLibrary::ApplyGameEffect(FGAGameEffectHandle Handle)
 	FGAEffectContext& Context = Handle.GetContext();
 
 	Context.InstigatorComp->ApplyEffectToTarget(Handle.GetEffect(), Handle);
+}
+
+void UGABlueprintLibrary::ApplyGameEffectInstance(TSubclassOf<class UGAEffectInstanced> EffectClass,
+	const FHitResult& Target, APawn* Instigator,
+	UObject* Causer, EGAMakeSpecResult& ResultOu)
+{
+	UGAEffectInstanced* EffectCDO = EffectClass.GetDefaultObject();
+	//do not apply instanced effects with duration less than zero.
+	if (EffectCDO && EffectCDO->Duration <= 0)
+		return;
+
+	IIGAAttributes* targetAttr = Cast<IIGAAttributes>(Target.GetActor());
+	IIGAAttributes* instiAttr = Cast<IIGAAttributes>(Instigator);
+	if (!targetAttr || !instiAttr)
+	{
+		UE_LOG(GameAttributesEffects, Error, TEXT("Invalid Target or Instigator"));
+	}
+
+	UGAAttributeComponent* targetComp = targetAttr->GetAttributeComponent();
+	UGAAttributeComponent* instiComp = instiAttr->GetAttributeComponent();
+
+	FGAEffectContext Context(Target.Location, Target.GetActor(), Causer,
+		Instigator, targetComp, instiComp);
+
+	UGAEffectInstanced* Effect = NewObject<UGAEffectInstanced>(targetComp, EffectClass);
+
+	if (Effect)
+	{
+		Effect->Context = Context;
+	}
+	instiComp->ApplyInstancedToTarget(Effect);
 }

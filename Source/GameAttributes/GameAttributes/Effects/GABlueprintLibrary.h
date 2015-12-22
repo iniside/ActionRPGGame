@@ -22,4 +22,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
 		static void ApplyGameEffect(FGAGameEffectHandle Handle);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
+		static void ApplyGameEffectInstance(TSubclassOf<class UGAEffectInstanced> EffectClass,
+			const FHitResult& Target, APawn* Instigator,
+			UObject* Causer, EGAMakeSpecResult& ResultOu);
 };

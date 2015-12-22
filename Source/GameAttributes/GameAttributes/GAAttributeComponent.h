@@ -127,7 +127,7 @@ public:
 	FGAGameEffectHandle MakeGameEffect(TSubclassOf<class UGAGameEffectSpec> SpecIn,
 		const FGAEffectContext& ContextIn);
 
-	void ApplyEffectForDuration(FGAGameEffectHandle& HandleIn);
+	void ApplyEffectForDuration(const FGAGameEffectHandle& HandleIn);
 
 	/* Have to to copy handle around, because timer delegates do not support references. */
 	void ExecuteEffect(FGAGameEffectHandle HandleIn);
@@ -136,10 +136,14 @@ public:
 	/* RemoveEffect is used to remove effect by force. */
 	void RemoveEffect(FGAGameEffectHandle& HandleIn);
 	void InternalRemoveEffect(FGAGameEffectHandle& HandleIn);
-	
+
+	void ApplyInstacnedEffectToSelf(class UGAEffectInstanced* EffectIn);
+	void ApplyInstancedToTarget(class UGAEffectInstanced* EffectIn);
+
 	void ModifyAttribute(FGAEffectMod& ModIn, FGAGameEffectHandle& HandleIn);
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes | UI")
 		TArray<FGAEffectUIData> GetEffectUIData();
+
 	/*
 		Get Last Index of effect for UI display.
 	*/

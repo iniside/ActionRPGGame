@@ -131,6 +131,18 @@ UENUM()
 enum class EGAEffectStacking : uint8
 {
 	StrongerOverride, //only one effect modifing these attributes, will be present
+	Override, //override existing effect of the same type.
+	Duration, //will add duration to existing effect
+	Intensity, //will add magnitude to existing effect.
+	Add, //will simply add new effect
+
+	Invalid
+};
+
+UENUM()
+enum class EGAEffectModifierStacking : uint8
+{
+	StrongerOverride, //only one effect modifing these attributes, will be present
 	Override, //will end previous effect, and replace with new one.
 	Duration, //will add duration to existing effect
 	Intensity, //will add magnitude to existing effect.
@@ -138,6 +150,7 @@ enum class EGAEffectStacking : uint8
 
 	Invalid
 };
+
 
 UENUM()
 enum class EGAAttributeMagCalc : uint8
@@ -230,6 +243,24 @@ struct EnumToString
 			return FString("Incoming");
 		case EGAModifierDirection::Outgoing:
 			return FString("Outgoing");
+		}
+		return FString("");
+	}
+
+	static FString GetStatckingAsString(EGAEffectStacking Stacking)
+	{
+		switch (Stacking)
+		{
+		case EGAEffectStacking::StrongerOverride:
+			return FString("StrongerOverride");
+		case EGAEffectStacking::Override:
+			return FString("Override");
+		case EGAEffectStacking::Intensity:
+			return FString("Intensity");
+		case EGAEffectStacking::Duration:
+			return FString("Duration");
+		case EGAEffectStacking::Add:
+			return FString("Add");
 		}
 		return FString("");
 	}
