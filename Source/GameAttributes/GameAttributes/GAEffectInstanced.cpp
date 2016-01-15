@@ -21,3 +21,28 @@ FGAGameEffectHandle UGAEffectInstanced::ApplyEffect(TSubclassOf<class UGAGameEff
 	Context.InstigatorComp->ApplyEffectToTarget(handle.GetEffect(), handle);
 	return handle;
 }
+
+void UGAEffectInstanced::NativeOnEffectExpired()
+{
+	InternalEffectEnded();
+	OnEffectInstanceExpired();
+}
+void UGAEffectInstanced::NativeOnEffectRemoved()
+{
+	InternalEffectEnded();
+	OnEffectInstanceRemoved();
+}
+
+void UGAEffectInstanced::InternalEffectEnded()
+{
+	UGAAttributeComponent* OwningComp = Context.TargetComp.Get();
+	if (!OwningComp)
+		return;
+
+	for (FGAGameEffectHandle& Handle : OwnedEffects)
+	{
+		OwningComp->RemoveEffect(Handle);
+	}
+
+	MarkPendingKill();
+}

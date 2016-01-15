@@ -84,7 +84,8 @@ float FGACurveBasedModifier::GetValue(const FGAEffectContext& ContextIn)
 	default:
 		return 0;
 	}
-	Result = CurveTable.Eval(attr->GetFinalValue());
+	FString ContextString(TEXT("Evaluating modifier value."));
+	Result = CurveTable.Eval(attr->GetFinalValue(), ContextString);
 	return Result;
 }
 

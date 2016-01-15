@@ -20,6 +20,7 @@ public class ActionRPGGameEditorTarget : TargetRules
 		ref List<string> OutExtraModuleNames
 		)
 	{
+        OutExtraModuleNames.Add("TimeOfDay");
         OutExtraModuleNames.Add("GameInterfaces");
 		OutExtraModuleNames.Add("GameInventorySystem");
 		OutExtraModuleNames.Add("GameInventorySystemEditor");

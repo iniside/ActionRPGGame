@@ -50,6 +50,10 @@ public:
 		void OnEffectInstanceApplied();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
 		void OnEffectInstanceContinious();
+
+	void NativeOnEffectExpired();
+	void NativeOnEffectRemoved();
+
 	/*
 		Event executed when this effect is removed by force.
 	*/
@@ -60,4 +64,7 @@ public:
 	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
 		void OnEffectInstanceExpired();
+
+protected:
+	void InternalEffectEnded();
 };

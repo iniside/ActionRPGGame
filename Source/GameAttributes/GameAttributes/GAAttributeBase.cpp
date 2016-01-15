@@ -257,6 +257,7 @@ float FGAModifierMagnitude::GetMagnitude(const FGAEffectContext& Context)
 	default:
 		return 0;
 	}
-	Result = CurveTable.Eval(attr->GetFinalValue());
+	FString ContextString(TEXT("Evaluating Modifier value based on attribute."));
+	Result = CurveTable.Eval(attr->GetFinalValue(), ContextString);
 	return Result;
 }

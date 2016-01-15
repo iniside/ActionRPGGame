@@ -99,6 +99,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Effect")
 		FGAGenericEffectDelegate OnEffectExecuted;
+	/* Called when efect period ticked. */
+	UPROPERTY(BlueprintAssignable, Category = "Effect")
+		FGAGenericEffectDelegate OnEffectTicked;
 
 	UPROPERTY(BlueprintAssignable, Category = "Effect")
 		FGAGenericEffectDelegate OnEffectExpired;

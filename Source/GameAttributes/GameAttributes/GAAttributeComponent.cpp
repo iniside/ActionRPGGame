@@ -48,9 +48,10 @@ void UGAAttributeComponent::InitializeComponent()
 	GameEffectContainer.OwningComp = this;
 	AppliedTags.AddTagContainer(DefaultTags);
 	FGAGameEffect Efffect;
-	for(const FGAGameEffectModifier& mod : ModifierTest)
+	for(const FGAGameEffectModifier& Spec : ModifierTest)
 	{
-		GameEffectContainer.ApplyModifier(mod, Efffect);
+		FGAGameEffectHandle Handle = FGAGameEffectHandle::GenerateHandle(nullptr);
+		GameEffectContainer.ApplyEffectModifier(Spec, Handle);
 	}
 	//"Damage.Fire"
 	//"Damage.Ice"
@@ -61,9 +62,6 @@ FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAGameEffect& Ef
 {
 	GameEffectContainer.ApplyEffect(EffectIn, HandleIn);
 	OnEffectApplied.Broadcast(HandleIn);
-
-
-
 	//ExecuteEffect(EffectIn);
 	return FGAEffectHandle();
 }

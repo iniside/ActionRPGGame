@@ -267,13 +267,11 @@ struct EnumToString
 };
 
 /*
-	Special struct, which allows to yse FGameplayTagContainer as key, for TSet and TMap.
+	Special struct, which allows to use FGameplayTagContainer as key, for TSet and TMap.
 	Bear in mind slower inserts/remove, but allow for complex keys.
 */
-USTRUCT()
 struct FGAHashedGameplayTagContainer
 {
-	GENERATED_USTRUCT_BODY()
 public:
 	FGameplayTagContainer Tags;
 

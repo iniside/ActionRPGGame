@@ -3,6 +3,9 @@
 #include "GAEffectGlobalTypes.h"
 #include "GAGameEffect.generated.h"
 
+DECLARE_STATS_GROUP(TEXT("GameEffect"), STATGROUP_GameEffect, STATCAT_Advanced);
+DECLARE_CYCLE_STAT_EXTERN(TEXT("GatherModifiers"), STAT_GatherModifiers, STATGROUP_GameEffect, );
+
 /*
 	Modifier type for simple attribute operatinos.
 	It's only additive or subtractive due to possible race conditions with multiplicative/divide 
@@ -450,6 +453,46 @@ struct FGAActiveGameEffect
 {
 	FGAActiveGameEffect();
 };
+
+struct GAMEATTRIBUTES_API FGAEffectModifiersContainer
+{
+	/*
+		Modifier1:
+			Damage.Fire
+			Ability.Fireball
+			Merged:
+				Damage.Fire.Ability.Fireball
+			Must Match all Tags (always);
+
+		Modifier2:
+			Damage.Fire
+			Merged:
+				Damage.Fire.
+
+		Effect:
+		Damage.Fire;
+		Damage.DOT;
+		Ability.Fireball;
+			Effect.MatchesAll(Modifier1) == true;
+			Modifier1.Find(Effect) == false (we have three tags, and so we would to merge and look for all possible combinations).
+			
+			Effect.MatchesAll(Modifier2) == true;
+
+	*/
+	TMap<FGAGameEffectHandle, TArray<FGAGameEffectModifier>> IncomingEffectModifiers;
+	TMap<FGAGameEffectHandle, TArray<FGAGameEffectModifier>> OutgoingEffectModifiers;
+
+	float GatherMods(const FGameplayTagContainer& TagsIn, const TMap<FGAGameEffectHandle, TArray<FGAGameEffectModifier>>& Data);
+
+	void AddEffectModifier(const FGAGameEffectHandle& HandleIn, const FGAGameEffectModifier& Modifier, EGAModifierDirection Direction);
+	void RemoveModifiers(const FGAGameEffectHandle& HandleIn);
+
+	/* Incoming mods are for effects which are coming to me from other instigator. */
+	float GetIncomingMods(const FGameplayTagContainer& TagsIn);
+	/* Outgoing mods are for effects which I'm applying to other target. */
+	float GetOutgoingMods(const FGameplayTagContainer& TagsIn);
+};
+
 /*
 	Contains all active effects (which have duration, period or are infinite).
 */
@@ -459,7 +502,8 @@ struct GAMEATTRIBUTES_API FGAGameEffectContainer
 	GENERATED_USTRUCT_BODY()
 public:
 	TWeakObjectPtr<class UGAAttributeComponent> OwningComp;
-	TArray<TArray<FGAGameEffectModifier>> Modifiers;
+	
+	FGAEffectModifiersContainer EffectModifiers;
 
 	TArray<FGAGameEffectHandle> EffectsHandles;
 
@@ -469,10 +513,17 @@ public:
 	*/
 	/* Effects grouped by their instigator. */
 	TMap<UObject*, TMap<FGAGameEffectHandle, TSharedPtr<FGAGameEffect>>> InstigatorEffects;
-	TMap<UObject*, TMap<UClass*, FGAGameEffectHandle>> InstigatorEffectHandles;
+	/* Groups effects by their class, needed to handle overriding and effect stacking. */
+	//TMap<UObject*, TMap<UClass*, FGAGameEffectHandle>> InstigatorEffectHandles;
+	
+	//not really sure if we really need set.\
+	// it could be usefull, for effects which stack in add.
+	TMap<UObject*, TMap<FName, TSet<FGAGameEffectHandle>>> InstigatorEffectHandles;
 
 	/* Effects grouped by their targer */
 	TMap<FGAGameEffectHandle, TSharedPtr<FGAGameEffect>> TargetEffects;
+
+	TMap<FName, TSet<FGAGameEffectHandle>> TargetEffectByType;
 
 	/* Add Handle for instanced effects ? */
 	/* Keeps effects instanced per instigator */
@@ -489,14 +540,16 @@ public:
 	void ApplyEffectInstance(class UGAEffectInstanced* EffectIn);
 
 	//modifiers
-	void ApplyModifier(const FGAGameEffectModifier& ModifierIn, const FGAGameEffect& EffectIn);
+	void ApplyEffectModifier(const FGAGameEffectModifier& ModifierIn, const FGAGameEffectHandle& HandleIn);
 	FGAGameModifierStack GetQualifableMods(const FGAGameEffect& EffectIn
 		, const FGACalculationContext& Context);
 	void ApplyEffectsFromMods() {};
 	void DoesQualify() {};
 protected:
-	void InternalApplyModifiers(const FGAGameEffectHandle& HandleIn);
-	void InternalCheckEffectStacking(const FGAGameEffectHandle& HandleIn);
+	void InternalApplyPeriodic(const FGAGameEffectHandle& HandleIn);
+	void InternalApplyDuration(const FGAGameEffectHandle& HandleIn);
+	void InternalCheckDurationEffectStacking(const FGAGameEffectHandle& HandleIn);
+	void InternalCheckPeriodicEffectStacking(const FGAGameEffectHandle& HandleIn);
 	void InternalApplyEffectByAggregation(const FGAGameEffectHandle& HandleIn);
 	void InternalApplyEffect(const FGAGameEffectHandle& HandleIn);
 	void InternalExtendEffectDuration(const FGAGameEffectHandle& HandleIn, const FGAGameEffectHandle& ExtendingHandleIn);
