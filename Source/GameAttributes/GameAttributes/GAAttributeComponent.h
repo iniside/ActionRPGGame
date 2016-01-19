@@ -13,7 +13,7 @@ DECLARE_CYCLE_STAT_EXTERN(TEXT("AttributeComponentModifyAttribute"), STAT_Modify
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGAOnAttributeChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGAOnAttributeModifed, const FGAModifiedAttribute&, attr);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGAGenericEffectDelegate, const FGAGameEffectHandle&, Handle);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGAGenericEffectDelegate, const FGAGameEffectHandle&, Handle, const FGameplayTagContainer&, Tags);
 
 USTRUCT()
 struct FGAModifiedAttributeData
@@ -142,6 +142,8 @@ public:
 
 	void ApplyInstacnedEffectToSelf(class UGAEffectInstanced* EffectIn);
 	void ApplyInstancedToTarget(class UGAEffectInstanced* EffectIn);
+
+	void RemoveInstancedFromSelf(class UGAEffectInstanced* EffectIn);
 
 	void ModifyAttribute(FGAEffectMod& ModIn, FGAGameEffectHandle& HandleIn);
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes | UI")

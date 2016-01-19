@@ -152,7 +152,7 @@ public:
 		as never will be applied for duration.
 	*/
 	UPROPERTY(EditAnywhere, Category = "Attribute Modifiers")
-		TArray<FGAAttributeModifier> OnAppliedInfo;
+		TArray<FGAAttributeModifier> AtributeModifiers;
 
 	UPROPERTY(EditAnywhere, Category = "Execution Type")
 		TSubclassOf<class UGAEffectExecution> ExecutionType;
@@ -199,6 +199,7 @@ public:
 public:
 	UGAGameEffectSpec();
 };
+
 USTRUCT(BlueprintType)
 struct GAMEATTRIBUTES_API FGAEffectSpec
 {
@@ -262,9 +263,7 @@ struct GAMEATTRIBUTES_API FGAGameEffect : public TSharedFromThis<FGAGameEffect>
 	FTimerHandle DurationTimerHandle;
 public:
 	void SetContext(const FGAEffectContext& ContextIn);
-	TArray<FGAEffectMod> GetOnAppliedMods();
-	TArray<FGAEffectMod> GetOnPeriodMods();
-	TArray<FGAEffectMod> GetOnDurationMods();
+	TArray<FGAEffectMod> GetAttributeModifiers();
 
 	class UGAAttributeComponent* GetInstigatorComp() { return Context.InstigatorComp.Get(); }
 	class UGAAttributeComponent* GetTargetComp() { return Context.TargetComp.Get(); }
@@ -312,9 +311,9 @@ public:
 	inline int32 GetHandle() const { return Handle; }
 
 	inline FGAGameEffect GetEffect() { return *EffectPtr.Get(); }
+	inline FGAGameEffect GetEffect() const { return *EffectPtr.Get(); }
 
 	inline FGAGameEffect& GetEffectRef() { return EffectPtr.ToSharedRef().Get(); }
-	//no kurwa!
 	inline FGAGameEffect& GetEffectRef() const { return EffectPtr.ToSharedRef().Get(); };
 
 	inline TSharedPtr<FGAGameEffect> GetEffectPtr() { return EffectPtr; };
@@ -492,9 +491,20 @@ struct GAMEATTRIBUTES_API FGAEffectModifiersContainer
 	/* Outgoing mods are for effects which I'm applying to other target. */
 	float GetOutgoingMods(const FGameplayTagContainer& TagsIn);
 };
+USTRUCT(BlueprintType)
+struct GAMEATTRIBUTES_API FGAInstigatorInstancedEffectContainer
+{
+	GENERATED_USTRUCT_BODY()
+
+		UPROPERTY()
+			TArray<class UGAEffectInstanced*> Effects;
+};
 
 /*
 	Contains all active effects (which have duration, period or are infinite).
+
+	The only reason this is USTRUCT() is because we need to hold hard references somewhere to instanced
+	effects.
 */
 USTRUCT(BlueprintType)
 struct GAMEATTRIBUTES_API FGAGameEffectContainer
@@ -527,9 +537,11 @@ public:
 
 	/* Add Handle for instanced effects ? */
 	/* Keeps effects instanced per instigator */
-	TMap<UObject*, class UGAEffectInstanced*> InstigatorInstancedEffects;
+	UPROPERTY()
+	TMap<UObject*, FGAInstigatorInstancedEffectContainer> InstigatorInstancedEffects;
 
 	/* Keeps effects instanced per target actor. */
+	UPROPERTY()
 	TArray<class UGAEffectInstanced*> TargetInstancedEffects;
 public:
 	FGAGameEffectContainer();
@@ -538,7 +550,7 @@ public:
 	void RemoveEffect(FGAGameEffectHandle& HandleIn);
 
 	void ApplyEffectInstance(class UGAEffectInstanced* EffectIn);
-
+	void RemoveEffectInstance(class UGAEffectInstanced* EffectIn);
 	//modifiers
 	void ApplyEffectModifier(const FGAGameEffectModifier& ModifierIn, const FGAGameEffectHandle& HandleIn);
 	FGAGameModifierStack GetQualifableMods(const FGAGameEffect& EffectIn

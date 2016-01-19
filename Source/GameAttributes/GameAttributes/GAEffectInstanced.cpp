@@ -12,6 +12,15 @@ UGAEffectInstanced::UGAEffectInstanced(const FObjectInitializer& ObjectInitializ
 void UGAEffectInstanced::Initialize(const FGAEffectContext& ContextIn)
 {
 	Context = ContextIn;
+
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		FTimerManager& TimerManager = World->GetTimerManager();
+		FTimerDelegate Del = FTimerDelegate::CreateUObject(this, &UGAEffectInstanced::InternallSelfRemoveEffect);
+
+		TimerManager.SetTimer(DurationTimerHandle, Del, Duration, false);
+	}
 }
 
 FGAGameEffectHandle UGAEffectInstanced::ApplyEffect(TSubclassOf<class UGAGameEffectSpec> SpecIn)
@@ -21,7 +30,10 @@ FGAGameEffectHandle UGAEffectInstanced::ApplyEffect(TSubclassOf<class UGAGameEff
 	Context.InstigatorComp->ApplyEffectToTarget(handle.GetEffect(), handle);
 	return handle;
 }
-
+void UGAEffectInstanced::NativeOnEffectApplied()
+{
+	OnEffectInstanceApplied();
+}
 void UGAEffectInstanced::NativeOnEffectExpired()
 {
 	InternalEffectEnded();
@@ -32,7 +44,20 @@ void UGAEffectInstanced::NativeOnEffectRemoved()
 	InternalEffectEnded();
 	OnEffectInstanceRemoved();
 }
-
+void UGAEffectInstanced::InternallSelfRemoveEffect()
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		FTimerManager& TimerManager = World->GetTimerManager();
+		TimerManager.ClearTimer(DurationTimerHandle);
+	}
+	if (Context.TargetComp.IsValid())
+	{
+		Context.TargetComp->RemoveInstancedFromSelf(this);
+	}
+	NativeOnEffectExpired();
+}
 void UGAEffectInstanced::InternalEffectEnded()
 {
 	UGAAttributeComponent* OwningComp = Context.TargetComp.Get();
@@ -45,4 +70,12 @@ void UGAEffectInstanced::InternalEffectEnded()
 	}
 
 	MarkPendingKill();
+}
+
+UWorld* UGAEffectInstanced::GetWorld() const
+{
+	if (Context.Target.IsValid())
+		return Context.Target->GetWorld();
+
+	return nullptr;
 }

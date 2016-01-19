@@ -35,7 +35,8 @@ public:
 	*/
 	UPROPERTY()
 		TArray<FGAGameEffectHandle> OwnedEffects;
-
+protected:
+	FTimerHandle DurationTimerHandle;
 public:
 	UGAEffectInstanced(const FObjectInitializer& ObjectInitializer);
 
@@ -51,6 +52,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
 		void OnEffectInstanceContinious();
 
+	void NativeOnEffectApplied();
 	void NativeOnEffectExpired();
 	void NativeOnEffectRemoved();
 
@@ -65,6 +67,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
 		void OnEffectInstanceExpired();
 
+
+	virtual UWorld* GetWorld() const override;
 protected:
+	void InternallSelfRemoveEffect();
 	void InternalEffectEnded();
 };

@@ -118,24 +118,115 @@ void UGABlueprintLibrary::ApplyGameEffectInstance(TSubclassOf<class UGAEffectIns
 	if (EffectCDO && EffectCDO->Duration <= 0)
 		return;
 
-	IIGAAttributes* targetAttr = Cast<IIGAAttributes>(Target.GetActor());
-	IIGAAttributes* instiAttr = Cast<IIGAAttributes>(Instigator);
-	if (!targetAttr || !instiAttr)
-	{
-		UE_LOG(GameAttributesEffects, Error, TEXT("Invalid Target or Instigator"));
-	}
+	FGAEffectContext Context =  MakeHitContext(Target, Instigator, Causer);
+	
+	if (!Context.IsValid())
+		return;
 
-	UGAAttributeComponent* targetComp = targetAttr->GetAttributeComponent();
-	UGAAttributeComponent* instiComp = instiAttr->GetAttributeComponent();
-
-	FGAEffectContext Context(Target.Location, Target.GetActor(), Causer,
-		Instigator, targetComp, instiComp);
-
-	UGAEffectInstanced* Effect = NewObject<UGAEffectInstanced>(targetComp, EffectClass);
+	UGAEffectInstanced* Effect = NewObject<UGAEffectInstanced>(Context.TargetComp.Get(), EffectClass);
 
 	if (Effect)
 	{
 		Effect->Context = Context;
 	}
-	instiComp->ApplyInstancedToTarget(Effect);
+	Context.InstigatorComp->ApplyInstancedToTarget(Effect);
+}
+
+FGAGameEffectHandle UGABlueprintLibrary::ApplyGameEffectToActor(const FGAEffectSpec& SpecIn,
+	FGAGameEffectHandle HandleIn, class AActor* Target, class APawn* Instigator,
+	UObject* Causer)
+{
+	if (!SpecIn.Spec)
+	{
+		UE_LOG(GameAttributesEffects, Error, TEXT("Invalid Effect Spec"));
+		return FGAGameEffectHandle();
+	}
+	FGAEffectContext Context = MakeActorContext(Target, Instigator, Causer);
+	if (!Context.IsValid())
+		return FGAGameEffectHandle();
+
+	UE_LOG(GameAttributesEffects, Log, TEXT("MakeOutgoingSpecObj: Created new Context: %s"), *Context.ToString());
+
+	if (HandleIn.IsValid())
+	{
+		HandleIn.SetContext(Context);
+	}
+	else
+	{
+		FGAGameEffect* effect = new FGAGameEffect(SpecIn.Spec, Context);
+		HandleIn = FGAGameEffectHandle::GenerateHandle(effect);
+		effect->Handle = &HandleIn;
+	}
+	Context.InstigatorComp->ApplyEffectToTarget(HandleIn.GetEffect(), HandleIn);
+	return HandleIn;
+}
+
+FGAGameEffectHandle UGABlueprintLibrary::ApplyGameEffectToActorFromClass(TSubclassOf<class UGAGameEffectSpec> SpecIn,
+	FGAGameEffectHandle HandleIn, class AActor* Target, class APawn* Instigator,
+	UObject* Causer)
+{
+	if (SpecIn)
+	{
+		UE_LOG(GameAttributesEffects, Error, TEXT("Invalid Effect Spec"));
+		return FGAGameEffectHandle();
+	}
+
+	FGAEffectContext Context = MakeActorContext(Target, Instigator, Causer);
+	if (!Context.IsValid())
+		return FGAGameEffectHandle();
+
+	UE_LOG(GameAttributesEffects, Log, TEXT("MakeOutgoingSpecObj: Created new Context: %s"), *Context.ToString());
+
+	if (HandleIn.IsValid())
+	{
+		HandleIn.SetContext(Context);
+	}
+	else
+	{
+		UGAGameEffectSpec* EffectCDO = SpecIn.GetDefaultObject();
+		FGAGameEffect* effect = new FGAGameEffect(EffectCDO, Context);
+		HandleIn = FGAGameEffectHandle::GenerateHandle(effect);
+		effect->Handle = &HandleIn;
+	}
+	Context.InstigatorComp->ApplyEffectToTarget(HandleIn.GetEffect(), HandleIn);
+	return HandleIn;
+}
+
+FGAEffectContext UGABlueprintLibrary::MakeActorContext(class AActor* Target, class APawn* Instigator,
+	UObject* Causer)
+{
+	IIGAAttributes* targetAttr = Cast<IIGAAttributes>(Target);
+	IIGAAttributes* instiAttr = Cast<IIGAAttributes>(Instigator);
+	if (!targetAttr || !instiAttr)
+	{
+		UE_LOG(GameAttributesEffects, Error, TEXT("Invalid Target or Instigator"));
+		return FGAEffectContext();
+	}
+
+	UGAAttributeComponent* targetComp = targetAttr->GetAttributeComponent();
+	UGAAttributeComponent* instiComp = instiAttr->GetAttributeComponent();
+	FVector location = Target->GetActorLocation();
+	FGAEffectContext Context(location, Target, Causer,
+		Instigator, targetComp, instiComp);
+
+	return Context;
+}
+
+FGAEffectContext UGABlueprintLibrary::MakeHitContext(const FHitResult& Target, class APawn* Instigator, UObject* Causer)
+{
+	IIGAAttributes* targetAttr = Cast<IIGAAttributes>(Target.GetActor());
+	IIGAAttributes* instiAttr = Cast<IIGAAttributes>(Instigator);
+	if (!targetAttr || !instiAttr)
+	{
+		UE_LOG(GameAttributesEffects, Error, TEXT("Invalid Target or Instigator"));
+		return FGAEffectContext();
+	}
+
+	UGAAttributeComponent* targetComp = targetAttr->GetAttributeComponent();
+	UGAAttributeComponent* instiComp = instiAttr->GetAttributeComponent();
+	
+	FGAEffectContext Context(Target.Location, Target.GetActor(), Causer,
+		Instigator, targetComp, instiComp);
+
+	return Context;
 }

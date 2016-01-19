@@ -61,7 +61,7 @@ FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAGameEffect& Ef
 	, const FGAGameEffectHandle& HandleIn)
 {
 	GameEffectContainer.ApplyEffect(EffectIn, HandleIn);
-	OnEffectApplied.Broadcast(HandleIn);
+	OnEffectApplied.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
 	//ExecuteEffect(EffectIn);
 	return FGAEffectHandle();
 }
@@ -85,7 +85,7 @@ FGAGameEffectHandle UGAAttributeComponent::MakeGameEffect(TSubclassOf<class UGAG
 void UGAAttributeComponent::ApplyEffectForDuration(const FGAGameEffectHandle& HandleIn)
 {
 	FGAGameEffect& Effect = HandleIn.GetEffectRef();
-	TArray<FGAEffectMod> Mods = Effect.GetOnAppliedMods();
+	TArray<FGAEffectMod> Mods = Effect.GetAttributeModifiers();
 
 	for (FGAEffectMod& mod : Mods)
 	{
@@ -109,10 +109,10 @@ void UGAAttributeComponent::ExecuteEffect(FGAGameEffectHandle HandleIn)
 		WE do not make any replication at the ApplyEffect because some effect might want to apply cues
 		on periods on expiration etc, and all those will go trouch ExecuteEffect path.
 	*/
-	OnEffectExecuted.Broadcast(HandleIn);
+	OnEffectExecuted.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
 	
 	FGAGameEffect Effect = HandleIn.GetEffect();
-	TArray<FGAEffectMod> Mods = Effect.GetOnAppliedMods();
+	TArray<FGAEffectMod> Mods = Effect.GetAttributeModifiers();
 	FGAExecutionContext ExecContext(Effect.Context.TargetComp.Get(), Effect.Context.TargetComp->DefaultAttributes,
 		Effect.Context.InstigatorComp.Get(), Effect.Context.InstigatorComp->DefaultAttributes);
 	for (FGAEffectMod& mod : Mods)
@@ -125,12 +125,12 @@ void UGAAttributeComponent::ExecuteEffect(FGAGameEffectHandle HandleIn)
 void UGAAttributeComponent::ExpireEffect(FGAGameEffectHandle HandleIn)
 {
 	InternalRemoveEffect(HandleIn);
-	OnEffectExpired.Broadcast(HandleIn);
+	OnEffectExpired.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
 }
 void UGAAttributeComponent::RemoveEffect(FGAGameEffectHandle& HandleIn)
 {
 	InternalRemoveEffect(HandleIn);
-	OnEffectRemoved.Broadcast(HandleIn);
+	OnEffectRemoved.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
 }
 void UGAAttributeComponent::InternalRemoveEffect(FGAGameEffectHandle& HandleIn)
 {
@@ -140,7 +140,7 @@ void UGAAttributeComponent::InternalRemoveEffect(FGAGameEffectHandle& HandleIn)
 	UE_LOG(GameAttributesEffects, Log, TEXT("UGAAttributeComponent:: Reset Timers and Remove Effect"));
 	
 	FGAGameEffect& Effect = HandleIn.GetEffectRef();
-	TArray<FGAEffectMod> Mods = Effect.GetOnAppliedMods();
+	TArray<FGAEffectMod> Mods = Effect.GetAttributeModifiers();
 
 	for (FGAEffectMod& mod : Mods)
 	{
@@ -155,17 +155,21 @@ void UGAAttributeComponent::InternalRemoveEffect(FGAGameEffectHandle& HandleIn)
 	}
 	
 	GameEffectContainer.RemoveEffect(HandleIn);
-
-
 }
 
 void UGAAttributeComponent::ApplyInstacnedEffectToSelf(class UGAEffectInstanced* EffectIn)
 {
+	EffectIn->NativeOnEffectApplied();
 	GameEffectContainer.ApplyEffectInstance(EffectIn);
 }
 void UGAAttributeComponent::ApplyInstancedToTarget(class UGAEffectInstanced* EffectIn)
 {
 	EffectIn->Context.TargetComp->ApplyInstacnedEffectToSelf(EffectIn);
+}
+
+void UGAAttributeComponent::RemoveInstancedFromSelf(class UGAEffectInstanced* EffectIn)
+{
+	GameEffectContainer.RemoveEffectInstance(EffectIn);
 }
 TArray<FGAEffectUIData> UGAAttributeComponent::GetEffectUIData()
 {

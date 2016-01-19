@@ -11,6 +11,7 @@
 #include "GAAttributeComponent.h"
 #include "GAEffectExecution.h"
 #include "GAEffectInstanced.h"
+#include "GAEffectInstanced.h"
 #include "GAGameEffect.h"
 
 DEFINE_STAT(STAT_GatherModifiers);
@@ -41,9 +42,9 @@ void FGAGameEffect::SetContext(const FGAEffectContext& ContextIn)
 	Context = ContextIn;
 }
 
-TArray<FGAEffectMod> FGAGameEffect::GetOnAppliedMods()
+TArray<FGAEffectMod> FGAGameEffect::GetAttributeModifiers()
 {
-	return GetMods(GameEffect->OnAppliedInfo);
+	return GetMods(GameEffect->AtributeModifiers);
 }
 void FGAGameEffect::OnDuration()
 {
@@ -98,7 +99,7 @@ void FGAGameEffect::DurationExpired()
 float FGAEffectModifiersContainer::GatherMods(const FGameplayTagContainer& TagsIn, const TMap<FGAGameEffectHandle, TArray<FGAGameEffectModifier>>& Data)
 {
 	//possible optimization when needed - create separate thread.
-	
+
 	float ModifierVal = 0;
 	float Add = 0;
 	float Multiply = 1;
@@ -165,7 +166,7 @@ void FGAEffectModifiersContainer::AddEffectModifier(const FGAGameEffectHandle& H
 		break;
 	}
 	case EGAModifierDirection::Outgoing:
-	{	
+	{
 		TArray<FGAGameEffectModifier>& Mods = OutgoingEffectModifiers.FindOrAdd(HandleIn);
 		Mods.Add(Modifier);
 		break;
@@ -208,6 +209,10 @@ void FGAGameEffectContainer::ApplyEffect(const FGAGameEffect& EffectIn
 		InternalCheckDurationEffectStacking(HandleIn);
 		break;
 	}
+	case EGAEffectType::Infinite:
+	{
+		break;
+	}
 	default:
 		break;
 	}
@@ -216,7 +221,7 @@ void FGAGameEffectContainer::ApplyEffect(const FGAGameEffect& EffectIn
 	{
 		FGAGameEffectHandle Handle = EffectIn.Context.TargetComp->MakeGameEffect(Spec, EffectIn.Context);
 
-		EffectIn.Context.TargetComp->ApplyEffectToSelf(Handle.GetEffect(), Handle);
+		EffectIn.Context.InstigatorComp->ApplyEffectToTarget(Handle.GetEffect(), Handle);
 	}
 	//regardless of what happen try to apply effect modifiers
 	for (FGAGameEffectModifier& mod : EffectIn.GameEffect->Modifiers)
@@ -232,23 +237,34 @@ void FGAGameEffectContainer::InternalCheckDurationEffectStacking(const FGAGameEf
 	EGAEffectAggregation Aggregation = Spec->EffectAggregation;
 	EGAEffectStacking Stacking = HandleIn.GetEffectSpec()->EffectStacking;
 	UE_LOG(GameAttributes, Log, TEXT("Stacking Type: %s"), *EnumToString::GetStatckingAsString(Stacking));
+	FGAGameEffectHandle* Handle = nullptr;
 	switch (Aggregation)
 	{
-	case EGAEffectAggregation::AggregateByInstigator:
-	{
-		TMap<FName, TSet<FGAGameEffectHandle>>* EffectHandle = InstigatorEffectHandles.Find(HandleIn.GetContextRef().Instigator.Get());
-		TSet<FGAGameEffectHandle>* HandleSet = nullptr;
-		FGAGameEffectHandle* Handle = nullptr;
-		if (EffectHandle)
+		case EGAEffectAggregation::AggregateByInstigator:
 		{
-			HandleSet = EffectHandle->Find(HandleIn.GetEffectSpec()->GetFName());
+			TMap<FName, TSet<FGAGameEffectHandle>>* EffectHandle = InstigatorEffectHandles.Find(HandleIn.GetContextRef().Instigator.Get());
+			TSet<FGAGameEffectHandle>* HandleSet = nullptr;
+			if (EffectHandle)
+			{
+				HandleSet = EffectHandle->Find(HandleIn.GetEffectSpec()->GetFName());
+				if (HandleSet)
+				{
+					Handle = HandleSet->Find(HandleIn);
+				}
+			}
+		}
+		case EGAEffectAggregation::AggregateByTarget:
+		{
+			TSet<FGAGameEffectHandle>* HandleSet = TargetEffectByType.Find(HandleIn.GetEffectSpec()->GetFName());
 			if (HandleSet)
 			{
 				Handle = HandleSet->Find(HandleIn);
 			}
+			break;
 		}
-		switch (Stacking)
-		{
+	}
+	switch (Stacking)
+	{
 		case EGAEffectStacking::Add:
 		{
 			InternalApplyDuration(HandleIn);
@@ -289,14 +305,8 @@ void FGAGameEffectContainer::InternalCheckDurationEffectStacking(const FGAGameEf
 			InternalApplyDuration(HandleIn);
 			break;
 		}
-		}
-		break;
 	}
-	case EGAEffectAggregation::AggregateByTarget:
-	{
-		break;
-	}
-	}
+
 	InternalApplyEffectByAggregation(HandleIn);
 }
 
@@ -307,24 +317,34 @@ void FGAGameEffectContainer::InternalCheckPeriodicEffectStacking(const FGAGameEf
 	EGAEffectAggregation Aggregation = Spec->EffectAggregation;
 	EGAEffectStacking Stacking = HandleIn.GetEffectSpec()->EffectStacking;
 	UE_LOG(GameAttributes, Log, TEXT("Stacking Type: %s"), *EnumToString::GetStatckingAsString(Stacking));
+	FGAGameEffectHandle* Handle = nullptr;
 	switch (Aggregation)
 	{
-	case EGAEffectAggregation::AggregateByInstigator:
-	{
-		TMap<FName, TSet<FGAGameEffectHandle>>* EffectHandle = InstigatorEffectHandles.Find(HandleIn.GetContextRef().Instigator.Get());
-		TSet<FGAGameEffectHandle>* HandleSet = nullptr;
-		FGAGameEffectHandle* Handle = nullptr;
-		if (EffectHandle)
+		case EGAEffectAggregation::AggregateByInstigator:
 		{
-			HandleSet = EffectHandle->Find(HandleIn.GetEffectSpec()->GetFName());
+			TMap<FName, TSet<FGAGameEffectHandle>>* EffectHandle = InstigatorEffectHandles.Find(HandleIn.GetContextRef().Instigator.Get());
+			TSet<FGAGameEffectHandle>* HandleSet = nullptr;
+			if (EffectHandle)
+			{
+				HandleSet = EffectHandle->Find(HandleIn.GetEffectSpec()->GetFName());
+				if (HandleSet)
+				{
+					Handle = HandleSet->Find(HandleIn);
+				}
+			}
+		}
+		case EGAEffectAggregation::AggregateByTarget:
+		{
+			TSet<FGAGameEffectHandle>* HandleSet = TargetEffectByType.Find(HandleIn.GetEffectSpec()->GetFName());
 			if (HandleSet)
 			{
 				Handle = HandleSet->Find(HandleIn);
-			
 			}
+			break;
 		}
-		switch (Stacking)
-		{
+	}
+	switch (Stacking)
+	{
 		case EGAEffectStacking::Add:
 		{
 			break;
@@ -345,13 +365,6 @@ void FGAGameEffectContainer::InternalCheckPeriodicEffectStacking(const FGAGameEf
 		{
 			break;
 		}
-		}
-		break;
-	}
-	case EGAEffectAggregation::AggregateByTarget:
-	{
-		break;
-	}
 	}
 	InternalApplyEffectByAggregation(HandleIn);
 }
@@ -373,7 +386,7 @@ void FGAGameEffectContainer::InternalApplyDuration(const FGAGameEffectHandle& Ha
 	timerDuration.SetTimer(HandleIn.GetEffectRef().PeriodTimerHandle, delDuration,
 		HandleIn.GetEffectSpec()->Period, true, 0);
 
-	TArray<FGAEffectMod> Modifiers = HandleIn.GetEffectRef().GetOnAppliedMods();
+	TArray<FGAEffectMod> Modifiers = HandleIn.GetEffectRef().GetAttributeModifiers();
 	EGAEffectStacking Stacking = HandleIn.GetEffectSpec()->EffectStacking;
 
 	for (FGAEffectMod& Modifier : Modifiers)
@@ -403,12 +416,17 @@ void FGAGameEffectContainer::InternalApplyEffectByAggregation(const FGAGameEffec
 		TMap<FName, TSet<FGAGameEffectHandle>>& EffectByClass = InstigatorEffectHandles.FindOrAdd(HandleIn.GetContextRef().Instigator.Get());
 		TSet<FGAGameEffectHandle>& EffectSet = EffectByClass.FindOrAdd(HandleIn.GetEffectSpec()->GetFName());
 		EffectSet.Add(HandleIn);
-		
+
 		break;
 	}
 	case EGAEffectAggregation::AggregateByTarget:
-		TargetEffects.Add(HandleIn, HandleIn.GetEffectPtr());
+	{
+		TSet<FGAGameEffectHandle>& Handles = TargetEffectByType.FindOrAdd(HandleIn.GetEffectSpec()->GetFName());
+		Handles.Add(HandleIn);
+		//TargetEffects.Add(HandleIn, HandleIn.GetEffectPtr());
+
 		break;
+	}
 	}
 	ActiveEffects.Add(HandleIn, HandleIn.GetEffectPtr());
 }
@@ -457,30 +475,33 @@ void FGAGameEffectContainer::RemoveEffect(FGAGameEffectHandle& HandleIn)
 	{
 		switch (aggregatiopn)
 		{
-		case EGAEffectAggregation::AggregateByInstigator:
-		{
-			TMap<FGAGameEffectHandle, TSharedPtr<FGAGameEffect>>* effects = InstigatorEffects.Find(Instigator);
-			TMap<FName, TSet<FGAGameEffectHandle>>* EffectByClass = InstigatorEffectHandles.Find(Instigator);
-			if (EffectByClass)
+			case EGAEffectAggregation::AggregateByInstigator:
 			{
-				//Probabaly need another path for removing just single effect from stack.
-				EffectByClass->Remove(HandleIn.GetEffectSpec()->GetFName());
-			}
-			if (effects)
-			{
-				effects->FindAndRemoveChecked(HandleIn);
-				if (effects->Num() == 0)
+				TMap<FGAGameEffectHandle, TSharedPtr<FGAGameEffect>>* effects = InstigatorEffects.Find(Instigator);
+				TMap<FName, TSet<FGAGameEffectHandle>>* EffectByClass = InstigatorEffectHandles.Find(Instigator);
+				if (EffectByClass)
 				{
-					InstigatorEffects.Remove(Instigator);
+					//Probabaly need another path for removing just single effect from stack.
+					EffectByClass->Remove(HandleIn.GetEffectSpec()->GetFName());
 				}
+				if (effects)
+				{
+					effects->FindAndRemoveChecked(HandleIn);
+					if (effects->Num() == 0)
+					{
+						InstigatorEffects.Remove(Instigator);
+					}
+				}
+				break;
 			}
-			break;
-		}
-		case EGAEffectAggregation::AggregateByTarget:
-		{
-			TargetEffects.FindAndRemoveChecked(HandleIn);
-			break;
-		}
+			case EGAEffectAggregation::AggregateByTarget:
+			{
+				//TargetEffects.FindAndRemoveChecked(HandleIn);
+				TSet<FGAGameEffectHandle>* Handles = TargetEffectByType.Find(HandleIn.GetEffectSpec()->GetFName());
+				//check aggregation type to know which effect to remove exactly ?
+				TargetEffectByType.Remove(HandleIn.GetEffectSpec()->GetFName());
+				break;
+			}
 		}
 		for (FGAGameEffectModifier& Modifier : effect->GameEffect->Modifiers)
 		{
@@ -498,21 +519,52 @@ void FGAGameEffectContainer::RemoveEffect(FGAGameEffectHandle& HandleIn)
 	}
 }
 
+FGAGameEffectContainer::FGAGameEffectContainer()
+{
+}
+
 void FGAGameEffectContainer::ApplyEffectInstance(class UGAEffectInstanced* EffectIn)
 {
 	//do something ?
 	switch (EffectIn->EffectAggregation)
 	{
 	case EGAEffectAggregation::AggregateByInstigator:
-		InstigatorInstancedEffects.Add(EffectIn->Context.Instigator.Get(), EffectIn);
-		break;
-	case EGAEffectAggregation::AggregateByTarget:
+	{
+		FGAInstigatorInstancedEffectContainer& Effects = InstigatorInstancedEffects.FindOrAdd(EffectIn->Context.Instigator.Get());
+		Effects.Effects.AddUnique(EffectIn);
+		//VERY BAD CHANGE IT.
+		EffectIn->Initialize(EffectIn->Context);
 		break;
 	}
+	case EGAEffectAggregation::AggregateByTarget:
+	{
+		break;
+	}
+	}
 }
-
-FGAGameEffectContainer::FGAGameEffectContainer()
+void FGAGameEffectContainer::RemoveEffectInstance(class UGAEffectInstanced* EffectIn)
 {
+	switch (EffectIn->EffectAggregation)
+	{
+	case EGAEffectAggregation::AggregateByInstigator:
+	{
+		FGAInstigatorInstancedEffectContainer* Effects = InstigatorInstancedEffects.Find(EffectIn->Context.Instigator.Get());
+		if (Effects)
+		{
+			Effects->Effects.Remove(EffectIn);
+			if (Effects->Effects.Num() == 0)
+			{
+				InstigatorEffects.Remove(EffectIn->Context.Instigator.Get());
+			}
+		}
+		break;
+	}
+	case EGAEffectAggregation::AggregateByTarget:
+	{
+		TargetInstancedEffects.Remove(EffectIn);
+		break;
+	}
+	}
 }
 
 void FGAGameEffectContainer::ApplyEffectModifier(const FGAGameEffectModifier& ModifierIn,
