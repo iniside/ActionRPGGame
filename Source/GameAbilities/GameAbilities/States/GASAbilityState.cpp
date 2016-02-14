@@ -23,9 +23,12 @@ void UGASAbilityState::BeginState(UGASAbilityState* PrevState)
 void UGASAbilityState::EndState()
 {
 }
-void UGASAbilityState::BeginActionSequence()
+void UGASAbilityState::ExecuteActionSequence()
 {
 }
-void UGASAbilityState::EndActionSequence()
+void UGASAbilityState::StopActionSequence()
+{
+}
+void UGASAbilityState::FinishActionSequence()
 {
 }

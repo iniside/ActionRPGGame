@@ -20,7 +20,7 @@ class FGameAbilitiesEditor : public IGameAbilitiesEditor
 	}
 };
 
-IMPLEMENT_GAME_MODULE(FGameAbilitiesEditor, GameAbilitiesEditor)
+IMPLEMENT_GAME_MODULE(FGameAbilitiesEditor, GameAbilitiesEditor);
 
 
 //void FGameAttributesEditor::StartupModule()

@@ -9,27 +9,10 @@
 UGASAbilityStateChanneled::UGASAbilityStateChanneled(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	CurrentCastTime = 0;
-	CurrentPeriodCount = 0;
 }
 
 void UGASAbilityStateChanneled::Tick(float DeltaSeconds)
 {
-	//GetOuterUGASAbility()->CurrentCastTime += DeltaSeconds;
-	CurrentCastTime += DeltaSeconds;
-	//if (CurrentCastTime >= GetOuterUGASAbility()->PeriodLenght
-	//	&& GetOuterUGASAbility()->PeriodCount > CurrentPeriodCount)
-	//{
-	//	CurrentCastTime = 0;
-	//	CurrentPeriodCount += 1;
-	//	ExecuteAbility();
-	//}
-	//else if (CurrentPeriodCount >= GetOuterUGASAbility()->PeriodCount)
-	//{
-	//	GetOuterUGASAbility()->CurrentCastTime = 0;
-	//	CurrentPeriodCount = 0;
-	//	ChannelFinished();
-	//}
 }
 
 void UGASAbilityStateChanneled::ExecuteAbility()
@@ -43,28 +26,29 @@ void UGASAbilityStateChanneled::ExecuteChannel()
 }
 void UGASAbilityStateChanneled::ChannelFinished()
 {
-	//GetOuterUGASAbility()->bIsBeingCast = false;
-	//GetOuterUGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
-	//GetOuterUGASAbility()->GotoState(GetOuterUGASAbility()->CooldownState);
 }
 
 void UGASAbilityStateChanneled::BeginState(UGASAbilityState* PrevState)
 {
 	UE_LOG(GameAbilities, Log, TEXT("Begining State: %s"), *GetName());
-	FTimerManager& TimerManager = GetOuterUGASAbilityBase()->GetWorld()->GetTimerManager();
-	FTimerDelegate del = FTimerDelegate::CreateUObject(this, &UGASAbilityStateChanneled::ExecuteChannel);
-	TimerManager.SetTimer(ChannelTimerHandle, del, Interval, true, 0);
+
+	if (!GetOuterUGASAbilityBase()->ApplyActivationEffect())
+	{
+		//GetOuterUGASAbilityBase()->GotoState(GetOuterUGASAbilityBase()->CooldownState);
+	}
 }
 void UGASAbilityStateChanneled::EndState()
 {
-
+	UE_LOG(GameAbilities, Log, TEXT("Ending State: %s"), *GetName());
+	GetOuterUGASAbilityBase()->NativeFinishExecution();
 }
-void UGASAbilityStateChanneled::BeginActionSequence()
+void UGASAbilityStateChanneled::ExecuteActionSequence()
 {}
-void UGASAbilityStateChanneled::EndActionSequence()
+void UGASAbilityStateChanneled::StopActionSequence()
 {
-	FTimerManager& TimerManager = GetOuterUGASAbilityBase()->GetWorld()->GetTimerManager();
-	TimerManager.ClearTimer(ChannelTimerHandle);
 	GetOuterUGASAbilityBase()->OnNativeStopAbility();
 	GetOuterUGASAbilityBase()->GotoState(GetOuterUGASAbilityBase()->CooldownState);
+}
+void UGASAbilityStateChanneled::FinishActionSequence()
+{
 }

@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{33D50632-4D33-5ACE-428D-BBBDB6AD6739}",
+	"EngineAssociation": "{9D8B2121-4F13-DD74-585E-669D7C538ABD}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -32,7 +32,8 @@
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
 				"CoreUObject",
-				"Engine"
+    "Engine",
+    "GameAttributes"
 			]
 		},
 		{
@@ -56,7 +57,10 @@
 		{
 			"Name": "GameAttributes",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
 		},
 		{
 			"Name": "GameAttributesEditor",
@@ -105,40 +109,6 @@
 			"Name": "ActionRPGGameEditor",
 			"Type": "Editor",
 			"LoadingPhase": "Default"
-		}
-	],
-	"Plugins": [
-		{
-			"Name": "StructBox",
-			"Enabled": true
-		},
-		{
-			"Name": "BlueprintStats",
-			"Enabled": true
-		},
-		{
-			"Name": "LevelSequenceEditor",
-			"Enabled": true
-		},
-		{
-			"Name": "NetcodeUnitTest",
-			"Enabled": true
-		},
-		{
-			"Name": "NUTUnrealEngine4",
-			"Enabled": true
-		},
-		{
-			"Name": "Oodle",
-			"Enabled": true
-		},
-		{
-			"Name": "CodeView",
-			"Enabled": true
-		},
-		{
-			"Name": "SignificanceManager",
-			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [

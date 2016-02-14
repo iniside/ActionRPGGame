@@ -3,6 +3,7 @@
 #include "GameAbilities.h"
 #include "Entity/GASAbilityMod.h"
 #include "GASAbilitiesComponent.h"
+#include "../AbilityCues/GASAbilityCue.h"
 #include "GASAbilityTask_PlayMontage.h"
 
 UGASAbilityTask_PlayMontage* UGASAbilityTask_PlayMontage::AbilityPlayMontage(UObject* WorldContextObject, UAnimMontage* MontageIn, FName SectionNameIn, float PlayRateIn)
@@ -46,28 +47,41 @@ void UGASAbilityTask_PlayMontage::Activate()
 void UGASAbilityTask_PlayMontage::BroadcastStartNotify(const FGASAbilityNotifyData& DataIn)
 {
 	StartNotify.Broadcast();
+	if(Ability->Cue)
+		Ability->Cue->OnAbilityStartNotify();
+
 	DataStart = DataIn;
 }
 void UGASAbilityTask_PlayMontage::BroadcastEndNotify(const FGASAbilityNotifyData& DataIn)
 {
 	EndNotify.Broadcast();
 	DataEnd = DataIn;
+	if (Ability->Cue)
+		Ability->Cue->OnAbilityEndNotify();
 	EndTask();
 }
 void UGASAbilityTask_PlayMontage::BroadcastGenericNotify(const FGASAbilityNotifyData& DataIn)
 {
 	GenericNotify.Broadcast();
+	if (Ability->Cue)
+		Ability->Cue->OnAbilityNotify();
 	DataGeneric = DataIn;
 }
 void UGASAbilityTask_PlayMontage::BroadcastStartNotifyState(const FGASAbilityNotifyData& DataIn)
 {
 	NotifyStateStart.Broadcast();
+	if (Ability->Cue)
+		Ability->Cue->OnAbilityNotifyStateStart();
 }
 void UGASAbilityTask_PlayMontage::BroadcastEndNotifyState(const FGASAbilityNotifyData& DataIn)
 {
 	NotifyStateTick.Broadcast();
+	if (Ability->Cue)
+		Ability->Cue->OnAbilityNotifyStateTick();
 }
 void UGASAbilityTask_PlayMontage::BroadcastTickNotifyState(const FGASAbilityNotifyData& DataIn)
 {
 	NotifyStateTick.Broadcast();
+	if (Ability->Cue)
+		Ability->Cue->OnAbilityNotifyStateEnd();
 }

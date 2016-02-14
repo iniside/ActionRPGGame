@@ -16,5 +16,5 @@ void UGAEffectExecution::ExecuteEffect(FGAGameEffectHandle& HandleIn, FGAEffectM
 {
 	UE_LOG(GameAttributesEffects, Log, TEXT("Sample execution class implementation"));
 
-	Context.TargetAttributeComp->ModifyAttribute(ModIn, HandleIn);
+	Context.TargetAttributeComp->ModifyAttribute(ModIn);
 }

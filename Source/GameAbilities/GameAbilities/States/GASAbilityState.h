@@ -11,8 +11,14 @@ public:
 	virtual UWorld* GetWorld() const override;
 
 	virtual void Tick(float DeltaSeconds);
+	/* Triggered when state starts. */
 	virtual void BeginState(UGASAbilityState* PrevState);
+	/* Triggered when state chang (old state is Ended, and new state Begins). */
 	virtual void EndState();
-	virtual void BeginActionSequence();
-	virtual void EndActionSequence();
+	/* Custom. It will be triggered by UGASAbilityBase::ExecuteAbility() */
+	virtual void ExecuteActionSequence();
+	/* Custom. It will be triggered by UGASAbilityBase::StopAbility() */
+	virtual void StopActionSequence();
+	/* Custom. It will be triggered by UGASAbilityBase::FinishExecution() */
+	virtual void FinishActionSequence();
 };

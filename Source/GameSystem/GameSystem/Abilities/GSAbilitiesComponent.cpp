@@ -94,12 +94,12 @@ float UGSAbilitiesComponent::GetCastTime()
 }
 void UGSAbilitiesComponent::InputPressed(int32 SetIndex, int32 SlotIndex)
 {
-	CurrentAbility = AbilitySets[SetIndex].AbilitySlots[SlotIndex].AbilityIndex;
-	if (CurrentAbility < 0)
-		return;
+	//CurrentAbility = AbilitySets[SetIndex].AbilitySlots[SlotIndex].AbilityIndex;
+	//if (CurrentAbility < 0)
+	//	return;
 	UGASAbilitiesComponent::NativeInputPressed(SetIndex, SlotIndex);
-	OnGetAbilityIndex.ExecuteIfBound(CurrentAbility);
-	OnAbilityPressedIndex.Broadcast(CurrentAbility);
+	//OnGetAbilityIndex.ExecuteIfBound(CurrentAbility);
+	//OnAbilityPressedIndex.Broadcast(CurrentAbility);
 	//if (InstancedAbilities[CurrentAbility].ActiveAbility
 	//	&& !InstancedAbilities[CurrentAbility].ActiveAbility->OnAbilityCastedDel.IsBound())
 	//{

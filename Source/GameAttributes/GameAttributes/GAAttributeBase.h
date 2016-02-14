@@ -51,13 +51,14 @@ public:
 
 public:
 	inline void SetBaseValue(float ValueIn){ BaseValue = ValueIn; }
+	inline void SetClampValue(float ValueIn) { ClampValue = ValueIn; }
 	inline float GetFinalValue()
 	{
 		return FMath::Clamp<float>(BaseValue + BonusValue, 0, ClampValue);
 	};
 	inline float GetCurrentValue(){ return CurrentValue; };
 	void UpdateAttribute();
-
+	float Modify(const FGAEffectMod& ModIn);
 	void Add(float ValueIn);
 	void Subtract(float ValueIn);
 	void ApplyDurationModifier(const FGAGameEffectHandle& HandleIn, FGAEffectMod& ModIn) {};

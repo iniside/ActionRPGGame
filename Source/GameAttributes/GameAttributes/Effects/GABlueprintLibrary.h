@@ -48,4 +48,5 @@ public:
 protected:
 	static FGAEffectContext MakeActorContext(class AActor* Target, class APawn* Instigator, UObject* Causer);
 	static FGAEffectContext MakeHitContext(const FHitResult& Target, class APawn* Instigator, UObject* Causer);
+	static void AddTagsToEffect(FGAGameEffect* EffectIn);
 };

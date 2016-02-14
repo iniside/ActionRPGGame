@@ -105,11 +105,11 @@ bool UGASAbilitiesComponent::CanActivateAbility()
 {
 	//if there are no activate abilities, we can activate the selected one.
 	//this should be configarable ie. how many abilities can be activated at the same time ?
-	if (!bIsAnyAbilityActive)
+	if (!bIsAnyAbilityActive && !ExecutingAbility)
 	{
 		return true;
 	}
-	return true;
+	return false;
 }
 void UGASAbilitiesComponent::InitializeComponent()
 {
@@ -200,6 +200,8 @@ void UGASAbilitiesComponent::BP_InputReleased(int32 SetIndex, int32 SlotIndex)
 
 void UGASAbilitiesComponent::NativeInputReleased(int32 SetIndex, int32 SlotIndex, int32 AbilityIndex)
 {
+	if (!CanActivateAbility())
+		return;
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
 		if (!ActiveAbilityContainer.IsValid(SetIndex, SlotIndex))
@@ -415,9 +417,9 @@ void UGASAbilitiesComponent::InitializeInstancedAbilities()
 	}
 	if (ActiveAbilityContainer.AbilitySets.IsValidIndex(0))
 	{
-		ActiveAbilityContainer.AbilitySets[0].InputOverride = NewObject<UGASInputOverride>();
-		ActiveAbilityContainer.AbilitySets[0].InputOverride->AbilityComp = this;
-		ActiveAbilityContainer.AbilitySets[0].InputOverride->SetIndex = 0;
+		//ActiveAbilityContainer.AbilitySets[0].InputOverride = NewObject<UGASInputOverride>();
+		//ActiveAbilityContainer.AbilitySets[0].InputOverride->AbilityComp = this;
+		//ActiveAbilityContainer.AbilitySets[0].InputOverride->SetIndex = 0;
 	}
 }
 

@@ -50,6 +50,19 @@ void FGAGameEffect::OnDuration()
 {
 
 }
+void FGAGameEffect::OnExpired()
+{
+	OnEffectExpired.ExecuteIfBound();
+}
+void FGAGameEffect::OnRemoved()
+{
+	OnEffectRemoved.ExecuteIfBound();
+}
+void FGAGameEffect::DurationExpired()
+{
+
+}
+
 TArray<FGAEffectMod> FGAGameEffect::GetMods(TArray<FGAAttributeModifier>& ModsInfoIn)
 {
 	TArray<FGAEffectMod> ModsOut;
@@ -89,11 +102,6 @@ TArray<FGAEffectMod> FGAGameEffect::GetMods(TArray<FGAAttributeModifier>& ModsIn
 		}
 	}
 	return ModsOut;
-}
-
-void FGAGameEffect::DurationExpired()
-{
-
 }
 
 float FGAEffectModifiersContainer::GatherMods(const FGameplayTagContainer& TagsIn, const TMap<FGAGameEffectHandle, TArray<FGAGameEffectModifier>>& Data)
@@ -363,6 +371,7 @@ void FGAGameEffectContainer::InternalCheckPeriodicEffectStacking(const FGAGameEf
 		}
 		case EGAEffectStacking::StrongerOverride:
 		{
+			InternalApplyPeriodic(HandleIn);
 			break;
 		}
 	}
@@ -372,23 +381,29 @@ void FGAGameEffectContainer::InternalApplyPeriodic(const FGAGameEffectHandle& Ha
 {
 	FTimerDelegate delPeriod = FTimerDelegate::CreateUObject(HandleIn.GetContext().TargetComp.Get(), &UGAAttributeComponent::ExecuteEffect, HandleIn);
 	FTimerManager& PeriodicTimer = HandleIn.GetEffectRef().Context.TargetComp->GetWorld()->GetTimerManager();
-
+	float period = HandleIn.GetEffectSpec()->Period;
 	PeriodicTimer.SetTimer(HandleIn.GetEffectRef().PeriodTimerHandle, delPeriod,
-		HandleIn.GetEffectSpec()->Period, true, 0);
+		period, true, 0);
+
 	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(HandleIn.GetContext().TargetComp.Get(), &UGAAttributeComponent::ExpireEffect, HandleIn);
 	FTimerManager& timerDuration = HandleIn.GetEffectRef().Context.TargetComp->GetWorld()->GetTimerManager();
+	float Duration = HandleIn.GetEffectSpec()->Duration;
+	timerDuration.SetTimer(HandleIn.GetEffectRef().DurationTimerHandle, delDuration,
+		Duration, false, Duration);
+
+	InternalApplyEffectTags(HandleIn);
 }
 void FGAGameEffectContainer::InternalApplyDuration(const FGAGameEffectHandle& HandleIn)
 {
 	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(HandleIn.GetContext().TargetComp.Get(), &UGAAttributeComponent::ExpireEffect, HandleIn);
 	FTimerManager& timerDuration = HandleIn.GetEffectRef().Context.TargetComp->GetWorld()->GetTimerManager();
 
-	timerDuration.SetTimer(HandleIn.GetEffectRef().PeriodTimerHandle, delDuration,
-		HandleIn.GetEffectSpec()->Period, true, 0);
+	timerDuration.SetTimer(HandleIn.GetEffectRef().DurationTimerHandle, delDuration,
+		HandleIn.GetEffectSpec()->Duration, false, HandleIn.GetEffectSpec()->Duration);
 
 	TArray<FGAEffectMod> Modifiers = HandleIn.GetEffectRef().GetAttributeModifiers();
 	EGAEffectStacking Stacking = HandleIn.GetEffectSpec()->EffectStacking;
-
+	InternalApplyEffectTags(HandleIn);
 	for (FGAEffectMod& Modifier : Modifiers)
 	{
 		if (Modifier.Attribute.IsValid())
@@ -402,6 +417,14 @@ void FGAGameEffectContainer::InternalApplyDuration(const FGAGameEffectHandle& Ha
 			}
 		}
 	}
+}
+void FGAGameEffectContainer::InternalApplyEffectTags(const FGAGameEffectHandle& HandleIn)
+{
+	//wayt to few dereferences!
+	UGAAttributeComponent* Target = HandleIn.GetContextRef().TargetComp.Get();
+	FGAGameEffect& Effect = HandleIn.GetEffectRef();
+
+	Target->AppliedTags.AddTagContainer(Effect.ApplyTags);
 }
 void FGAGameEffectContainer::InternalApplyEffectByAggregation(const FGAGameEffectHandle& HandleIn)
 {
@@ -469,6 +492,7 @@ void FGAGameEffectContainer::RemoveEffect(FGAGameEffectHandle& HandleIn)
 {
 	EGAEffectAggregation aggregatiopn = HandleIn.GetEffectRef().GameEffect->EffectAggregation;
 	UObject* Instigator = HandleIn.GetContextRef().Instigator.Get();
+	UGAAttributeComponent* Target = HandleIn.GetContextRef().TargetComp.Get();
 	TSharedPtr<FGAGameEffect> effect = ActiveEffects.FindAndRemoveChecked(HandleIn);
 
 	if (effect.IsValid())
@@ -503,6 +527,7 @@ void FGAGameEffectContainer::RemoveEffect(FGAGameEffectHandle& HandleIn)
 				break;
 			}
 		}
+		Target->AppliedTags.RemoveTagContainer(effect->ApplyTags);
 		for (FGAGameEffectModifier& Modifier : effect->GameEffect->Modifiers)
 		{
 			if (Modifier.Attribute.IsValid())
@@ -514,6 +539,7 @@ void FGAGameEffectContainer::RemoveEffect(FGAGameEffectHandle& HandleIn)
 				}
 			}
 		}
+		effect->OnEffectRemoved.ExecuteIfBound();
 		UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer:: Removing Effect"))
 			effect.Reset();
 	}
@@ -571,6 +597,15 @@ void FGAGameEffectContainer::ApplyEffectModifier(const FGAGameEffectModifier& Mo
 	const FGAGameEffectHandle& HandleIn)
 {
 	EffectModifiers.AddEffectModifier(HandleIn, ModifierIn, ModifierIn.Direction);
+}
+
+bool FGAGameEffectContainer::IsEffectActive(const FGAGameEffectHandle& HandleIn)
+{
+	if (ActiveEffects.Contains(HandleIn))
+	{
+		return true;
+	}
+	return false;
 }
 
 FGAGameModifierStack FGAGameEffectContainer::GetQualifableMods(const FGAGameEffect& EffectIn

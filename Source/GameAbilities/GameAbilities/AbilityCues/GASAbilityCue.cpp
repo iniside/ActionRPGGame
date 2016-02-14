@@ -13,3 +13,7 @@ UWorld* UGASAbilityCue::GetWorld() const
 {
 	return GetOuterUGASAbilityBase()->GetWorld();
 }
+APawn* UGASAbilityCue::GetPawnOwner() const
+{
+	return GetOuterUGASAbilityBase()->POwner;
+}

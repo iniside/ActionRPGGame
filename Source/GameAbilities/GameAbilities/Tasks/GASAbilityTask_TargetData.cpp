@@ -46,6 +46,10 @@ void UGASAbilityTask_TargetData::Activate()
 					Ability->OnConfirmDelegate.AddUObject(this, &UGASAbilityTask_TargetData::OnConfirm);
 					bIsTickable = true;
 				}
+				if (!Ability->OnConfirmCastingEndedDelegate.IsBoundToObject(this))
+				{
+					Ability->OnConfirmCastingEndedDelegate.AddUObject(this, &UGASAbilityTask_TargetData::OnCastEndedConfirm);
+				}
 			}
 		}
 	}
@@ -63,15 +67,19 @@ void UGASAbilityTask_TargetData::Activate()
 
 void UGASAbilityTask_TargetData::OnConfirm()
 {
+	FHitResult Hit(ForceInit);// = LineTrace();
+	OnConfirmed.Broadcast(Hit);
+}
+void UGASAbilityTask_TargetData::OnCastEndedConfirm()
+{
 	FHitResult Hit = LineTrace();
 	OnReceiveTargetData.Broadcast(Hit);
 	bIsTickable = false;
 	EndTask();
 }
-
 void UGASAbilityTask_TargetData::Tick(float DeltaTime)
 {
-	FHitResult HitOut = LineTrace();
+	//FHitResult HitOut = LineTrace();
 }
 
 FHitResult UGASAbilityTask_TargetData::LineTrace()
@@ -110,11 +118,11 @@ FHitResult UGASAbilityTask_TargetData::LineTrace()
 	
 		if (bDrawCorrectedDebug)
 		{
-			DrawDebugLine(GetWorld(), Start, End, FColor::Green, true, GetWorld()->DeltaTimeSeconds);
+			DrawDebugLine(GetWorld(), Start, End, FColor::Green, true, 2);// GetWorld()->DeltaTimeSeconds);
 			if (NewHit.bBlockingHit)
 			{
-				DrawDebugLine(GetWorld(), Start, NewHit.Location, FColor::Magenta, true, GetWorld()->DeltaTimeSeconds);
-				DrawDebugPoint(GetWorld(), NewHit.Location, 8, FColor::Magenta, true, GetWorld()->DeltaTimeSeconds);
+				DrawDebugLine(GetWorld(), Start, NewHit.Location, FColor::Magenta, true, 2);//GetWorld()->DeltaTimeSeconds);
+				DrawDebugPoint(GetWorld(), NewHit.Location, 8, FColor::Magenta, true, 2);//GetWorld()->DeltaTimeSeconds);
 			}
 		}
 	}
@@ -130,11 +138,11 @@ FHitResult UGASAbilityTask_TargetData::LineTrace()
 
 		if (bDrawCorrectedDebug)
 		{
-			DrawDebugLine(GetWorld(), Start, End, FColor::Green, true, GetWorld()->DeltaTimeSeconds);
+			DrawDebugLine(GetWorld(), Start, End, FColor::Green, true, 2);//GetWorld()->DeltaTimeSeconds);
 			if (NewHit.bBlockingHit)
 			{
-				DrawDebugLine(GetWorld(), Start, NewHit.Location, FColor::Magenta, true, GetWorld()->DeltaTimeSeconds);
-				DrawDebugPoint(GetWorld(), NewHit.Location, 8, FColor::Magenta, true, GetWorld()->DeltaTimeSeconds);
+				DrawDebugLine(GetWorld(), Start, NewHit.Location, FColor::Magenta, true, 2);//GetWorld()->DeltaTimeSeconds);
+				DrawDebugPoint(GetWorld(), NewHit.Location, 8, FColor::Magenta, true, 2);//GetWorld()->DeltaTimeSeconds);
 			}
 		}
 	}
@@ -142,10 +150,10 @@ FHitResult UGASAbilityTask_TargetData::LineTrace()
 	{
 		if (HitOut.bBlockingHit)
 		{
-			DrawDebugLine(GetWorld(), TraceStart, HitOut.ImpactPoint, FColor::Red, true, GetWorld()->DeltaTimeSeconds);
-			DrawDebugPoint(GetWorld(), HitOut.Location, 8, FColor::Red, true, GetWorld()->DeltaTimeSeconds);
+			DrawDebugLine(GetWorld(), TraceStart, HitOut.ImpactPoint, FColor::Red, true, 2);//GetWorld()->DeltaTimeSeconds);
+			DrawDebugPoint(GetWorld(), HitOut.Location, 8, FColor::Red, true, 2);//GetWorld()->DeltaTimeSeconds);
 		}
-		DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Green, true, GetWorld()->DeltaTimeSeconds);
+		DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Green, true, 2);//GetWorld()->DeltaTimeSeconds);
 	}
 	return HitOut;
 }

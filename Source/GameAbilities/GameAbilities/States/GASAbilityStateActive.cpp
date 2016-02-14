@@ -14,15 +14,19 @@ UGASAbilityStateActive::UGASAbilityStateActive(const FObjectInitializer& ObjectI
 void UGASAbilityStateActive::BeginState(UGASAbilityState* PrevState)
 {
 	UE_LOG(GameAbilities, Log, TEXT("Begining State: %s"), *GetName());
+	//GetOuterUGASAbilityBase()->AbilityComponent->ExecutingAbility = nullptr;
 }
 void UGASAbilityStateActive::EndState()
 {
 }
-void UGASAbilityStateActive::BeginActionSequence()
+void UGASAbilityStateActive::ExecuteActionSequence()
 {
 	UE_LOG(GameAbilities, Log, TEXT("BBeginActionSequence in: %s go to state: %s"), *GetName(), *GetOuterUGASAbilityBase()->ActivationState->GetName());
 	GetOuterUGASAbilityBase()->GotoState(GetOuterUGASAbilityBase()->ActivationState);
 }
-void UGASAbilityStateActive::EndActionSequence()
+void UGASAbilityStateActive::StopActionSequence()
+{
+}
+void UGASAbilityStateActive::FinishActionSequence()
 {
 }

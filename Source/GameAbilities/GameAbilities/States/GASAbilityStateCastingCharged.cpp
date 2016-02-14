@@ -46,11 +46,14 @@ void UGASAbilityStateCastingCharged::EndState()
 	CurrentCastTime = 0;
 	//GetOuterUGASAbility()->AbilityCastEnd();
 }
-void UGASAbilityStateCastingCharged::BeginActionSequence()
+void UGASAbilityStateCastingCharged::ExecuteActionSequence()
 {}
-void UGASAbilityStateCastingCharged::EndActionSequence()
+void UGASAbilityStateCastingCharged::StopActionSequence()
 {
 //	GetOuterUGASAbility()->PrimaryActorTick.SetTickFunctionEnable(false);
 	CurrentCastTime = 0;
 //	GetOuterUGASAbility()->GotoActiveState();
+}
+void UGASAbilityStateCastingCharged::FinishActionSequence()
+{
 }

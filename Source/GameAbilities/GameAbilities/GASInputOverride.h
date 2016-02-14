@@ -23,11 +23,18 @@ public:
 		TArray<TSubclassOf<class UGASAbilityBase> > AbilitiesToGive;
 	
 	/* Index of ability set, using this Input Override. */
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category = "Abilities")
 		int32 SetIndex;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category = "Abilities")
 	class UGASAbilitiesComponent* AbilityComp;
+
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnInputPressed(int32 Index);
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnInputReleased(int32 Index);
 	/*
 		Index in both functions indicates button.
 		For example:

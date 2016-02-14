@@ -4,7 +4,7 @@
 #include "GASAbilityStateCooldown.generated.h"
 
 UCLASS(DefaultToInstanced, EditInLineNew, Within = GASAbilityBase, meta = (DisplayName = "Cooldown State"))
-class UGASAbilityStateCooldown : public UGASAbilityState
+class GAMEABILITIES_API UGASAbilityStateCooldown : public UGASAbilityState
 {
 	GENERATED_UCLASS_BODY()
 public:
@@ -16,8 +16,9 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginState(UGASAbilityState* PrevState) override;
 	virtual void EndState() override;
-	virtual void BeginActionSequence() override;
-	virtual void EndActionSequence() override;
+	virtual void ExecuteActionSequence() override;
+	virtual void StopActionSequence() override;
+	virtual void FinishActionSequence() override;
 	UFUNCTION()
 		void FinishCooldown();
 };

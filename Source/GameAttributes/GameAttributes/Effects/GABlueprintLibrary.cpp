@@ -91,6 +91,7 @@ FGAGameEffectHandle UGABlueprintLibrary::MakeOutgoingSpecObj(FGAGameEffectHandle
 
 	//FGAGameEffectHandle NewHandle = instiComp->MakeGameEffect(SpecIn, Context);
 	FGAGameEffect* effect = new FGAGameEffect(SpecIn.Spec, Context);
+	AddTagsToEffect(effect);
 	FGAGameEffectHandle handle = FGAGameEffectHandle::GenerateHandle(effect);
 	effect->Handle = &handle;
 
@@ -143,7 +144,19 @@ FGAGameEffectHandle UGABlueprintLibrary::ApplyGameEffectToActor(const FGAEffectS
 	}
 	FGAEffectContext Context = MakeActorContext(Target, Instigator, Causer);
 	if (!Context.IsValid())
-		return FGAGameEffectHandle();
+	{
+		//if the handle is valid (valid pointer to effect and id)
+		//we want to preseve it and just set bad context.
+		if (HandleIn.IsValid())
+		{
+			HandleIn.SetContext(Context);
+			return HandleIn;
+		}
+		else
+		{
+			return FGAGameEffectHandle();
+		}
+	}
 
 	UE_LOG(GameAttributesEffects, Log, TEXT("MakeOutgoingSpecObj: Created new Context: %s"), *Context.ToString());
 
@@ -154,6 +167,7 @@ FGAGameEffectHandle UGABlueprintLibrary::ApplyGameEffectToActor(const FGAEffectS
 	else
 	{
 		FGAGameEffect* effect = new FGAGameEffect(SpecIn.Spec, Context);
+		AddTagsToEffect(effect);
 		HandleIn = FGAGameEffectHandle::GenerateHandle(effect);
 		effect->Handle = &HandleIn;
 	}
@@ -173,7 +187,19 @@ FGAGameEffectHandle UGABlueprintLibrary::ApplyGameEffectToActorFromClass(TSubcla
 
 	FGAEffectContext Context = MakeActorContext(Target, Instigator, Causer);
 	if (!Context.IsValid())
-		return FGAGameEffectHandle();
+	{
+		//if the handle is valid (valid pointer to effect and id)
+		//we want to preseve it and just set bad context.
+		if (HandleIn.IsValid())
+		{
+			HandleIn.SetContext(Context);
+			return HandleIn;
+		}
+		else
+		{
+			return FGAGameEffectHandle();
+		}
+	}
 
 	UE_LOG(GameAttributesEffects, Log, TEXT("MakeOutgoingSpecObj: Created new Context: %s"), *Context.ToString());
 
@@ -185,6 +211,7 @@ FGAGameEffectHandle UGABlueprintLibrary::ApplyGameEffectToActorFromClass(TSubcla
 	{
 		UGAGameEffectSpec* EffectCDO = SpecIn.GetDefaultObject();
 		FGAGameEffect* effect = new FGAGameEffect(EffectCDO, Context);
+		AddTagsToEffect(effect);
 		HandleIn = FGAGameEffectHandle::GenerateHandle(effect);
 		effect->Handle = &HandleIn;
 	}
@@ -229,4 +256,13 @@ FGAEffectContext UGABlueprintLibrary::MakeHitContext(const FHitResult& Target, c
 		Instigator, targetComp, instiComp);
 
 	return Context;
+}
+
+void UGABlueprintLibrary::AddTagsToEffect(FGAGameEffect* EffectIn)
+{
+	if (EffectIn)
+	{
+		EffectIn->OwnedTags.AppendTags(EffectIn->GameEffect->OwnedTags);
+		EffectIn->ApplyTags.AppendTags(EffectIn->GameEffect->ApplyTags);
+	}
 }

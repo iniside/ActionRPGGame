@@ -60,6 +60,7 @@ void UGAAttributeComponent::InitializeComponent()
 FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAGameEffect& EffectIn
 	, const FGAGameEffectHandle& HandleIn)
 {
+	OnEffectApplyToSelf.Broadcast(HandleIn, EffectIn.GameEffect->OwnedTags);
 	GameEffectContainer.ApplyEffect(EffectIn, HandleIn);
 	OnEffectApplied.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
 	//ExecuteEffect(EffectIn);
@@ -68,8 +69,11 @@ FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAGameEffect& Ef
 FGAEffectHandle UGAAttributeComponent::ApplyEffectToTarget(const FGAGameEffect& EffectIn
 	, const FGAGameEffectHandle& HandleIn)
 {
-	if(EffectIn.IsValid())
+	if (EffectIn.IsValid())
+	{
+		OnEffectApplyToTarget.Broadcast(HandleIn, EffectIn.GameEffect->OwnedTags);
 		return EffectIn.Context.TargetComp->ApplyEffectToSelf(EffectIn, HandleIn);
+	}
 	return FGAEffectHandle();
 }
 
@@ -77,6 +81,11 @@ FGAGameEffectHandle UGAAttributeComponent::MakeGameEffect(TSubclassOf<class UGAG
 	const FGAEffectContext& ContextIn)
 {
 	FGAGameEffect* effect = new FGAGameEffect(SpecIn.GetDefaultObject(), ContextIn);
+	if (effect)
+	{
+		effect->OwnedTags.AppendTags(effect->GameEffect->OwnedTags);
+		effect->ApplyTags.AppendTags(effect->GameEffect->ApplyTags);
+	}
 	FGAGameEffectHandle handle = FGAGameEffectHandle::GenerateHandle(effect);
 	effect->Handle = &handle;
 	return handle;
@@ -110,11 +119,14 @@ void UGAAttributeComponent::ExecuteEffect(FGAGameEffectHandle HandleIn)
 		on periods on expiration etc, and all those will go trouch ExecuteEffect path.
 	*/
 	OnEffectExecuted.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
-	
-	FGAGameEffect Effect = HandleIn.GetEffect();
+	UE_LOG(GameAttributesEffects, Log, TEXT("UGAAttributeComponent:: Effect %s executed"), *HandleIn.GetEffectSpec()->GetName());
+	FGAGameEffect& Effect = HandleIn.GetEffectRef();
 	TArray<FGAEffectMod> Mods = Effect.GetAttributeModifiers();
 	FGAExecutionContext ExecContext(Effect.Context.TargetComp.Get(), Effect.Context.TargetComp->DefaultAttributes,
 		Effect.Context.InstigatorComp.Get(), Effect.Context.InstigatorComp->DefaultAttributes);
+	//execute period regardless if this periodic effect ? Or maybe change name OnEffectExecuted ?
+	Effect.OnEffectPeriod.ExecuteIfBound();
+
 	for (FGAEffectMod& mod : Mods)
 	{
 		HandleIn.ExecuteEffect(HandleIn, mod, ExecContext);
@@ -124,11 +136,14 @@ void UGAAttributeComponent::ExecuteEffect(FGAGameEffectHandle HandleIn)
 }
 void UGAAttributeComponent::ExpireEffect(FGAGameEffectHandle HandleIn)
 {
+	//call effect internal delegate:
+	HandleIn.GetEffectPtr()->OnExpired();
 	InternalRemoveEffect(HandleIn);
 	OnEffectExpired.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
 }
 void UGAAttributeComponent::RemoveEffect(FGAGameEffectHandle& HandleIn)
 {
+	HandleIn.GetEffectPtr()->OnRemoved();
 	InternalRemoveEffect(HandleIn);
 	OnEffectRemoved.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
 }
@@ -142,18 +157,22 @@ void UGAAttributeComponent::InternalRemoveEffect(FGAGameEffectHandle& HandleIn)
 	FGAGameEffect& Effect = HandleIn.GetEffectRef();
 	TArray<FGAEffectMod> Mods = Effect.GetAttributeModifiers();
 
-	for (FGAEffectMod& mod : Mods)
+	//periodic effects do not apply duration based modifiers to attributes.
+	//yet in anycase.
+	if (Effect.GameEffect->EffectType == EGAEffectType::Duration)
 	{
-		FGAAttributeBase* attr = DefaultAttributes->GetAttribute(mod.Attribute);
-		if (attr)
+		for (FGAEffectMod& mod : Mods)
 		{
-			UE_LOG(GameAttributes, Log, TEXT("Value Before bonus of attribute = %f"), attr->GetFinalValue());
-			attr->RemoveBonus(HandleIn);
-			UE_LOG(GameAttributes, Log, TEXT("Value After bonus of attribute = %f"), attr->GetFinalValue());
-			
+			FGAAttributeBase* attr = DefaultAttributes->GetAttribute(mod.Attribute);
+			if (attr)
+			{
+				UE_LOG(GameAttributes, Log, TEXT("Value Before bonus of attribute = %f"), attr->GetFinalValue());
+				attr->RemoveBonus(HandleIn);
+				UE_LOG(GameAttributes, Log, TEXT("Value After bonus of attribute = %f"), attr->GetFinalValue());
+
+			}
 		}
 	}
-	
 	GameEffectContainer.RemoveEffect(HandleIn);
 }
 
@@ -201,9 +220,9 @@ void UGAAttributeComponent::RemoveEffectCue(int32 Handle)
 	ActiveCues.CueRemoved(FGAEffectHandle(Handle));
 }
 
-void UGAAttributeComponent::ModifyAttribute(FGAEffectMod& ModIn, FGAGameEffectHandle& HandleIn)
+float UGAAttributeComponent::ModifyAttribute(FGAEffectMod& ModIn)
 {
-	DefaultAttributes->ModifyAttribute(ModIn);
+	return DefaultAttributes->ModifyAttribute(ModIn);
 }
 
 void UGAAttributeComponent::ModifyAttributesOnSelf(const FGAAttributeData& EvalData, const FGAEffectContext& Context,

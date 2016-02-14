@@ -98,6 +98,12 @@ public:
 		FGAGenericEffectDelegate OnEffectApplied;
 
 	UPROPERTY(BlueprintAssignable, Category = "Effect")
+		FGAGenericEffectDelegate OnEffectApplyToTarget;
+
+	UPROPERTY(BlueprintAssignable, Category = "Effect")
+		FGAGenericEffectDelegate OnEffectApplyToSelf;
+
+	UPROPERTY(BlueprintAssignable, Category = "Effect")
 		FGAGenericEffectDelegate OnEffectExecuted;
 	/* Called when efect period ticked. */
 	UPROPERTY(BlueprintAssignable, Category = "Effect")
@@ -111,6 +117,12 @@ public:
 
 	/* NEW EFFECT SYSTEM */
 	FGAGameEffectContainer GameEffectContainer;
+
+	template<typename T>
+	T* GetAttributes()
+	{
+		return CastChecked<T>(DefaultAttributes);
+	}
 
 	UFUNCTION(BlueprintCallable, Category = "Test")
 		void GetAttributeStructTest(FGAAttribute Name);
@@ -144,8 +156,8 @@ public:
 	void ApplyInstancedToTarget(class UGAEffectInstanced* EffectIn);
 
 	void RemoveInstancedFromSelf(class UGAEffectInstanced* EffectIn);
-
-	void ModifyAttribute(FGAEffectMod& ModIn, FGAGameEffectHandle& HandleIn);
+	/* Never call it directly. */
+	float ModifyAttribute(FGAEffectMod& ModIn);
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes | UI")
 		TArray<FGAEffectUIData> GetEffectUIData();
 
@@ -186,6 +198,7 @@ public:
 		For example there might be physical armor mod, which will apply changes only
 		to attributes tagged as Damage.Physical and only if you are reciving change, not causing it.
 	*/
+
 	void ModifyAttributesOnSelf(const FGAAttributeData& EvalData, const FGAEffectContext& Context, 
 		const FGameplayTagContainer& EffectTags, FGAEffectHandle& HandleIn);
 	void ModifyAttributesOnTarget(const FGAAttributeData& EvalData, const FGAEffectContext& Context, 

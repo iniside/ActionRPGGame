@@ -207,27 +207,14 @@ void UGAAttributesBase::ModifyAttribute(const FGAGameEffect& EffectIn)
 
 }
 
-void UGAAttributesBase::ModifyAttribute(const FGAEffectMod& ModIn)
+float UGAAttributesBase::ModifyAttribute(const FGAEffectMod& ModIn)
 {
 	FGAAttributeBase* attr = nullptr;
-	//for (const FGAGameEffectMod& mod : EffectIn.OnAppliedMods)
-	//{
-		switch (ModIn.AttributeMod)
-		{
-		case EGAAttributeMod::Subtract:
-			attr = GetAttribute(ModIn.Attribute);
-			if (attr)
-			{
-				attr->Subtract(ModIn.Value);
-			}
-			break;
-		case EGAAttributeMod::Add:
-			attr = GetAttribute(ModIn.Attribute);
-			if (attr)
-			{
-				attr->Add(ModIn.Value);
-			}
-			break;
-		}
-	//}
+
+	attr = GetAttribute(ModIn.Attribute);
+	if (attr)
+	{
+		return attr->Modify(ModIn);
+	}
+	return -1;
 }

@@ -3,13 +3,14 @@
 #include "GASAbilityState.h"
 #include "GASAbilityStateActive.generated.h"
 
-UCLASS(DefaultToInstanced, EditInLineNew, Within = GASAbilityBase)
-class UGASAbilityStateActive : public UGASAbilityState
+UCLASS(BlueprintType, DefaultToInstanced, EditInLineNew, Within = GASAbilityBase)
+class GAMEABILITIES_API UGASAbilityStateActive : public UGASAbilityState
 {
 	GENERATED_UCLASS_BODY()
 public:
 	virtual void BeginState(UGASAbilityState* PrevState) override;
 	virtual void EndState() override;
-	virtual void BeginActionSequence() override;
-	virtual void EndActionSequence() override;
+	virtual void ExecuteActionSequence() override;
+	virtual void StopActionSequence() override;
+	virtual void FinishActionSequence() override;
 };

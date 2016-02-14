@@ -24,6 +24,8 @@ class GAMEABILITIES_API UGASAbilityTask_TargetData : public UGASAbilityTask, pub
 	GENERATED_BODY()
 public:
 	UPROPERTY(BlueprintAssignable)
+		FGASOnReceiveTargetData OnConfirmed;
+	UPROPERTY(BlueprintAssignable)
 		FGASOnReceiveTargetData OnReceiveTargetData;
 
 	UPROPERTY()
@@ -49,6 +51,9 @@ public:
 
 	UFUNCTION()
 		void OnConfirm();
+
+	UFUNCTION()
+		void OnCastEndedConfirm();
 
 	/* FTickableGameObject Begin */
 	virtual void Tick(float DeltaTime) override;

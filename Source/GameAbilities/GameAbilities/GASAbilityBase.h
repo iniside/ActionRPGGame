@@ -1,8 +1,11 @@
 #pragma once
 #include "IGIPawn.h"
+#include "GAGameEffect.h"
 #include "GameplayTasksComponent.h"
 #include "GameplayTask.h"
 #include "GameplayTaskOwnerInterface.h"
+#include "GAAttributesBase.h"
+#include "IGAAttributes.h"
 #include "GASAbilityBase.generated.h"
 /*
 	TODO::
@@ -19,6 +22,9 @@
 	This can be implement as very simple linked list (though I'm not sure about nice BP workflow),
 	at ability level, OR it can be implemented at component level as queue.
 	But, from game design perspective implementation on ability level makes more sense.
+
+	Moar TODO: (idk, if the above is still relevelant).
+	1. Add simple tracing directly inside ability. Aside from targeting tasks.
 */
 /*
 	Base class for abilities. It will only implement few generic virtual functions, needed by all
@@ -34,11 +40,15 @@
 	give abilities, which can be performed by actors, an ordinary actor, can't jump).
 
 	More complicated abilities, can be actions in their own right. Like spells.
+
+	Abilities are using state machine, combined with effects, to perform actions, like
+	casting, channeling etc. 
+	It needs to be better explained on how each state makes use of effect parameters (Duration, Period).
 */
 DECLARE_MULTICAST_DELEGATE(FGASSimpleAbilityDynamicDelegate);
 
 UCLASS(BlueprintType, Blueprintable)
-class GAMEABILITIES_API UGASAbilityBase : public UObject, public IIGIPawn, public IGameplayTaskOwnerInterface
+class GAMEABILITIES_API UGASAbilityBase : public UObject, public IIGIPawn, public IGameplayTaskOwnerInterface, public IIGAAttributes
 {
 	GENERATED_BODY()
 public:
@@ -48,28 +58,42 @@ public:
 
 	bool bIsNameStable;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base")
-		float Cooldown;
-
 	bool bIsAbilityExecuting;
 	bool bIsOnCooldown;
 
 	TWeakObjectPtr<class UGASAbilitiesComponent> OwningComp;
-
+	//possibly map TMap<FName, Task*> ?
 	UPROPERTY()
 		TArray<class UGameplayTask*> ActiveTasks;
 
+	/*
+		Delegate is used to confirm ability execution.
+		After confirming ability will proceed to activation state and either casts instatly or start
+		casting effect.
+	*/
 	FGASSimpleAbilityDynamicDelegate OnConfirmDelegate;
+	/*
+		Delegate which is called after ability is confirmed and then cast time ended.
+	*/
+	FGASSimpleAbilityDynamicDelegate OnConfirmCastingEndedDelegate;
 	FSimpleDelegate ConfirmDelegate;
+
+	/* Attributes specific to ability. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "Attributes")
+		UGAAttributesBase* Attributes;
 
 	UPROPERTY()
 	class UWorld* World; 
-
-	UPROPERTY(BlueprintReadOnly, Category = "Default")
+	/*
+		Replicated to everyone because we will need it, to determine cosmetic stuff on clients.
+	*/
+	/*
+	*/
+	UPROPERTY(VisibleAnywhere, Replicated, BlueprintReadOnly, Category = "Default")
 		APawn* POwner;
-	UPROPERTY(BlueprintReadOnly, Category = "Default")
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Default")
 		APlayerController* PCOwner;
-	UPROPERTY(BlueprintReadOnly, Category = "Default")
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Default")
 		class AAIController* AICOwner;
 	UPROPERTY(BlueprintReadOnly, Category = "Default")
 		class UGASAbilitiesComponent* AbilityComponent;
@@ -85,26 +109,112 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Default")
 		UCameraComponent* OwnerCamera;
 	/**
-	*	Default state to which ability will always return upon finishing (either immidielty or after cooldown).
-	*/
-	UPROPERTY(EditAnywhere, Instanced, Category = "Ability State")
+	 *	Default state to which ability will always return upon finishing (either immidielty or after cooldown).
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ability State")
 	class UGASAbilityState* DefaultState;
 	/**
-	*	State used when ability is on cooldown.
-	*/
-	UPROPERTY(EditAnywhere, Instanced, meta = (MetaClass = "UGASAbilityStateCooldown"), Category = "Ability State")
+	 *	State used when ability is on cooldown.
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ability State")
 	class UGASAbilityState* CooldownState;
 	/**
-	*	State used when ability is activated. After preperation state.
-	*/
-	UPROPERTY(EditAnywhere, Instanced, meta = (AllowedClasses = "GASAbilityStateCastingBase"), Category = "Ability State")
+	 *	State used when ability is activated. After preperation state.
+	 */
+	UPROPERTY(EditAnywhere, Instanced, meta = (MetaClass = "UGASAbilityStateCastingBase"), Category = "Ability State")
 	class UGASAbilityState* ActivationState;
 
 	UPROPERTY()
 	class UGASAbilityState* CurrentState;
+	/* 
+		TSubclassOf<> could be better, for runtime customization (ie, different cues for single
+		ability). On other hand, instanced is easier to customize in editor. 
+	*/
+	UPROPERTY(EditAnywhere, Instanced, Category = "Cue")
+	class UGASAbilityCue* Cue;
+	/*
+		Array ?
+		Should it be spawned automatically ?
+		Where should it spawn then ? (in world, location, rotation etc ?).
+		It should be spawned only on client side.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cue")
+		TSubclassOf<class AGASCueActor> ActorCueClass;
 
-protected:
-	FTimerHandle CooldownTimerHandle;
+	UPROPERTY()
+	class AGASCueActor* ActorCue;
+	/*
+		Tags applied to instigator of this ability, for duration of cooldown.
+		Duration of this effect equals cooldown of ability.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Config")
+		FGAEffectSpec CooldownEffect;
+	/*
+		These attributes will be reduced by specified amount when ability is activated.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Config")
+		FGAEffectSpec AttributeCost;
+	/*
+		Tags applied to the time of activation ability.
+		Only applies to abilities, which are not instant (for now).
+		Though even instant abilities have animation time,
+		they probabaly never apply activation tags, since
+		main usecase for those tags is to make other abilities
+		being able to interrupt them.
+		All abilities with casting/channeling time use it.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Config")
+		FGAEffectSpec ActivationEffect;
+public: //because I'm to lazy to write all those friend states..
+	UPROPERTY()
+		FGAGameEffectHandle CooldownHandle;
+	UPROPERTY()
+		FGAGameEffectHandle AttributeCostHandle;
+	UPROPERTY()
+		FGAGameEffectHandle ActivationEffectHandle;
+	UPROPERTY()
+		float LastActivationTime;
+	UPROPERTY()
+		float LastCooldownTime;
+	UFUNCTION()
+		void OnCooldownEffectExpired();
+	UFUNCTION()
+		void OnActivationEffectExpired();
+	UFUNCTION()
+		void OnActivationEffectPeriod();
+
+	UFUNCTION()
+		void OnRep_CooldownStarted();
+	UFUNCTION()
+		void OnRep_CooldownExpired();
+	UFUNCTION()
+		void OnRep_AbilityActivationStarted();
+	UFUNCTION()
+		void OnRep_AbilityActivated();
+	UFUNCTION()
+		void OnRep_AbilityPeriod();
+	/* 
+		Do any needed client side initialization here. 
+		Note that anything created trough this function will exist ONLY on client, this function
+		was called.
+	*/
+	UFUNCTION()
+		virtual void OnRep_InitAbility();
+
+	/* Replication counters for above events. */
+	UPROPERTY(ReplicatedUsing = OnRep_CooldownStarted)
+		uint8 CooldownStartedCounter;
+	UPROPERTY(ReplicatedUsing = OnRep_CooldownExpired)
+		uint8 CooldownEffectExpiredCounter;
+	UPROPERTY(ReplicatedUsing = OnRep_AbilityActivationStarted)
+		uint8 AbilityActivationStartedCounter;
+	UPROPERTY(ReplicatedUsing = OnRep_AbilityActivated)
+		uint8 AbilityActivatedCounter;
+	UPROPERTY(ReplicatedUsing = OnRep_AbilityPeriod)
+		uint8 AbilityPeriodCounter;
+	UPROPERTY(ReplicatedUsing = OnRep_InitAbility)
+		uint8 InitAbilityCounter;
+	
 
 public:
 	UGASAbilityBase(const FObjectInitializer& ObjectInitializer);
@@ -134,6 +244,9 @@ public:
 
 
 	virtual void OnAbilityExecutedNative();
+
+	void NativeOnAbilityConfirmed();
+
 	/*
 		In blueprint, call this function to trigger event of the same name,
 		after ability is ready to be executed (like after targeting is done, input is confirmed,
@@ -149,7 +262,6 @@ public:
 		void ExecuteAbility();
 	/*
 		Event triggered after State called by ExecuteAbility has finished (ie cast time, channel time).
-
 	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
 		void OnAbilityExecuted();
@@ -157,6 +269,9 @@ public:
 		Call this to stop ability. Usually should be connected to OnInputReleased Event.
 		Though nothing really stops you from connecting it's elsewhere, most of the cases when ability should 
 		end will be handled trough states automatically.
+
+		Calling this will also try to call end action on current state. What will happen
+		will depend on current EndActionSequence() implementation.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 		void StopAbility();
@@ -189,6 +304,16 @@ public:
 	void ConfirmAbility();
 
 	bool CanUseAbility();
+	
+	bool CheckCooldown();
+
+	float GetCooldownTime() const;
+	UFUNCTION(BlueprintPure, meta=(DisplayName = "Get Cooldown Time"), Category = "Game Abilities")
+		float BP_GetCooldownTime() const;
+
+	float GetActivationTime() const;
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Get Activation Time"), Category = "Game Abilities")
+		float BP_GetActivationTime() const;
 
 	/* State Handling Begin */
 	void GotoState(class UGASAbilityState* NextState);
@@ -205,6 +330,47 @@ public:
 	virtual AActor* GetAvatarActor(const UGameplayTask* Task) const override;
 	virtual uint8 GetDefaultPriority() const override { return 1; }
 	/** GameplayTaskOwnerInterface - end */
+	
+	/** IIGAAttributes Begin */
+	virtual class UGAAttributesBase* GetAttributes() override ;
+	virtual float GetAttributeValue(FGAAttribute AttributeIn) const override;
+	virtual float NativeGetAttributeValue(const FGAAttribute AttributeIn) const override;
+	/* IIGAAttributes Begin **/
+	
+	/*
+		These functions are specific to ability, and should be used
+		over static functions when applying effect from ability.
+	*/
+	/*
+		Due to limitations of blueprints, we need to pass copy of handle (if pass by ref it will
+		show  up as return in blueprint, and if as const ref we won't be able to modify handle),
+		and then return as copy.
+	*/
+	/* Effect Helpers */
+	UFUNCTION(BlueprintCallable, Category = "Game Abilities")
+		FGAGameEffectHandle ApplyEffectToActor(const FGAEffectSpec& SpecIn,
+			FGAGameEffectHandle HandleIn, class AActor* Target, class APawn* Instigator,
+			UObject* Causer);
+
+	void RemoveEffectFromActor(FGAGameEffectHandle& HandleIn, class AActor* TargetIn);
+
+	/*
+		Cues handling
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Game Abilities | Cues")
+		void ActivateActorCue(FVector Location);
+	UFUNCTION(NetMulticast, Reliable, Category = "Game Abilities | Cues")
+		void MulticastActivateActorCue(FVector Location);
+	void MulticastActivateActorCue_Implementation(FVector Location);
+
+protected:
+	FGAEffectContext MakeActorContext(class AActor* Target, class APawn* Instigator, UObject* Causer);
+	FGAEffectContext MakeHitContext(const FHitResult& Target, class APawn* Instigator, UObject* Causer);
+	void AddTagsToEffect(FGAGameEffect* EffectIn);
+public:
+	bool ApplyCooldownEffect();
+	bool ApplyActivationEffect();
+	bool ApplyAttributeCost();
 
 	/* Replication */
 	bool IsNameStableForNetworking() const override;

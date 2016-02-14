@@ -31,9 +31,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "UI")
 		UTexture2D* AbilityIcon;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Info")
-		TArray<FGSAbilityCost> AttributeCost;
-
 protected:
 	/*
 		Currently equiped weapons.

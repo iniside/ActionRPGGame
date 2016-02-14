@@ -73,13 +73,14 @@ FGAEffectContext::~FGAEffectContext()
 
 void FGACountedTagContainer::AddTag(const FGameplayTag& TagIn)
 {
-	int32* count = CountedTags.Find(TagIn);
-	if (count)
-	{
-		*count += 1;
-		return;
-	}
-	CountedTags.Add(TagIn, 1);
+	int32& count = CountedTags.FindOrAdd(TagIn);
+	//if (count)
+	//{
+	//	*count += 1;
+	//	return;
+	//}
+	count++;
+	//CountedTags.Add(TagIn, 1);
 	AllTags.AddTag(TagIn);
 }
 void FGACountedTagContainer::AddTagContainer(const FGameplayTagContainer& TagsIn)

@@ -68,7 +68,7 @@ public:
 		EGAAttributeMod AttributeMod;
 
 	/*
-	Type of calculation we want to perform for this Magnitude.
+		Type of calculation we want to perform for this Magnitude.
 	*/
 	UPROPERTY(EditAnywhere)
 		EGAMagnitudeCalculation CalculationType;
@@ -76,40 +76,40 @@ public:
 	UPROPERTY(EditAnywhere)
 		FGADirectModifier DirectModifier;
 	/*
-	Simple calculation based on attribute:
-	(Coefficient * (PreMultiply + AttributeValue) + PostMultiply) * PostCoefficient
+		Simple calculation based on attribute:
+		(Coefficient * (PreMultiply + AttributeValue) + PostMultiply) * PostCoefficient
 
-	There is no any magic manipulation, it straight off pull attribute from selected source,
-	and make this operation on it.
+		There is no any magic manipulation, it straight off pull attribute from selected source,
+		and make this operation on it.
 	*/
 	UPROPERTY(EditAnywhere)
 		FGAAttributeBasedModifier AttributeBased;
 	/*
 	Get value from selected CurveTable, based on selected attribute value.
-	*/
+		*/
 	UPROPERTY(EditAnywhere)
 		FGACurveBasedModifier CurveBased;
 	/*
-	Provide custom calculation class.
+		Provide custom calculation class.
 	*/
 	UPROPERTY(EditAnywhere)
 		FGACustomCalculationModifier Custom;
 
 	/*
-	Who will be target of this attribute change.
-	Instigator - pawn which applied effect (regardless of to whom).
-	Target - targeted pawn (regardless of who applied).
+		Who will be target of this attribute change.
+		Instigator - pawn which applied effect (regardless of to whom).
+		Target - targeted pawn (regardless of who applied).
 	*/
 	UPROPERTY(EditAnywhere)
 		EGAModifierTarget ModifierTarget;
 
 	/*
-	These tags must be present on target for this modifier to be applied.
+		These tags must be present on target for this modifier to be applied.
 	*/
 	UPROPERTY(EditAnywhere)
 		FGameplayTagContainer RequiredTags;
 	/*
-	None of these tags must be present on target to apply this modifier.
+		None of these tags must be present on target to apply this modifier.
 	*/
 	UPROPERTY(EditAnywhere)
 		FGameplayTagContainer DenyTags;
@@ -184,11 +184,10 @@ public:
 		TArray<TSubclassOf<UGAGameEffectSpec>> ConditonalEffects;
 
 	/*
-		Effects also need special behaviors, like search in radius, 
-		Complex checking for attributes values, and passing data from and to other effects
-		(I deal 40hp damage, other effect might want to apply energy damage equal to 40hp*2
+		There are two ways about it.
+		Each effect have tags created individually or
+		These tags are just base, which are then added to tag pool, as effect is passed around various systems.
 	*/
-
 	/* Tags I own and I don't apply */
 	UPROPERTY(EditAnywhere, Category = "Tags")
 		FGameplayTagContainer OwnedTags;
@@ -196,6 +195,10 @@ public:
 	/* If Target have these tags I will not be applied to it. */
 	UPROPERTY(EditAnywhere, Category = "Tags")
 		FGameplayTagContainer DenyTags;
+
+	/* Tags, which are applied to Target when effect is Duration/Periodic based. */
+	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTagContainer ApplyTags;
 public:
 	UGAGameEffectSpec();
 };
@@ -255,22 +258,31 @@ struct GAMEATTRIBUTES_API FGAGameEffect : public TSharedFromThis<FGAGameEffect>
 	*/
 
 	FGAEffectContext Context;
+	/* Contains all tags gathered on the way to application ? */
 	FGameplayTagContainer OwnedTags;
+	FGameplayTagContainer ApplyTags;
 
 	struct FGAGameEffectHandle* Handle;
 
 	FTimerHandle PeriodTimerHandle;
 	FTimerHandle DurationTimerHandle;
+//because I'm fancy like that and like to make spearate public for fields and functions.
+public:
+	//Simple delegates to make sure they are bound only to one object.
+	FSimpleDelegate OnEffectPeriod;
+	FSimpleDelegate OnEffectExpired;
+	FSimpleDelegate OnEffectRemoved;
 public:
 	void SetContext(const FGAEffectContext& ContextIn);
 	TArray<FGAEffectMod> GetAttributeModifiers();
 
 	class UGAAttributeComponent* GetInstigatorComp() { return Context.InstigatorComp.Get(); }
 	class UGAAttributeComponent* GetTargetComp() { return Context.TargetComp.Get(); }
-
+	inline void AddOwnedTags(const FGameplayTagContainer& TagsIn) { OwnedTags.AppendTags(TagsIn); }
+	inline void AddApplyTags(const FGameplayTagContainer& TagsIn) { ApplyTags.AppendTags(TagsIn); }
 	void OnDuration();
-	void OnExpired() {}; //internal timer
-	void OnRemoved() {}; //internal timer
+	void OnExpired();
+	void OnRemoved();
 
 	void DurationExpired();
 
@@ -288,7 +300,7 @@ private:
 };
 
 USTRUCT(BlueprintType)
-struct FGAGameEffectHandle
+struct GAMEATTRIBUTES_API FGAGameEffectHandle
 {
 	GENERATED_USTRUCT_BODY()
 protected:
@@ -320,6 +332,7 @@ public:
 	inline TSharedPtr<FGAGameEffect> GetEffectPtr() const { return EffectPtr; };
 
 	inline void SetContext(const FGAEffectContext& ContextIn) { EffectPtr->SetContext(ContextIn); }
+	inline void SetContext(const FGAEffectContext& ContextIn) const { EffectPtr->SetContext(ContextIn); }
 
 	inline FGAEffectContext& GetContext() { return EffectPtr->Context; }
 	inline FGAEffectContext& GetContext() const { return EffectPtr->Context; }
@@ -336,6 +349,7 @@ public:
 	{
 		return Handle != Other.Handle;
 	}
+
 	friend uint32 GetTypeHash(const FGAGameEffectHandle& InHandle)
 	{
 		return InHandle.Handle;
@@ -518,6 +532,13 @@ public:
 	TArray<FGAGameEffectHandle> EffectsHandles;
 
 	TMap<FGAGameEffectHandle, TSharedPtr<FGAGameEffect>> ActiveEffects;
+
+	/* 
+		Contains effects with infinite duration.
+		Infinite effects are considred to be special case, where they can only be self spplied
+		and must be manually removed.
+	*/
+	TMap<FGAGameEffectHandle, TSharedPtr<FGAGameEffect>> InfiniteEffects;
 	/*
 		Both of these maps are for determining how effects should stack.
 	*/
@@ -557,9 +578,11 @@ public:
 		, const FGACalculationContext& Context);
 	void ApplyEffectsFromMods() {};
 	void DoesQualify() {};
+	bool IsEffectActive(const FGAGameEffectHandle& HandleIn);
 protected:
 	void InternalApplyPeriodic(const FGAGameEffectHandle& HandleIn);
 	void InternalApplyDuration(const FGAGameEffectHandle& HandleIn);
+	void InternalApplyEffectTags(const FGAGameEffectHandle& HandleIn);
 	void InternalCheckDurationEffectStacking(const FGAGameEffectHandle& HandleIn);
 	void InternalCheckPeriodicEffectStacking(const FGAGameEffectHandle& HandleIn);
 	void InternalApplyEffectByAggregation(const FGAGameEffectHandle& HandleIn);

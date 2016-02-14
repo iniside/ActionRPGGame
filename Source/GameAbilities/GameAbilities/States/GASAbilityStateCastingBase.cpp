@@ -40,7 +40,9 @@ void UGASAbilityStateCastingBase::EndState()
 {
 	//GetOuterUGASAbility()->AbilityCastEnd();
 }
-void UGASAbilityStateCastingBase::BeginActionSequence()
+void UGASAbilityStateCastingBase::ExecuteActionSequence()
 {}
-void UGASAbilityStateCastingBase::EndActionSequence()
+void UGASAbilityStateCastingBase::StopActionSequence()
+{}
+void UGASAbilityStateCastingBase::FinishActionSequence()
 {}

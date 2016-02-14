@@ -6,7 +6,14 @@
 #include "States/GASAbilityStateActive.h"
 #include "States/GASAbilityStateCasting.h"
 #include "States/GASAbilityStateCooldown.h"
+#include "GAGlobalTypes.h"
+#include "GAEffectGlobalTypes.h"
 #include "GASAbilitiesComponent.h"
+#include "GAAttributeComponent.h"
+#include "GAGameEffect.h"
+#include "AbilityCues/GASCueActor.h"
+#include "Net/UnrealNetwork.h"
+
 #include "GASAbilityBase.h"
 
 UGASAbilityBase::UGASAbilityBase(const FObjectInitializer& ObjectInitializer)
@@ -17,7 +24,8 @@ UGASAbilityBase::UGASAbilityBase(const FObjectInitializer& ObjectInitializer)
 	bReplicate = true;
 	bIsNameStable = false;
 
-	DefaultState = ObjectInitializer.CreateDefaultSubobject<UGASAbilityStateActive>(this, TEXT("AbilityDefaultState"));
+	DefaultState = CreateDefaultSubobject<UGASAbilityStateActive>(TEXT("AbilityDefaultState"));
+	CooldownState = ObjectInitializer.CreateDefaultSubobject<UGASAbilityStateCooldown>(this, TEXT("AbilityCooldownState"));
 	//ActivationState = ObjectInitializer.CreateDefaultSubobject<UGASAbilityStateCasting>(this, TEXT("AbilityActivationState"));
 	//CurrentState = ObjectInitializer.CreateDefaultSubobject<UGASAbilityStateCooldown>(this, TEXT("AbilityCooldownState"));
 }
@@ -28,41 +36,105 @@ void UGASAbilityBase::InitAbility()
 	{
 		World = OwningComp->GetWorld();
 	}
+	DefaultState = NewObject<UGASAbilityStateActive>(this, TEXT("AbilityStateDefault"));
+	CooldownState = NewObject<UGASAbilityStateCooldown>(this, TEXT("AbilityStateCooldown"));
 	CurrentState = DefaultState;
+	if (POwner && POwner->GetNetMode() != ENetMode::NM_Standalone)
+	{
+		InitAbilityCounter++;
+	}
+	else
+	{
+		OnRep_InitAbility();
+	}
 }
-
+void UGASAbilityBase::OnRep_InitAbility()
+{
+	if (!ActorCue)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Instigator = POwner;
+		SpawnParams.Owner = POwner;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		ActorCue = GetWorld()->SpawnActor<AGASCueActor>(ActorCueClass, POwner->GetActorLocation(), FRotator(0,0,0), SpawnParams);
+		if (ActorCue)
+		{
+			ActorCue->OwningAbility = this;
+		}
+	}
+}
 void UGASAbilityBase::OnNativeInputPressed()
 {
-	UE_LOG(GameAbilities, Log, TEXT("OnNativeInputPressed in ability %s"), *GetName());
-	OnInputPressed();
+	//Check for cooldown and don't all inputs if on cooldown. Because.
+	if (CanUseAbility())
+	{
+		UE_LOG(GameAbilities, Log, TEXT("OnNativeInputPressed in ability %s"), *GetName());
+		OnInputPressed();
+	}
+	else
+	{
+		UE_LOG(GameAbilities, Log, TEXT("OnNativeInputPressed in ability %s is on Cooldown."), *GetName());
+	}
 }
 
 void UGASAbilityBase::OnNativeInputReleased()
 {
-	UE_LOG(GameAbilities, Log, TEXT("OnNativeInputReleased in ability %s"), *GetName());
-	OnInputReleased();
+	if (CanUseAbility())
+	{
+		UE_LOG(GameAbilities, Log, TEXT("OnNativeInputReleased in ability %s"), *GetName());
+		OnInputReleased();
+	}
+	else
+	{
+		UE_LOG(GameAbilities, Log, TEXT("OnNativeInputReleased in ability %s is on Cooldown"), *GetName());
+	}
 }
 
 void UGASAbilityBase::OnAbilityExecutedNative()
 {
 	UE_LOG(GameAbilities, Log, TEXT("Begin Executing Ability: %s"), *GetName());
+	
+	if (OnConfirmCastingEndedDelegate.IsBound())
+	{
+		OnConfirmCastingEndedDelegate.Broadcast();
+	}
 	OnAbilityExecuted();
 	bIsAbilityExecuting = true;
 }
 
 void UGASAbilityBase::ExecuteAbility()
 {
-	if (CurrentState)
-		CurrentState->BeginActionSequence();
-
 	AbilityComponent->ExecutingAbility = this;
+	if (CurrentState)
+		CurrentState->ExecuteActionSequence();
 	//OnAbilityExecutedNative();
 }
 
+void UGASAbilityBase::OnCooldownEffectExpired()
+{
+	UE_LOG(GameAbilities, Log, TEXT("Cooldown expired In Ability: %s"), *GetName());
+	bIsOnCooldown = false;
+	CooldownEffectExpiredCounter++;
+	GotoState(DefaultState);
+}
+void UGASAbilityBase::OnActivationEffectExpired()
+{
+	//OnAbilityExecutedNative();
+	//this works under assumption that current state == activation state.
+	UE_LOG(GameAbilities, Log, TEXT("Ability Activation Effect Expired In Ability: %s"), *GetName());
+	AbilityActivatedCounter++;
+	GotoState(CooldownState);
+}
+void UGASAbilityBase::OnActivationEffectPeriod()
+{
+	UE_LOG(GameAbilities, Log, TEXT("Ability Activation Effect Period In Ability: %s"), *GetName());
+	AbilityPeriodCounter++;
+	OnAbilityExecutedNative();
+}
 void UGASAbilityBase::StopAbility()
 {
 	if (CurrentState)
-		CurrentState->EndActionSequence();
+		CurrentState->StopActionSequence();
 	OnStopAbility();
 	//OnAbilityExecutedNative();
 }
@@ -79,11 +151,17 @@ void UGASAbilityBase::OnAbilityCancelNative()
 
 void UGASAbilityBase::FinishExecution()
 {
+	UE_LOG(GameAbilities, Log, TEXT("FinishExecution in ability %s"), *GetName());
 	bIsAbilityExecuting = false;
-	AbilityComponent->ExecutingAbility = nullptr;
+	if (CurrentState)
+		CurrentState->FinishActionSequence();
+	GotoState(CooldownState);
+	//AbilityComponent->ExecutingAbility = nullptr;
+	//OnFinishExecution();
 }
 void UGASAbilityBase::NativeFinishExecution()
 {
+	UE_LOG(GameAbilities, Log, TEXT("NativeFinishExecution in ability %s"), *GetName());
 	bIsAbilityExecuting = false;
 	AbilityComponent->ExecutingAbility = nullptr;
 	OnFinishExecution();
@@ -106,11 +184,46 @@ void UGASAbilityBase::ConfirmAbility()
 bool UGASAbilityBase::CanUseAbility()
 {
 	bool CanUse = true;
-	CanUse = !bIsOnCooldown;
+	if(!bIsOnCooldown)
+		UE_LOG(GameAbilities, Log, TEXT("CanUseAbility bIsOnCooldown is true"));
+	
+	if (!AbilityComponent->ExecutingAbility)
+		UE_LOG(GameAbilities, Log, TEXT("CanUseAbility AbilityComponent->ExecutingAbility is true"));
+
+	CanUse = !bIsOnCooldown && !AbilityComponent->ExecutingAbility;
+	/*if (AbilityComponent->ExecutingAbility)
+	{
+		CanUse = false;
+	}
+	else
+	{
+
+	}*/
 	return CanUse;
 
 }
 
+bool UGASAbilityBase::CheckCooldown()
+{
+	return false;
+}
+
+float UGASAbilityBase::GetCooldownTime() const
+{
+	return GetWorld()->GetTimeSeconds() - LastCooldownTime;
+}
+float UGASAbilityBase::BP_GetCooldownTime() const
+{
+	return GetCooldownTime();
+}
+float UGASAbilityBase::GetActivationTime() const
+{
+	return GetWorld()->GetTimeSeconds() - LastActivationTime;
+}
+float UGASAbilityBase::BP_GetActivationTime() const
+{
+	return GetActivationTime();
+}
 void UGASAbilityBase::GotoState(class UGASAbilityState* NextState)
 {
 	if (NextState == NULL || !NextState->IsIn(this))
@@ -157,11 +270,188 @@ void UGASAbilityBase::OnTaskDeactivated(UGameplayTask& Task)
 }
 AActor* UGASAbilityBase::GetOwnerActor(const UGameplayTask* Task) const
 {
-	return nullptr;
+	return POwner;
 }
 AActor* UGASAbilityBase::GetAvatarActor(const UGameplayTask* Task) const
 {
-	return nullptr;
+	return AvatarActor;
+}
+
+class UGAAttributesBase* UGASAbilityBase::GetAttributes()
+{
+	return Attributes;
+}
+float UGASAbilityBase::GetAttributeValue(FGAAttribute AttributeIn) const
+{
+	return NativeGetAttributeValue(AttributeIn);
+}
+float UGASAbilityBase::NativeGetAttributeValue(const FGAAttribute AttributeIn) const
+{
+	return Attributes->GetCurrentAttributeValue(AttributeIn);
+}
+
+FGAGameEffectHandle UGASAbilityBase::ApplyEffectToActor(const FGAEffectSpec& SpecIn,
+	FGAGameEffectHandle HandleIn, class AActor* Target, class APawn* Instigator,
+	UObject* Causer)
+{
+	if (!SpecIn.Spec)
+	{
+		return FGAGameEffectHandle();
+	}
+	FGAEffectContext Context = MakeActorContext(Target, Instigator, Causer);
+	if (!Context.IsValid())
+	{
+		//if the handle is valid (valid pointer to effect and id)
+		//we want to preseve it and just set bad context.
+		if (HandleIn.IsValid())
+		{
+			HandleIn.SetContext(Context);
+			return HandleIn;
+		}
+		else
+		{
+			return FGAGameEffectHandle();
+		}
+	}
+	if (HandleIn.IsValid())
+	{
+		HandleIn.SetContext(Context);
+	}
+	else
+	{
+		FGAGameEffect* effect = new FGAGameEffect(SpecIn.Spec, Context);
+		AddTagsToEffect(effect);
+		//FGAGameEffectHandle& HandleCon = const_cast<FGAGameEffectHandle&>(HandleIn);
+		HandleIn = FGAGameEffectHandle::GenerateHandle(effect);
+		effect->Handle = &HandleIn;
+	}
+	Context.InstigatorComp->ApplyEffectToTarget(HandleIn.GetEffect(), HandleIn);
+	return HandleIn;
+}
+
+void UGASAbilityBase::RemoveEffectFromActor(FGAGameEffectHandle& HandleIn, class AActor* TargetIn)
+{
+	IIGAAttributes* TargetAttr = Cast<IIGAAttributes>(TargetIn);
+	if (!TargetAttr)
+		return;
+
+	UGAAttributeComponent* TargetComp = TargetAttr->GetAttributeComponent();
+	TargetComp->RemoveEffect(HandleIn);
+}
+
+FGAEffectContext UGASAbilityBase::MakeActorContext(class AActor* Target, class APawn* Instigator, UObject* Causer)
+{
+	IIGAAttributes* targetAttr = Cast<IIGAAttributes>(Target);
+	IIGAAttributes* instiAttr = Cast<IIGAAttributes>(Instigator);
+	if (!targetAttr || !instiAttr)
+	{
+		return FGAEffectContext();
+	}
+
+	UGAAttributeComponent* targetComp = targetAttr->GetAttributeComponent();
+	UGAAttributeComponent* instiComp = instiAttr->GetAttributeComponent();
+	FVector location = Target->GetActorLocation();
+	FGAEffectContext Context(location, Target, Causer,
+		Instigator, targetComp, instiComp);
+	return Context;
+}
+FGAEffectContext UGASAbilityBase::MakeHitContext(const FHitResult& Target, class APawn* Instigator, UObject* Causer)
+{
+	IIGAAttributes* targetAttr = Cast<IIGAAttributes>(Target.GetActor());
+	IIGAAttributes* instiAttr = Cast<IIGAAttributes>(Instigator);
+	if (!targetAttr || !instiAttr)
+	{
+		return FGAEffectContext();
+	}
+
+	UGAAttributeComponent* targetComp = targetAttr->GetAttributeComponent();
+	UGAAttributeComponent* instiComp = instiAttr->GetAttributeComponent();
+
+	FGAEffectContext Context(Target.Location, Target.GetActor(), Causer,
+		Instigator, targetComp, instiComp);
+	return Context;
+}
+void UGASAbilityBase::AddTagsToEffect(FGAGameEffect* EffectIn)
+{
+	if (EffectIn)
+	{
+		EffectIn->AddOwnedTags(EffectIn->GameEffect->OwnedTags);
+		EffectIn->AddApplyTags(EffectIn->GameEffect->ApplyTags);
+	}
+}
+
+bool UGASAbilityBase::ApplyCooldownEffect()
+{
+	if (!CooldownEffect.Spec)
+		return false;
+
+	if (CooldownEffect.Spec->Duration > 0)
+	{
+		UE_LOG(GameAbilities, Log, TEXT("Set cooldown effect in Ability: %s"), *GetName());
+		CooldownHandle = ApplyEffectToActor(
+			CooldownEffect, CooldownHandle,
+			POwner, POwner, this);
+
+		if (CooldownHandle.IsValid())
+		{
+			LastCooldownTime = GetWorld()->GetTimeSeconds();
+			TSharedPtr<FGAGameEffect> Effect = CooldownHandle.GetEffectPtr();
+			if (!Effect->OnEffectExpired.IsBound())
+			{
+				UE_LOG(GameAbilities, Log, TEXT("Bind effect cooldown in Ability: %s"), *GetName());
+				Effect->OnEffectExpired.BindUObject(this, &UGASAbilityBase::OnCooldownEffectExpired);
+			}
+		}
+		bIsOnCooldown = true;
+		CooldownStartedCounter++;
+		return true;
+	}
+	return false;
+}
+bool UGASAbilityBase::ApplyActivationEffect()
+{
+	if (!ActivationEffect.Spec)
+		return false;
+
+	if (ActivationEffect.Spec->Duration > 0)
+	{
+		UE_LOG(GameAbilities, Log, TEXT("Set expiration effect in Ability: %s"), *GetName());
+		ActivationEffectHandle = ApplyEffectToActor(
+			ActivationEffect, ActivationEffectHandle,
+			POwner, POwner, this);
+
+		if (ActivationEffectHandle.IsValid())
+		{
+			LastActivationTime = GetWorld()->GetTimeSeconds();
+			TSharedPtr<FGAGameEffect> Effect = ActivationEffectHandle.GetEffectPtr();
+			if (!Effect->OnEffectExpired.IsBound())
+			{
+				UE_LOG(GameAbilities, Log, TEXT("Bind effect expiration in Ability: %s"), *GetName());
+				Effect->OnEffectExpired.BindUObject(this, &UGASAbilityBase::OnActivationEffectExpired);
+				return true;
+			}
+			if (!Effect->OnEffectRemoved.IsBound())
+			{
+				UE_LOG(GameAbilities, Log, TEXT("Bind effect removed in Ability: %s"), *GetName());
+				Effect->OnEffectRemoved.BindUObject(this, &UGASAbilityBase::OnActivationEffectExpired);
+			}
+			if (ActivationEffect.Spec->Period > 0)
+			{
+				if (!Effect->OnEffectPeriod.IsBound())
+				{
+					UE_LOG(GameAbilities, Log, TEXT("Bind effect period in Ability: %s"), *GetName());
+					Effect->OnEffectPeriod.BindUObject(this, &UGASAbilityBase::OnActivationEffectPeriod);
+				}
+			}
+			AbilityActivationStartedCounter++;
+			return true;
+		}
+	}
+	return false;
+}
+bool UGASAbilityBase::ApplyAttributeCost()
+{
+	return false;
 }
 
 bool UGASAbilityBase::IsNameStableForNetworking() const
@@ -181,4 +471,61 @@ class UWorld* UGASAbilityBase::GetWorld() const
 void UGASAbilityBase::PlayMontage(UAnimMontage* MontageIn, FName SectionName)
 {
 	AbilityComponent->PlayMontage(MontageIn, SectionName);
+}
+
+void UGASAbilityBase::ActivateActorCue(FVector Location)
+{
+	if (ActorCue)
+	{
+
+		ActorCue->SetActorLocation(Location);
+		ActorCue->SetActorHiddenInGame(false);
+		ActorCue->OnActivated();
+	}
+}
+
+void UGASAbilityBase::MulticastActivateActorCue_Implementation(FVector Location)
+{
+
+}
+
+//replication
+void UGASAbilityBase::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UGASAbilityBase, POwner);
+	DOREPLIFETIME(UGASAbilityBase, PCOwner);
+	DOREPLIFETIME(UGASAbilityBase, AICOwner);
+	//probabaly should be SKIP_Owner, and I'm not really sure if Multicast wouldn't be better.
+	DOREPLIFETIME(UGASAbilityBase, CooldownStartedCounter);
+	DOREPLIFETIME(UGASAbilityBase, CooldownEffectExpiredCounter);
+	DOREPLIFETIME(UGASAbilityBase, AbilityActivatedCounter);
+	DOREPLIFETIME(UGASAbilityBase, AbilityActivationStartedCounter);
+	DOREPLIFETIME(UGASAbilityBase, AbilityPeriodCounter);
+	DOREPLIFETIME(UGASAbilityBase, InitAbilityCounter);
+	//DOREPLIFETIME(UGASAbilitiesComponent, RepMontage);
+}
+/*
+	Do some yet undertemined client stuff.
+	Call events ?
+*/
+void UGASAbilityBase::OnRep_CooldownStarted()
+{
+
+}
+void UGASAbilityBase::OnRep_CooldownExpired()
+{
+
+}
+void UGASAbilityBase::OnRep_AbilityActivationStarted()
+{
+
+}
+void UGASAbilityBase::OnRep_AbilityActivated()
+{
+
+}
+void UGASAbilityBase::OnRep_AbilityPeriod()
+{
+
 }

@@ -26,5 +26,5 @@ void UARSpellExecution::ExecuteEffect(FGAGameEffectHandle& HandleIn,
 
 	ModIn.Value = ModIn.Value + InstigatorMod - TargetMod;
 
-	Context.TargetAttributeComp->ModifyAttribute(ModIn, HandleIn);
+	Context.TargetAttributeComp->ModifyAttribute(ModIn);
 }

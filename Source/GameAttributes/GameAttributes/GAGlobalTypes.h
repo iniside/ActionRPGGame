@@ -233,7 +233,7 @@ enum class EGAEffectAggregation : uint8
 	AggregateByTarget
 };
 
-struct EnumToString
+struct GAMEATTRIBUTES_API EnumToString
 {
 	static FString GetModifierDirectionAsString(EGAModifierDirection ModDir)
 	{
@@ -270,7 +270,7 @@ struct EnumToString
 	Special struct, which allows to use FGameplayTagContainer as key, for TSet and TMap.
 	Bear in mind slower inserts/remove, but allow for complex keys.
 */
-struct FGAHashedGameplayTagContainer
+struct GAMEATTRIBUTES_API FGAHashedGameplayTagContainer
 {
 public:
 	FGameplayTagContainer Tags;
@@ -291,7 +291,7 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct FGAEffectHandle
+struct GAMEATTRIBUTES_API FGAEffectHandle
 {
 	GENERATED_USTRUCT_BODY()
 protected:
@@ -332,7 +332,7 @@ public:
 Struct representing final modifier applied to attribute.
 */
 USTRUCT(BlueprintType)
-struct FGAModifier
+struct GAMEATTRIBUTES_API FGAModifier
 {
 	GENERATED_USTRUCT_BODY()
 public:
@@ -406,7 +406,7 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct FGAEffectContext
+struct GAMEATTRIBUTES_API FGAEffectContext
 {
 	GENERATED_USTRUCT_BODY()
 public:
@@ -445,7 +445,7 @@ public:
 	{
 		if (Target.IsValid() && Causer.IsValid() && Instigator.IsValid() && TargetComp.IsValid() && InstigatorComp.IsValid())
 			return true;
-		UE_LOG(GameAttributesEffects, Error, TEXT("Effect Context Is Not Valid"));
+		//UE_LOG(GameAttributesEffects, Error, TEXT("Effect Context Is Not Valid"));
 		return false;
 	}
 
@@ -453,7 +453,7 @@ public:
 	{
 		if (!IsValid())
 		{
-			UE_LOG(GameAttributesEffects, Error, TEXT("Effect Context Is Not Valid"));
+			//UE_LOG(GameAttributesEffects, Error, TEXT("Effect Context Is Not Valid"));
 			return FString("Context Is not valid");
 		}
 		FString ret;
@@ -500,7 +500,7 @@ public:
 
 
 USTRUCT()
-struct FGACountedTagContainer
+struct GAMEATTRIBUTES_API FGACountedTagContainer
 {
 	GENERATED_USTRUCT_BODY()
 protected:

@@ -34,7 +34,41 @@ void FGAAttributeBase::InstantApplication(const FGAModifier& ModifierIn)
 		break;
 	}
 }
-
+float FGAAttributeBase::Modify(const FGAEffectMod& ModIn)
+{
+	switch (ModIn.AttributeMod)
+	{
+	case EGAAttributeMod::Add:
+	{
+		float OldCurrentValue = CurrentValue;
+		UE_LOG(GameAttributes, Log, TEXT("FGAAttributeBase::Add:: OldCurrentValue: %f"), OldCurrentValue);
+		UE_LOG(GameAttributes, Log, TEXT("FGAAttributeBase::Add:: AddValue: %f"), ModIn.Value);
+		float Val = CurrentValue - (OldCurrentValue + ModIn.Value);
+		UE_LOG(GameAttributes, Log, TEXT("FGAAttributeBase::Add:: ActuallAddVal: %f"), Val);
+		CurrentValue -= Val;
+		CurrentValue = FMath::Clamp<float>(CurrentValue, 0, GetFinalValue());
+		UE_LOG(GameAttributes, Log, TEXT("FGAAttributeBase::Add:: CurrentValue: %f"), CurrentValue);
+		return CurrentValue;
+	}
+	case EGAAttributeMod::Subtract:
+	{
+		float OldCurrentValue = CurrentValue;
+		UE_LOG(GameAttributes, Log, TEXT("FGAAttributeBase::Subtract:: OldCurrentValue: %f"), OldCurrentValue);
+		UE_LOG(GameAttributes, Log, TEXT("FGAAttributeBase::Subtract:: SubtractValue: %f"), ModIn.Value);
+		float Val = CurrentValue - (OldCurrentValue - ModIn.Value);
+		UE_LOG(GameAttributes, Log, TEXT("FGAAttributeBase::Subtract:: ActuallSubtractVal: %f"), Val);
+		CurrentValue -= Val;
+		CurrentValue = FMath::Clamp<float>(CurrentValue, 0, GetFinalValue());
+		UE_LOG(GameAttributes, Log, TEXT("FGAAttributeBase::Subtract:: CurrentValue: %f"), CurrentValue);
+		return CurrentValue;
+	}
+	case EGAAttributeMod::Multiply:
+		return -1;
+	case EGAAttributeMod::Divide:
+		return -1;
+	}
+	return -1;
+}
 void FGAAttributeBase::AddBonus(const FGAModifier& ModifiersIn, const FGAGameEffectHandle& Handle
 	, EGAEffectStacking StackingType)
 {
