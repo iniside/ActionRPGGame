@@ -34,6 +34,7 @@ void UGASAbilityTask_WaitForConfirm::Initialize()
 
 void UGASAbilityTask_WaitForConfirm::OnConfirm()
 {
+	Ability->OnConfirmDelegate.Clear();
 	OnConfirmed.Broadcast();
 	EndTask();
 }

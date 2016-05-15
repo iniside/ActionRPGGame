@@ -16,7 +16,7 @@ AGWWeapon::AGWWeapon(const FObjectInitializer& ObjectInitializer)
 	RootMesh = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("RootMesh"));
 	RootComponent = RootMesh;
 	WeaponMesh = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("WeaponMesh"));
-	WeaponMesh->AttachParent = RootComponent;
+	WeaponMesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 }
 void AGWWeapon::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
 {

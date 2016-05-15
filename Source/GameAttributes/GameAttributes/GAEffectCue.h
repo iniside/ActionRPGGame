@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Object.h"
+#include "GAGlobalTypes.h"
 #include "GAEffectCue.generated.h"
 
 /**
@@ -18,6 +19,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Particle")
 		UParticleSystem* ParticleEffect;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Data")
+	FGAEffectCueParams CueParams;
 
 	virtual void Destroyed() override;
 	/*

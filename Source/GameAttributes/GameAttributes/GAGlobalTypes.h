@@ -534,3 +534,26 @@ public:
 		return CountedTags.FindRef(TagIn);
 	}
 };
+
+
+USTRUCT(BlueprintType)
+struct GAMEATTRIBUTES_API FGAEffectCueParams
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(BlueprintReadWrite, Category = GameplayCue)
+		FVector_NetQuantize10 Location;
+
+	UPROPERTY(BlueprintReadWrite, Category = GameplayCue)
+		FVector_NetQuantizeNormal Normal;
+
+	/** Instigator actor, the actor that owns the ability system component */
+	UPROPERTY(BlueprintReadWrite, Category = GameplayCue)
+		TWeakObjectPtr<AActor> Instigator;
+
+	/** The physical actor that actually did the damage, can be a weapon or projectile */
+	UPROPERTY(BlueprintReadWrite, Category = GameplayCue)
+		TWeakObjectPtr<AActor> EffectCauser;
+
+	//bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
+};

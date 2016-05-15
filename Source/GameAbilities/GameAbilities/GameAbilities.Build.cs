@@ -29,6 +29,7 @@ namespace UnrealBuildTool.Rules
 				    "Core",
 				    "CoreUObject",
 				    "Engine",
+                    "GameplayTags",
                     "GameInterfaces",
                     "GameTrace",
                     "GameAttributes",

@@ -179,7 +179,7 @@ FGAGameEffectHandle UGABlueprintLibrary::ApplyGameEffectToActorFromClass(TSubcla
 	FGAGameEffectHandle HandleIn, class AActor* Target, class APawn* Instigator,
 	UObject* Causer)
 {
-	if (SpecIn)
+	if (!SpecIn)
 	{
 		UE_LOG(GameAttributesEffects, Error, TEXT("Invalid Effect Spec"));
 		return FGAGameEffectHandle();

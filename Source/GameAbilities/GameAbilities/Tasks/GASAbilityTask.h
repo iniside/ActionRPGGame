@@ -35,7 +35,7 @@ public:
 
 		T* MyObj = NewObject<T>(WorldContextObject);
 		UGASAbilityBase* ThisAbility = CastChecked<UGASAbilityBase>(WorldContextObject);
-		MyObj->InitTask(*ThisAbility, ThisAbility->GetDefaultPriority());
+		MyObj->InitTask(*ThisAbility, ThisAbility->GetGameplayTaskDefaultPriority());
 		MyObj->InstanceName = InstanceName;
 		MyObj->AbilityComponent = ThisAbility->AbilityComponent;
 		return MyObj;

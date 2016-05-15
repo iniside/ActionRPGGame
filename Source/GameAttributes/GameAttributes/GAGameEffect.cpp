@@ -35,6 +35,9 @@ FGAGameEffect::FGAGameEffect(class UGAGameEffectSpec* GameEffectIn,
 	Execution(GameEffect->ExecutionType.GetDefaultObject())
 {
 	OwnedTags = GameEffectIn->OwnedTags;
+	TargetWorld = ContextIn.Target->GetWorld();
+	AppliedTime = TargetWorld->TimeSeconds;
+	LastTickTime = TargetWorld->TimeSeconds;
 }
 
 void FGAGameEffect::SetContext(const FGAEffectContext& ContextIn)
@@ -61,6 +64,20 @@ void FGAGameEffect::OnRemoved()
 void FGAGameEffect::DurationExpired()
 {
 
+}
+float FGAGameEffect::GetActivationTime()
+{
+	return GameEffect->Duration;
+}
+float FGAGameEffect::GetCurrentActivationTime()
+{
+	float CurrentTime = TargetWorld->TimeSeconds;
+	return CurrentTime - AppliedTime;
+}
+float FGAGameEffect::GetCurrentTickTime()
+{
+	float CurrentTime = TargetWorld->TimeSeconds;
+	return CurrentTime - LastTickTime;
 }
 
 TArray<FGAEffectMod> FGAGameEffect::GetMods(TArray<FGAAttributeModifier>& ModsInfoIn)
@@ -490,6 +507,11 @@ void FGAGameEffectContainer::InternalExtendEffectDuration(const FGAGameEffectHan
 }
 void FGAGameEffectContainer::RemoveEffect(FGAGameEffectHandle& HandleIn)
 {
+	if (!ActiveEffects.Contains(HandleIn))
+	{
+		UE_LOG(GameAttributes, Log, TEXT("RemoveEffect Effect %s Is not applied"), *HandleIn.GetEffectRef().ToString());
+		return;
+	}
 	EGAEffectAggregation aggregatiopn = HandleIn.GetEffectRef().GameEffect->EffectAggregation;
 	UObject* Instigator = HandleIn.GetContextRef().Instigator.Get();
 	UGAAttributeComponent* Target = HandleIn.GetContextRef().TargetComp.Get();
@@ -541,7 +563,7 @@ void FGAGameEffectContainer::RemoveEffect(FGAGameEffectHandle& HandleIn)
 		}
 		effect->OnEffectRemoved.ExecuteIfBound();
 		UE_LOG(GameAttributesEffects, Log, TEXT("FGAGameEffectContainer:: Removing Effect"))
-			effect.Reset();
+		//effect.Reset();
 	}
 }
 

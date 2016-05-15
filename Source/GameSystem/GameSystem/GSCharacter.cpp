@@ -33,19 +33,19 @@ AGSCharacter::AGSCharacter(const FObjectInitializer& ObjectInitializer)
 
 	HeadComp = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, AGSCharacter::HeadSlotComponent);
 	HeadComp->SetMasterPoseComponent(GetMesh());
-	HeadComp->AttachParent = GetMesh();
+	HeadComp->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);
 
 	ChestComp = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, AGSCharacter::ChestSlotComponent);
 	ChestComp->SetMasterPoseComponent(GetMesh());
-	ChestComp->AttachParent = GetMesh();
+	ChestComp->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);
 
 	HandsComp = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, AGSCharacter::HandsSlotComponent);
 	HandsComp->SetMasterPoseComponent(GetMesh());
-	HandsComp->AttachParent = GetMesh();
+	HandsComp->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);
 
 	LegsComp = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, AGSCharacter::LegsSlotComponent);
 	LegsComp->SetMasterPoseComponent(GetMesh());
-	LegsComp->AttachParent = GetMesh();
+	LegsComp->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);
 
 	
 
@@ -109,7 +109,7 @@ void AGSCharacter::AttachActor(AActor* ActorIn, FName SocketNameIn)
 	if (ActorIn)
 	{
 		ActorIn->DetachRootComponentFromParent();
-		ActorIn->AttachRootComponentTo(GetMesh(), SocketNameIn, EAttachLocation::SnapToTarget, true);
+		ActorIn->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, SocketNameIn);
 	}
 }
 USkeletalMeshComponent* AGSCharacter::GetSkeletalMeshComponentByName(FName NameIn)

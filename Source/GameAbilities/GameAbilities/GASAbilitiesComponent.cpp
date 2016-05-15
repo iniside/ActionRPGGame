@@ -105,7 +105,11 @@ bool UGASAbilitiesComponent::CanActivateAbility()
 {
 	//if there are no activate abilities, we can activate the selected one.
 	//this should be configarable ie. how many abilities can be activated at the same time ?
-	if (!bIsAnyAbilityActive && !ExecutingAbility)
+	//if (!bIsAnyAbilityActive && !ExecutingAbility)
+	//{
+	//	return true;
+	//}
+	if (!ExecutingAbility)
 	{
 		return true;
 	}
@@ -200,8 +204,8 @@ void UGASAbilitiesComponent::BP_InputReleased(int32 SetIndex, int32 SlotIndex)
 
 void UGASAbilitiesComponent::NativeInputReleased(int32 SetIndex, int32 SlotIndex, int32 AbilityIndex)
 {
-	if (!CanActivateAbility())
-		return;
+	//if (!CanActivateAbility())
+	//	return;
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
 		if (!ActiveAbilityContainer.IsValid(SetIndex, SlotIndex))
@@ -225,13 +229,13 @@ void UGASAbilitiesComponent::NativeInputReleased(int32 SetIndex, int32 SlotIndex
 		if (!ActiveAbilityContainer.IsValid(SetIndex, SlotIndex))
 			return;
 
-		if (ActiveAbilityContainer.CanUseAbility(SetIndex, SlotIndex))
-		{
+		//if (ActiveAbilityContainer.CanUseAbility(SetIndex, SlotIndex))
+		//{
 			if (!ActiveAbilityContainer.IsWaitingForConfirm(SetIndex, SlotIndex))
 				ActiveAbilityContainer.AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities[AbilityIndex]->OnNativeInputReleased();
 
 			//	ActiveAbilityContainer.OnNativeInputReleased(SetIndex, SlotIndex);
-		}
+		//}
 	}
 }
 
@@ -437,7 +441,7 @@ void UGASAbilitiesComponent::OnRep_PlayMontage()
 		UE_LOG(GameAbilities, Log, TEXT("OnRep_PlayMontage MontageName: %s SectionNAme: %s ForceRep: %s"), *RepMontage.CurrentMontage->GetName(), *RepMontage.SectionName.ToString(), *FString::FormatAsNumber(RepMontage.ForceRep)); 
 	}
 }
-void UGASAbilitiesComponent::PlayMontage(UAnimMontage* MontageIn, FName SectionName)
+void UGASAbilitiesComponent::PlayMontage(UAnimMontage* MontageIn, FName SectionName, float Speed)
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
@@ -448,7 +452,7 @@ void UGASAbilitiesComponent::PlayMontage(UAnimMontage* MontageIn, FName SectionN
 	if (MyChar)
 	{
 		UAnimInstance* AnimInst = MyChar->GetMesh()->GetAnimInstance();
-		AnimInst->Montage_Play(MontageIn);
+		AnimInst->Montage_Play(MontageIn, Speed);
 		if (SectionName != NAME_None)
 		{
 			AnimInst->Montage_JumpToSection(SectionName, MontageIn);

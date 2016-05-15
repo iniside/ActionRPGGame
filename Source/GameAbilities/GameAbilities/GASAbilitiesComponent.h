@@ -208,7 +208,7 @@ private:
 		void OnRep_PlayMontage();
 public:
 	UFUNCTION(BlueprintCallable, Category = "Game Abilities")
-	void PlayMontage(UAnimMontage* MontageIn, FName SectionName);
+	void PlayMontage(UAnimMontage* MontageIn, FName SectionName, float Speed = 1);
 public:
 	/*
 		Checks on client and server, if we can activate ability. Called from InputPressed

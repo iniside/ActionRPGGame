@@ -14,6 +14,8 @@ void UGASThreeButtonCombo::NativeInputPressed(int32 Index)
 	//Index = 1 RMB
 	//wait for confirm ?
 	UE_LOG(GameAbilities, Log, TEXT("Three Button Combo Current Index = %s"), *FString::FormatAsNumber(CurrentAbilityIdx));
+	if (!AbilityComp)
+		return;
 	if (CurrentAbilityIdx > 1)
 	{
 		CurrentAbilityIdx = 0;
@@ -41,6 +43,9 @@ void UGASThreeButtonCombo::NativeInputPressed(int32 Index)
 }
 void UGASThreeButtonCombo::NativeInputReleased(int32 Index)
 {
+	if (!AbilityComp)
+		return;
+
 	if (Index == 0)
 	{
 		if (CurrentAbilityIdx < 3)

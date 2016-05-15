@@ -123,12 +123,12 @@ void AGSEffectField::BP_DestroyField()
 	DestroyField();
 }
 
-void AGSEffectField::OnFieldHit(class AActor* OtherActor, class UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AGSEffectField::OnFieldHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	float test = 1;
 }
 
-void AGSEffectField::OnFieldBeginOverlap(class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AGSEffectField::OnFieldBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	/*
 		Check if other actor is field.
@@ -154,7 +154,7 @@ void AGSEffectField::OnFieldBeginOverlap(class AActor* OtherActor, class UPrimit
 }
 
 
-void AGSEffectField::OnFieldEndOverlap(class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void AGSEffectField::OnFieldEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	OverlapingActorCount -= OverlapingActors.Remove(OtherActor);//pretty much always should be 1
 	float test = 1;

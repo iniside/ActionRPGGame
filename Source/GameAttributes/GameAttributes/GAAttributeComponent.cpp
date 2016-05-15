@@ -62,6 +62,9 @@ FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAGameEffect& Ef
 {
 	OnEffectApplyToSelf.Broadcast(HandleIn, EffectIn.GameEffect->OwnedTags);
 	GameEffectContainer.ApplyEffect(EffectIn, HandleIn);
+	FGAEffectCueParams CueParams;
+	CueParams.Location = EffectIn.Context.TargetHitLocation;
+	MulticastApplyEffectCue(HandleIn, EffectIn.GameEffect->EffectCue, CueParams);
 	OnEffectApplied.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
 	//ExecuteEffect(EffectIn);
 	return FGAEffectHandle();
@@ -143,7 +146,6 @@ void UGAAttributeComponent::ExpireEffect(FGAGameEffectHandle HandleIn)
 }
 void UGAAttributeComponent::RemoveEffect(FGAGameEffectHandle& HandleIn)
 {
-	HandleIn.GetEffectPtr()->OnRemoved();
 	InternalRemoveEffect(HandleIn);
 	OnEffectRemoved.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
 }
@@ -205,14 +207,28 @@ FGAEffectUIData UGAAttributeComponent::GetEffectUIDataByIndex(int32 IndexIn)
 	FGAEffectUIData data;
 	return data;
 }
-void UGAAttributeComponent::MulticastRemoveEffectCue_Implementation(int32 Handle)
+
+void UGAAttributeComponent::MulticastApplyEffectCue_Implementation(FGAGameEffectHandle EffectHandle, TSubclassOf<AGAEffectCue> EffectCue, FGAEffectCueParams CueParams)
 {
-	ActiveCues.CueRemoved(FGAEffectHandle(Handle));
+	if (!EffectCue)
+	{
+		return;
+	}
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	AGAEffectCue* Cue = GetWorld()->SpawnActor<AGAEffectCue>(EffectCue, CueParams.Location, FRotator::ZeroRotator, SpawnParams);
+	Cue->CueParams = CueParams;
+	Cue->OnEffectApplied();
+	EffectCues.Add(EffectHandle, Cue);
 }
 
-void UGAAttributeComponent::MulticastEffectCueExpired_Implementation(int32 Handle)
+void UGAAttributeComponent::MulticastRemoveEffectCue_Implementation(FGAGameEffectHandle EffectHandle)
 {
-	ActiveCues.CueExpired(FGAEffectHandle(Handle));
+	AGAEffectCue* Cue = EffectCues.FindAndRemoveChecked(EffectHandle);
+
+	Cue->SetActorHiddenInGame(true);
+	Cue->Destroy(true);
 }
 
 void UGAAttributeComponent::RemoveEffectCue(int32 Handle)

@@ -118,6 +118,9 @@ public:
 	/* NEW EFFECT SYSTEM */
 	FGAGameEffectContainer GameEffectContainer;
 
+	/* Client Only map contaiing visual effect from applied effects. */
+	TMap<FGAGameEffectHandle, AGAEffectCue*> EffectCues;
+
 	template<typename T>
 	T* GetAttributes()
 	{
@@ -171,10 +174,10 @@ public:
 		FGAEffectUIData GetEffectUIDataByIndex(int32 IndexIn);
 
 	UFUNCTION(NetMulticast, Unreliable)
-		void MulticastEffectCueExpired(int32 Handle);
+		void MulticastApplyEffectCue(FGAGameEffectHandle EffectHandle, TSubclassOf<AGAEffectCue> EffectCue, FGAEffectCueParams CueParams);
 
 	UFUNCTION(NetMulticast, Unreliable)
-		void MulticastRemoveEffectCue(int32 Handle);
+		void MulticastRemoveEffectCue(FGAGameEffectHandle EffectHandle);
 
 	/* 
 		int param, is temporary work around, until I learn, how to tell engine, how

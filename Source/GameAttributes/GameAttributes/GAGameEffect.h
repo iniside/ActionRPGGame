@@ -1,6 +1,7 @@
 #pragma once
 #include "GAGlobalTypes.h"
 #include "GAEffectGlobalTypes.h"
+#include "GameplayTagContainer.h"
 #include "GAGameEffect.generated.h"
 
 DECLARE_STATS_GROUP(TEXT("GameEffect"), STATGROUP_GameEffect, STATCAT_Advanced);
@@ -125,6 +126,9 @@ class GAMEATTRIBUTES_API UGAGameEffectSpec : public UObject
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(EditAnywhere, Category = "Effect Cue")
+		TSubclassOf<class AGAEffectCue> EffectCue;
+
 	UPROPERTY(EditAnywhere, Category = "Effect Info")
 		EGAEffectType EffectType;
 	/* 
@@ -249,6 +253,7 @@ struct GAMEATTRIBUTES_API FGAGameEffect : public TSharedFromThis<FGAGameEffect>
 	/* Cached pointer to original effect spec. */
 	class UGAGameEffectSpec* GameEffect;
 	class UGAEffectExecution* Execution;
+	UWorld* TargetWorld;
 	/* 
 		Calculated mods ready to be applied. 
 		These are perlimenarly calculcated mods, 
@@ -259,6 +264,7 @@ struct GAMEATTRIBUTES_API FGAGameEffect : public TSharedFromThis<FGAGameEffect>
 
 	FGAEffectContext Context;
 	/* Contains all tags gathered on the way to application ? */
+public:
 	FGameplayTagContainer OwnedTags;
 	FGameplayTagContainer ApplyTags;
 
@@ -272,6 +278,9 @@ public:
 	FSimpleDelegate OnEffectPeriod;
 	FSimpleDelegate OnEffectExpired;
 	FSimpleDelegate OnEffectRemoved;
+
+	float AppliedTime;
+	float LastTickTime;
 public:
 	void SetContext(const FGAEffectContext& ContextIn);
 	TArray<FGAEffectMod> GetAttributeModifiers();
@@ -285,10 +294,22 @@ public:
 	void OnRemoved();
 
 	void DurationExpired();
+	
+	float GetActivationTime();
+	float GetCurrentActivationTime();
+	float GetCurrentTickTime();
 
 	bool IsValid() const
 	{
 		return GameEffect != nullptr;
+	}
+	FString ToString()
+	{
+		if (GameEffect)
+		{
+			return GameEffect->GetName();
+		}
+		return FString();
 	}
 	FGAGameEffect()
 		: GameEffect(nullptr)
@@ -311,7 +332,7 @@ protected:
 public:
 	bool IsValid() const
 	{
-		return Handle != INDEX_NONE && EffectPtr.IsValid();
+		return (Handle != INDEX_NONE) && EffectPtr.IsValid();
 	}
 
 	inline FGAEffectContext& GetContextRef() { return EffectPtr->Context; }

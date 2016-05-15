@@ -178,7 +178,7 @@ FHitResult UGTTraceBase::SingleLineRangedTrace(const FVector& StartTrace, const 
 		TraceParams.AddIgnoredActor(TraceInterface->GetGamePawn());
 	}
 
-	bool traceResult = GetWorld()->LineTraceSingle(Hit, StartTrace, EndTrace, TraceParams, CollisionObjectParams);
+	/*bool traceResult = GetWorld()->LineTraceSingle(Hit, StartTrace, EndTrace, TraceParams, CollisionObjectParams);
 	if (bDrawDebug)
 	{
 		if (traceResult && Hit.bBlockingHit)
@@ -191,6 +191,6 @@ FHitResult UGTTraceBase::SingleLineRangedTrace(const FVector& StartTrace, const 
 		{
 			::DrawDebugPoint(world, Hit.ImpactPoint, 15, FColor::Red, false, 2);
 		}
-	}
+	}*/
 	return Hit;
 }

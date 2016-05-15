@@ -1,5 +1,6 @@
 #pragma once
 #include "IGIPawn.h"
+#include "GASGlobals.h"
 #include "GAGameEffect.h"
 #include "GameplayTasksComponent.h"
 #include "GameplayTask.h"
@@ -101,32 +102,14 @@ public:
 		Physical reprsentation of ability in game world. It might be sword, gun, or character.
 		What differs it from pawn or controller is that Avatar is actually used by ability to perform actions.
 
-		It will some some common interfaces for getting data out.
+		It will need some common interfaces for getting data out.
 	*/
 	UPROPERTY(BlueprintReadOnly, Category = "Default")
 		class AActor* AvatarActor;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Default")
 		UCameraComponent* OwnerCamera;
-	/**
-	 *	Default state to which ability will always return upon finishing (either immidielty or after cooldown).
-	 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ability State")
-	class UGASAbilityState* DefaultState;
-	/**
-	 *	State used when ability is on cooldown.
-	 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ability State")
-	class UGASAbilityState* CooldownState;
-	/**
-	 *	State used when ability is activated. After preperation state.
-	 */
-	UPROPERTY(EditAnywhere, Instanced, meta = (MetaClass = "UGASAbilityStateCastingBase"), Category = "Ability State")
-	class UGASAbilityState* ActivationState;
-
-	UPROPERTY()
-	class UGASAbilityState* CurrentState;
-	/* 
+	/*
 		TSubclassOf<> could be better, for runtime customization (ie, different cues for single
 		ability). On other hand, instanced is easier to customize in editor. 
 	*/
@@ -162,9 +145,21 @@ public:
 		main usecase for those tags is to make other abilities
 		being able to interrupt them.
 		All abilities with casting/channeling time use it.
+
+		Add Periodic Effect ? (For abilities with period).
 	*/
 	UPROPERTY(EditAnywhere, Category = "Config")
 		FGAEffectSpec ActivationEffect;
+	/*
+		Probably need that
+		as well as separate spawned actor, which takes care on it's own for
+		abilities effect (like lighting strike from heaves into certain hit point);
+	*/
+	/* What/Where ability hits landed. Replicated back to client ? */
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing=OnRep_AbilityHits)
+		FGASAbilityHitArray AbilityHits;
+	UFUNCTION()
+		void OnRep_AbilityHits();
 public: //because I'm to lazy to write all those friend states..
 	UPROPERTY()
 		FGAGameEffectHandle CooldownHandle;
@@ -180,6 +175,8 @@ public: //because I'm to lazy to write all those friend states..
 		void OnCooldownEffectExpired();
 	UFUNCTION()
 		void OnActivationEffectExpired();
+	UFUNCTION()
+		void OnActivationEffectRemoved();
 	UFUNCTION()
 		void OnActivationEffectPeriod();
 
@@ -220,10 +217,10 @@ public:
 	UGASAbilityBase(const FObjectInitializer& ObjectInitializer);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Abilities")
-		void PlayMontage(UAnimMontage* MontageIn, FName SectionName);
+		void PlayMontage(UAnimMontage* MontageIn, FName SectionName, float Speed = 1);
 
 	virtual void InitAbility();
-	/* 
+	/*
 		Called when ability received input.
 		One ability can receive multiple input calls, how those will be handled 
 		is up to ability.
@@ -296,6 +293,12 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
 		void OnFinishExecution();
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
+		void OnAbilityPeriod();
+
+	/*
+		Manually finish effect execution.
+	*/
 	UFUNCTION(BlueprintCallable, Category = "Game Abilities")
 		void FinishExecution();
 	void NativeFinishExecution();
@@ -304,9 +307,8 @@ public:
 	void ConfirmAbility();
 
 	bool CanUseAbility();
+	bool CanReleaseAbility();
 	
-	bool CheckCooldown();
-
 	float GetCooldownTime() const;
 	UFUNCTION(BlueprintPure, meta=(DisplayName = "Get Cooldown Time"), Category = "Game Abilities")
 		float BP_GetCooldownTime() const;
@@ -315,20 +317,26 @@ public:
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "Get Activation Time"), Category = "Game Abilities")
 		float BP_GetActivationTime() const;
 
-	/* State Handling Begin */
-	void GotoState(class UGASAbilityState* NextState);
-	/* State HAndling End */
-
 	/** GameplayTaskOwnerInterface - Begin */
-	virtual void OnTaskInitialized(UGameplayTask& Task) override;
 	virtual UGameplayTasksComponent* GetGameplayTasksComponent(const UGameplayTask& Task) const override;
 	/** this gets called both when task starts and when task gets resumed. Check Task.GetStatus() if you want to differenciate */
-	virtual void OnTaskActivated(UGameplayTask& Task) override;
-	/** this gets called both when task finished and when task gets paused. Check Task.GetStatus() if you want to differenciate */
-	virtual void OnTaskDeactivated(UGameplayTask& Task) override;
-	virtual AActor* GetOwnerActor(const UGameplayTask* Task) const override;
-	virtual AActor* GetAvatarActor(const UGameplayTask* Task) const override;
-	virtual uint8 GetDefaultPriority() const override { return 1; }
+	/** Get owner of a task or default one when task is null */
+	virtual AActor* GetGameplayTaskOwner(const UGameplayTask* Task) const override;
+
+	/** Get "body" of task's owner / default, having location in world (e.g. Owner = AIController, Avatar = Pawn) */
+	virtual AActor* GetGameplayTaskAvatar(const UGameplayTask* Task) const override;
+
+	/** Get default priority for running a task */
+	virtual uint8 GetGameplayTaskDefaultPriority() const {	return 1; };
+
+	/** Notify called after GameplayTask finishes initialization (not active yet) */
+	virtual void OnGameplayTaskInitialized(UGameplayTask& Task) override;
+
+	/** Notify called after GameplayTask changes state to Active (initial activation or resuming) */
+	virtual void OnGameplayTaskActivated(UGameplayTask& Task) override;
+
+	/** Notify called after GameplayTask changes state from Active (finishing or pausing) */
+	virtual void OnGameplayTaskDeactivated(UGameplayTask& Task) override;
 	/** GameplayTaskOwnerInterface - end */
 	
 	/** IIGAAttributes Begin */
@@ -371,6 +379,18 @@ public:
 	bool ApplyCooldownEffect();
 	bool ApplyActivationEffect();
 	bool ApplyAttributeCost();
+
+	bool CheckCooldown();
+	bool CheckExecuting();
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Apply Cooldown"), Category = "Game Abilities")
+		void BP_ApplyCooldown();
+
+	UFUNCTION(BlueprintCallable, Category = "Game Abilities")
+		float GetCurrentActivationTime();
+
+	UFUNCTION(BlueprintCallable, Category = "Game Abilities")
+		float CalculateAnimationSpeed(UAnimMontage* MontageIn);
 
 	/* Replication */
 	bool IsNameStableForNetworking() const override;

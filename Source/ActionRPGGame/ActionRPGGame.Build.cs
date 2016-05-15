@@ -46,6 +46,7 @@ public class ActionRPGGame : ModuleRules
                 "UMG",
                 "Slate",
                 "SlateCore",
+                "GameplayTasks",
                 "GameplayTags",
                 "GameInventorySystem", 
                 "GameAttributes",

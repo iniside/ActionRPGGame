@@ -49,7 +49,7 @@ float AARAICharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& 
 	if (!EventInstigator && !DamageCauser)
 	{
 		ReceiveAnyDamage(DamageAmount, nullptr, EventInstigator, DamageCauser);
-		OnTakeAnyDamage.Broadcast(DamageAmount, nullptr, EventInstigator, DamageCauser);
+//		OnTakeAnyDamage.Broadcast(DamageAmount, nullptr, EventInstigator, DamageCauser);
 		//it's coming from attribute component.
 		//it means health reached zero (or whatever).
 		Destroy(); //destroy this actor.
