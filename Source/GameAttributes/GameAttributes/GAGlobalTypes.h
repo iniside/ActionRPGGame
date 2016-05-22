@@ -410,6 +410,11 @@ struct GAMEATTRIBUTES_API FGAEffectContext
 {
 	GENERATED_USTRUCT_BODY()
 public:
+	/*
+		Just copy entire hit result struct.
+	*/
+	UPROPERTY(BlueprintReadOnly, Category = "Spec")
+		FHitResult HitResult;
 	/**
 	 *	Where exactly we hit target.
 	 */
@@ -541,18 +546,15 @@ struct GAMEATTRIBUTES_API FGAEffectCueParams
 {
 	GENERATED_USTRUCT_BODY()
 public:
-	UPROPERTY(BlueprintReadWrite, Category = GameplayCue)
-		FVector_NetQuantize10 Location;
-
-	UPROPERTY(BlueprintReadWrite, Category = GameplayCue)
-		FVector_NetQuantizeNormal Normal;
+	UPROPERTY(BlueprintReadOnly, Category = "Gameplay Cue")
+		FHitResult HitResult;
 
 	/** Instigator actor, the actor that owns the ability system component */
-	UPROPERTY(BlueprintReadWrite, Category = GameplayCue)
+	UPROPERTY(BlueprintReadWrite, Category = "Gameplay Cue")
 		TWeakObjectPtr<AActor> Instigator;
 
 	/** The physical actor that actually did the damage, can be a weapon or projectile */
-	UPROPERTY(BlueprintReadWrite, Category = GameplayCue)
+	UPROPERTY(BlueprintReadWrite, Category = "Gameplay Cue")
 		TWeakObjectPtr<AActor> EffectCauser;
 
 	//bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);

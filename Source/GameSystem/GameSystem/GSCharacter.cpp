@@ -6,6 +6,7 @@
 #include "Items/GSItemWeaponRangedInfo.h"
 #include "Weapons/GSWeaponEquipmentComponent.h"
 #include "Components/GSActiveActionsComponent.h"
+#include "Components/GSCharacterMovementComponent.h"
 #include "Abilities/GSAbilitiesComponent.h"
 #include "GSCharacter.h"
 
@@ -17,7 +18,7 @@ const FName AGSCharacter::HandsSlotComponent(TEXT("HandsSlot"));
 const FName AGSCharacter::LegsSlotComponent(TEXT("LegsSlot"));
 
 AGSCharacter::AGSCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UGSCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	Equipment = ObjectInitializer.CreateDefaultSubobject<UGSEquipmentComponent>(this, TEXT("Equipment"));
 	Equipment->SetIsReplicated(true);

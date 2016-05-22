@@ -32,8 +32,8 @@
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
 				"CoreUObject",
-    "Engine",
-    "GameAttributes"
+				"Engine",
+				"GameAttributes"
 			]
 		},
 		{
@@ -59,7 +59,8 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"Engine"
+				"Engine",
+				"CoreUObject"
 			]
 		},
 		{
@@ -90,7 +91,10 @@
 		{
 			"Name": "GameSystem",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
 		},
 		{
 			"Name": "GameSystemEditor",

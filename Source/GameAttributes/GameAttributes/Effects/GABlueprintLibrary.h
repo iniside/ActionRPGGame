@@ -45,7 +45,26 @@ public:
 		static FGAGameEffectHandle ApplyGameEffectToActorFromClass(TSubclassOf<class UGAGameEffectSpec> SpecIn,
 			FGAGameEffectHandle HandleIn, class AActor* Target, class APawn* Instigator,
 			UObject* Causer);
+	
+	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
+		static FGAGameEffectHandle ApplyGameEffectToLocation(const FGAEffectSpec& SpecIn,
+			FGAGameEffectHandle HandleIn, const FHitResult& Target, class APawn* Instigator,
+			UObject* Causer);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
+		static FGAGameEffectHandle ApplyGameEffectToLocationFromClass(TSubclassOf<class UGAGameEffectSpec> SpecIn,
+			FGAGameEffectHandle HandleIn, const FHitResult& Target, class APawn* Instigator,
+			UObject* Causer);
+
 protected:
+	static FGAGameEffectHandle ApplyEffectFromHit(UGAGameEffectSpec* SpecIn,
+		FGAGameEffectHandle HandleIn, const FHitResult& Target, class APawn* Instigator,
+		UObject* Causer);
+	
+	static FGAGameEffectHandle ApplyEffectToActor(UGAGameEffectSpec* SpecIn,
+		FGAGameEffectHandle HandleIn, class AActor* Target, class APawn* Instigator,
+		UObject* Causer);
+
 	static FGAEffectContext MakeActorContext(class AActor* Target, class APawn* Instigator, UObject* Causer);
 	static FGAEffectContext MakeHitContext(const FHitResult& Target, class APawn* Instigator, UObject* Causer);
 	static void AddTagsToEffect(FGAGameEffect* EffectIn);

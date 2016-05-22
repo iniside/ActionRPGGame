@@ -128,6 +128,8 @@ class GAMEATTRIBUTES_API UGAGameEffectSpec : public UObject
 public:
 	UPROPERTY(EditAnywhere, Category = "Effect Cue")
 		TSubclassOf<class AGAEffectCue> EffectCue;
+	UPROPERTY(EditAnywhere, Category = "Effect Cue")
+		TSubclassOf<class UGAEffectObjectCue> EffectObjectCue;
 
 	UPROPERTY(EditAnywhere, Category = "Effect Info")
 		EGAEffectType EffectType;

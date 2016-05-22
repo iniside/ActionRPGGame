@@ -63,8 +63,8 @@ FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAGameEffect& Ef
 	OnEffectApplyToSelf.Broadcast(HandleIn, EffectIn.GameEffect->OwnedTags);
 	GameEffectContainer.ApplyEffect(EffectIn, HandleIn);
 	FGAEffectCueParams CueParams;
-	CueParams.Location = EffectIn.Context.TargetHitLocation;
-	MulticastApplyEffectCue(HandleIn, EffectIn.GameEffect->EffectCue, CueParams);
+	CueParams.HitResult = EffectIn.Context.HitResult;
+	//MulticastApplyEffectCue(HandleIn, EffectIn.GameEffect->EffectCue, CueParams);
 	OnEffectApplied.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
 	//ExecuteEffect(EffectIn);
 	return FGAEffectHandle();
@@ -72,7 +72,11 @@ FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAGameEffect& Ef
 FGAEffectHandle UGAAttributeComponent::ApplyEffectToTarget(const FGAGameEffect& EffectIn
 	, const FGAGameEffectHandle& HandleIn)
 {
-	if (EffectIn.IsValid())
+	FGAEffectCueParams CueParams;
+	CueParams.HitResult = EffectIn.Context.HitResult;
+	
+	MulticastApplyEffectCue(HandleIn, EffectIn.GameEffect->EffectCue, CueParams);
+	if (EffectIn.IsValid() && EffectIn.Context.TargetComp.IsValid())
 	{
 		OnEffectApplyToTarget.Broadcast(HandleIn, EffectIn.GameEffect->OwnedTags);
 		return EffectIn.Context.TargetComp->ApplyEffectToSelf(EffectIn, HandleIn);
@@ -129,10 +133,11 @@ void UGAAttributeComponent::ExecuteEffect(FGAGameEffectHandle HandleIn)
 		Effect.Context.InstigatorComp.Get(), Effect.Context.InstigatorComp->DefaultAttributes);
 	//execute period regardless if this periodic effect ? Or maybe change name OnEffectExecuted ?
 	Effect.OnEffectPeriod.ExecuteIfBound();
-
+	MulticastExecuteEffectCue(HandleIn);
 	for (FGAEffectMod& mod : Mods)
 	{
 		HandleIn.ExecuteEffect(HandleIn, mod, ExecContext);
+		
 	}
 
 	//GameEffectContainer.ExecuteEffect(HandleIn, HandleIn.GetEffectRef());
@@ -171,7 +176,6 @@ void UGAAttributeComponent::InternalRemoveEffect(FGAGameEffectHandle& HandleIn)
 				UE_LOG(GameAttributes, Log, TEXT("Value Before bonus of attribute = %f"), attr->GetFinalValue());
 				attr->RemoveBonus(HandleIn);
 				UE_LOG(GameAttributes, Log, TEXT("Value After bonus of attribute = %f"), attr->GetFinalValue());
-
 			}
 		}
 	}
@@ -217,10 +221,20 @@ void UGAAttributeComponent::MulticastApplyEffectCue_Implementation(FGAGameEffect
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	AGAEffectCue* Cue = GetWorld()->SpawnActor<AGAEffectCue>(EffectCue, CueParams.Location, FRotator::ZeroRotator, SpawnParams);
+	AGAEffectCue* Cue = GetWorld()->SpawnActor<AGAEffectCue>(EffectCue, CueParams.HitResult.Location, FRotator::ZeroRotator, SpawnParams);
 	Cue->CueParams = CueParams;
+	AActor* Owner = GetOwner();
+	Cue->SetOwner(Owner);
 	Cue->OnEffectApplied();
+	//UE_LOG(GameAttributesEffects, Log, TEXT("Setting Effect Cue Owner To %s "), GetOwner()->GetName());
+
 	EffectCues.Add(EffectHandle, Cue);
+	
+}
+
+void UGAAttributeComponent::MulticastExecuteEffectCue_Implementation(FGAGameEffectHandle EffectHandle)
+{
+	AGAEffectCue* Cue = EffectCues.FindRef(EffectHandle);
 }
 
 void UGAAttributeComponent::MulticastRemoveEffectCue_Implementation(FGAGameEffectHandle EffectHandle)

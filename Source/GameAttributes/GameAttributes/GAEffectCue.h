@@ -16,8 +16,8 @@ class GAMEATTRIBUTES_API AGAEffectCue : public AActor
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Particle")
-		UParticleSystem* ParticleEffect;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Config")
+		bool bAttachToOwner;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Data")
 	FGAEffectCueParams CueParams;

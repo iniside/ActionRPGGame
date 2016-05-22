@@ -177,9 +177,12 @@ public:
 		void MulticastApplyEffectCue(FGAGameEffectHandle EffectHandle, TSubclassOf<AGAEffectCue> EffectCue, FGAEffectCueParams CueParams);
 
 	UFUNCTION(NetMulticast, Unreliable)
+		void MulticastExecuteEffectCue(FGAGameEffectHandle EffectHandle);
+
+	UFUNCTION(NetMulticast, Unreliable)
 		void MulticastRemoveEffectCue(FGAGameEffectHandle EffectHandle);
 
-	/* 
+	/*
 		int param, is temporary work around, until I learn, how to tell engine, how
 		it should serialize custom data types for replication
 	*/
