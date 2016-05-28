@@ -557,5 +557,19 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Gameplay Cue")
 		TWeakObjectPtr<AActor> EffectCauser;
 
+	/* Tick interval for periodic effects */
+	UPROPERTY(BlueprintReadOnly, Category = "GameplayCue")
+		float Period;
+
+	UPROPERTY(BlueprintReadOnly, Category = "GameplayCue")
+		float Duration;
+
+	FGAEffectCueParams()
+	{};
+	FGAEffectCueParams(const FHitResult& HitIn, AActor* InstigatorIn, AActor* EffectCauserIn)
+		: HitResult(HitIn),
+		Instigator(InstigatorIn),
+		EffectCauser(EffectCauserIn)
+	{};
 	//bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
 };

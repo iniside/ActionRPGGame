@@ -127,9 +127,7 @@ class GAMEATTRIBUTES_API UGAGameEffectSpec : public UObject
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, Category = "Effect Cue")
-		TSubclassOf<class AGAEffectCue> EffectCue;
-	UPROPERTY(EditAnywhere, Category = "Effect Cue")
-		TSubclassOf<class UGAEffectObjectCue> EffectObjectCue;
+		TSubclassOf<class UGAEffectCue> EffectCue;
 
 	UPROPERTY(EditAnywhere, Category = "Effect Info")
 		EGAEffectType EffectType;
@@ -260,8 +258,6 @@ struct GAMEATTRIBUTES_API FGAGameEffect : public TSharedFromThis<FGAGameEffect>
 		Calculated mods ready to be applied. 
 		These are perlimenarly calculcated mods, 
 		which can be furhter modified by Calculation object.
-
-
 	*/
 
 	FGAEffectContext Context;
@@ -296,7 +292,7 @@ public:
 	void OnRemoved();
 
 	void DurationExpired();
-	
+
 	float GetActivationTime();
 	float GetCurrentActivationTime();
 	float GetCurrentTickTime();

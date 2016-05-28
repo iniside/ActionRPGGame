@@ -452,10 +452,10 @@ public:
 	virtual FString GetBeautifiedTestName() const override { return TEXT("GameAttributes.Attributes"); }
 	virtual void GetTests(TArray<FString>& OutBeautifiedNames, TArray <FString>& OutTestCommands) const override
 	{
-		for (const FString& TestName : TestFunctionNames)
+		for (const FString& TestFunctionName : TestFunctionNames)
 		{
-			OutBeautifiedNames.Add(TestName);
-			OutTestCommands.Add(TestName);
+			OutBeautifiedNames.Add(TestFunctionName);
+			OutTestCommands.Add(TestFunctionName);
 		}
 	}
 	bool RunTest(const FString& Parameters)

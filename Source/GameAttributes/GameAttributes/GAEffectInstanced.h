@@ -21,8 +21,14 @@ class GAMEATTRIBUTES_API UGAEffectInstanced : public UObject
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(EditAnywhere, Category = "Cue")
+		TSubclassOf<class UGAEffectCue> Cue;
+
 	UPROPERTY(EditAnywhere, Category = "Effect Info")
 		float Duration;
+
+	UPROPERTY(EditAnywhere, Category = "Effect Info")
+		float Period;
 
 	UPROPERTY(EditAnywhere, Category = "Effect Info")
 		EGAEffectAggregation EffectAggregation;
@@ -37,10 +43,11 @@ public:
 		TArray<FGAGameEffectHandle> OwnedEffects;
 protected:
 	FTimerHandle DurationTimerHandle;
+	FTimerHandle PeriodTimerHandle;
 public:
 	UGAEffectInstanced(const FObjectInitializer& ObjectInitializer);
-
-	void Initialize(const FGAEffectContext& ContextIn);
+	void SetParameters(const FGAEffectContext& ContextIn);
+	void BeginEffect();
 
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes | Effects")
 	FGAGameEffectHandle ApplyEffect(TSubclassOf<class UGAGameEffectSpec> SpecIn);
@@ -50,9 +57,10 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
 		void OnEffectInstanceApplied();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
-		void OnEffectInstanceContinious();
+		void OnEffectInstancePeriod();
 
 	void NativeOnEffectApplied();
+	void NativeOnEffectPeriod();
 	void NativeOnEffectExpired();
 	void NativeOnEffectRemoved();
 

@@ -47,10 +47,10 @@ void UGASAbilityBase::OnRep_InitAbility()
 		SpawnParams.Owner = POwner;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		//can be null.
-		UWorld* World = GetWorld();
-		if (World)
+		UWorld* world = GetWorld();
+		if (world)
 		{
-			ActorCue = World->SpawnActor<AGASCueActor>(ActorCueClass, POwner->GetActorLocation(), FRotator(0, 0, 0), SpawnParams);
+			ActorCue = world->SpawnActor<AGASCueActor>(ActorCueClass, POwner->GetActorLocation(), FRotator(0, 0, 0), SpawnParams);
 			if (ActorCue)
 			{
 				ActorCue->OwningAbility = this;

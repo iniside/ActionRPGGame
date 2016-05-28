@@ -7,26 +7,37 @@
 #include "GAEffectCue.generated.h"
 
 /**
- * Base class containing information about Cue.
- * Cue is visual/sound representation of effect in the world.
- * This is only for testing. Do not use it in the current state!
+ * 
  */
-UCLASS()
-class GAMEATTRIBUTES_API AGAEffectCue : public AActor
+UCLASS(BlueprintType, Blueprintable, DefaultToInstanced, EditInLineNew)
+class GAMEATTRIBUTES_API UGAEffectCue : public UObject, public FTickableGameObject
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Config")
-		bool bAttachToOwner;
+	UPROPERTY(EditAnywhere, Category = "Tick")
+		bool bEnableTick;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Data")
-	FGAEffectCueParams CueParams;
+	UPROPERTY(BlueprintReadOnly, Category = "Cue")
+		AActor* Owner;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Cue")
+		FGAEffectCueParams CueParams;
 
-	virtual void Destroyed() override;
-	/*
-		These events mirrors the onces in effect, so you can implement different visuals, for
-		each state, effect can be at time.
-	*/
+	bool bEffectRemoved;
+	bool bTickEnabled;
+protected:
+	FTimerHandle DurationTimerHandle;
+	FTimerHandle PeriodTimerHandle;
+public:
+	UGAEffectCue();
+	virtual void SetParameters(AActor* OwnerIn, const FGAEffectCueParams& CueParamsIn);
+	virtual void BeginCue();
+	void ExecuteCue();
+	void UpdateDuration(float NewDurationIn);
+	void ExtendDuration(float Duration);
+	void UpdatePeriod(float NewPeriodIn);
+	void UpdateTimers(float NewDurationIn, float NewPeriodIn);
+	void EndCue();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Effect Cue")
 		void OnEffectApplied();
 
@@ -39,5 +50,17 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Effect Cue")
 		void OnEffectRemoved();
 
-	AGAEffectCue(const FObjectInitializer& ObjectInitializer);
+	UFUNCTION(BlueprintImplementableEvent, Category = "Effect Cue")
+		void OnTick();
+
+	/* FTickableGameObject Implementation Begin */
+	virtual void Tick(float DeltaTime) override;
+	virtual bool IsTickable() const override;
+	virtual TStatId GetStatId() const override;
+	virtual bool IsTickableWhenPaused() const override;
+	virtual bool IsTickableInEditor() const override;
+	/* FTickableGameObject Implementation End */
+
+	virtual UWorld* GetWorld() const override;
+	
 };

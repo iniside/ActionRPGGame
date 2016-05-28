@@ -46,6 +46,7 @@ void UGAAttributeComponent::InitializeComponent()
 		DefaultAttributes->InitializeAttributes();
 	}
 	GameEffectContainer.OwningComp = this;
+	ActiveCues.OwningComponent = this;
 	AppliedTags.AddTagContainer(DefaultTags);
 	FGAGameEffect Efffect;
 	for(const FGAGameEffectModifier& Spec : ModifierTest)
@@ -64,9 +65,7 @@ FGAEffectHandle UGAAttributeComponent::ApplyEffectToSelf(const FGAGameEffect& Ef
 	GameEffectContainer.ApplyEffect(EffectIn, HandleIn);
 	FGAEffectCueParams CueParams;
 	CueParams.HitResult = EffectIn.Context.HitResult;
-	//MulticastApplyEffectCue(HandleIn, EffectIn.GameEffect->EffectCue, CueParams);
 	OnEffectApplied.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
-	//ExecuteEffect(EffectIn);
 	return FGAEffectHandle();
 }
 FGAEffectHandle UGAAttributeComponent::ApplyEffectToTarget(const FGAGameEffect& EffectIn
@@ -74,7 +73,7 @@ FGAEffectHandle UGAAttributeComponent::ApplyEffectToTarget(const FGAGameEffect& 
 {
 	FGAEffectCueParams CueParams;
 	CueParams.HitResult = EffectIn.Context.HitResult;
-	
+	//execute cue from effect regardless if we have target object or not.
 	MulticastApplyEffectCue(HandleIn, EffectIn.GameEffect->EffectCue, CueParams);
 	if (EffectIn.IsValid() && EffectIn.Context.TargetComp.IsValid())
 	{
@@ -163,7 +162,7 @@ void UGAAttributeComponent::InternalRemoveEffect(FGAGameEffectHandle& HandleIn)
 	
 	FGAGameEffect& Effect = HandleIn.GetEffectRef();
 	TArray<FGAEffectMod> Mods = Effect.GetAttributeModifiers();
-
+	MulticastRemoveEffectCue(HandleIn);
 	//periodic effects do not apply duration based modifiers to attributes.
 	//yet in anycase.
 	if (Effect.GameEffect->EffectType == EGAEffectType::Duration)
@@ -184,11 +183,14 @@ void UGAAttributeComponent::InternalRemoveEffect(FGAGameEffectHandle& HandleIn)
 
 void UGAAttributeComponent::ApplyInstacnedEffectToSelf(class UGAEffectInstanced* EffectIn)
 {
-	EffectIn->NativeOnEffectApplied();
 	GameEffectContainer.ApplyEffectInstance(EffectIn);
 }
 void UGAAttributeComponent::ApplyInstancedToTarget(class UGAEffectInstanced* EffectIn)
 {
+	//FGAEffectCueParams CueParams;
+	//CueParams.HitResult = EffectIn->Context.HitResult;
+	//execute cue from effect regardless if we have target object or not.
+	//MulticastApplyEffectCue(HandleIn, EffectIn->Cue, CueParams);
 	EffectIn->Context.TargetComp->ApplyInstacnedEffectToSelf(EffectIn);
 }
 
@@ -212,43 +214,38 @@ FGAEffectUIData UGAAttributeComponent::GetEffectUIDataByIndex(int32 IndexIn)
 	return data;
 }
 
-void UGAAttributeComponent::MulticastApplyEffectCue_Implementation(FGAGameEffectHandle EffectHandle, TSubclassOf<AGAEffectCue> EffectCue, FGAEffectCueParams CueParams)
+void UGAAttributeComponent::MulticastApplyEffectCue_Implementation(FGAGameEffectHandle EffectHandle, TSubclassOf<UGAEffectCue> EffectCue, FGAEffectCueParams CueParams)
 {
-	if (!EffectCue)
-	{
-		return;
-	}
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	AGAEffectCue* Cue = GetWorld()->SpawnActor<AGAEffectCue>(EffectCue, CueParams.HitResult.Location, FRotator::ZeroRotator, SpawnParams);
-	Cue->CueParams = CueParams;
-	AActor* Owner = GetOwner();
-	Cue->SetOwner(Owner);
-	Cue->OnEffectApplied();
-	//UE_LOG(GameAttributesEffects, Log, TEXT("Setting Effect Cue Owner To %s "), GetOwner()->GetName());
-
-	EffectCues.Add(EffectHandle, Cue);
-	
+	ActiveCues.AddCue(EffectHandle, EffectCue, CueParams);
 }
 
 void UGAAttributeComponent::MulticastExecuteEffectCue_Implementation(FGAGameEffectHandle EffectHandle)
 {
-	AGAEffectCue* Cue = EffectCues.FindRef(EffectHandle);
+	ActiveCues.ExecuteCue(EffectHandle);
 }
 
 void UGAAttributeComponent::MulticastRemoveEffectCue_Implementation(FGAGameEffectHandle EffectHandle)
 {
-	AGAEffectCue* Cue = EffectCues.FindAndRemoveChecked(EffectHandle);
-
-	Cue->SetActorHiddenInGame(true);
-	Cue->Destroy(true);
+	ActiveCues.RemoveCue(EffectHandle);
 }
 
-void UGAAttributeComponent::RemoveEffectCue(int32 Handle)
+void UGAAttributeComponent::MulticastUpdateDurationCue_Implementation(FGAGameEffectHandle EffectHandle, float NewDurationIn)
 {
-	ActiveCues.CueRemoved(FGAEffectHandle(Handle));
+
 }
+void UGAAttributeComponent::MulticastUpdatePeriodCue_Implementation(FGAGameEffectHandle EffectHandle, float NewPeriodIn)
+{
+
+}
+void UGAAttributeComponent::MulticastUpdateTimersCue_Implementation(FGAGameEffectHandle EffectHandle, float NewDurationIn, float NewPeriodIn)
+{
+
+}
+void UGAAttributeComponent::MulticastExtendDurationCue_Implementation(FGAGameEffectHandle EffectHandle, float NewDurationIn)
+{
+
+}
+
 
 float UGAAttributeComponent::ModifyAttribute(FGAEffectMod& ModIn)
 {
@@ -287,9 +284,9 @@ void UGAAttributeComponent::ModifyAttributesOnSelf(const FGAAttributeData& EvalD
 	}
 	if (GetNetMode() == ENetMode::NM_Standalone)
 	{
-		for (FGAModifiedAttribute& attr : ModifiedAttribute.Mods)
+		for (FGAModifiedAttribute& modAttribute : ModifiedAttribute.Mods)
 		{
-			Context.InstigatorComp->OnAttributeModifed.Broadcast(attr);
+			Context.InstigatorComp->OnAttributeModifed.Broadcast(modAttribute);
 		}
 	}
 }
@@ -319,10 +316,7 @@ void UGAAttributeComponent::OnRep_ActiveCues()
 {
 
 }
-void UGAAttributeComponent::ApplyEffectCue(int32 Handle)
-{
 
-}
 void UGAAttributeComponent::OnRep_AttributeChanged()
 {
 	for (FGAModifiedAttribute& attr : ModifiedAttribute.Mods)

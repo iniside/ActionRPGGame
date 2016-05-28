@@ -65,6 +65,7 @@ void FGAGameEffect::DurationExpired()
 {
 
 }
+
 float FGAGameEffect::GetActivationTime()
 {
 	return GameEffect->Duration;
@@ -581,7 +582,7 @@ void FGAGameEffectContainer::ApplyEffectInstance(class UGAEffectInstanced* Effec
 		FGAInstigatorInstancedEffectContainer& Effects = InstigatorInstancedEffects.FindOrAdd(EffectIn->Context.Instigator.Get());
 		Effects.Effects.AddUnique(EffectIn);
 		//VERY BAD CHANGE IT.
-		EffectIn->Initialize(EffectIn->Context);
+		EffectIn->BeginEffect();
 		break;
 	}
 	case EGAEffectAggregation::AggregateByTarget:

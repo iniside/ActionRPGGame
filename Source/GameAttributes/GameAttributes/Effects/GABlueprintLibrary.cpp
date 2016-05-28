@@ -128,7 +128,7 @@ void UGABlueprintLibrary::ApplyGameEffectInstance(TSubclassOf<class UGAEffectIns
 
 	if (Effect)
 	{
-		Effect->Context = Context;
+		Effect->SetParameters(Context);
 	}
 	Context.InstigatorComp->ApplyInstancedToTarget(Effect);
 }
@@ -172,20 +172,6 @@ FGAGameEffectHandle UGABlueprintLibrary::ApplyEffectFromHit(UGAGameEffectSpec* S
 	}
 
 	FGAEffectContext Context = MakeHitContext(Target, Instigator, Causer);
-	if (!Context.IsValid())
-	{
-		//if the handle is valid (valid pointer to effect and id)
-		//we want to preseve it and just set bad context.
-		//if (HandleIn.IsValid())
-		//{
-		//	HandleIn.SetContext(Context);
-		//	return HandleIn;
-		//}
-		//else
-		//{
-		//	return FGAGameEffectHandle();
-		//}
-	}
 
 	UE_LOG(GameAttributesEffects, Log, TEXT("MakeOutgoingSpecObj: Created new Context: %s"), *Context.ToString());
 

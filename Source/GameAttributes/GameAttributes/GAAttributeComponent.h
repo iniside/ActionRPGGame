@@ -1,7 +1,7 @@
 #pragma once
 #include "GAGlobalTypes.h"
 #include "GAAttributeBase.h"
-#include "GAEffectCueTypes.h"
+#include "GAEffectCueGlobals.h"
 #include "GAAttributesBase.h"
 #include "GAGameEffect.h"
 #include "GAAttributeComponent.generated.h"
@@ -69,7 +69,7 @@ public:
 		void OnRep_ActiveEffects();
 
 	UPROPERTY(ReplicatedUsing = OnRep_ActiveCues)
-		FGAActiveEffectCuesContainer ActiveCues;
+		FGACueContainer ActiveCues;
 	UFUNCTION()
 		void OnRep_ActiveCues();
 	/*
@@ -117,9 +117,6 @@ public:
 
 	/* NEW EFFECT SYSTEM */
 	FGAGameEffectContainer GameEffectContainer;
-
-	/* Client Only map contaiing visual effect from applied effects. */
-	TMap<FGAGameEffectHandle, AGAEffectCue*> EffectCues;
 
 	template<typename T>
 	T* GetAttributes()
@@ -172,9 +169,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes | UI")
 		FGAEffectUIData GetEffectUIDataByIndex(int32 IndexIn);
-
+	/*
+		Need prediction for spawning effects on client,
+		and then on updateing them predicitvely on all other clients.
+	*/
+	/*
+	
+	*/
 	UFUNCTION(NetMulticast, Unreliable)
-		void MulticastApplyEffectCue(FGAGameEffectHandle EffectHandle, TSubclassOf<AGAEffectCue> EffectCue, FGAEffectCueParams CueParams);
+		void MulticastApplyEffectCue(FGAGameEffectHandle EffectHandle, TSubclassOf<UGAEffectCue> EffectCue, FGAEffectCueParams CueParams);
 
 	UFUNCTION(NetMulticast, Unreliable)
 		void MulticastExecuteEffectCue(FGAGameEffectHandle EffectHandle);
@@ -182,13 +185,18 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 		void MulticastRemoveEffectCue(FGAGameEffectHandle EffectHandle);
 
-	/*
-		int param, is temporary work around, until I learn, how to tell engine, how
-		it should serialize custom data types for replication
-	*/
-	void RemoveEffectCue(int32 Handle);
+	UFUNCTION(NetMulticast, Unreliable)
+		void MulticastUpdateDurationCue(FGAGameEffectHandle EffectHandle, float NewDurationIn);
 
-	void ApplyEffectCue(int32 Handle);
+	UFUNCTION(NetMulticast, Unreliable)
+		void MulticastUpdatePeriodCue(FGAGameEffectHandle EffectHandle, float NewPeriodIn);
+
+	UFUNCTION(NetMulticast, Unreliable)
+		void MulticastUpdateTimersCue(FGAGameEffectHandle EffectHandle, float NewDurationIn, float NewPeriodIn);
+
+	UFUNCTION(NetMulticast, Unreliable)
+		void MulticastExtendDurationCue(FGAGameEffectHandle EffectHandle, float NewDurationIn);
+
 	//////////// EFFECTS HANDLING
 	/////////////////////////////////////////////////
 
