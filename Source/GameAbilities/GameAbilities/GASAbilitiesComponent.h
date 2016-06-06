@@ -133,6 +133,7 @@ public:
 	void OnNativeInputReleased(int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex = 0);
 	void RemoveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex);
 	void ClearAndResizeAbilitiesCount(int32 SetIndex, int32 SlotIndex, int32 NewSize);
+	UGASAbilityBase* GetAbility(int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex = 0);
 };
 
 USTRUCT(BlueprintType)
@@ -244,7 +245,10 @@ public:
 		void BP_AddAbility(TSubclassOf<class UGASAbilityBase> AbilityClass);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
-		void BP_AddAbility2(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 AbilityIndex = 0);
+		UGASAbilityBase* BP_AddAbility2(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 AbilityIndex = 0);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
+		UGASAbilityBase* BP_GetAbilityFromSlot(int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex = 0);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Ability System")
 		void BP_RemoveAbility(TSubclassOf<class UGASAbilityBase> AbilityClass);
@@ -253,7 +257,7 @@ public:
 		Adds new ability to ActiveAbilities;
 	*/
 	int32 AddAbilityToActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass);
-	void AddAbilityToActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 AbilityIndex = 0);
+	UGASAbilityBase* AddAbilityToActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 AbilityIndex = 0);
 
 	void RemoveAbilityFromActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex);
 	void RemoveAbilityFromActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass);
@@ -274,7 +278,7 @@ public:
 	void GetSubobjectsWithStableNamesForNetworking(TArray<UObject*>& Objs) override;
 protected:
 	void InitializeInstancedAbilities();
-	void InstanceAbility(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex = 0);
+	UGASAbilityBase* InstanceAbility(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex = 0);
 };
 
 

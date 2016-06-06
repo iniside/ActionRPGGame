@@ -35,7 +35,7 @@ FGAGameEffect::FGAGameEffect(class UGAGameEffectSpec* GameEffectIn,
 	Execution(GameEffect->ExecutionType.GetDefaultObject())
 {
 	OwnedTags = GameEffectIn->OwnedTags;
-	TargetWorld = ContextIn.Target->GetWorld();
+	TargetWorld = ContextIn.TargetComp->GetWorld();
 	AppliedTime = TargetWorld->TimeSeconds;
 	LastTickTime = TargetWorld->TimeSeconds;
 }

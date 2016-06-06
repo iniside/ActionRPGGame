@@ -18,11 +18,11 @@ public:
 	
 	void AddCue(const FGAGameEffectHandle& HandleIn, UGAEffectCue* CueIn);
 
+	/* Return cue. Might return null so always check it first! */
 	class UGAEffectCue* GetCue(const FGAGameEffectHandle& HandleIn);
 	
 	void ExecuteCue(const FGAGameEffectHandle& HandleIn);
 
-	/* Return cue. Might return null so always check it first! */
 	void RemoveCue(const FGAGameEffectHandle& HandleIn);
 
 	void CueExpired(const FGAGameEffectHandle& HandleIn);

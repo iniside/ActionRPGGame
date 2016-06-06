@@ -22,7 +22,7 @@ UARCharacterAttributes::UARCharacterAttributes(const FObjectInitializer& ObjectI
 void UARCharacterAttributes::InitializeAttributes()
 {
 
-	
+	Super::InitializeAttributes();
 	PostModifyAttributeFunctions.Empty();
 	IncomingModifyAttributeFunctions.Empty();
 	OutgoingModifyAttributeFunctions.Empty();
@@ -65,14 +65,7 @@ void UARCharacterAttributes::InitializeAttributes()
 	//	}
 	//}
 
-	for (TFieldIterator<UStructProperty> StrIt(GetClass(), EFieldIteratorFlags::IncludeSuper); StrIt; ++StrIt)
-	{
-		FGAAttributeBase* attr = StrIt->ContainerPtrToValuePtr<FGAAttributeBase>(this);
-		if (attr)
-		{
-			attr->InitializeAttribute();
-		}
-	}
+
 }
 
 void UARCharacterAttributes::PostEffectApplied()

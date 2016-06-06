@@ -4,7 +4,7 @@
 #include "GSItemInfo.h"
 #include "../GSWeaponEquipmentTypes.h"
 #include "../GSGlobalTypes.h"
-
+#include "Animation/AimOffsetBlendSpace.h"
 #include "GSItemWeaponInfo.generated.h"
 /*
 	1. Should I add attributes here ?

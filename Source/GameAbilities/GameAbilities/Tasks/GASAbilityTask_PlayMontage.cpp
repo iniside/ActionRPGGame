@@ -38,7 +38,7 @@ void UGASAbilityTask_PlayMontage::Activate()
 	AbilityComponent->OnAbilityNotifyStateTick.BindUObject(this, &UGASAbilityTask_PlayMontage::BroadcastTickNotifyState);
 	AbilityComponent->OnAbilityNotifyStateEnd.BindUObject(this, &UGASAbilityTask_PlayMontage::BroadcastEndNotifyState);
 	
-	Ability->PlayMontage(Montage, SectionName);
+	Ability->PlayMontage(Montage, SectionName, PlayRate);
 
 	
 	Played.Broadcast();

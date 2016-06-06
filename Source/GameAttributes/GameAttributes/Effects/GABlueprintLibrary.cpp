@@ -37,7 +37,8 @@ FGAGameEffectHandle UGABlueprintLibrary::MakeOutgoingSpec(FGAGameEffectHandle Ha
 	UGAAttributeComponent* targetComp = targetAttr->GetAttributeComponent();
 	UGAAttributeComponent* instiComp = instiAttr->GetAttributeComponent();
 
-	FGAEffectContext Context(Target.Location, Target.GetActor(), Causer,
+	FGAEffectContext Context(targetAttr->GetAttributes(), instiAttr->GetAttributes(),
+		Target.Location, Target.GetActor(), Causer,
 		Instigator, targetComp, instiComp);
 	UE_LOG(GameAttributesEffects, Log, TEXT("Created new Context: %s"), *Context.ToString());
 
@@ -77,7 +78,8 @@ FGAGameEffectHandle UGABlueprintLibrary::MakeOutgoingSpecObj(FGAGameEffectHandle
 	UGAAttributeComponent* targetComp = targetAttr->GetAttributeComponent();
 	UGAAttributeComponent* instiComp = instiAttr->GetAttributeComponent();
 
-	FGAEffectContext Context(Target.Location, Target.GetActor(), Causer,
+	FGAEffectContext Context(targetAttr->GetAttributes(), instiAttr->GetAttributes(),
+		Target.Location, Target.GetActor(), Causer,
 		Instigator, targetComp, instiComp);
 	UE_LOG(GameAttributesEffects, Log, TEXT("MakeOutgoingSpecObj: Created new Context: %s"), *Context.ToString());
 
@@ -133,6 +135,70 @@ void UGABlueprintLibrary::ApplyGameEffectInstance(TSubclassOf<class UGAEffectIns
 	Context.InstigatorComp->ApplyInstancedToTarget(Effect);
 }
 
+FGAGameEffectHandle UGABlueprintLibrary::ApplyGameEffectToObject(const FGAEffectSpec& SpecIn,
+	FGAGameEffectHandle HandleIn, class UObject* Target, class APawn* Instigator,
+	UObject* Causer)
+{
+	IIGAAttributes* TargetAttributes = Cast<IIGAAttributes>(Target);
+	IIGAAttributes* InstigatorAttributes = Cast<IIGAAttributes>(Instigator);
+	if (!TargetAttributes || !InstigatorAttributes)
+	{
+		return FGAGameEffectHandle();
+	}
+	UGAAttributeComponent* TargetComponent = TargetAttributes->GetAttributeComponent();
+	UGAAttributeComponent* InstigatorComponent = InstigatorAttributes->GetAttributeComponent();
+
+	FGAEffectContext Context(TargetAttributes->GetAttributes(), InstigatorAttributes->GetAttributes(),
+		FVector(0,0,0), nullptr, Causer,
+		Instigator, TargetComponent, InstigatorComponent);
+
+	if (HandleIn.IsValid())
+	{
+		HandleIn.SetContext(Context);
+	}
+	else
+	{
+		FGAGameEffect* effect = new FGAGameEffect(SpecIn.Spec, Context);
+		AddTagsToEffect(effect);
+		HandleIn = FGAGameEffectHandle::GenerateHandle(effect);
+		effect->Handle = &HandleIn;
+	}
+
+	Context.InstigatorComp->ApplyEffectToTarget(HandleIn.GetEffect(), HandleIn);
+	return HandleIn;
+}
+FGAGameEffectHandle UGABlueprintLibrary::ApplyGameEffectToObjectFromClass(TSubclassOf<class UGAGameEffectSpec> SpecIn,
+	FGAGameEffectHandle HandleIn, class UObject* Target, class APawn* Instigator,
+	UObject* Causer)
+{
+	IIGAAttributes* TargetAttributes = Cast<IIGAAttributes>(Target);
+	IIGAAttributes* InstigatorAttributes = Cast<IIGAAttributes>(Instigator);
+	if (!TargetAttributes || !InstigatorAttributes)
+	{
+		return FGAGameEffectHandle();
+	}
+	UGAAttributeComponent* TargetComponent = TargetAttributes->GetAttributeComponent();
+	UGAAttributeComponent* InstigatorComponent = InstigatorAttributes->GetAttributeComponent();
+
+	FGAEffectContext Context(TargetAttributes->GetAttributes(), InstigatorAttributes->GetAttributes(),
+		FVector(0, 0, 0), nullptr, Causer,
+		Instigator, TargetComponent, InstigatorComponent);
+
+	if (HandleIn.IsValid())
+	{
+		HandleIn.SetContext(Context);
+	}
+	else
+	{
+		FGAGameEffect* effect = new FGAGameEffect(SpecIn.GetDefaultObject(), Context);
+		AddTagsToEffect(effect);
+		HandleIn = FGAGameEffectHandle::GenerateHandle(effect);
+		effect->Handle = &HandleIn;
+	}
+
+	Context.InstigatorComp->ApplyEffectToTarget(HandleIn.GetEffect(), HandleIn);
+	return HandleIn;
+}
 FGAGameEffectHandle UGABlueprintLibrary::ApplyGameEffectToActor(const FGAEffectSpec& SpecIn,
 	FGAGameEffectHandle HandleIn, class AActor* Target, class APawn* Instigator,
 	UObject* Causer)
@@ -256,7 +322,8 @@ FGAEffectContext UGABlueprintLibrary::MakeActorContext(class AActor* Target, cla
 	}
 
 	FVector location = Target->GetActorLocation();
-	FGAEffectContext Context(location, Target, Causer,
+	FGAEffectContext Context(targetAttr->GetAttributes(), instiAttr->GetAttributes(), 
+		location, Target, Causer,
 		Instigator, targetComp, instiComp);
 	return Context;
 }
@@ -281,7 +348,8 @@ FGAEffectContext UGABlueprintLibrary::MakeHitContext(const FHitResult& Target, c
 	{
 		instiComp = instiAttr->GetAttributeComponent();
 	}
-	FGAEffectContext Context(Target.Location, Target.GetActor(), Causer,
+	FGAEffectContext Context(targetAttr->GetAttributes(), instiAttr->GetAttributes(),
+		Target.Location, Target.GetActor(), Causer,
 		Instigator, targetComp, instiComp);
 	Context.HitResult = Target;
 	return Context;

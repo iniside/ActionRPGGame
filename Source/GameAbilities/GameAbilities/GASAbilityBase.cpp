@@ -37,6 +37,10 @@ void UGASAbilityBase::InitAbility()
 	{
 		OnRep_InitAbility();
 	}
+	if (Attributes)
+	{
+		Attributes->InitializeAttributes();
+	}
 }
 void UGASAbilityBase::OnRep_InitAbility()
 {
@@ -81,7 +85,7 @@ void UGASAbilityBase::OnNativeInputReleased()
 	}
 }
 
-void UGASAbilityBase::OnAbilityExecutedNative()
+void UGASAbilityBase::NativeOnBeginAbilityActivation()
 {
 	UE_LOG(GameAbilities, Log, TEXT("Begin Executing Ability: %s"), *GetName());
 
@@ -90,18 +94,20 @@ void UGASAbilityBase::OnAbilityExecutedNative()
 		OnConfirmCastingEndedDelegate.Broadcast();
 	}
 	ApplyActivationEffect();
-	bIsAbilityExecuting = true;
+	OnBeginAbilityActivation();
+	
+	//bIsAbilityExecuting = true;
 	//OnAbilityExecuted();
 }
 
-void UGASAbilityBase::ExecuteAbility()
+void UGASAbilityBase::StartActivation()
 {
 	if (CheckCooldown() || CheckExecuting())
 	{
 		return;
 	}
 	AbilityComponent->ExecutingAbility = this;
-	OnAbilityExecutedNative();
+	NativeOnBeginAbilityActivation();
 }
 
 void UGASAbilityBase::OnCooldownEffectExpired()
@@ -114,6 +120,7 @@ void UGASAbilityBase::OnCooldownEffectExpired()
 		CooldownHandle.GetContextRef().InstigatorComp->RemoveEffect(CooldownHandle);
 	}
 }
+/* Functions for activation effect delegates */
 void UGASAbilityBase::OnActivationEffectExpired()
 {
 	//OnAbilityExecutedNative();
@@ -126,16 +133,15 @@ void UGASAbilityBase::OnActivationEffectExpired()
 	{
 		ActivationEffectHandle.GetContextRef().InstigatorComp->RemoveEffect(ActivationEffectHandle);
 	}
-	OnAbilityExecuted();
+	OnAbilityActivated();
 }
 void UGASAbilityBase::OnActivationEffectRemoved()
 {
 	//OnAbilityExecutedNative();
 	//this works under assumption that current state == activation state.
-	UE_LOG(GameAbilities, Log, TEXT("Ability Activation Effect Expired In Ability: %s"), *GetName());
+	UE_LOG(GameAbilities, Log, TEXT("Ability Activation Effect Removed In Ability: %s"), *GetName());
 	bIsAbilityExecuting = false;
 	AbilityComponent->ExecutingAbility = nullptr;
-	OnStopAbility();
 	//AbilityActivatedCounter++;
 }
 void UGASAbilityBase::OnActivationEffectPeriod()
@@ -144,33 +150,14 @@ void UGASAbilityBase::OnActivationEffectPeriod()
 	AbilityPeriodCounter++;
 	OnAbilityPeriod();
 }
-void UGASAbilityBase::StopAbility()
-{
-	if (ActivationEffectHandle.IsValid())
-	{
-		ActivationEffectHandle.GetContextRef().InstigatorComp->RemoveEffect(ActivationEffectHandle);
-	}
-	AbilityComponent->ExecutingAbility = nullptr;
-	bIsAbilityExecuting = false;
-}
-
-void UGASAbilityBase::OnNativeStopAbility()
-{
-	OnStopAbility();
-}
-
-void UGASAbilityBase::OnAbilityCancelNative()
-{
-	OnAbilityCancel();
-}
-
-void UGASAbilityBase::FinishExecution()
+/* Functions for activation effect delegates */
+void UGASAbilityBase::StopActivation()
 {
 	UE_LOG(GameAbilities, Log, TEXT("FinishExecution in ability %s"), *GetName());
 	bIsAbilityExecuting = false;
-	NativeFinishExecution();
+	NativeStopActivation();
 }
-void UGASAbilityBase::NativeFinishExecution()
+void UGASAbilityBase::NativeStopActivation()
 {
 	UE_LOG(GameAbilities, Log, TEXT("NativeFinishExecution in ability %s"), *GetName());
 	bIsAbilityExecuting = false;
@@ -180,7 +167,7 @@ void UGASAbilityBase::NativeFinishExecution()
 		ActivationEffectHandle.GetContextRef().InstigatorComp->RemoveEffect(ActivationEffectHandle);
 	}
 	//remove effect.
-	OnFinishExecution();
+	OnStopedActivation();
 }
 
 bool UGASAbilityBase::IsWaitingForConfirm()
@@ -230,7 +217,7 @@ bool UGASAbilityBase::ApplyActivationEffect()
 	if (!ActivationEffect.Spec)
 		return false;
 
-	if (ActivationEffect.Spec->Duration > 0)
+	if (ActivationEffect.Spec->Duration > 0 || ActivationEffect.Spec->EffectType == EGAEffectType::Infinite)
 	{
 		UE_LOG(GameAbilities, Log, TEXT("Set expiration effect in Ability: %s"), *GetName());
 		ActivationEffectHandle = ApplyEffectToActor(
@@ -352,11 +339,24 @@ class UGAAttributesBase* UGASAbilityBase::GetAttributes()
 {
 	return Attributes;
 }
+UGAAttributeComponent* UGASAbilityBase::GetAttributeComponent()
+{
+	IIGAAttributes* OwnerAttributes = Cast<IIGAAttributes>(POwner);
+	if (OwnerAttributes)
+	{
+		return OwnerAttributes->GetAttributeComponent();
+	}
+	return nullptr;
+}
 float UGASAbilityBase::GetAttributeValue(FGAAttribute AttributeIn) const
 {
 	return NativeGetAttributeValue(AttributeIn);
 }
 float UGASAbilityBase::NativeGetAttributeValue(const FGAAttribute AttributeIn) const
+{
+	return Attributes->GetCurrentAttributeValue(AttributeIn);
+}
+float UGASAbilityBase::GetAttributeVal(FGAAttribute AttributeIn) const
 {
 	return Attributes->GetCurrentAttributeValue(AttributeIn);
 }
@@ -423,7 +423,8 @@ FGAEffectContext UGASAbilityBase::MakeActorContext(class AActor* Target, class A
 	UGAAttributeComponent* targetComp = targetAttr->GetAttributeComponent();
 	UGAAttributeComponent* instiComp = instiAttr->GetAttributeComponent();
 	FVector location = Target->GetActorLocation();
-	FGAEffectContext Context(location, Target, Causer,
+	FGAEffectContext Context(targetAttr->GetAttributes(), instiAttr->GetAttributes(), 
+		location, Target, Causer,
 		Instigator, targetComp, instiComp);
 	return Context;
 }
@@ -439,7 +440,8 @@ FGAEffectContext UGASAbilityBase::MakeHitContext(const FHitResult& Target, class
 	UGAAttributeComponent* targetComp = targetAttr->GetAttributeComponent();
 	UGAAttributeComponent* instiComp = instiAttr->GetAttributeComponent();
 
-	FGAEffectContext Context(Target.Location, Target.GetActor(), Causer,
+	FGAEffectContext Context(targetAttr->GetAttributes(), instiAttr->GetAttributes(), 
+		Target.Location, Target.GetActor(), Causer,
 		Instigator, targetComp, instiComp);
 	return Context;
 }

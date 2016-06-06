@@ -23,6 +23,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 		virtual float GetAttributeValue(FGAAttribute AttributeIn) const { return 0; };
 
+	//UFUNCTION(BlueprintPure, Category = "Game Attributes")
+	//	virtual float GetAttributeValuePure(FGAAttribute AttributeIn) const { return 0; };
+
 	virtual float NativeGetAttributeValue(const FGAAttribute AttributeIn) const { return 0; };
 
 	//override to allow gathering tags from causer

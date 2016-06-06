@@ -211,7 +211,6 @@ public: //because I'm to lazy to write all those friend states..
 		uint8 AbilityPeriodCounter;
 	UPROPERTY(ReplicatedUsing = OnRep_InitAbility)
 		uint8 InitAbilityCounter;
-	
 
 public:
 	UGASAbilityBase(const FObjectInitializer& ObjectInitializer);
@@ -240,7 +239,7 @@ public:
 		void OnInputReleased();
 
 
-	virtual void OnAbilityExecutedNative();
+	virtual void NativeOnBeginAbilityActivation();
 
 	void NativeOnAbilityConfirmed();
 
@@ -256,52 +255,32 @@ public:
 		go straight away for event call.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
-		void ExecuteAbility();
+		void StartActivation();
 	/*
-		Event triggered after State called by ExecuteAbility has finished (ie cast time, channel time).
+		Event triggered at the begining of ability activation.
 	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
-		void OnAbilityExecuted();
-	/*
-		Call this to stop ability. Usually should be connected to OnInputReleased Event.
-		Though nothing really stops you from connecting it's elsewhere, most of the cases when ability should 
-		end will be handled trough states automatically.
+		void OnBeginAbilityActivation();
 
-		Calling this will also try to call end action on current state. What will happen
-		will depend on current EndActionSequence() implementation.
-	*/
-	UFUNCTION(BlueprintCallable, Category = "Abilities")
-		void StopAbility();
-
-	void OnNativeStopAbility();
 	/*
-		Special Case event, can will be called trough specific ability states, like
-		Channeled or Charged.
-		What exacty will happen depends on state/ability implementation.
-		In case of Channeled state which requires input to pressed to remain active
-		it will stop ability channel, go to cooldown and call this event to give
-		ability chance to do something.
+		Event triggered when Activation effect expire (naturally finish).
 	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
-		void OnStopAbility();
-
-	virtual void OnAbilityCancelNative();
-	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
-		void OnAbilityCancel();
+		void OnAbilityActivated();
 
 	/* Event called when ability finishes it's execution. Called AFTER OnAbilityExecuted. */
 	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
-		void OnFinishExecution();
+		void OnStopedActivation();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities")
 		void OnAbilityPeriod();
 
 	/*
-		Manually finish effect execution.
+		Stop effect activation and remove activation effect.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Game Abilities")
-		void FinishExecution();
-	void NativeFinishExecution();
+		void StopActivation();
+	void NativeStopActivation();
 
 	bool IsWaitingForConfirm();
 	void ConfirmAbility();
@@ -340,11 +319,15 @@ public:
 	/** GameplayTaskOwnerInterface - end */
 	
 	/** IIGAAttributes Begin */
-	virtual class UGAAttributesBase* GetAttributes() override ;
+	virtual class UGAAttributesBase* GetAttributes() override;
+	virtual class UGAAttributeComponent* GetAttributeComponent() override;
+	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 	virtual float GetAttributeValue(FGAAttribute AttributeIn) const override;
 	virtual float NativeGetAttributeValue(const FGAAttribute AttributeIn) const override;
 	/* IIGAAttributes Begin **/
-	
+	UFUNCTION(BlueprintPure, Category = "Game Attributes")
+		virtual float GetAttributeVal(FGAAttribute AttributeIn) const;
+
 	/*
 		These functions are specific to ability, and should be used
 		over static functions when applying effect from ability.

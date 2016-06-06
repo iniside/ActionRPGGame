@@ -36,10 +36,14 @@ void FGACueContainer::ExecuteCue(const FGAGameEffectHandle& HandleIn)
 void FGACueContainer::RemoveCue(const FGAGameEffectHandle& HandleIn)
 {
 	UGAEffectCue* Cue;
-	Cues.RemoveAndCopyValue(HandleIn, Cue);
-	if (Cue)
+	if (Cues.Num() > 0)
 	{
-		Cue->EndCue();
+		Cues.RemoveAndCopyValue(HandleIn, Cue);
+		if (Cue)
+		{
+			Cue->EndCue();
+			Cue->MarkPendingKill();
+		}
 	}
 }
 void FGACueContainer::CueExpired(const FGAGameEffectHandle& HandleIn)

@@ -27,6 +27,17 @@ public:
 		static void ApplyGameEffectInstance(TSubclassOf<class UGAEffectInstanced> EffectClass,
 			const FHitResult& Target, APawn* Instigator,
 			UObject* Causer, EGAMakeSpecResult& ResultOu);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
+		static FGAGameEffectHandle ApplyGameEffectToObject(const FGAEffectSpec& SpecIn,
+			FGAGameEffectHandle HandleIn, class UObject* Target, class APawn* Instigator,
+			UObject* Causer);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
+		static FGAGameEffectHandle ApplyGameEffectToObjectFromClass(TSubclassOf<class UGAGameEffectSpec> SpecIn,
+			FGAGameEffectHandle HandleIn, class UObject* Target, class APawn* Instigator,
+			UObject* Causer);
+
 	/*
 		Makes outgoing effect spec and assign handle to it.
 		If valid handle is provided it will instead reuse existing effect spec from handle,

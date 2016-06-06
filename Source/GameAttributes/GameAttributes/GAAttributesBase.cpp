@@ -19,6 +19,24 @@ UGAAttributesBase::~UGAAttributesBase()
 
 void UGAAttributesBase::InitializeAttributes()
 {
+	for (TFieldIterator<UStructProperty> StrIt(GetClass(), EFieldIteratorFlags::IncludeSuper); StrIt; ++StrIt)
+	{
+		FGAAttributeBase* attr = StrIt->ContainerPtrToValuePtr<FGAAttributeBase>(this);
+		if (attr)
+		{
+			attr->InitializeAttribute();
+		}
+	}
+	/*for (TFieldIterator<UProperty> PropIt(GetClass(), EFieldIteratorFlags::IncludeSuper); PropIt; ++PropIt)
+	{
+		int32 FoundIndex = -1;
+		FoundIndex = PropIt->GetName().Find("PostAttribute");
+		FGAAttributeBase* attrPtr = GetAttribute(FGAAttribute(PropIt->GetFName()));
+		if (attrPtr)
+		{
+			return attrPtr->InitializeAttribute();
+		}
+	}*/
 	BP_InitializeAttributes();
 }
 

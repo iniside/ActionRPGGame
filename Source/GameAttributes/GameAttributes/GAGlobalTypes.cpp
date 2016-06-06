@@ -51,8 +51,8 @@ void FGAEffectContext::Reset()
 }
 class UGAAttributesBase* FGAEffectContext::GetTargetAttributes()
 { 
-	if (TargetComp.IsValid())
-		return TargetComp->DefaultAttributes;
+	if (TargetAttributes)
+		return TargetAttributes;
 	else
 		return nullptr;
 }

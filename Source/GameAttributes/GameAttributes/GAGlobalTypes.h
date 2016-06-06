@@ -403,6 +403,10 @@ public:
 	{
 		AttributeName = AttributeNameIn;
 	};
+	//FGAAttribute(const FString& AttributeNameIn)
+	//{
+	//	AttributeName = *AttributeNameIn;
+	//};
 };
 
 USTRUCT(BlueprintType)
@@ -420,6 +424,13 @@ public:
 	 */
 	UPROPERTY(BlueprintReadOnly, Category = "Spec")
 		FVector TargetHitLocation;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Spec")
+		class UGAAttributesBase* TargetAttributes;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Spec")
+		class UGAAttributesBase* InstigatorAttributes;
+
 	/**
 	 *	Direct Reference to TargetActor (I will possibly remove FHitResult Target!
 	 */
@@ -488,11 +499,14 @@ public:
 	FGAEffectContext()
 	{}
 
-	FGAEffectContext(const FVector& TargetHitLocationIn, TWeakObjectPtr<AActor> TargetIn,
+	FGAEffectContext(UGAAttributesBase* TargetAttributesIn, UGAAttributesBase* InstigatorAttributesIn,
+					const FVector& TargetHitLocationIn, TWeakObjectPtr<AActor> TargetIn,
 					TWeakObjectPtr<UObject> CauserIn, TWeakObjectPtr<APawn> InstigatorIn,
 					TWeakObjectPtr<class UGAAttributeComponent> TargetCompIn,
 					TWeakObjectPtr<class UGAAttributeComponent> InstigatorCompIn)
-					: TargetHitLocation(TargetHitLocationIn),
+					: TargetAttributes(TargetAttributesIn),
+						InstigatorAttributes(InstigatorAttributesIn),
+						TargetHitLocation(TargetHitLocationIn),
 						Target(TargetIn),
 						Causer(CauserIn),
 						Instigator(InstigatorIn),

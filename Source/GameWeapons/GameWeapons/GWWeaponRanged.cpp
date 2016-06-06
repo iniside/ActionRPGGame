@@ -4,7 +4,7 @@
 #include "States/GWWeaponState.h"
 #include "Tracing/GWTraceBase.h"
 #include "Tracing/GWTraceRangedWeapon.h"
-
+#include "Animation/AnimMontage.h"
 #include "Ammo/GWAmmo.h"
 
 #include "IGISkeletalMesh.h"

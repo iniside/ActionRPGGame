@@ -169,7 +169,7 @@ void UGAAttributeComponent::InternalRemoveEffect(FGAGameEffectHandle& HandleIn)
 	{
 		for (FGAEffectMod& mod : Mods)
 		{
-			FGAAttributeBase* attr = DefaultAttributes->GetAttribute(mod.Attribute);
+			FGAAttributeBase* attr = HandleIn.GetContextRef().GetTargetAttributes()->GetAttribute(mod.Attribute);
 			if (attr)
 			{
 				UE_LOG(GameAttributes, Log, TEXT("Value Before bonus of attribute = %f"), attr->GetFinalValue());

@@ -6,7 +6,7 @@
 
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
-
+#include "Animation/AnimMontage.h"
 #include "GASInputOverride.h"
 #include "GASGlobals.h"
 #include "GASAbilitySet.h"
@@ -94,7 +94,10 @@ void FGASActiveAbilityContainer::ClearAndResizeAbilitiesCount(int32 SetIndex, in
 	//AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities.Shrink();
 	//AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities.SetNum(NewSize);
 }
-
+UGASAbilityBase* FGASActiveAbilityContainer::GetAbility(int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex)
+{
+	return AbilitySets[SetIndex].Abilities[SlotIndex].ActiveAbilities[SubSlotIndex];
+}
 UGASAbilitiesComponent::UGASAbilitiesComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -248,14 +251,20 @@ bool UGASAbilitiesComponent::ServerNativeInputReleased_Validate(int32 SetIndex, 
 	return true;
 }
 
-void UGASAbilitiesComponent::BP_AddAbility2(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 AbilityIndex)
+UGASAbilityBase* UGASAbilitiesComponent::BP_AddAbility2(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 AbilityIndex)
 {
-	AddAbilityToActiveList(AbilityClass, SetIndex, SlotIndex, AbilityIndex);
+	return AddAbilityToActiveList(AbilityClass, SetIndex, SlotIndex, AbilityIndex);
 }
 void UGASAbilitiesComponent::BP_AddAbility(TSubclassOf<class UGASAbilityBase> AbilityClass)
 {
 	AddAbilityToActiveList(AbilityClass);
 }
+
+UGASAbilityBase* UGASAbilitiesComponent::BP_GetAbilityFromSlot(int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex)
+{
+	return ActiveAbilityContainer.GetAbility(SetIndex, SlotIndex, SubSlotIndex);
+}
+
 void UGASAbilitiesComponent::RemoveAbilityFromActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass)
 {
 }
@@ -269,18 +278,18 @@ int32 UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbili
 	return -1;
 }
 
-void UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 AbilityIndex)
+UGASAbilityBase* UGASAbilitiesComponent::AddAbilityToActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 AbilityIndex)
 {
 	if (!AbilityClass)
-		return;
-	InstanceAbility(AbilityClass, SetIndex, SlotIndex, AbilityIndex);
+		return nullptr;
+	return InstanceAbility(AbilityClass, SetIndex, SlotIndex, AbilityIndex);
 }
 
 void UGASAbilitiesComponent::RemoveAbilityFromActiveList(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex)
 {
 	ActiveAbilityContainer.RemoveAbility(AbilityClass, SetIndex, SlotIndex);
 }
-void UGASAbilitiesComponent::InstanceAbility(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex)
+UGASAbilityBase* UGASAbilitiesComponent::InstanceAbility(TSubclassOf<class UGASAbilityBase> AbilityClass, int32 SetIndex, int32 SlotIndex, int32 SubSlotIndex)
 {
 	if (AbilityClass)
 	{
@@ -296,7 +305,9 @@ void UGASAbilitiesComponent::InstanceAbility(TSubclassOf<class UGASAbilityBase> 
 		}
 		ability->InitAbility();
 		ActiveAbilityContainer.AddAbility(ability, SetIndex , SlotIndex, SubSlotIndex);
+		return ability;
 	}
+	return nullptr;
 }
 
 void UGASAbilitiesComponent::NativeAddAbilitiesFromSet(TSubclassOf<class UGASAbilitySet> AbilitySet, int32 SetIndex)

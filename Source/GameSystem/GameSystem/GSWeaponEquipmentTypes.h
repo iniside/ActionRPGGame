@@ -1,5 +1,6 @@
 #pragma once
 #include "GameplayTagContainer.h"
+#include "Animation/BlendSpace.h"
 #include "GSWeaponEquipmentTypes.generated.h"
 
 
