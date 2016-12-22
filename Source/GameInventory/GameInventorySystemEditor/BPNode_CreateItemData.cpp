@@ -12,7 +12,7 @@
 #include "BlueprintNodeSpawner.h"
 #include "EditorCategoryUtils.h"
 #include "BlueprintActionMenuBuilder.h"
-
+#include "K2Node_CallFunction.h"
 #include "BPNode_CreateItemData.h"
 
 #define LOCTEXT_NAMESPACE "GameInventorySystem"

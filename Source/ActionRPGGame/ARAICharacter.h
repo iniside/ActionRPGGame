@@ -4,7 +4,7 @@
 
 #include "GSCharacter.h"
 
-#include "GAAttributeComponent.h"
+#include "GAAbilitiesComponent.h"
 #include "GISInventoryBaseComponent.h" //need for template
 
 #include "Abilities/GSAbilitiesComponent.h"
@@ -14,34 +14,34 @@
 #include "GISGlobalTypes.h"
 #include "GISItemData.h"
 
-#include "IGAAttributes.h"
+#include "IGAAbilities.h"
 #include "IGIPawn.h"
 #include "Abilities/GSAbilitiesComponent.h"
 
 #include "ARAICharacter.generated.h"
 
 UCLASS(config=Game)
-class AARAICharacter : public AGSCharacter, public IIGAAttributes,
+class AARAICharacter : public AGSCharacter, public IIGAAbilities,
 	public IIGIPawn
 {
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes", meta = (AllowPrivateAccess = "true"))
-	class UGAAttributeComponent* Attributes;
+	class UGAAbilitiesComponent* Attributes;
 
 public:
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
-	/** IIGAAttributes Begin */
+	/** IIGAAbilities Begin */
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 		virtual class UGAAttributesBase* GetAttributes() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
-		virtual class UGAAttributeComponent* GetAttributeComponent() override;
+		virtual class UGAAbilitiesComponent* GetAbilityComp() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 		virtual float GetAttributeValue(FGAAttribute AttributeIn) const;
-	/** IIGAAttributes End */
+	/** IIGAAbilities End */
 
 	/** IIGIPawn */
 	virtual APawn* GetGamePawn() override { return this; };

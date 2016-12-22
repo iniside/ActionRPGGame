@@ -9,7 +9,7 @@
 
 #include "../Abilities/GSAbilityInfo.h"
 #include "../Abilities/GSAbility.h"
-
+#include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 
 #include "../GSCharacter.h" //temp!

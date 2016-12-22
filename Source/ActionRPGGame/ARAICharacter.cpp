@@ -2,7 +2,7 @@
 
 #include "ActionRPGGame.h"
 
-//#include "GAAttributeComponent.h"
+//#include "GAAbilitiesComponent.h"
 #include "Items/ARItemInfo.h"
 #include "Widgets/GISContainerBaseWidget.h"
 #include "Items/GSEquipmentComponent.h"
@@ -37,7 +37,7 @@ AARAICharacter::AARAICharacter(const FObjectInitializer& ObjectInitializer)
 	bReplicates = true;
 
 
-	Attributes = ObjectInitializer.CreateDefaultSubobject<UGAAttributeComponent>(this, TEXT("Attributes"));
+	Attributes = ObjectInitializer.CreateDefaultSubobject<UGAAbilitiesComponent>(this, TEXT("Attributes"));
 	Attributes->SetIsReplicated(true);
 	Attributes->SetNetAddressable();
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
@@ -58,13 +58,13 @@ float AARAICharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& 
 	return 0;
 }
 
-/** IIGAAttributes Begin */
+/** IIGAAbilities Begin */
 class UGAAttributesBase* AARAICharacter::GetAttributes()
 {
 	return Attributes->DefaultAttributes;
 }
 
-class UGAAttributeComponent* AARAICharacter::GetAttributeComponent()
+class UGAAbilitiesComponent* AARAICharacter::GetAbilityComp()
 {
 	return Attributes;
 }

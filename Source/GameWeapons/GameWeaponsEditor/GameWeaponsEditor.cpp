@@ -4,7 +4,7 @@
 
 
 
-#include "GameWeaponsEditorPrivatePCH.h"
+#include "IGameWeaponsEditor.h"
 
 
 class FGameWeaponsEditor : public IGameWeaponsEditor

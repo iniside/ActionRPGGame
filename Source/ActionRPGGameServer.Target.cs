@@ -7,6 +7,8 @@ public class ActionRPGGameServerTarget : TargetRules
 {
     public ActionRPGGameServerTarget(TargetInfo Target)
 	{
+        LinkType = TargetLinkType.Modular;
+        //LinkType = TargetLinkType.Monolithic;
         Type = TargetType.Server;
         bUsesSlate = false;
 	}
@@ -22,15 +24,9 @@ public class ActionRPGGameServerTarget : TargetRules
 		)
 	{
 		OutExtraModuleNames.Add("GameInventorySystem");
-		OutExtraModuleNames.Add("GameAttributes");
 		OutExtraModuleNames.Add("GameAbilities");
 		OutExtraModuleNames.Add("GameSystem");
 		OutExtraModuleNames.Add("GameWidgets");
         OutExtraModuleNames.Add("ActionRPGGame");
-    }
-
-    public override bool ShouldCompileMonolithic(UnrealTargetPlatform InPlatform, UnrealTargetConfiguration InConfiguration)
-    {
-        return false;
     }
 }

@@ -3,10 +3,10 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetArrayLibrary.h"
 #include "GameplayTask.h"
-#include "Tasks/GASAbilityTask.h"
+#include "Tasks/GAAbilityTask.h"
 #include "Entity/GASAbilityMod.h"
 #include "GASBlueprintFunctionLibrary.h"
-#include "GASAbilityBase.h"
+#include "GAAbilityBase.h"
 #include "KismetCompiler.h"
 #include "BlueprintEditorUtils.h"
 #include "GAEK2Node_LatentAbilityTaskCall.h"
@@ -27,7 +27,7 @@ UGAEK2Node_LatentAbilityTaskCall::UGAEK2Node_LatentAbilityTaskCall(const FObject
 
 bool UGAEK2Node_LatentAbilityTaskCall::IsHandling(TSubclassOf<UGameplayTask> TaskClass) const
 {
-	bool isChilldOf = TaskClass && TaskClass->IsChildOf(UGASAbilityTask::StaticClass());
+	bool isChilldOf = TaskClass && TaskClass->IsChildOf(UGAAbilityTask::StaticClass());
 	return isChilldOf;
 }
 
@@ -43,7 +43,7 @@ bool UGAEK2Node_LatentAbilityTaskCall::IsCompatibleWithGraph(UEdGraph const* Tar
 		UBlueprint* MyBlueprint = FBlueprintEditorUtils::FindBlueprintForGraph(TargetGraph);
 		if (MyBlueprint && MyBlueprint->GeneratedClass)
 		{
-			if (MyBlueprint->GeneratedClass->IsChildOf(UGASAbilityBase::StaticClass()))
+			if (MyBlueprint->GeneratedClass->IsChildOf(UGAAbilityBase::StaticClass()))
 			{
 				bIsCompatible = true;
 			}
@@ -75,7 +75,7 @@ void UGAEK2Node_LatentAbilityTaskCall::GetMenuActions(FBlueprintActionDatabaseRe
 
 	UClass* NodeClass = GetClass();
 	//FBlueprintActionDatabaseRegistrar::FMakeFuncSpawnerDelegate::CreateUObject(this, &UGAEK2Node_LatentAbilityTaskCall::CreateNodeSpawner);
-	ActionRegistrar.RegisterClassFactoryActions<UGASAbilityTask>(FBlueprintActionDatabaseRegistrar::FMakeFuncSpawnerDelegate::CreateLambda([NodeClass](const UFunction* FactoryFunc)->UBlueprintNodeSpawner*
+	ActionRegistrar.RegisterClassFactoryActions<UGAAbilityTask>(FBlueprintActionDatabaseRegistrar::FMakeFuncSpawnerDelegate::CreateLambda([NodeClass](const UFunction* FactoryFunc)->UBlueprintNodeSpawner*
 	{
 		UBlueprintNodeSpawner* NodeSpawner = UBlueprintFunctionNodeSpawner::Create(FactoryFunc);
 		check(NodeSpawner != nullptr);

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Animation/AnimNotifies/AnimNotifyState.h"
-#include "GASGlobals.h"
+#include "GAGlobals.h"
 #include "GASAbilityNotifyState.generated.h"
 
 /**
@@ -17,7 +17,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Data")
 		FGASAbilityNotifyData Data;
 	UPROPERTY()
-	class UGASAbilitiesComponent* CachedAbilitiesComp;
+	class UGAAbilitiesComponent* CachedAbilitiesComp;
 public:
 	virtual void NotifyBegin(class USkeletalMeshComponent * MeshComp, class UAnimSequenceBase * Animation, float TotalDuration) override;
 	virtual void NotifyTick(class USkeletalMeshComponent * MeshComp, class UAnimSequenceBase * Animation, float FrameDeltaTime) override;

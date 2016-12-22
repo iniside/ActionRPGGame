@@ -60,13 +60,5 @@ void UGISItemData::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) con
 
 bool UGISItemData::HasMatchingGameplayTag(FGameplayTag TagToCheck) const
 {
-	return OwnedTags.HasTag(TagToCheck, EGameplayTagMatchType::Explicit, EGameplayTagMatchType::Explicit);
-}
-bool UGISItemData::HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer, bool bCountEmptyAsMatch) const
-{
-	return OwnedTags.MatchesAll(TagContainer, bCountEmptyAsMatch);
-}
-bool UGISItemData::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer, bool bCountEmptyAsMatch) const
-{
-	return OwnedTags.MatchesAny(TagContainer, bCountEmptyAsMatch);
+	return OwnedTags.HasTag(TagToCheck);
 }

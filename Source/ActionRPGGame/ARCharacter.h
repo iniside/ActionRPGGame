@@ -4,7 +4,7 @@
 
 #include "GSCharacter.h"
 
-#include "GAAttributeComponent.h"
+#include "GAAbilitiesComponent.h"
 #include "GISInventoryBaseComponent.h" //need for template
 
 #include "Abilities/GSAbilitiesComponent.h"
@@ -14,14 +14,14 @@
 #include "GISGlobalTypes.h"
 #include "GISItemData.h"
 
-#include "IGAAttributes.h"
+#include "IGAAbilities.h"
 #include "IGIPawn.h"
 #include "Abilities/GSAbilitiesComponent.h"
 
 #include "ARCharacter.generated.h"
 
 UCLASS(config = Game)
-class AARCharacter : public AGSCharacter, public IIGAAttributes,
+class AARCharacter : public AGSCharacter, public IIGAAbilities,
     public IIGIPawn
 {
     GENERATED_BODY()
@@ -35,21 +35,21 @@ protected:
     class UCameraComponent* FollowCamera;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes", meta = (AllowPrivateAccess = "true"))
-    class UGAAttributeComponent* Attributes;
+    class UGAAbilitiesComponent* Attributes;
 
     UPROPERTY(BlueprintReadOnly, Category = "Base")
     class AARPlayerController* ARPController;
 public:
-    /** IIGAAttributes Begin */
+    /** IIGAAbilities Begin */
     UFUNCTION(BlueprintCallable, Category = "Game Attributes")
         virtual class UGAAttributesBase* GetAttributes() override;
 
     UFUNCTION(BlueprintCallable, Category = "Game Attributes")
-        virtual class UGAAttributeComponent* GetAttributeComponent() override;
+        virtual class UGAAbilitiesComponent* GetAbilityComp() override;
 
     UFUNCTION(BlueprintCallable, Category = "Game Attributes")
         virtual float GetAttributeValue(FGAAttribute AttributeIn) const;
-    /** IIGAAttributes End */
+    /** IIGAAbilities End */
 
     /** IIGIPawn */
     virtual APawn* GetGamePawn() override { return this; };
@@ -111,13 +111,13 @@ protected:
     template<int32 SetIndex, int32 SlotIndex>
     void InputActionBarPressed()
     {
-        Abilities->InputPressed(SetIndex, SlotIndex);
+       // Abilities->InputPressed(SetIndex, SlotIndex);
     }
 
     template<int32 SetIndex, int32 SlotIndex>
     void InputActionBarReleased()
     {
-        Abilities->InputReleased(SetIndex, SlotIndex);
+       // Abilities->InputReleased(SetIndex, SlotIndex);
     }
 
     void ShowHideEditableHotbars();

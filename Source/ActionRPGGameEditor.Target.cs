@@ -7,7 +7,9 @@ public class ActionRPGGameEditorTarget : TargetRules
 {
 	public ActionRPGGameEditorTarget(TargetInfo Target)
 	{
-		Type = TargetType.Editor;
+        //LinkType = TargetLinkType.Modular;
+       // LinkType = TargetLinkType.Monolithic;
+        Type = TargetType.Editor;
 	}
 
 	//
@@ -22,19 +24,17 @@ public class ActionRPGGameEditorTarget : TargetRules
 	{
         OutExtraModuleNames.Add("TimeOfDay");
         OutExtraModuleNames.Add("GameInterfaces");
-		OutExtraModuleNames.Add("GameInventorySystem");
-		OutExtraModuleNames.Add("GameInventorySystemEditor");
-		OutExtraModuleNames.Add("GameAttributes");
-		OutExtraModuleNames.Add("GameAttributesEditor");
-		OutExtraModuleNames.Add("GameAbilities");
+        OutExtraModuleNames.Add("GameInventorySystem");
+        OutExtraModuleNames.Add("GameInventorySystemEditor");
+        OutExtraModuleNames.Add("GameAbilities");
 		OutExtraModuleNames.Add("GameAbilitiesEditor");
-		OutExtraModuleNames.Add("GameWidgets");
-		OutExtraModuleNames.Add("GameWidgetsEditor");
+        OutExtraModuleNames.Add("GameWidgets");
+        OutExtraModuleNames.Add("GameWidgetsEditor");
         OutExtraModuleNames.Add("GameWeapons");
         OutExtraModuleNames.Add("GameWeaponsEditor");
-		OutExtraModuleNames.Add("GameSystem");
-		OutExtraModuleNames.Add("GameSystemEditor");
-		OutExtraModuleNames.Add("ActionRPGGame");
-		OutExtraModuleNames.Add("ActionRPGGameEditor");
-	}
+        OutExtraModuleNames.Add("GameSystem");
+        OutExtraModuleNames.Add("GameSystemEditor");
+        OutExtraModuleNames.Add("ActionRPGGame");
+        OutExtraModuleNames.Add("ActionRPGGameEditor");
+    }
 }

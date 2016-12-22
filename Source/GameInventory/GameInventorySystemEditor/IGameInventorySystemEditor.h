@@ -2,6 +2,7 @@
 
 #pragma once
 #include "Developer/AssetTools/Public/AssetToolsModule.h"
+#include "IAssetTypeActions.h"
 #include "ModuleManager.h"
 
 

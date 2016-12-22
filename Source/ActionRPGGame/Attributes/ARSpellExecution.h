@@ -12,6 +12,4 @@ class ACTIONRPGGAME_API UARSpellExecution : public UGAEffectExecution
 	GENERATED_BODY()
 public:
 	UARSpellExecution(const FObjectInitializer& ObjectInitializer);
-
-	virtual void ExecuteEffect(FGAGameEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAExecutionContext& Context) override;
 };

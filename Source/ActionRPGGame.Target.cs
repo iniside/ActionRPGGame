@@ -7,7 +7,9 @@ public class ActionRPGGameTarget : TargetRules
 {
 	public ActionRPGGameTarget(TargetInfo Target)
 	{
-		Type = TargetType.Game;
+        //LinkType = TargetLinkType.Modular;
+        //LinkType = TargetLinkType.Monolithic;
+        Type = TargetType.Game;
 	}
 
 	//
@@ -24,21 +26,17 @@ public class ActionRPGGameTarget : TargetRules
         OutExtraModuleNames.Add("GameInterfaces");
 		OutExtraModuleNames.Add("GameTrace");
 		OutExtraModuleNames.Add("GameInventorySystem");
-		OutExtraModuleNames.Add("GameAttributes");
 		OutExtraModuleNames.Add("GameAbilities");
         OutExtraModuleNames.Add("GameSystem");
-		OutExtraModuleNames.Add("GameSystem");
 		OutExtraModuleNames.Add("GameWidgets");
         OutExtraModuleNames.Add("ActionRPGGame");
         if (UEBuildConfiguration.bBuildEditor)
         {
 			OutExtraModuleNames.Add("GameTraceEditor");
 			OutExtraModuleNames.Add("GameInventorySystemEditor");
-			OutExtraModuleNames.Add("GameAttributesEditor");
 			OutExtraModuleNames.Add("GameAbilitiesEditor");
 			OutExtraModuleNames.Add("GameWidgetsEditor");
             OutExtraModuleNames.Add("GameSystemEditor");
-			OutExtraModuleNames.Add("GameSystemEditor");
             OutExtraModuleNames.Add("ActionRPGGameEditor");
         }
 	}

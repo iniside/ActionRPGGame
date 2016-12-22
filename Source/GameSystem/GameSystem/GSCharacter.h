@@ -5,13 +5,13 @@
 #include "GameplayTagAssetInterface.h"
 #include "IGISocket.h"
 #include "IGISkeletalMesh.h"
-#include "IGASAbilities.h"
+#include "IGAAbilities.h"
 #include "Items/IGSEquipment.h"
 
 #include "GSCharacter.generated.h"
 
 UCLASS(config=Game)
-class GAMESYSTEM_API AGSCharacter : public ACharacter, public IIGSEquipment, public IIGISocket, public IIGISkeletalMesh, public IGameplayTagAssetInterface, public IIGASAbilities
+class GAMESYSTEM_API AGSCharacter : public ACharacter, public IIGSEquipment, public IIGISocket, public IIGISkeletalMesh, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 public:
@@ -24,9 +24,6 @@ public:
 	 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
 	class UGSWeaponEquipmentComponent* WeaponsEquipment;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
-	class UGSAbilitiesComponent* Abilities;
 
 	/*
 		This component will store current active actions, similiar to Dark Souls
@@ -118,10 +115,6 @@ public:
 	/** IGameplayTagAssetInterface */
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	/* IGameplayTagAssetInterface **/
-
-	/** IIGASAbilities */
-	virtual class UGASAbilitiesComponent* GetAbilityComp() override;
-	/* IIGASAbilities **/
 	
 	FVector GetStartLocationForCrosshair();
 	float GetCurrentWeaponSpread();

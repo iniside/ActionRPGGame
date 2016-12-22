@@ -14,9 +14,6 @@ public class ActionRPGGame : ModuleRules
                     "GameSystem/Public",
                     "GameAbilities",
                     "GameAbilities/Public",
-                    "GameAttributes",
-					"GameAttributes/Effects",
-                    "GameAttributes/Public",
                     "GameInventorySystem",
                     "GameInventorySystem/Public",
                     "GameWidgets",
@@ -31,7 +28,6 @@ public class ActionRPGGame : ModuleRules
             new string[] {
 					"GameSystem/Private",
                     "GameAbilities/Private",
-                    "GameAttributes/Private",
                     "GameInventorySystem/Private",
                     "ActionRPGGame/Private",
 					// ... add other private include paths required here ...
@@ -49,7 +45,6 @@ public class ActionRPGGame : ModuleRules
                 "GameplayTasks",
                 "GameplayTags",
                 "GameInventorySystem", 
-                "GameAttributes",
                 "GameWidgets",
                 "GameAbilities",
                 "GameWeapons",

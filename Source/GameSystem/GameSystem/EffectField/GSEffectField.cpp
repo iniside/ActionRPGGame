@@ -2,10 +2,10 @@
 
 #include "GameSystem.h"
 
-#include "IGAAttributes.h"
+#include "IGAAbilities.h"
 #include "IGSEffectField.h"
 
-#include "GAAttributeComponent.h"
+#include "GAAbilitiesComponent.h"
 
 #include "GSEffectField.h"
 
@@ -18,7 +18,7 @@ AGSEffectField::AGSEffectField(const FObjectInitializer& ObjectInitializer)
 	//since there is possibility that there are quite a few of these actors at once in world
 	//I probabaly should tick them by default..
 
-	Attributes = ObjectInitializer.CreateDefaultSubobject<UGAAttributeComponent>(this, TEXT("Attributes"));
+	Attributes = ObjectInitializer.CreateDefaultSubobject<UGAAbilitiesComponent>(this, TEXT("Attributes"));
 
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
@@ -144,7 +144,7 @@ void AGSEffectField::OnFieldBeginOverlap(UPrimitiveComponent* OverlappedComponen
 		Maybe better check it against attributes ? Like if it have attribute component
 		then we probabaly can do something about it.
 	*/
-	IIGAAttributes* attrInt = Cast<IIGAAttributes>(OtherActor);
+	IIGAAbilities* attrInt = Cast<IIGAAbilities>(OtherActor);
 	if (attrInt)
 	{
 		OverlapingActorCount += OverlapingActors.AddUnique(OtherActor); //pretty much always should be 1
@@ -164,13 +164,13 @@ void AGSEffectField::OnOtherFieldOverlap(AGSEffectField* OtherField)
 {
 	BP_OnOtherFieldOverlap(OtherField);
 }
-/** IIIGAAttributes overrides */
+/** IIIGAAbilities overrides */
 //class UGAAttributesBase* AGSEffectField::GetAttributes()
 //{
 //	return Attributes->DefaultAttributes;
 //}
 //
-//class UGAAttributeComponent* AGSEffectField::GetAttributeComponent()
+//class UGAAbilitiesComponent* AGSEffectField::GetAbilityComp()
 //{
 //	return Attributes;
 //}
@@ -179,7 +179,7 @@ void AGSEffectField::OnOtherFieldOverlap(AGSEffectField* OtherField)
 //{
 //	DestroyField();
 //}
-/* IIIGAAttributes overrides **/
+/* IIIGAAbilities overrides **/
 
 void AGSEffectField::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {
@@ -188,14 +188,5 @@ void AGSEffectField::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) c
 
 bool AGSEffectField::HasMatchingGameplayTag(FGameplayTag TagToCheck) const
 {
-	return MyTags.HasTag(TagToCheck, EGameplayTagMatchType::Explicit, EGameplayTagMatchType::Explicit);
-}
-bool AGSEffectField::HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer, bool bCountEmptyAsMatch) const
-{
-	return MyTags.MatchesAll(TagContainer, bCountEmptyAsMatch);
-}
-
-bool AGSEffectField::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer, bool bCountEmptyAsMatch) const
-{
-	return MyTags.MatchesAny(TagContainer, bCountEmptyAsMatch);
+	return MyTags.HasTag(TagToCheck);
 }

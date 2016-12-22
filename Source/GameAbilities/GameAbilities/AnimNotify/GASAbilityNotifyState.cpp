@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GameAbilities.h"
-#include "IGASAbilities.h"
-#include "GASAbilitiesComponent.h"
+#include "IGAAbilities.h"
+#include "GAAbilitiesComponent.h"
 #include "GASAbilityNotifyState.h"
 
 
@@ -10,7 +10,7 @@
 
 void UGASAbilityNotifyState::NotifyBegin(class USkeletalMeshComponent * MeshComp, class UAnimSequenceBase * Animation, float TotalDuration)
 {
-	IIGASAbilities* IAbilities = Cast<IIGASAbilities>(MeshComp->GetOwner());
+	IIGAAbilities* IAbilities = Cast<IIGAAbilities>(MeshComp->GetOwner());
 	if (IAbilities)
 	{
 		CachedAbilitiesComp = IAbilities->GetAbilityComp();

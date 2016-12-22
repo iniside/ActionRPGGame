@@ -1,9 +1,11 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 #pragma once
 #include "GameAbilities.h"
-#include "GameAbilitiesPrivatePCH.h"
-
+#include "IGameAbilities.h"
 DEFINE_LOG_CATEGORY(GameAbilities);
+DEFINE_LOG_CATEGORY(GameAttributesGeneral);
+DEFINE_LOG_CATEGORY(GameAttributes);
+DEFINE_LOG_CATEGORY(GameAttributesEffects);
 class FGameAbilities : public IGameAbilities
 {
 	/** IModuleInterface implementation */

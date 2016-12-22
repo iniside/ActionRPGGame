@@ -1,7 +1,7 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 #pragma once
 #include "GameInventorySystem.h"
-#include "GameInventorySystemPrivatePCH.h"
+#include "IGameInventorySystem.h"
 
 
 class FGameInventorySystem : public IGameInventorySystem

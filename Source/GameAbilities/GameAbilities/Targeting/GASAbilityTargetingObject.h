@@ -13,7 +13,7 @@ class GAMEABILITIES_API UGASAbilityTargetingObject : public UObject
 {
 	GENERATED_BODY()
 public:
-	TWeakObjectPtr<class UGASAbilityBase> AbilityOwner;
+	TWeakObjectPtr<class UGAAbilityBase> AbilityOwner;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = "true"), Category = "Config")
 		bool bDebugDraw;

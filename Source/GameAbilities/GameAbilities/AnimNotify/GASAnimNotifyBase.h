@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "GASGlobals.h"
+#include "GAGlobals.h"
 #include "GASAnimNotifyBase.generated.h"
 
 /**

@@ -4,7 +4,7 @@
 
 
 
-#include "GameSystemEditorPrivatePCH.h"
+#include "IGameSystemEditor.h"
 
 
 class FGameSystemEditor : public IGameSystemEditor

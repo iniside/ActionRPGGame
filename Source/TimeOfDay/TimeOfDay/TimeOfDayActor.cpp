@@ -5,11 +5,11 @@
 
 const FName FTODObjectNames::TODRootName = TEXT("TODRoot");
 const FName FTODObjectNames::SunName = TEXT("Sun");
-const FName FTODObjectNames::SkyName = TEXT("Sky");
+const FName FTODObjectNames::SkyLightName = TEXT("Sky");
 const FName FTODObjectNames::PostProcessName = TEXT("PostProcess");
 const FName FTODObjectNames::HeightFogName = TEXT("HeightFog");
 const FName FTODObjectNames::AtmosphericFogName = TEXT("AtmosphericFog");
-const FName FTODObjectNames::SunMeshName = TEXT("SunMesh");
+const FName FTODObjectNames::SkySphereName = TEXT("SkySphere");
 const FName FTODObjectNames::MoonMeshName = TEXT("MoonMesh");
 // Sets default values
 ATimeOfDayActor::ATimeOfDayActor(const FObjectInitializer& ObjectInitializer)
@@ -18,168 +18,122 @@ ATimeOfDayActor::ATimeOfDayActor(const FObjectInitializer& ObjectInitializer)
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
+	//PrimaryActorTick.bRunOnAnyThread = true;
+	PrimaryActorTick.bAllowTickOnDedicatedServer = true;
+
 	bReplicates = true;
 	TODRoot = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this, FTODObjectNames::TODRootName);
 	RootComponent = TODRoot;
-	Sun = ObjectInitializer.CreateDefaultSubobject<UDirectionalLightComponent>(this, FTODObjectNames::SunName);
-	Sky = ObjectInitializer.CreateDefaultSubobject<USkyLightComponent>(this, FTODObjectNames::SkyName);
-	PostProcess = ObjectInitializer.CreateDefaultSubobject<UPostProcessComponent>(this, FTODObjectNames::PostProcessName);
-	HeightFog = ObjectInitializer.CreateDefaultSubobject<UExponentialHeightFogComponent>(this, FTODObjectNames::HeightFogName);
-	//AtmosphericFog = ObjectInitializer.CreateDefaultSubobject<UAtmosphericFogComponent>(this, FTODObjectNames::AtmosphericFogName);
 
-	SunMesh = ObjectInitializer.CreateDefaultSubobject<UStaticMeshComponent>(this, FTODObjectNames::SunMeshName);
-	MoonMesh = ObjectInitializer.CreateDefaultSubobject<UStaticMeshComponent>(this, FTODObjectNames::MoonMeshName);
-	EquatorFlip = 1;
-	DayNightFlip = 1;
-	TimeDivider = 1;
-	Shift = 0;
-	//AtmosphericFog->AttachTo(RootComponent);
-	Sun->AttachTo(AtmosphericFog);
-	Sky->AttachTo(RootComponent);
-	PostProcess->AttachTo(RootComponent);
-	HeightFog->AttachTo(RootComponent);
-	SunMesh->AttachTo(RootComponent);
-	MoonMesh->AttachTo(RootComponent);
+	Sun = ObjectInitializer.CreateDefaultSubobject<UDirectionalLightComponent>(this, FTODObjectNames::SunName);
+	Sun->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	SkyLight = ObjectInitializer.CreateDefaultSubobject<USkyLightComponent>(this, FTODObjectNames::SkyLightName);
+	SkyLight->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+
+	SkySphere = ObjectInitializer.CreateDefaultSubobject<UStaticMeshComponent>(this, FTODObjectNames::SkySphereName);
+	SkySphere->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	//	MoonMesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	TimeSpeed = 10;
 }
 
 // Called when the game starts or when spawned
 void ATimeOfDayActor::BeginPlay()
 {
 	Super::BeginPlay();
-	if (!Runtime)
-		return;
+	if (!SkyMID)
+	{
+		SkyMID = SkySphere->CreateAndSetMaterialInstanceDynamic(0);
+	}
+}
 
+void ATimeOfDayActor::CalculateSunPosition(float CurrentTimeIn)
+{
+	float Latitude2 = FMath::DegreesToRadians(Latitude);
+	float Elevation = 0;
+
+	float DegreesPerSecond = 360.0f / (24.0f * 60.0f * 60.0f);
+	//int32 CurrentTime = (Hour * 60 * 60) + (Minutes * 60) + Seconds;
+
+	float CurrentElevation = DegreesPerSecond * CurrentTimeIn;
+	float Time2 = FMath::DegreesToRadians(CurrentElevation);
+
+	float CurrrentDeclination = Declination.GetRichCurve()->Eval(CurrentTimeIn);
+	float Declination2 = FMath::DegreesToRadians(CurrrentDeclination);
+
+	/*Elevation = FMath::Asin
+	(
+		(FMath::Cos(Latitude2)
+			* FMath::Cos(Declination2)
+			* FMath::Cos(Time2))
+			+ (FMath::Sin(Declination2)*FMath::Sin(Latitude2))
+	);*/
+	Elevation = FMath::Asin
+	(
+		(FMath::Cos(Latitude2)
+			* FMath::Cos(Declination2)
+			* FMath::Cos(Time2))
+		+ (FMath::Sin(Declination2)*FMath::Sin(Latitude2))
+	);
+	float Azimuth = FMath::Cos
+	(
+		(
+			(
+				(FMath::Sin(Elevation) 
+					* FMath::Sin(Latitude2))
+					- FMath::Sin(Declination2)
+			) 
+			/ 
+			(
+				FMath::Cos(Elevation)
+				* FMath::Cos(Latitude2)
+			)
+		)
+	);
+
+	Elevation = FMath::RadiansToDegrees(FMath::Sin(Elevation));
+	Azimuth = FMath::RadiansToDegrees(FMath::Cos(Azimuth));
+	//pitch -elevation
+	//yaw azimuth
+	//UE_LOG(TimeOfDayLOG, Log, TEXT("Elevation: %f"), Elevation);
+	//UE_LOG(TimeOfDayLOG, Log, TEXT("DegreesPerSecond: %f"), DegreesPerSecond);
+	//UE_LOG(TimeOfDayLOG, Log, TEXT("Azimuth: %f"), CurrentElevation);
+
+	//FRotator::
+	Sun->SetRelativeRotation(FRotator(Elevation, CurrentElevation, 0));
+
+	FRotator SunRotation = Sun->GetComponentRotation();
+	FVector SunPosition = SunRotation.Vector();
+	SkyMID->SetVectorParameterValue("Light direction", FLinearColor(SunPosition));
+	FColor SunColor = Sun->LightColor;
+	SkyMID->SetVectorParameterValue("Sun color", FLinearColor(SunColor));
 }
 
 // Called every frame
 void ATimeOfDayActor::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
-
-	//SunDrive = (CalculateTime() / 24) * DayDuration;
-	SunDrive = SunDrive + (DeltaTime / TimeDivider);
-	if (SunDrive >= DayDuration)
+	if (!SkyMID)
 	{
-		SunDrive = 0;
+		return;
 	}
-	CalculateSunTrajectory();
-	float EquatorCheck = 90 - Latitude + SunDeclination;
-	if (EquatorCheck > 90)
+	float SecondsInDay = 86400;
+	CurrentDynamicTime = CurrentDynamicTime + (TimeSpeed * DeltaTime);
+	if (CurrentDynamicTime > SecondsInDay)
 	{
-		EquatorFlip = -1;
+		//progress to nest day ?
+		CurrentDynamicTime = 0;
 	}
-	else
-	{
-		EquatorFlip = 1;
-	}
-	FRotator SunRotation(SunPitch, SunYaw, 0);
-	Sun->SetRelativeRotation(SunRotation);
 
-	FVector Forward = SunRotation.Vector();
-	FVector SunMeshLocation = Forward * Distance * -1;
-	SunMesh->SetRelativeLocation(SunMeshLocation);
-	SunMesh->SetWorldScale3D(FVector(Scale));
-
+	CalculateSunPosition(CurrentDynamicTime);
 }
-float ATimeOfDayActor::CalculateTime()
-{
-	float ReturnValue = (float)FMath::Clamp<int32>(Hour, 0, FullCycleDuration)
-		+ ((float)FMath::Clamp<int32>(Minutes, 0, 60) / 60)
-		+ ((float)FMath::Clamp<int32>(Seconds, 0, 60) / 3600);
-	return ReturnValue;
-}
-void ATimeOfDayActor::CalculateSunTrajectory()
-{
-	FVector2D YearRangeIn(0, YearCycleDuration);
-	FVector2D YearRangeOut(0, 1);
-	float YearVal = FMath::GetMappedRangeValueClamped(YearRangeIn, YearRangeOut, CurrentDay);
-	float CurrentDeclination = Declination.GetRichCurveConst()->Eval(YearVal);
-	
-	float SunHalfDay = (FMath::Acos(FMath::Tan(FMath::DegreesToRadians(Latitude)) *
-		FMath::Tan(FMath::DegreesToRadians(CurrentDeclination * -1)))) /
-		(FMath::DegreesToRadians(360));
 
-	float SunHalfNight = (FMath::Acos(FMath::Tan(FMath::DegreesToRadians(Latitude)) 
-		* FMath::Tan(FMath::DegreesToRadians(CurrentDeclination))))
-		/ (FMath::DegreesToRadians(360));
 
-	if (SunDrive <= SunHalfNight)
-	{
-		DayNightFlip = -1;
-		Shift = 0;
-		Lenght = SunHalfNight;
-	}
-	else if ((SunDrive > SunHalfNight) && (SunDrive <= (SunHalfDay * 2 + SunHalfNight)))
-	{
-		DayNightFlip = 1;
-		Shift = DayDuration / 2;
-		Lenght = SunHalfDay;
-	}
-	else if (SunDrive > (SunHalfDay * 2 + SunHalfNight))
-	{
-		DayNightFlip = -1;
-		Shift = DayDuration;
-		Lenght = SunHalfNight;
-	}
-
-	float PitchLatitude = 90 - FMath::Abs(Latitude - (CurrentDeclination * DayNightFlip));
-	float PitchLatitudeSqrt = FMath::Sqrt(PitchLatitude);
-	float LenghtShift = ((SunDrive - Shift) / Lenght);
-	float LenghtShiftLatitiude = FMath::Square(LenghtShift*PitchLatitudeSqrt);
-	float LenghtShiftLatitiudeFlip = LenghtShiftLatitiude * DayNightFlip;
-	float PitchLatitiudeFlip = PitchLatitude * DayNightFlip;
-	SunPitch = LenghtShiftLatitiudeFlip - PitchLatitiudeFlip;
-
-	SunYaw = (((SunDrive * 360) / DayDuration) * EquatorFlip) + ((1 - EquatorFlip) * 90);
-}
-void ATimeOfDayActor::UpdateTimeOfDay()
-{
-	if (SunDrive >= DayDuration)
-	{
-		SunDrive = 0;
-	}
-	CalculateSunTrajectory();
-	float EquatorCheck = 90 - Latitude + SunDeclination;
-	if (EquatorCheck > 90)
-	{
-		EquatorFlip = -1;
-	}
-	else
-	{
-		EquatorFlip = 1;
-	}
-	FRotator SunRotation(SunPitch, SunYaw, 0);
-	Sun->SetRelativeRotation(SunRotation);
-
-	FVector Forward = SunRotation.Vector();
-	FVector SunMeshLocation = Forward * Distance * -1;
-	SunMesh->SetRelativeLocation(SunMeshLocation);
-	SunMesh->SetWorldScale3D(FVector(Scale));
-}
 void ATimeOfDayActor::OnConstruction(const FTransform& Transform)
 {
-	SunDrive = (CalculateTime() / FullCycleDuration) * DayDuration;
-
-	if (SunDrive >= DayDuration)
+	if (!SkyMID)
 	{
-		SunDrive = 0;
+		SkyMID = SkySphere->CreateAndSetMaterialInstanceDynamic(0);
 	}
-	CalculateSunTrajectory();
-	float EquatorCheck = 90 - Latitude + SunDeclination;
-	if (EquatorCheck > 90)
-	{
-		EquatorFlip = -1;
-	}
-	else
-	{
-		EquatorFlip = 1;
-	}
-	FRotator SunRotation(SunPitch, SunYaw, 0);
-	Sun->SetRelativeRotation(SunRotation);
-
-	FVector Forward = SunRotation.Vector();
-	FVector SunMeshLocation = Forward * Distance * -1;
-	SunMesh->SetRelativeLocation(SunMeshLocation);
-	SunMesh->SetWorldScale3D(FVector(Scale));
-
+	float CurrentTime = (Hour * 60 * 60) + (Minutes * 60) + Seconds;
+	CalculateSunPosition(CurrentTime);
 }

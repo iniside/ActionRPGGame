@@ -5,7 +5,7 @@
 //#include "../SocketName/GTSocketNameDetailCustomization.h"
 
 
-#include "GameTraceEditorPrivatePCH.h"
+#include "IGameTraceEditor.h"
 
 
 class FGameTraceEditor : public IGameTraceEditor

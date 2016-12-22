@@ -1,7 +1,7 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
 #include "GameAbilities.h"
-#include "../GASAbilityBase.h"
+#include "../GAAbilityBase.h"
 #include "GASAbilityMod.h"
 
 UGASAbilityMod::UGASAbilityMod(const FObjectInitializer& ObjectInitializer)
@@ -11,5 +11,5 @@ UGASAbilityMod::UGASAbilityMod(const FObjectInitializer& ObjectInitializer)
 }
 UWorld* UGASAbilityMod::GetWorld() const
 {
-	return GetOuterUGASAbilityBase()->GetWorld();
+	return GetOuterUGAAbilityBase()->GetWorld();
 }

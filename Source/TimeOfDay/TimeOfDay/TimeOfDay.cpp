@@ -3,6 +3,7 @@
 #include "TimeOfDay.h"
 #include "ITimeOfDay.h"
 
+DEFINE_LOG_CATEGORY(TimeOfDayLOG);
 
 class FTimeOfDay : public ITimeOfDay
 {

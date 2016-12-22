@@ -28,10 +28,6 @@ AGSCharacter::AGSCharacter(const FObjectInitializer& ObjectInitializer)
 	WeaponsEquipment->SetIsReplicated(true);
 	WeaponsEquipment->SetNetAddressable();
 
-	Abilities = ObjectInitializer.CreateDefaultSubobject<UGSAbilitiesComponent>(this, TEXT("Abilities"));
-	Abilities->SetIsReplicated(true);
-	Abilities->SetNetAddressable();
-
 	HeadComp = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, AGSCharacter::HeadSlotComponent);
 	HeadComp->SetMasterPoseComponent(GetMesh());
 	HeadComp->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);
@@ -62,10 +58,7 @@ void AGSCharacter::BeginPlay()
 
 	WeaponsEquipment->SetIsReplicated(true);
 	WeaponsEquipment->SetNetAddressable();
-
-	Abilities->SetIsReplicated(true);
-	Abilities->SetNetAddressable();
-
+	
 	DefaultLegMesh = LegsComp->SkeletalMesh;
 }
 
@@ -158,9 +151,4 @@ float AGSCharacter::GetCurrentWeaponSpread()
 void AGSCharacter::SetOnLeftCurrentWeaponChanged(class UGSItemWeaponInfo* WeaponIn)
 {
 
-}
-
-class UGASAbilitiesComponent* AGSCharacter::GetAbilityComp()
-{ 
-	return Abilities;
 }

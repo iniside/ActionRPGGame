@@ -1,7 +1,7 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 #pragma once
 #include "GameWeapons.h"
-#include "GameWeaponsPrivatePCH.h"
+#include "IGameWeapons.h"
 
 
 class FGameWeapons : public IGameWeapons

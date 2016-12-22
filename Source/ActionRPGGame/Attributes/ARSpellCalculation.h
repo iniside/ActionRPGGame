@@ -10,5 +10,10 @@ class ACTIONRPGGAME_API UARSpellCalculation : public UGACustomCalculation
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(EditAnywhere)
+		FGAAttributeCapture AbilityAttribute;
+
 	UARSpellCalculation(const FObjectInitializer& ObjectInitializer);
+
+	virtual float NativeCalculateMagnitude(const FGAEffectHandle& HandleIn) override;
 };

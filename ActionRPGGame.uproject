@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{9D8B2121-4F13-DD74-585E-669D7C538ABD}",
+	"EngineAssociation": "{D967A8F5-478E-1055-EA3A-30B34263A163}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -33,7 +33,7 @@
 			"AdditionalDependencies": [
 				"CoreUObject",
 				"Engine",
-				"GameAttributes"
+				"GameplayTasks"
 			]
 		},
 		{
@@ -51,20 +51,6 @@
 		},
 		{
 			"Name": "GameWeaponsEditor",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
-		},
-		{
-			"Name": "GameAttributes",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"Engine",
-				"CoreUObject"
-			]
-		},
-		{
-			"Name": "GameAttributesEditor",
 			"Type": "Editor",
 			"LoadingPhase": "Default"
 		},
@@ -106,13 +92,21 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"AIModule"
+				"AIModule",
+				"Engine",
+				"GameAbilities"
 			]
 		},
 		{
 			"Name": "ActionRPGGameEditor",
 			"Type": "Editor",
 			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "GameplayAbilities",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [

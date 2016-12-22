@@ -9,7 +9,6 @@ namespace UnrealBuildTool.Rules
 			PublicIncludePaths.AddRange(
 				new string[] {
                     "GameAbilities",
-                    "GameAbilities/Public",
                     "GameTrace",
                     "GameTrace/Public"
 					// ... add public include paths required here ...
@@ -32,7 +31,6 @@ namespace UnrealBuildTool.Rules
                     "GameplayTags",
                     "GameInterfaces",
                     "GameTrace",
-                    "GameAttributes",
                     "InputCore",
                     "UMG",
                     "Slate",

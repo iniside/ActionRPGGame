@@ -1,5 +1,5 @@
 #pragma once
-#include "GASAbilityBase.h"
+#include "GAAbilityBase.h"
 
 #include "../Cues/GSCueTypes.h"
 #include "../Cues/IGSCue.h"
@@ -24,7 +24,7 @@ public:
 };
 
 UCLASS(BlueprintType, Blueprintable)
-class GAMESYSTEM_API UGSAbility : public UGASAbilityBase, public IIGSCue
+class GAMESYSTEM_API UGSAbility : public UGAAbilityBase, public IIGSCue
 {
 	GENERATED_UCLASS_BODY()
 public:

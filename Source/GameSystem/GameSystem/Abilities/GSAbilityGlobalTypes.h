@@ -80,29 +80,6 @@ public:
 		int8 ForceRep;
 };
 
-USTRUCT()
-struct FGSAbilityBookUI
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY(EditAnywhere, Category = "Ability Book UI")
-		TSubclassOf<class UGSAbilityBookContainerWidget> AbilityBookContainerClass;
-
-	UPROPERTY(EditAnywhere, Category = "Ability Book UI")
-		TSubclassOf<class UGSAbilityBookTabWidget> AbilityBookTabClass;
-
-	UPROPERTY(EditAnywhere, Category = "Ability BookUI")
-		TSubclassOf<class UGSAbilityBookSlotWidget> AbilityBookSlotClass;
-
-	UPROPERTY(EditAnywhere, Category = "Ability Book UI")
-		TSubclassOf<class UGSAbilityBookItem> AbilityBookClass;
-
-	UPROPERTY(EditAnywhere, Category = "Ability Book UI")
-		ESlateVisibility AbilityBookVisibility;
-
-	UPROPERTY(EditAnywhere, Category = "Ability Book UI")
-		FName AbilityBookSlotName;
-};
 
 /*
 For all of this shit, implement fast array serialization.

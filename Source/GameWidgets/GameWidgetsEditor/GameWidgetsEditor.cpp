@@ -4,7 +4,7 @@
 
 
 
-#include "GameWidgetsEditorPrivatePCH.h"
+#include "IGameWidgetsEditor.h"
 
 
 class FGameWidgetsEditor : public IGameWidgetsEditor

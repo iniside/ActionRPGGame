@@ -27,8 +27,6 @@ public class ActionRPGGameEditor : ModuleRules
             "ActionRPGGame",
             "GameInventorySystem",
             "GameInventorySystemEditor",
-            "GameAttributes",
-            "GameAttributesEditor",
             "GameAbilities",
             "GameAbilitiesEditor",
 		});

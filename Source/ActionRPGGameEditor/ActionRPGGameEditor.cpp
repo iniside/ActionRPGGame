@@ -1,7 +1,6 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 #include "ActionRPGGameEditor.h"
 #include "GameplayTagsModule.h"
-#include "IGameAttributesEditor.h"
 #include "IGameAbilitiesEditor.h"
 //#include "ISocketNameCustomization.h"
 class FActionRPGGameEditor : public IModuleInterface

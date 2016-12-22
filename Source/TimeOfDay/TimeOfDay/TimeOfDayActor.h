@@ -51,11 +51,11 @@ struct FTODObjectNames
 {
 	const static FName TODRootName;
 	const static FName SunName;
-	const static FName SkyName;
+	const static FName SkyLightName;
 	const static FName PostProcessName;
 	const static FName HeightFogName;
 	const static FName AtmosphericFogName;
-	const static FName SunMeshName;
+	const static FName SkySphereName;
 	const static FName MoonMeshName;
 };
 
@@ -64,86 +64,49 @@ class TIMEOFDAY_API ATimeOfDayActor : public AActor
 {
 	GENERATED_BODY()
 public:
+	/* For Earth it's 24h */
+	UPROPERTY(EditAnywhere, Category = "Config")
+		int32 DayLenght;
+	UPROPERTY(EditAnywhere, Category = "Config")
+		int32 YearDuration;
+
+	/* How Fast should time of day progress in seconds */
+	UPROPERTY(EditAnywhere, Category = "Config")
+		float TimeSpeed;
+
+	UPROPERTY(EditAnywhere, Category = "Config")
+		int32 Hour;
+	UPROPERTY(EditAnywhere, Category = "Config")
+		int32 Minutes;
+	UPROPERTY(EditAnywhere, Category = "Config")
+		int32 Seconds;
+
+	UPROPERTY(EditAnywhere, Category = "Config")
+		float Latitude;
+	
 	UPROPERTY(EditAnywhere, Category = "Config")
 		FRuntimeFloatCurve Declination;
+	
 	UPROPERTY(EditAnywhere, Category = "Config")
-		bool Runtime;
-	/* Lenght of full day. */
-	UPROPERTY(EditAnywhere, Category = "Day Config")
-		float FullCycleDuration;
-	/* Days in Year. */
-	UPROPERTY(EditAnywhere, Category = "Day Config")
-		int32 YearCycleDuration;
-	UPROPERTY(EditAnywhere, Category = "Day Config")
-		float DayDuration;
-	UPROPERTY(EditAnywhere, Category = "Day Config")
-		float Latitude;
-	UPROPERTY(EditAnywhere, Category = "Day Config")
-		float SunDeclination;
-	UPROPERTY(EditAnywhere, Category = "Day Config")
-		float Distance;
-	UPROPERTY(EditAnywhere, Category = "Time")
-		int32 CurrentDay;
-	UPROPERTY(EditAnywhere, Category = "Time")
-		int32 Hour;
-	UPROPERTY(EditAnywhere, Category = "Time")
-		int32 Minutes;
-	UPROPERTY(EditAnywhere, Category = "Time")
-		int32 Seconds;
-	UPROPERTY(EditAnywhere, Category = "Time")
-		float TimeDivider;
-
-	float SunDrive;
-	float DayNightFlip;
-	float Shift;
-	float Lenght;
-	float EquatorFlip;
-
-	float SunPitch;
-	float SunYaw;
-
-	UPROPERTY(EditAnywhere, Category = "Debug")
-		float Rotation; //longitude
-	UPROPERTY(EditAnywhere, Category = "Debug")
-		float Angle; //latitude
-
-	UPROPERTY(EditAnywhere, Category = "Debug")
-		float Scale;
-	UPROPERTY(EditAnywhere, Category = "Debug")
-		float SunRise;
-	UPROPERTY(EditAnywhere, Category = "Debug")
-		float SunSet;
-
-
+		float Time;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Root")
 		USceneComponent* TODRoot;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Light")
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Root")
 		UDirectionalLightComponent* Sun;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Light")
-		USkyLightComponent* Sky;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Light")
-		UPostProcessComponent* PostProcess;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Light")
-		UExponentialHeightFogComponent* HeightFog;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Light")
-		UAtmosphericFogComponent* AtmosphericFog;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Meshes")
-		UStaticMeshComponent* SunMesh;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Meshes")
-		UStaticMeshComponent* MoonMesh;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Root")
+		USkyLightComponent* SkyLight;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Root")
+		UStaticMeshComponent* SkySphere;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sun")
-		float SunMoveSpeed;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sun")
-		FRuntimeFloatCurve SunTemperature;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sun")
-		FRuntimeFloatCurve SunIntensity;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sun")
-		FRuntimeCurveLinearColor SunColor;
+protected:
+	UPROPERTY()
+		UMaterialInstanceDynamic* SkyMID;
+
+	float CurrentDynamicTime;
 public:	
 	// Sets default values for this actor's properties
 	ATimeOfDayActor(const FObjectInitializer& ObjectInitializer);
@@ -151,13 +114,10 @@ public:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
+	void CalculateSunPosition(float CurrentTimeIn);
+
 	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
 
-	float CalculateTime();
-
-	void CalculateSunTrajectory();
-
-	void UpdateTimeOfDay();
 	virtual void OnConstruction(const FTransform& Transform) override;
 };

@@ -2,7 +2,7 @@
 
 #include "ActionRPGGame.h"
 
-//#include "GAAttributeComponent.h"
+//#include "GAAbilitiesComponent.h"
 #include "Items/ARItemInfo.h"
 #include "Widgets/GISContainerBaseWidget.h"
 #include "Items/GSEquipmentComponent.h"
@@ -54,10 +54,10 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 
     // Create a camera boom (pulls in towards the player if there is a collision)
     CameraBoom = ObjectInitializer.CreateDefaultSubobject<USpringArmComponent>(this, TEXT("CameraBoom"));
-    CameraBoom->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+    CameraBoom->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::KeepRelativeTransform);//(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, "head");
     CameraBoom->TargetArmLength = 300.0f; // The camera follows at this distance behind the character	
     CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
-
+	CameraBoom->AttachToComponent(GetMesh(),FAttachmentTransformRules::KeepRelativeTransform, "headSocket");
     // Create a follow camera
     FollowCamera = ObjectInitializer.CreateDefaultSubobject<UCameraComponent>(this, TEXT("FollowCamera"));
     FollowCamera->AttachToComponent(CameraBoom, FAttachmentTransformRules::KeepRelativeTransform, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
@@ -66,7 +66,7 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 
     //testing out multi commponent interaction
 
-    Attributes = ObjectInitializer.CreateDefaultSubobject<UGAAttributeComponent>(this, TEXT("Attributes"));
+    Attributes = ObjectInitializer.CreateDefaultSubobject<UGAAbilitiesComponent>(this, TEXT("Attributes"));
     Attributes->SetIsReplicated(true);
     Attributes->SetNetAddressable();
     // Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
@@ -84,10 +84,9 @@ void AARCharacter::OnRep_Controller()
 {
     Super::OnRep_Controller();
     ARPController = Cast<AARPlayerController>(Controller);
-    Abilities->PCOwner = ARPController;
+    Attributes->PCOwner = ARPController;
     if (ARPController)
     {
-        Abilities->InitializeGUI();
     }
     OnPostControllerRep(ARPController);
 }
@@ -98,18 +97,17 @@ void AARCharacter::PossessedBy(AController* NewController)
         || GetNetMode() == ENetMode::NM_Client)
         && ARPController)
     {
-        Abilities->PCOwner = ARPController;
-        Abilities->InitializeGUI();
+        Attributes->PCOwner = ARPController;
     }
     Super::PossessedBy(NewController);
 }
-/** IIGAAttributes Begin */
+/** IIGAAbilities Begin */
 class UGAAttributesBase* AARCharacter::GetAttributes()
 {
     return Attributes->DefaultAttributes;
 }
 
-class UGAAttributeComponent* AARCharacter::GetAttributeComponent()
+class UGAAbilitiesComponent* AARCharacter::GetAbilityComp()
 {
     return Attributes;
 }
@@ -119,7 +117,7 @@ float AARCharacter::GetAttributeValue(FGAAttribute AttributeIn) const
     return Attributes->DefaultAttributes->GetFloatValue(AttributeIn);
 }
 
-/** IIGAAttributes End */
+/** IIGAAbilities End */
 
 /** IIGTSocket Begin */
 //FVector AARCharacter::GetSocketLocation(FName SocketNameIn)

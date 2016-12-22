@@ -159,7 +159,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float PhysicalDamage;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
-		float MagicalDamage;
+		FGAAttributeBase MagicalDamage;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
 		float FireDamage;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
@@ -272,44 +272,4 @@ protected:
 
 public:
 	virtual void InitializeAttributes() override;
-
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = AttributeTags, meta = (BlueprintInternalUseOnly = "true"))
-		void InternalEffectParams();
-
-	virtual void PostEffectApplied() override;
-	
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = AttributeTags, meta = (BlueprintInternalUseOnly = "true"))
-		FGAAttributeData InternalPreModifyAttribute(const FGAAttributeData& AttributeMod);
-	virtual FGAAttributeData PreModifyAttribute(const FGAAttributeData& AttributeMod) override;
-	/*
-		This need simpler data structure for modification in blueprint.
-	*/
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = AttributeTags, meta = (BlueprintInternalUseOnly = "true"))
-		float InternalPostModifyAttribute(const FGAEvalData& AttributeMod);
-	virtual float PostModifyAttribute(const FGAEvalData& AttributeMod) override;
-
-
-	virtual void CalculateOutgoingAttributeMods() override;
-	virtual void CalculateIncomingAttributeMods() override;
-
-	UFUNCTION(Category = "PreAttribute")
-		FGAAttributeData PreAttribute_Damage(const FGAAttributeData& AttributeMod);
-	UFUNCTION(Category = "PreAttribute")
-		FGAAttributeData PreAttribute_FireDamage(const FGAAttributeData& AttributeMod);
-
-	//UFUNCTION(Category = "PostAttribute")
-	//	FGAAttributeDataCallback PostAttribute_Health(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		float PostAttribute_Damage(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		float PostAttribute_FireDamage(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		float PostAttribute_Heal(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		float PostAttribute_LifeStealDamage(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		float PostAttribute_HealthBakPrecentageReduction(const FGAEvalData& AttributeMod);
-	UFUNCTION(Category = "PostAttribute")
-		float PostAttribute_Magic(const FGAEvalData& AttributeMod);
-
 };

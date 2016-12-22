@@ -1,7 +1,8 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 #pragma once
 #include "GameSystem.h"
-#include "GameSystemPrivatePCH.h"
+#include "IGameSystem.h"
+
 
 
 class FGameSystem : public IGameSystem

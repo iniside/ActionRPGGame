@@ -10,7 +10,8 @@
 
 #include "Widgets/GSWeaponWidget.h"
 #include "Widgets/GSWeaponSetContainerWidget.h"
-
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
 

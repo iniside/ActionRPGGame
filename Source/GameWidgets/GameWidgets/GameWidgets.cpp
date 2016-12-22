@@ -1,7 +1,7 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 #pragma once
 #include "GameWidgets.h"
-#include "GameWidgetsPrivatePCH.h"
+#include "IGameWidgets.h"
 
 
 class FGameWidgets : public IGameWidgets

@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GameAbilities.h"
-#include "GASAbilitiesComponent.h"
-#include "IGASAbilities.h"
+#include "GAAbilitiesComponent.h"
+#include "IGAAbilities.h"
 #include "GASAnimNotify.h"
 
 
@@ -10,10 +10,10 @@
 
 void UGASAnimNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	IIGASAbilities* IAbilities = Cast<IIGASAbilities>(MeshComp->GetOwner());
+	IIGAAbilities* IAbilities = Cast<IIGAAbilities>(MeshComp->GetOwner());
 	if (!IAbilities)
 		return;
 
-	UGASAbilitiesComponent* Comp = IAbilities->GetAbilityComp();
+	UGAAbilitiesComponent* Comp = IAbilities->GetAbilityComp();
 	Comp->OnAbilityNotify.ExecuteIfBound(Data);
 }

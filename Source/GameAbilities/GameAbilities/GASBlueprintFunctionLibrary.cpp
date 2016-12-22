@@ -2,7 +2,6 @@
 
 #include "GameAbilities.h"
 
-#include "GASAbilityBase.h"
-#include "GASEffectField.h"
-#include "Tracing/GASTrace.h"
+#include "GAAbilityBase.h"
+#include "GAEffectField.h"
 #include "GASBlueprintFunctionLibrary.h"

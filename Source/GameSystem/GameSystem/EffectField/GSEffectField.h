@@ -2,7 +2,7 @@
 #include "GameplayTagContainer.h"
 #include "GameplayTagAssetInterface.h"
 
-#include "IGAAttributes.h"
+#include "IGAAbilities.h"
 
 #include "GSEffectField.generated.h"
 /*
@@ -18,12 +18,12 @@
 */
 
 UCLASS(BlueprintType, Blueprintable)
-class GAMESYSTEM_API AGSEffectField : public AActor, public IGameplayTagAssetInterface//, public IIGAAttributes
+class GAMESYSTEM_API AGSEffectField : public AActor, public IGameplayTagAssetInterface//, public IIGAAbilities
 {
 	GENERATED_UCLASS_BODY()
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes")
-	class UGAAttributeComponent* Attributes;
+	class UGAAbilitiesComponent* Attributes;
 
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -127,17 +127,15 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnOtherFieldOverlap"))
 	void BP_OnOtherFieldOverlap(AGSEffectField* OtherField);
 
-	/** IIIGAAttributes overrides */
+	/** IIIGAAbilities overrides */
 	//virtual class UGAAttributesBase* GetAttributes() override;
-	//virtual class UGAAttributeComponent* GetAttributeComponent() override;
+	//virtual class UGAAbilitiesComponent* GetAbilityComp() override;
 	//virtual void Died() override;
-	/* IIIGAAttributes overrides **/
+	/* IIIGAAbilities overrides **/
 
 	/** IGameplayTagAssetInterface overrides */
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	virtual bool HasMatchingGameplayTag(FGameplayTag TagToCheck) const override;
-	virtual bool HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer, bool bCountEmptyAsMatch = true) const override;
-	virtual bool HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer, bool bCountEmptyAsMatch = true) const override;
 	/* IGameplayTagAssetInterface overrides **/
 private:
 	class IIGSEffectField* FieldInt;

@@ -1,7 +1,7 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
 #include "ActionRPGGame.h"
-#include "IGameAttributes.h"
+//#include "IGameAttributes.h"
 #include "GameplayTagsModule.h"
 
 class FActionRPGGame : public FDefaultGameModuleImpl
@@ -9,7 +9,7 @@ class FActionRPGGame : public FDefaultGameModuleImpl
 	virtual void StartupModule() override
 	{
 		//because they don't want to load when editor starts ;/
-		IGameAttributes::Get();
+		//IGameAttributes::Get();
 		IGameplayTagsModule::Get();
 		//IGameplayTagsModule& GameplayTagsModule = IGameplayTagsModule::Get();
 		//FString Tags = "/Game/Blueprints/SampleTags.SampleTags";
