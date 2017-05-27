@@ -1,5 +1,5 @@
 #pragma once
-#include "GAAttributesBase.h"
+#include "Attributes/GAAttributesBase.h"
 #include "GameplayTagContainer.h"
 #include "ARCharacterAttributes.generated.h"
 
@@ -17,7 +17,7 @@ DECLARE_CYCLE_STAT_EXTERN(TEXT("GameAttributesIncomingAttribute"), STAT_Incoming
 	PercentageDamage.
 	For most of games, these will be attributes, which simply modify other non-transient attributes.
 	
-	2. Use FGAAttributeBase or derived from, to create normal attributes, like Health,
+	2. Use FAFAttributeBase or derived from, to create normal attributes, like Health,
 	Energy, DamageBonus, FireDamageBonus etc. 
 	These attributes can be safely serialized, and are able to track their own state
 	(what are my modifiers, who modify me etc).
@@ -69,122 +69,72 @@ public:
 		calculated from other attributes ?
 	*/
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "Resources")
-		FGAAttributeBase Health;
+		FAFAttributeBase Health;
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "Resources")
-		FGAAttributeBase Energy;
+		FAFAttributeBase Energy;
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "Resources")
-		FGAAttributeBase Stamina;
+		FAFAttributeBase Stamina;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase Strenght;
+		FAFAttributeBase Strenght;
 	/*
 		Strenght mod is directly dependand on strenght.
 		How should we handle this depedency ? On attribute level, on here on
 		attribute object ?
 	*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase StrenghtMod; //like in Dnd = (Strenght - 10) /2 - no clamp, can be negative!
+		FAFAttributeBase StrenghtMod; //like in Dnd = (Strenght - 10) /2 - no clamp, can be negative!
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase Endurance;
+		FAFAttributeBase Endurance;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase EnduranceMod;
+		FAFAttributeBase EnduranceMod;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase Constitution;
+		FAFAttributeBase Constitution;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase ConstitutionMod;
+		FAFAttributeBase ConstitutionMod;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase Agility;
+		FAFAttributeBase Agility;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase AgilityMod;
+		FAFAttributeBase AgilityMod;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase Intelligence;
+		FAFAttributeBase Intelligence;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase IntelligenceMod;
+		FAFAttributeBase IntelligenceMod;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase Magic;
+		FAFAttributeBase Magic;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase MagicMod;
+		FAFAttributeBase MagicMod;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase WillPower;
+		FAFAttributeBase WillPower;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase WillPowerMod;
+		FAFAttributeBase WillPowerMod;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase Wisdom;
+		FAFAttributeBase Wisdom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase WisdomMod;
+		FAFAttributeBase WisdomMod;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase Armor;
+		FAFAttributeBase Armor;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase MagicResitance;
+		FAFAttributeBase MagicResitance;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase FireResistance;
+		FAFAttributeBase FireResistance;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base Attributes")
-		FGAAttributeBase IceResistance;
-
-	UPROPERTY()
-		float HealthPercentageDamage;
-	UPROPERTY()
-		float EnergyPercentageDamage;
-	UPROPERTY()
-		float StaminaPercentageDamage;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Resource|Cost")
-		float HealthCost;
-	UPROPERTY()
-		float EnergyCost;//??
-	UPROPERTY()
-		float EnergyCostReduce;//?? precentage ?? flat number ? can have effect, which set this.
-	UPROPERTY()
-		float EnergyIncrease;//??
-
-	UPROPERTY()
-		float PercentageDamage;
-
-	UPROPERTY()
-		float StaminaCost;
+		FAFAttributeBase IceResistance;
 
 	/*
 		Helper attributes, which are used to apply different types of damage. Ahoy!
 	*/
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
-		float Damage;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
-		float PhysicalDamage;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
-		FGAAttributeBase MagicalDamage;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
-		float FireDamage;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
-		float IceDamage;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
-		float WaterDamage;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
-		float AirDamage;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
-		float ElectricityDamage;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
-		float EarthDamage;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
-		float ShadowDamage;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
-		float NecroticDamage;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
-		float ConditionDamage;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
-		float ConditionFireDamage;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
-		float ConditionBleedDamage;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
-		float ConditionPoisonDamage;
+		FAFAttributeBase MagicalDamage;
 
 	/*
 	Modify these attributes, to steal resource (from target), and transfer it to instigator.
@@ -207,13 +157,13 @@ public:
 	//	Total number of conditions.
 	//*/
 	UPROPERTY()
-		FGAAttributeBase ConditionCount;
+		FAFAttributeBase ConditionCount;
 	UPROPERTY()
-		FGAAttributeBase HexesCount;
+		FAFAttributeBase HexesCount;
 	UPROPERTY()
-		FGAAttributeBase CursesCount;
+		FAFAttributeBase CursesCount;
 	UPROPERTY()
-		FGAAttributeBase EnchatmentsCount;
+		FAFAttributeBase EnchatmentsCount;
 
 	/*
 		Because Why not ?
@@ -229,47 +179,47 @@ public:
 		otherwise attribute specific to damage type is used.
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage Bonus")
-		FGAAttributeBase BonusDamage;
+		FAFAttributeBase BonusDamage;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage Bonus")
-		FGAAttributeBase BonusPhysicalDamage;
+		FAFAttributeBase BonusPhysicalDamage;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage Bonus")
-		FGAAttributeBase BonusMagicalDamage;
+		FAFAttributeBase BonusMagicalDamage;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage Bonus")
-		FGAAttributeBase BonusFireDamage;
+		FAFAttributeBase BonusFireDamage;
 	//because why not ?
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage Bonus")
-		FGAAttributeBase OutgoingDamageReduction;
+		FAFAttributeBase OutgoingDamageReduction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage Bonus")
-		FGAAttributeBase WeaponDamageBonus;
+		FAFAttributeBase WeaponDamageBonus;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage Defense")
-		FGAAttributeBase FireDamageDefense;
+		FAFAttributeBase FireDamageDefense;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage Defense")
-		FGAAttributeBase DamageDefense;
+		FAFAttributeBase DamageDefense;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
-		FGAAttributeBase SpellCastingSpeed;
+		FAFAttributeBase SpellCastingSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
-		FGAAttributeBase AttackSpeed;
+		FAFAttributeBase AttackSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
-		FGAAttributeBase SpellCostMultiplier;
+		FAFAttributeBase SpellCostMultiplier;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
-		FGAAttributeBase PhysicalAttackCostMultiplier;
+		FAFAttributeBase PhysicalAttackCostMultiplier;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
-		FGAAttributeBase RunningMovementSpeed;
+		FAFAttributeBase RunningMovementSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
-		FGAAttributeBase WalkingMovementSpeed;
+		FAFAttributeBase WalkingMovementSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weight")
-		FGAAttributeBase CurrentWeight;
+		FAFAttributeBase CurrentWeight;
 protected:
 	TMap<FName, TWeakObjectPtr<UFunction>> PostModifyAttributeFunctions;
 	TMap<FName, TWeakObjectPtr<UFunction>> IncomingModifyAttributeFunctions;
 	TMap<FName, TWeakObjectPtr<UFunction>> OutgoingModifyAttributeFunctions;
 
 public:
-	virtual void InitializeAttributes() override;
+	virtual void InitializeAttributes(UGAAbilitiesComponent* InOwningAttributeComp) override;
 };

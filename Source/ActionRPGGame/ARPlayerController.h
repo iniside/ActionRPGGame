@@ -28,8 +28,8 @@ public:
 	virtual void SetupInputComponent() override;
 
 
-	UFUNCTION()
-		void OnRecivedModifiedAttribute(const FGAModifiedAttribute& AttributeModIn);
+	//UFUNCTION()
+	//	void OnRecivedModifiedAttribute(const FGAModifiedAttribute& AttributeModIn);
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnPawnReplicated(APawn* NewPawn);

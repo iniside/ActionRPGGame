@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "GAAttributesBase.h"
+#include "Attributes/GAAttributesBase.h"
 #include "ARWeaponAttributes.generated.h"
 
 /**

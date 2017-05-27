@@ -59,7 +59,8 @@ void ATimeOfDayActor::CalculateSunPosition(float CurrentTimeIn)
 
 	float CurrrentDeclination = Declination.GetRichCurve()->Eval(CurrentTimeIn);
 	float Declination2 = FMath::DegreesToRadians(CurrrentDeclination);
-
+	FQuat SunRot = Sun->GetComponentRotation().Quaternion();
+	//FQuatRotationMatrix
 	/*Elevation = FMath::Asin
 	(
 		(FMath::Cos(Latitude2)
@@ -97,7 +98,7 @@ void ATimeOfDayActor::CalculateSunPosition(float CurrentTimeIn)
 	//UE_LOG(TimeOfDayLOG, Log, TEXT("Elevation: %f"), Elevation);
 	//UE_LOG(TimeOfDayLOG, Log, TEXT("DegreesPerSecond: %f"), DegreesPerSecond);
 	//UE_LOG(TimeOfDayLOG, Log, TEXT("Azimuth: %f"), CurrentElevation);
-
+	UE_LOG(TimeOfDayLOG, Log, TEXT("Quaternion: %s"), *SunRot.ToString());
 	//FRotator::
 	Sun->SetRelativeRotation(FRotator(Elevation, CurrentElevation, 0));
 

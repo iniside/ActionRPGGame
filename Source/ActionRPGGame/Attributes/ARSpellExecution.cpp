@@ -3,11 +3,11 @@
 #include "ActionRPGGame.h"
 #include "GameplayTagContainer.h"
 #include "GAAbilitiesComponent.h"
-#include "GAAttributesBase.h"
+#include "Attributes/GAAttributesBase.h"
 #include "ARCharacterAttributes.h"
 #include "ARSpellExecution.h"
 
-#include "GAGameEffect.h"
+#include "Effects/GAGameEffect.h"
 
 UARSpellExecution::UARSpellExecution(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)

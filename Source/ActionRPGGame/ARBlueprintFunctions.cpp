@@ -19,7 +19,7 @@ FVector2D UARBlueprintFunctions::CalculateAimOffset(ACharacter* Character, FName
 	{
 		const FTransform SocketLocalTransform = LocalSocket->GetSocketLocalTransform();
 		const FTransform BoneTransform = Character->GetMesh()->GetSocketTransform(Socket, ERelativeTransformSpace::RTS_Component);// GlobalPose.GetComponentSpaceTransform(SocketBoneIndex);
-		const FTransform SocketWorldTransform = SocketLocalTransform * BoneTransform * Character->GetMesh()->ComponentToWorld;// Component->ComponentToWorld;
+		const FTransform SocketWorldTransform = SocketLocalTransform * BoneTransform * Character->GetMesh()->GetComponentToWorld();// Component->ComponentToWorld;
 
 		// Convert Target to Actor Space
 		const FTransform TargetWorldTransform(HitLocation);

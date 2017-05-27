@@ -4,7 +4,7 @@ using UnrealBuildTool;
 
 public class ActionRPGGame : ModuleRules
 {
-    public ActionRPGGame(TargetInfo Target)
+    public ActionRPGGame(ReadOnlyTargetRules Target) : base(Target)
     {
         PublicIncludePaths.AddRange(
             new string[] {
@@ -12,8 +12,8 @@ public class ActionRPGGame : ModuleRules
                     "GameInterfaces/Public",
                     "GameSystem",
                     "GameSystem/Public",
-                    "GameAbilities",
-                    "GameAbilities/Public",
+                    "AbilityFramework",
+                    "AbilityFramework/Public",
                     "GameInventorySystem",
                     "GameInventorySystem/Public",
                     "GameWidgets",
@@ -27,7 +27,7 @@ public class ActionRPGGame : ModuleRules
         PrivateIncludePaths.AddRange(
             new string[] {
 					"GameSystem/Private",
-                    "GameAbilities/Private",
+                    "AbilityFramework/Private",
                     "GameInventorySystem/Private",
                     "ActionRPGGame/Private",
 					// ... add other private include paths required here ...
@@ -46,11 +46,16 @@ public class ActionRPGGame : ModuleRules
                 "GameplayTags",
                 "GameInventorySystem", 
                 "GameWidgets",
-                "GameAbilities",
+                "AbilityFramework",
                 "GameWeapons",
                 "GameSystem",
-                "GameInterfaces"
-				});
+                "GameInterfaces",
+                "ActorSequence",
+                "RHI",
+                "RenderCore",
+                "ShaderCore",
+                "DistanceAnimation"
+                });
         PrivateDependencyModuleNames.AddRange(
         new string[]
 				    {
@@ -59,7 +64,7 @@ public class ActionRPGGame : ModuleRules
         );
         if (Target.Type == TargetRules.TargetType.Editor)
         {
-            PublicDependencyModuleNames.AddRange(new string[] { "UnrealEd", "PropertyEditor" });
+            PublicDependencyModuleNames.AddRange(new string[] { "UnrealEd", "PropertyEditor", "DistanceAnimationEditor" });
         }
     }
 

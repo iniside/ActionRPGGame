@@ -49,6 +49,14 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Game Attributes")
         virtual float GetAttributeValue(FGAAttribute AttributeIn) const;
+
+	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn);// override { DefaultAttributes->ModifyAttribute(ModIn, HandleIn); };
+	virtual FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn);// override { return DefaultAttributes->GetAttribute(AttributeIn); };
+	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod);// override { DefaultAttributes->RemoveBonus(AttributeIn, HandleIn); };
+	virtual FGAEffectHandle ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn) override;// { return ApplyEffectToTarget(EffectIn, HandleIn); };
+	virtual void RemoveTagContainer(const FGameplayTagContainer& TagsIn) override;
+	virtual float NativeGetAttributeValue(const FGAAttribute AttributeIn) const;// override { return 0; };
+
     /** IIGAAbilities End */
 
     /** IIGIPawn */
@@ -59,14 +67,70 @@ public:
 	virtual UCameraComponent* GetPawnCamera() override { return FollowCamera; };
     /* IIGIPawn **/
 
+	UFUNCTION(BlueprintPure, Category="Animation")
+		int32 GetMoveDirection() const
+	{
+		return MoveDirection;
+	}
+	UPROPERTY()
+		int32 MoveDirection;
+	UPROPERTY(BlueprintReadOnly, Category = "Animation")
+		int32 EightDirection;
+
+	UPROPERTY()
+		bool bIsPivotChanging;
+	UPROPERTY()
+		float MovementDot;
+	UPROPERTY(BlueprintReadOnly, Category = "Animation")
+		float Angle;
+	//float CurrentForward;
+	//float OldForward;
+	UPROPERTY()
+		FVector AccelerationLocalDir;
+	UPROPERTY()
+		FVector AccelerationWorldDir;
+	UPROPERTY()
+		FVector VelocityLocalDir;
+	UPROPERTY()
+		FVector VelocityWorldDir;
+	UPROPERTY()
+		FRotator AccelerationRotator;
+	UPROPERTY()
+		FRotator VelocityRotator;
+	UPROPERTY(BlueprintReadOnly, Category = "Animation")
+		FVector DirectionX;
+	UPROPERTY(BlueprintReadOnly, Category = "Animation")
+		FVector DirectionY;
+
+	UFUNCTION(BlueprintPure, Category = "Animation")
+		bool GetIsPivotChanging() const;
+
+	UFUNCTION(BlueprintPure, Category = "Animation")
+		float GetMovementDot() const;
+
+	UFUNCTION(BlueprintPure, Category = "Animation")
+		FVector GetAccelerationLocalDir() const;
+
+	UFUNCTION(BlueprintPure, Category = "Animation")
+		FVector GetAccelerationWorldDir() const;
+
+	UFUNCTION(BlueprintPure, Category = "Animation")
+		FVector GetVelocityLocalDir() const;
+
+	UFUNCTION(BlueprintPure, Category = "Animation")
+		FVector GetVelocityWorldDir() const;
+	UFUNCTION(BlueprintPure, Category = "Animation")
+		FRotator GetAccelerationRotator() const;
+	UFUNCTION(BlueprintPure, Category = "Animation")
+		FRotator GetVelocityRotator() const;
 
     virtual void OnRep_Controller() override;
     virtual void PossessedBy(AController* NewController) override;
 public:
     AARCharacter(const FObjectInitializer& ObjectInitializer);
 
-    void BeginPlay() override;
-
+    virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
     /** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
         float BaseTurnRate;
@@ -163,7 +227,7 @@ protected:
         void OnPostControllerRep(class AARPlayerController* ControllerOut);
 protected:
     // APawn interface
-    virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
+    virtual void SetupPlayerInputComponent(class UInputComponent* InInputComponent) override;
     // End of APawn interface
 
 public:

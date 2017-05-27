@@ -39,7 +39,7 @@ void UBPNode_CreateItemData::AllocateDefaultPins()
 	const UEdGraphSchema_K2* K2Schema = GetDefault<UEdGraphSchema_K2>();
 
 	// OwningPlayer pin
-	UEdGraphPin* OwningPlayerPin = CreatePin(EGPD_Input, K2Schema->PC_Object, TEXT(""), APlayerController::StaticClass(), false, false, FBPNode_CreateItemDataHelper::OwningPlayerPinName);
+	UEdGraphPin* OwningPlayerPin = CreatePin(EGPD_Input, K2Schema->PC_Object, TEXT(""), APlayerController::StaticClass(), FBPNode_CreateItemDataHelper::OwningPlayerPinName, EPinContainerType::None, false);
 	SetPinToolTip(*OwningPlayerPin, LOCTEXT("OwningPlayerPinDescription", "The player that 'owns' the this item."));
 }
 

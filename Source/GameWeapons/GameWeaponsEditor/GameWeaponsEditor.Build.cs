@@ -4,8 +4,8 @@ namespace UnrealBuildTool.Rules
 {
 	public class GameWeaponsEditor : ModuleRules
 	{
-		public GameWeaponsEditor(TargetInfo Target)
-		{
+		public GameWeaponsEditor(ReadOnlyTargetRules Target) : base(Target)
+        {
 			PublicIncludePaths.AddRange(
 				new string[] {
                     "GameWeapons",

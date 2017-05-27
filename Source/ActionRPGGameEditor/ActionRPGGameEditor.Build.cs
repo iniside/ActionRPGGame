@@ -4,7 +4,7 @@ using UnrealBuildTool;
 
 public class ActionRPGGameEditor : ModuleRules
 {
-    public ActionRPGGameEditor(TargetInfo Target)
+    public ActionRPGGameEditor(ReadOnlyTargetRules Target) : base(Target)
     {
 		PublicIncludePaths.AddRange(
 			new string[] {
@@ -27,8 +27,9 @@ public class ActionRPGGameEditor : ModuleRules
             "ActionRPGGame",
             "GameInventorySystem",
             "GameInventorySystemEditor",
-            "GameAbilities",
-            "GameAbilitiesEditor",
+            "AbilityFramework",
+            "AbilityFrameworkEditor",
+            "TimeOfDayEditor"
 		});
         PrivateDependencyModuleNames.AddRange(new string[] 
 		{

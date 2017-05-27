@@ -18,6 +18,14 @@
 			]
 		},
 		{
+			"Name": "TimeOfDayEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		},
+		{
 			"Name": "GameTrace",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
@@ -27,7 +35,7 @@
 			]
 		},
 		{
-			"Name": "GameAbilities",
+			"Name": "AbilityFramework",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
@@ -37,7 +45,7 @@
 			]
 		},
 		{
-			"Name": "GameAbilitiesEditor",
+			"Name": "AbilityFrameworkEditor",
 			"Type": "Editor",
 			"LoadingPhase": "Default"
 		},
@@ -46,7 +54,7 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"GameAbilities"
+				"AbilityFramework"
 			]
 		},
 		{
@@ -94,7 +102,8 @@
 			"AdditionalDependencies": [
 				"AIModule",
 				"Engine",
-				"GameAbilities"
+				"AbilityFramework",
+				"CoreUObject"
 			]
 		},
 		{
@@ -105,7 +114,31 @@
 	],
 	"Plugins": [
 		{
-			"Name": "GameplayAbilities",
+			"Name": "CodeView",
+			"Enabled": true
+		},
+		{
+			"Name": "MessagingDebugger",
+			"Enabled": true
+		},
+		{
+			"Name": "ControlRig",
+			"Enabled": true
+		},
+		{
+			"Name": "OculusInput",
+			"Enabled": false
+		},
+		{
+			"Name": "OculusLibrary",
+			"Enabled": false
+		},
+		{
+			"Name": "OculusRift",
+			"Enabled": false
+		},
+		{
+			"Name": "PerformanceMonitor",
 			"Enabled": true
 		}
 	],

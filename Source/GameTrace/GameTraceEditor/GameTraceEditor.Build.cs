@@ -4,8 +4,8 @@ namespace UnrealBuildTool.Rules
 {
 	public class GameTraceEditor : ModuleRules
 	{
-		public GameTraceEditor(TargetInfo Target)
-		{
+		public GameTraceEditor(ReadOnlyTargetRules Target) : base(Target)
+        {
 			PublicIncludePaths.AddRange(
 				new string[] {
                     "GameTrace",

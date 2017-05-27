@@ -1,5 +1,5 @@
 #pragma once
-#include "GACustomCalculation.h"
+#include "Effects/GACustomCalculation.h"
 #include "ARSpellCalculation.generated.h"
 
 /*

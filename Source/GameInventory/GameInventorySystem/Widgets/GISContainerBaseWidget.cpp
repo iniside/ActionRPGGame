@@ -51,12 +51,12 @@ void UGISContainerBaseWidget::InitializeInventory()
 			{
 				tabWidget->TabInfo = Tab;
 				//tabWidget->SetVisibility(ESlateVisibility::Hidden);
-				for (const FGISSlotInfo& Slot : Tab.TabSlots)
+				for (const FGISSlotInfo& SlotInfo : Tab.TabSlots)
 				{
 					UGISSlotBaseWidget* slotWidget = CreateWidget<UGISSlotBaseWidget>(PCOwner, Config.SlotClass);
 					if (slotWidget)
 					{
-						slotWidget->SlotInfo = Slot;
+						slotWidget->SlotInfo = SlotInfo;
 						slotWidget->TabInfo = Tab;
 						slotWidget->DropSlottName = Config.DropSlottName;
 

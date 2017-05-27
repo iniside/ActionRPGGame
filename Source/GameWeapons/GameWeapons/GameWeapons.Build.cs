@@ -4,8 +4,8 @@ namespace UnrealBuildTool.Rules
 {
 	public class GameWeapons: ModuleRules
 	{
-		public GameWeapons(TargetInfo Target)
-		{
+		public GameWeapons(ReadOnlyTargetRules Target) : base(Target)
+        {
 			PublicIncludePaths.AddRange(
 				new string[] {
                     "GameWeapons",
@@ -31,7 +31,8 @@ namespace UnrealBuildTool.Rules
 				    "Engine",
                     "GameInterfaces",
                     "GameplayTags",
-                    "GameAbilities",
+                    "AbilityFramework",
+                    "ActorSequence"
 
 					// ... add other public dependencies that you statically link with here ...
 				}

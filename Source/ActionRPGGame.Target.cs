@@ -5,39 +5,31 @@ using System.Collections.Generic;
 
 public class ActionRPGGameTarget : TargetRules
 {
-	public ActionRPGGameTarget(TargetInfo Target)
+	public ActionRPGGameTarget(TargetInfo Target) : base(Target)
 	{
         //LinkType = TargetLinkType.Modular;
         //LinkType = TargetLinkType.Monolithic;
-        Type = TargetType.Game;
-	}
+        LaunchModuleName = "ActionRPGGame";
 
-	//
-	// TargetRules interface.
-	//
-
-	public override void SetupBinaries(
-		TargetInfo Target,
-		ref List<UEBuildBinaryConfiguration> OutBuildBinaryConfigurations,
-		ref List<string> OutExtraModuleNames
-		)
-    {
-        OutExtraModuleNames.Add("TimeOfDay");
-        OutExtraModuleNames.Add("GameInterfaces");
-		OutExtraModuleNames.Add("GameTrace");
-		OutExtraModuleNames.Add("GameInventorySystem");
-		OutExtraModuleNames.Add("GameAbilities");
-        OutExtraModuleNames.Add("GameSystem");
-		OutExtraModuleNames.Add("GameWidgets");
-        OutExtraModuleNames.Add("ActionRPGGame");
+        ExtraModuleNames.Add("TimeOfDay");
+        ExtraModuleNames.Add("GameInterfaces");
+        ExtraModuleNames.Add("GameTrace");
+        ExtraModuleNames.Add("GameInventorySystem");
+        ExtraModuleNames.Add("AbilityFramework");
+        ExtraModuleNames.Add("GameSystem");
+        ExtraModuleNames.Add("GameWidgets");
+        ExtraModuleNames.Add("ActionRPGGame");
         if (UEBuildConfiguration.bBuildEditor)
         {
-			OutExtraModuleNames.Add("GameTraceEditor");
-			OutExtraModuleNames.Add("GameInventorySystemEditor");
-			OutExtraModuleNames.Add("GameAbilitiesEditor");
-			OutExtraModuleNames.Add("GameWidgetsEditor");
-            OutExtraModuleNames.Add("GameSystemEditor");
-            OutExtraModuleNames.Add("ActionRPGGameEditor");
+            ExtraModuleNames.Add("GameTraceEditor");
+            ExtraModuleNames.Add("GameInventorySystemEditor");
+            ExtraModuleNames.Add("AbilityFrameworkEditor");
+            ExtraModuleNames.Add("GameWidgetsEditor");
+            ExtraModuleNames.Add("GameSystemEditor");
+            ExtraModuleNames.Add("ActionRPGGameEditor");
+            ExtraModuleNames.Add("TimeOfDayEditor");
         }
+
+        Type = TargetType.Game;
 	}
 }

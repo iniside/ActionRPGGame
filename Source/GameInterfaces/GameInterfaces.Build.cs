@@ -4,8 +4,8 @@ namespace UnrealBuildTool.Rules
 {
 	public class GameInterfaces: ModuleRules
 	{
-		public GameInterfaces(TargetInfo Target)
-		{
+		public GameInterfaces(ReadOnlyTargetRules Target) : base(Target)
+        {
 			PublicIncludePaths.AddRange(
 				new string[] {
                     "GameInterfaces",

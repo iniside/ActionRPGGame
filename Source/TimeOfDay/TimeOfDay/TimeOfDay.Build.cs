@@ -4,8 +4,8 @@ namespace UnrealBuildTool.Rules
 {
 	public class TimeOfDay : ModuleRules
 	{
-		public TimeOfDay(TargetInfo Target)
-		{
+		public TimeOfDay(ReadOnlyTargetRules Target) : base(Target)
+        {
 			PublicIncludePaths.AddRange(
 				new string[] {
                     "TimeOfDay",

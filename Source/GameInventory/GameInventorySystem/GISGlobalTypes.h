@@ -18,7 +18,7 @@ public:
 	{};
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FGISInventoryTabConfig
 {
 	GENERATED_USTRUCT_BODY()
@@ -43,7 +43,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int32 NumberOfSlots;
 };
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FGISInventoryConfig
 {
 	GENERATED_USTRUCT_BODY()
@@ -52,7 +52,7 @@ public:
 		TArray<FGISInventoryTabConfig> TabConfigs;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FGISInventoryConfiguration
 {
 	GENERATED_USTRUCT_BODY()
@@ -116,7 +116,7 @@ public:
 	bool IsValid();
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct GAMEINVENTORYSYSTEM_API FGISLootSlotInfo
 {
 	GENERATED_USTRUCT_BODY()
@@ -178,7 +178,7 @@ namespace EGISSlotType
 		MAX_INVALID //always last.
 	};
 }
-USTRUCT()
+USTRUCT(BlueprintType)
 struct GAMEINVENTORYSYSTEM_API FGISItemDropInfo
 {
 	GENERATED_USTRUCT_BODY()
@@ -189,7 +189,7 @@ public:
 		int32 TabIndex;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct GAMEINVENTORYSYSTEM_API FGISSlotUpdateData
 {
 	GENERATED_USTRUCT_BODY()
@@ -402,7 +402,7 @@ public:
 	}
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FGISSlotsInTab
 {
 	GENERATED_USTRUCT_BODY()
@@ -414,7 +414,7 @@ public:
 		int32 NumberOfSlots;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FGISTabUpdateInfo
 {
 	GENERATED_USTRUCT_BODY()

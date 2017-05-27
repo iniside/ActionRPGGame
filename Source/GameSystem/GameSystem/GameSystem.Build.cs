@@ -4,14 +4,14 @@ namespace UnrealBuildTool.Rules
 {
 	public class GameSystem: ModuleRules
 	{
-		public GameSystem(TargetInfo Target)
-		{
+		public GameSystem(ReadOnlyTargetRules Target) : base(Target)
+        {
 			PublicIncludePaths.AddRange(
 				new string[] {
                     "GameSystem",
                     "GameSystem/Public",
-                    "GameAbilities",
-                    "GameAbilities/Public",
+                    "AbilityFramework",
+                    "AbilityFramework/Public",
                     "GameWeapons",
                     "GameWeapons/Public",
                     "GameInventorySystem",
@@ -30,7 +30,7 @@ namespace UnrealBuildTool.Rules
 				new string[] {
 					"GameSystem/Private",
                     "GameWeapons/Private",
-                    "GameAbilities/Private",
+                    "AbilityFramework/Private",
                     "GameInventorySystem/Private",
                     "GameWidgets/Private",
                     "GameTrace/Private",
@@ -52,11 +52,12 @@ namespace UnrealBuildTool.Rules
                     "GameInterfaces",
                     "GameTrace",
                     "GameplayTasks",
-                    "GameAbilities",
+                    "AbilityFramework",
                     "GameWeapons",
                     "GameInventorySystem",
                     "GameWidgets",
-                    "GameplayTags"
+                    "GameplayTags",
+                    "ActorSequence"
                    // 
 					// ... add other public dependencies that you statically link with here ...
 				}

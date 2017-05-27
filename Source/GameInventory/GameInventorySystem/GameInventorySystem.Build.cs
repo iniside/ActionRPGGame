@@ -4,8 +4,8 @@ namespace UnrealBuildTool.Rules
 {
 	public class GameInventorySystem : ModuleRules
 	{
-		public GameInventorySystem(TargetInfo Target)
-		{
+		public GameInventorySystem(ReadOnlyTargetRules Target) : base(Target)
+        {
 			PublicIncludePaths.AddRange(
 				new string[] {
                     "GameInventorySystem",

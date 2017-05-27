@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "GAAttributesBase.h"
+#include "Attributes/GAAttributesBase.h"
 #include "ARAbilityAttributes.generated.h"
 
 /**
@@ -15,36 +15,36 @@ class ACTIONRPGGAME_API UARAbilityAttributes : public UGAAttributesBase
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
-		FGAAttributeBase ActivationTime;
+		FAFAttributeBase ActivationTime;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
-		FGAAttributeBase CooldownTime;
+		FAFAttributeBase CooldownTime;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
-		FGAAttributeBase PeriodTime;
+		FAFAttributeBase PeriodTime;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
-		FGAAttributeBase Range;
+		FAFAttributeBase Range;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
-		FGAAttributeBase Radius;
+		FAFAttributeBase Radius;
 
 	/* Bonus to damage or healing */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
-		FGAAttributeBase RawBonus;
+		FAFAttributeBase RawBonus;
 	/* Bonus to damage or healing */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
-		FGAAttributeBase PercentageBonus;
+		FAFAttributeBase PercentageBonus;
 
 	/* Bonus to damage */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
-		FGAAttributeBase RawBonusDamage;
+		FAFAttributeBase RawBonusDamage;
 	/* Bonus to damage */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
-		FGAAttributeBase PercentageBonusDamage;
+		FAFAttributeBase PercentageBonusDamage;
 
 	/* Bonus to healing */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
-		FGAAttributeBase RawBonusHeal;
+		FAFAttributeBase RawBonusHeal;
 	/* Bonus to healing */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
-		FGAAttributeBase PercentageBonusHeal;
+		FAFAttributeBase PercentageBonusHeal;
 	
 };

@@ -257,3 +257,10 @@ Saved/
 *.sln
 *.sln
 *.sln
+*.db
+.vs/ActionRPGGame/v15/Browse.VC.opendb
+*.db-shm
+.vs/config/applicationhost.config
+*.config
+.vs/ActionRPGGame/v15/Solution.VC.db-wal
+CodeBackup/States/GASAbilityStateCooldown.h

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "GAAbilityBase.h"
+#include "Abilities/GAAbilityBase.h"
 #include "GWAbilityBase.generated.h"
 
 /**

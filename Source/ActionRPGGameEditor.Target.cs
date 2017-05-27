@@ -5,36 +5,25 @@ using System.Collections.Generic;
 
 public class ActionRPGGameEditorTarget : TargetRules
 {
-	public ActionRPGGameEditorTarget(TargetInfo Target)
+	public ActionRPGGameEditorTarget(TargetInfo Target) : base (Target)
 	{
         //LinkType = TargetLinkType.Modular;
        // LinkType = TargetLinkType.Monolithic;
         Type = TargetType.Editor;
-	}
-
-	//
-	// TargetRules interface.
-	//
-
-	public override void SetupBinaries(
-		TargetInfo Target,
-		ref List<UEBuildBinaryConfiguration> OutBuildBinaryConfigurations,
-		ref List<string> OutExtraModuleNames
-		)
-	{
-        OutExtraModuleNames.Add("TimeOfDay");
-        OutExtraModuleNames.Add("GameInterfaces");
-        OutExtraModuleNames.Add("GameInventorySystem");
-        OutExtraModuleNames.Add("GameInventorySystemEditor");
-        OutExtraModuleNames.Add("GameAbilities");
-		OutExtraModuleNames.Add("GameAbilitiesEditor");
-        OutExtraModuleNames.Add("GameWidgets");
-        OutExtraModuleNames.Add("GameWidgetsEditor");
-        OutExtraModuleNames.Add("GameWeapons");
-        OutExtraModuleNames.Add("GameWeaponsEditor");
-        OutExtraModuleNames.Add("GameSystem");
-        OutExtraModuleNames.Add("GameSystemEditor");
-        OutExtraModuleNames.Add("ActionRPGGame");
-        OutExtraModuleNames.Add("ActionRPGGameEditor");
+        ExtraModuleNames.Add("TimeOfDay");
+        ExtraModuleNames.Add("GameInterfaces");
+        ExtraModuleNames.Add("GameInventorySystem");
+        ExtraModuleNames.Add("GameInventorySystemEditor");
+        ExtraModuleNames.Add("AbilityFramework");
+        ExtraModuleNames.Add("AbilityFrameworkEditor");
+        ExtraModuleNames.Add("GameWidgets");
+        ExtraModuleNames.Add("GameWidgetsEditor");
+        ExtraModuleNames.Add("GameWeapons");
+        ExtraModuleNames.Add("GameWeaponsEditor");
+        ExtraModuleNames.Add("GameSystem");
+        ExtraModuleNames.Add("GameSystemEditor");
+        ExtraModuleNames.Add("ActionRPGGame");
+        ExtraModuleNames.Add("ActionRPGGameEditor");
+        ExtraModuleNames.Add("TimeOfDayEditor");
     }
 }

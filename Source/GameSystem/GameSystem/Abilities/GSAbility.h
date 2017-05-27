@@ -1,5 +1,5 @@
 #pragma once
-#include "GAAbilityBase.h"
+#include "Abilities/GAAbilityBase.h"
 
 #include "../Cues/GSCueTypes.h"
 #include "../Cues/IGSCue.h"

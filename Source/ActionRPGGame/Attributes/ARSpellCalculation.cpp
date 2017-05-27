@@ -2,11 +2,11 @@
 
 #include "ActionRPGGame.h"
 #include "GAAbilitiesComponent.h"
-#include "GAAttributesBase.h"
+#include "Attributes/GAAttributesBase.h"
 #include "ARCharacterAttributes.h"
 #include "ARSpellCalculation.h"
 
-#include "GAGameEffect.h"
+#include "Effects/GAGameEffect.h"
 
 UARSpellCalculation::UARSpellCalculation(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -21,11 +21,11 @@ float UARSpellCalculation::NativeCalculateMagnitude(const FGAEffectHandle& Handl
 	FGAEffect& Effect = HandleIn.GetEffectRef();
 	if (InstigatorAttr)
 	{
-		FinalValue = (InstigatorAttr->Intelligence.GetCurrentValue() * 3)
-			+ InstigatorAttr->IntelligenceMod.GetCurrentValue()
-			+ (InstigatorAttr->Magic.GetCurrentValue() * 5);
-		FGAIndividualMods ModsOut;
-		Bonuses = InstigatorAttr->MagicalDamage.GetBonusValueByTags(Effect.OwnedTags, ModsOut);
+		//FinalValue = (InstigatorAttr->Intelligence.GetCurrentValue() * 1)
+		//	+ InstigatorAttr->IntelligenceMod.GetCurrentValue()
+		//	+ (InstigatorAttr->Magic.GetCurrentValue() * 1);
+		//FGAIndividualMods ModsOut;
+		//Bonuses = InstigatorAttr->MagicalDamage.GetBonusValueByTags(Effect.OwnedTags, ModsOut);
 	}
 	return FinalValue;
 }

@@ -1,6 +1,6 @@
 #pragma once
-#include "GAEffectExecution.h"
-#include "GAGameEffect.h"
+#include "Effects/GAEffectExecution.h"
+#include "Effects/GAGameEffect.h"
 #include "ARSpellExecution.generated.h"
 
 /*

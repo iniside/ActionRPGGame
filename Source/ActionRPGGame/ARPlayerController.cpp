@@ -48,10 +48,10 @@ void AARPlayerController::SetupInputComponent()
 }
 
 //
-void AARPlayerController::OnRecivedModifiedAttribute(const FGAModifiedAttribute& AttributeModIn)
-{
-
-}
+//void AARPlayerController::OnRecivedModifiedAttribute(const FGAModifiedAttribute& AttributeModIn)
+//{
+//
+//}
 
 UGISInventoryBaseComponent* AARPlayerController::GetInventory()
 {

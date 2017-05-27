@@ -2,7 +2,7 @@
 
 #include "ActionRPGGame.h"
 #include "Attributes/GSAttributeComponent.h"
-#include "GAAttributesStats.h"
+#include "Attributes/GAAttributesStats.h"
 
 #include "Net/UnrealNetwork.h"
 
@@ -15,14 +15,32 @@ DEFINE_STAT(STAT_IncomingAttribute);
 UARCharacterAttributes::UARCharacterAttributes(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
-	Damage = 0;
-	FireDamage = 0;
 	Health.BaseValue = 300;
+	Health.MaxValue = 400;
+	
+	Strenght.BaseValue = 10;
+	Strenght.MaxValue = 30;
+
+	Intelligence.BaseValue = 10;
+	Intelligence.MaxValue = 30;
+
+	IntelligenceMod.BaseValue = 10;
+	IntelligenceMod.MaxValue = 30;
+
+	MagicalDamage.BaseValue = 5;
+	MagicalDamage.MaxValue = 20;
+
+	BonusDamage.BaseValue = 0;
+	BonusDamage.MaxValue = 100;
+
+	Magic.BaseValue = 10;
+	Magic.MaxValue = 30;
+
 }
-void UARCharacterAttributes::InitializeAttributes()
+void UARCharacterAttributes::InitializeAttributes(UGAAbilitiesComponent* InOwningAttributeComp)
 {
 
-	Super::InitializeAttributes();
+	Super::InitializeAttributes(InOwningAttributeComp);
 	PostModifyAttributeFunctions.Empty();
 	IncomingModifyAttributeFunctions.Empty();
 	OutgoingModifyAttributeFunctions.Empty();

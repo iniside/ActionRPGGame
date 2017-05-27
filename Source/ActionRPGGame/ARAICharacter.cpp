@@ -6,7 +6,7 @@
 #include "Items/ARItemInfo.h"
 #include "Widgets/GISContainerBaseWidget.h"
 #include "Items/GSEquipmentComponent.h"
-#include "GAAttributesBase.h"
+#include "Attributes/GAAttributesBase.h"
 
 #include "Items/GSEquipmentComponent.h"
 #include "Weapons/GSWeaponEquipmentComponent.h"
@@ -18,7 +18,7 @@
 
 //#include "Net/UnrealNetwork.h"
 //#include "Engine/ActorChannel.h"
-
+#include "ARCharacterMovementComponent.h"
 #include "GSPlayerController.h"
 #include "ARPlayerController.h"
 

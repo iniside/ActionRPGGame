@@ -4,8 +4,8 @@ namespace UnrealBuildTool.Rules
 {
 	public class GameWidgetsEditor : ModuleRules
 	{
-		public GameWidgetsEditor(TargetInfo Target)
-		{
+		public GameWidgetsEditor(ReadOnlyTargetRules Target) : base(Target)
+        {
 			PublicIncludePaths.AddRange(
 				new string[] {
                     "GameWidgets",

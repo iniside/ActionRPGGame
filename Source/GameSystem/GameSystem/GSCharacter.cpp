@@ -102,7 +102,7 @@ void AGSCharacter::AttachActor(AActor* ActorIn, FName SocketNameIn)
 {
 	if (ActorIn)
 	{
-		ActorIn->DetachRootComponentFromParent();
+		ActorIn->DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
 		ActorIn->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, SocketNameIn);
 	}
 }

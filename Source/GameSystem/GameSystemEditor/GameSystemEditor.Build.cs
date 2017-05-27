@@ -4,8 +4,8 @@ namespace UnrealBuildTool.Rules
 {
 	public class GameSystemEditor : ModuleRules
 	{
-		public GameSystemEditor(TargetInfo Target)
-		{
+		public GameSystemEditor(ReadOnlyTargetRules Target) : base(Target)
+        {
 			PublicIncludePaths.AddRange(
 				new string[] {
                     "GameSystem",
@@ -16,10 +16,10 @@ namespace UnrealBuildTool.Rules
                     "GameWeapons/Public",
                     "GameWeaponsEditor",
                     "GameWeaponsEditor/Public",
-                    "GameAbilities",
-                    "GameAbilities/Public",
-                    "GameAbilitiesEditor",
-                    "GameAbilitiesEditor/Public",
+                    "AbilityFramework",
+                    "AbilityFramework/Public",
+                    "AbilityFrameworkEditor",
+                    "AbilityFrameworkEditor/Public",
                     "GameInventorySystem",
                     "GameInventorySystem/Public",
                     "GameInventorySystemEditor",
@@ -34,8 +34,8 @@ namespace UnrealBuildTool.Rules
 					"GameSystemEditor/Private",
                     "GameWeapons/Private",
                     "GameWeaponsEditor/Private",
-                    "GameAbilities/Private",
-                    "GameAbilitiesEditor/Private",
+                    "AbilityFramework/Private",
+                    "AbilityFrameworkEditor/Private",
                     "GameInventorySystem/Private",
                     "GameInventorySystemEditor/Private",
 					// ... add other private include paths required here ...
@@ -62,11 +62,11 @@ namespace UnrealBuildTool.Rules
                     "InputCore",
                     "GameplayTasksEditor",
                     "GameSystem",
-                    "GameAbilities",
+                    "AbilityFramework",
                     "GameWeapons",
                     "GameWeaponsEditor",
                     "GameInventorySystem",
-                    "GameAbilitiesEditor",
+                    "AbilityFrameworkEditor",
                     "GameInventorySystemEditor"
 					// ... add other public dependencies that you statically link with here ...
 				}
