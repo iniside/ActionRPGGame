@@ -451,8 +451,10 @@ public:
 	virtual float NativeGetAttributeValue(const FGAAttribute AttributeIn) const override;
 	virtual FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn) override { return Attributes->GetAttribute(AttributeIn); };
 	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) override { Attributes->RemoveBonus(AttributeIn, HandleIn, HandleIn.GetAttributeMod()); };
-	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn) override { Attributes->ModifyAttribute(ModIn, HandleIn); };
-	virtual FGAEffectHandle ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn) override;
+	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn
+	, FGAEffectProperty& InProperty) override { Attributes->ModifyAttribute(ModIn, HandleIn, InProperty); };
+	virtual FGAEffectHandle ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn,
+		FGAEffectProperty& InProperty) override;
 	virtual void RemoveTagContainer(const FGameplayTagContainer& TagsIn) override;
 
 	/* IIGAAbilities End **/

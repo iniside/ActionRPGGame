@@ -310,9 +310,10 @@ float AARCharacter::GetAttributeValue(FGAAttribute AttributeIn) const
 {
     return Attributes->DefaultAttributes->GetFloatValue(AttributeIn);
 }
-void AARCharacter::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn)
+void AARCharacter::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn
+	, FGAEffectProperty& InProperty)
 {
-	GetAttributes()->ModifyAttribute(ModIn, HandleIn);
+	GetAttributes()->ModifyAttribute(ModIn, HandleIn, InProperty);
 }
 FAFAttributeBase* AARCharacter::GetAttribute(FGAAttribute AttributeIn)
 {
@@ -322,9 +323,10 @@ void AARCharacter::RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& 
 {
 	GetAttributes()->RemoveBonus(AttributeIn, HandleIn, HandleIn.GetAttributeMod());
 }
-FGAEffectHandle AARCharacter::ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn)
+FGAEffectHandle AARCharacter::ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn,
+	FGAEffectProperty& InProperty)
 {
-	return GetAbilityComp()->ApplyEffectToTarget(EffectIn, HandleIn);
+	return GetAbilityComp()->ApplyEffectToTarget(EffectIn, HandleIn, InProperty);
 };
 void AARCharacter::RemoveTagContainer(const FGameplayTagContainer& TagsIn)
 {

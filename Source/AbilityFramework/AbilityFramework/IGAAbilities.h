@@ -31,13 +31,16 @@ public:
 		virtual float GetAttributeValue(FGAAttribute AttributeIn) const { return 0; };
 
 	//virtual FMessageAddress& GetAddress() const { return nullptr; }
-	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn) {};
+	virtual void ApplyDuration(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn) {};
+	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn,
+		struct FGAEffectProperty& InProperty) {};
 	virtual FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn) { return nullptr; };
 	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) {};
 
 	virtual float NativeGetAttributeValue(const FGAAttribute AttributeIn) const { return 0; };
 
-	virtual FGAEffectHandle ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn) { return FGAEffectHandle(); };
+	virtual FGAEffectHandle ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn,
+		FGAEffectProperty& InProperty) { return FGAEffectHandle(); };
 	virtual void RemoveTagContainer(const FGameplayTagContainer& TagsIn) {};
 	//override to allow gathering tags from causer
 	//those tags will be merged into effect owned tags.

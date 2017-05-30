@@ -40,7 +40,7 @@ FGAEffectHandle UGAEffectExtension::ApplyEffect(TSubclassOf<class UGAGameEffectS
 {
 	FGAEffectHandle handle = Context.InstigatorComp->MakeGameEffect(SpecIn, Context);
 
-	Context.InstigatorComp->ApplyEffectToTarget(handle.GetEffect(), handle);
+	//Context.InstigatorComp->ApplyEffectToTarget(handle.GetEffect(), handle);
 	return handle;
 }
 void UGAEffectExtension::NativeOnEffectApplied()

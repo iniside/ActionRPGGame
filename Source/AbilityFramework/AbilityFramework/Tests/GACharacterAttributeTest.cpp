@@ -42,9 +42,14 @@ class UGAAbilitiesComponent* AGACharacterAttributeTest::GetAbilityComp()
 {
 	return Attributes;
 }
-void AGACharacterAttributeTest::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn)
+void AGACharacterAttributeTest::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn,
+	FGAEffectProperty& InProperty)
 { 
-	GetAttributes()->ModifyAttribute(ModIn, HandleIn);
+	GetAttributes()->ModifyAttribute(ModIn, HandleIn, InProperty);
+}
+void AGACharacterAttributeTest::ApplyDuration(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn)
+{
+	GetAttributes()->ApplyDuration(ModIn, HandleIn);
 }
 FAFAttributeBase* AGACharacterAttributeTest::GetAttribute(FGAAttribute AttributeIn)
 { 
@@ -54,9 +59,10 @@ void AGACharacterAttributeTest::RemoveBonus(FGAAttribute AttributeIn, const FGAE
 {
 	GetAttribute(AttributeIn)->RemoveBonus(HandleIn, InMod);
 }
-FGAEffectHandle AGACharacterAttributeTest::ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn)
+FGAEffectHandle AGACharacterAttributeTest::ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn,
+	FGAEffectProperty& InProperty)
 { 
-	return GetAbilityComp()->ApplyEffectToTarget(EffectIn, HandleIn);
+	return GetAbilityComp()->ApplyEffectToTarget(EffectIn, HandleIn, InProperty);
 };
 void AGACharacterAttributeTest::RemoveTagContainer(const FGameplayTagContainer& TagsIn)
 {

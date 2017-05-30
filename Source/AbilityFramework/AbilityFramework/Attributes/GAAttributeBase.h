@@ -51,15 +51,15 @@ struct ABILITYFRAMEWORK_API FAFAttributeBase
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 		float BaseValue;
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 		float MinValue;
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 		float MaxValue;
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 		float CurrentValue;
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 		float BonusValue;
 
 	UPROPERTY(EditAnywhere)
@@ -86,7 +86,8 @@ public:
 	void CalculateBonus();
 	bool CheckIfModsMatch(const FGAEffectHandle& InHandle, const FGAEffectMod& InMod);
 	bool CheckIfStronger(const FGAEffectHandle& InHandle, const FGAEffectMod& InMod);
-	float Modify(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn);
+	float Modify(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);
+	float DurationModify(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn);
 	void AddBonus(const FGAEffectMod& ModIn, const FGAEffectHandle& Handle);
 	void RemoveBonus(const FGAEffectHandle& Handle, EGAAttributeMod InMod);
 	EAFAttributeStacking GetStacking() const { return Stacking; }

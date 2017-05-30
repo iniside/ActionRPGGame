@@ -78,9 +78,8 @@ UENUM()
 enum class EGAEffectType : uint8
 {
 	Instant = 0,
-	Periodic = 1,
-	Duration = 2,
-	Infinite = 3
+	Duration = 1,
+	Infinite = 2,
 };
 
 /* How applied effects should stack on Attribute */
@@ -370,7 +369,8 @@ public:
 	FGAEffectContext& GetContext() const;
 
 	/* Executes effect trough provided execution class. */
-	void ExecuteEffect(const FGAEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAEffectContext& Context);
+	void ExecuteEffect(const FGAEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAEffectContext& Context,
+		struct FGAEffectProperty& InProperty);
 
 	void AppendOwnedTags(const FGameplayTagContainer& TagsIn);
 	void AppendOwnedTags(const FGameplayTagContainer& TagsIn) const;
@@ -378,6 +378,8 @@ public:
 	FGAAttribute GetAttribute() const;
 	EGAAttributeMod GetAttributeMod() const;
 	EAFAttributeStacking GetAttributeStacking() const;
+	EGAEffectType GetEffectType() const;
+	bool GetWithPeriod() const;
 	static FGAEffectHandle GenerateHandle(FGAEffect* EffectIn);
 	bool HasAllTags(const FGameplayTagContainer& TagsIn) const;
 	bool HasAllTagsExact(const FGameplayTagContainer& TagsIn) const;

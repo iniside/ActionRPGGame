@@ -65,8 +65,14 @@ void FGAEffectPropertyStructCustomization::CustomizeHeader(TSharedRef<IPropertyH
 			InStructPropertyHandle->CreatePropertyNameWidget()
 		]
 		.ValueContent()
+		.HAlign(HAlign_Fill)
 		[
-			EffectClassWidget->CreateEffectClassWidget()
+			SNew(SHorizontalBox)
+			+SHorizontalBox::Slot()
+			.AutoWidth()
+			[
+				EffectClassWidget->CreateEffectClassWidget()
+			]
 		];
 }
 void FGAEffectPropertyStructCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> InStructPropertyHandle, IDetailChildrenBuilder& StructBuilder, IPropertyTypeCustomizationUtils& StructCustomizationUtils)

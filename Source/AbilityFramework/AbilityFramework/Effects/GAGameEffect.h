@@ -118,10 +118,16 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Effect Info")
 		EGAEffectType EffectType;
+	UPROPERTY(EditAnywhere, Category = "Effect Info")
+		bool bWithPeriod;
+	UPROPERTY(EditAnywhere, Category = "Effect Info")
+		TSubclassOf<class UAFEffectApplicationRequirement> ApplicationRequirement;
 	/* 
 		How effect should stack. Only relevelant for periodic effects
 		and modifiers applied on period.
 	*/
+	UPROPERTY(EditAnywhere, Category = "Stacking")
+		TSubclassOf<class UAFEffectCustomApplication> Application;
 	UPROPERTY(EditAnywhere, Category = "Stacking")
 		EGAEffectStacking Stacking;
 	UPROPERTY(EditAnywhere, Category = "Stacking")
@@ -148,6 +154,8 @@ public:
 		bool bTickOnApplication;
 	UPROPERTY(EditAnywhere, Category = "Duration")
 		bool bExecuteOnApplication;
+
+
 	/* 
 		Modifier applied to attribute
 	*/
@@ -286,6 +294,17 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		FGAEffectClass SpecClass;
 
+	UPROPERTY()
+		class UAFEffectApplicationRequirement* ApplicationRequirement;
+	UPROPERTY()
+		class UAFEffectCustomApplication* Application;
+	UPROPERTY()
+		class UGAEffectExecution* Execution;
+
+	UPROPERTY()
+		float Duration;
+	UPROPERTY()
+		float Period;
 	/* Handle to effect created from SpecClass */
 	FGAEffectHandle Handle;
 
@@ -356,8 +375,8 @@ public:
 
 	FGAEffectHandle Handle;
 
-	FTimerHandle PeriodTimerHandle;
-	FTimerHandle DurationTimerHandle;
+	mutable FTimerHandle PeriodTimerHandle;
+	mutable FTimerHandle DurationTimerHandle;
 	/* Spawmed by which ability. */
 	TWeakObjectPtr<class UGAAbilityBase> Ability;
 	FGAEffectMod AttributeMod;
@@ -385,12 +404,12 @@ public:
 	void OnExecuted();
 	void DurationExpired();
 
-	float GetDurationTime();
-	float GetPeriodTime();
+	float GetDurationTime() const;
+	float GetPeriodTime() const;
 	float GetCurrentActivationTime();
 	float GetCurrentActivationTime() const;
 	float GetCurrentTickTime();
-	float GetFloatFromAttributeMagnitude(const FGAMagnitude& AttributeIn);
+	float GetFloatFromAttributeMagnitude(const FGAMagnitude& AttributeIn) const;
 	bool IsValid() const
 	{
 		return GameEffect != nullptr;
@@ -596,16 +615,20 @@ public:
 public:
 	FGAEffectContainer();
 
-	void ApplyEffect(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn);
+	void ApplyEffect(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);
 	/* Removesgiven number of effects of the same type. If Num == 0 Removes all effects */
 	void RemoveEffect(const FGAEffectHandle& HandleIn, int32 Num = 0);
 	/* Remove given number of effects of the same type */
 	void ApplyReplicationInfo(const FGAEffectHandle& HandleIn);
 	inline int32 GetEffectsNum() const { return ActiveEffectHandles.Num(); };
-protected:
+
 	EGAEffectAggregation GetEffectAggregation(const FGAEffectHandle& HandleIn) const;
 
-	void AddEffectDuration(const FGAEffectHandle& HandleIn);
+	void AddEffectDuration(const FGAEffectHandle& HandleIn, const EGAEffectType EffectType,
+		const FGAEffect& InEffect);
+	void AddEffectPeriod(const FGAEffectHandle& HandleIn, const EGAEffectType EffectType,
+		const FGAEffect& InEffect);
+
 	void ExtendEffectDuration(const FGAEffectHandle& ExistingEffect, const FGAEffectHandle& HandleIn);
 	void ApplyOverrideEffect(const FGAEffectHandle& HandleIn);
 
@@ -615,7 +638,8 @@ protected:
 	void AddEffectByClass(const FGAEffectHandle& HandleIn);
 
 	void ApplyEffectWithDuration(const FGAEffectHandle& InHandle);
-	void ApplyEffectWithPeriod(const FGAEffectHandle& InHandle);
+	void ApplyEffectWithPeriod(const FGAEffectHandle& InHandle, const EGAEffectType EffectType,
+		const FGAEffect& InEffect);
 	bool CheckCanApplyDuration(const FGAEffectHandle& InHandle);
 	
 	void RemoveFromAttribute(const FGAEffectHandle& HandleIn);

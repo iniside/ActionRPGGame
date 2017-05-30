@@ -24,10 +24,15 @@ void FGAEffectDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 	FSimpleDelegate UpdateEffectTypeyDelegate = FSimpleDelegate::CreateSP(this, &FGAEffectDetails::OnDurationPolicyChange);
 	EffectTypeProp->SetOnPropertyValueChanged(UpdateEffectTypeyDelegate);
 
+	TSharedPtr<IPropertyHandle> WithPeriodProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, bWithPeriod), UGAGameEffectSpec::StaticClass());
+	FSimpleDelegate UpdateEffectWithPeriod = FSimpleDelegate::CreateSP(this, &FGAEffectDetails::OnDurationPolicyChange);
+	WithPeriodProp->SetOnPropertyValueChanged(UpdateEffectWithPeriod);
+
 	for (TWeakObjectPtr<UObject> obj : Objects)
 	{
 		if (UGAGameEffectSpec* Spec = Cast<UGAGameEffectSpec>(obj.Get()))
 		{
+			bool bWithPeriod = Spec->bWithPeriod;
 			switch (Spec->EffectType)
 			{
 			case EGAEffectType::Duration:
@@ -36,7 +41,8 @@ void FGAEffectDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 				TSharedPtr<IPropertyHandle> PeriodProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Period), UGAGameEffectSpec::StaticClass());
 
 				DetailLayout.HideProperty(PeriodicStackingProp);
-				DetailLayout.HideProperty(PeriodProp);
+				if(!bWithPeriod)
+					DetailLayout.HideProperty(PeriodProp);
 				break;
 			}
 			case EGAEffectType::Infinite:
@@ -49,7 +55,8 @@ void FGAEffectDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 
 				DetailLayout.HideProperty(DurationStackingProp);
 				DetailLayout.HideProperty(DurationProp);
-				DetailLayout.HideProperty(PeriodProp);
+				if (!bWithPeriod)
+					DetailLayout.HideProperty(PeriodProp);
 				DetailLayout.HideProperty(MaxStackedDurationProp);
 				break;
 			}
@@ -66,15 +73,6 @@ void FGAEffectDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 				DetailLayout.HideProperty(DurationProp);
 				DetailLayout.HideProperty(PeriodProp);
 				DetailLayout.HideProperty(MaxStackedDurationProp);
-				break;
-			}
-			case EGAEffectType::Periodic:
-			{
-				/*TSharedPtr<IPropertyHandle> DurationStackingProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, DurationStacking), UGAGameEffectSpec::StaticClass());
-				TSharedPtr<IPropertyHandle> InfiniteStackingProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, InfiniteStacking), UGAGameEffectSpec::StaticClass());
-
-				DetailLayout.HideProperty(DurationStackingProp);
-				DetailLayout.HideProperty(InfiniteStackingProp);*/
 				break;
 			}
 			}

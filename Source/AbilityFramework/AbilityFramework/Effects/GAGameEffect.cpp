@@ -10,6 +10,8 @@
 #include "GAEffectExecution.h"
 #include "GAEffectExtension.h"
 #include "../GAGlobalTypes.h"
+#include "AFEffectApplicationRequirement.h"
+#include "AFEffectCustomApplication.h"
 #include "GAGameEffect.h"
 
 DEFINE_STAT(STAT_GatherModifiers);
@@ -137,15 +139,15 @@ void FGAEffect::DurationExpired()
 
 }
 
-float FGAEffect::GetDurationTime()
+float FGAEffect::GetDurationTime() const
 {
 	return GetFloatFromAttributeMagnitude(GameEffect->Duration);
 }
-float FGAEffect::GetPeriodTime()
+float FGAEffect::GetPeriodTime() const
 {
 	return GetFloatFromAttributeMagnitude(GameEffect->Period);
 }
-float FGAEffect::GetFloatFromAttributeMagnitude(const FGAMagnitude& AttributeIn)
+float FGAEffect::GetFloatFromAttributeMagnitude(const FGAMagnitude& AttributeIn) const
 {
 	switch (AttributeIn.CalculationType)
 	{
@@ -243,32 +245,35 @@ void FGameCueContainer::AddCue(FGAEffectHandle EffectHandle, FGAEffectCueParams 
 }
 
 void FGAEffectContainer::ApplyEffect(const FGAEffect& EffectIn
-	, const FGAEffectHandle& HandleIn)
+	, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty)
 {
 	//instant effect goes trough simplest application path
 	//just make effect and run it trough modifiers.
 
 	//FGAEffect Effect = EfNoConst.Calculation->ModiifyEffect(EffectIn);
+	if (EffectIn.GameEffect->ApplicationRequirement.GetDefaultObject()->CanApply(HandleIn))
+	{
+		if (EffectIn.GameEffect->Application.GetDefaultObject()->ApplyEffect(HandleIn,
+			EffectIn, InProperty, this))
+		{
+			return;
+		}
+	}
+	return;
 	UE_LOG(GameAttributesEffects, Log, TEXT("UGAAbilitiesComponent:: Apply periodic effect: %s"), *EffectIn.GameEffect->GetName());
 	switch (EffectIn.GameEffect->EffectType)
 	{
 	case EGAEffectType::Instant:
 	{
 		//dont do anything fancy now simply execute effect and forget about it.
-		HandleIn.GetContext().TargetComp->ExecuteEffect(HandleIn);
-		break;
-	}
-	case EGAEffectType::Periodic:
-	{
-		UE_LOG(GameAttributesEffects, Log, TEXT("UGAAbilitiesComponent:: Apply periodic effect"));
-		ApplyEffectWithPeriod(HandleIn);
+		//EffectIn.Context.TargetComp->ExecuteEffect(HandleIn);
+		//HandleIn.GetContext().TargetComp->ExecuteEffect(HandleIn);
 		break;
 	}
 	case EGAEffectType::Duration:
 	{
 		UE_LOG(GameAttributesEffects, Log, TEXT("UGAAbilitiesComponent:: Apply effect for duration"));
 		ApplyEffectWithDuration(HandleIn);
-
 		break;
 	}
 	case EGAEffectType::Infinite:
@@ -287,37 +292,60 @@ void FGAEffectContainer::ApplyEffect(const FGAEffect& EffectIn
 	{
 		FGAEffectHandle Handle = EffectIn.Context.TargetComp->MakeGameEffect(Spec, EffectIn.Context);
 
-		EffectIn.Context.InstigatorComp->ApplyEffectToTarget(Handle.GetEffect(), Handle);
+		EffectIn.Context.InstigatorComp->ApplyEffectToTarget(Handle.GetEffect(), Handle, InProperty);
 	}
 }
 void FGAEffectContainer::ApplyEffectWithDuration(const FGAEffectHandle& InHandle)
 {
-	UGAGameEffectSpec* Spec = InHandle.GetEffectSpec();
-	EGAEffectStacking Stacking = InHandle.GetEffectSpec()->Stacking;
-	EAFAttributeStacking AttributeStacking = InHandle.GetAttributeStacking();
-	switch (AttributeStacking)
+	const UGAGameEffectSpec* Spec = InHandle.GetEffectSpec();
+	const EGAEffectStacking Stacking = InHandle.GetEffectSpec()->Stacking;
+	const bool bIsPeriodic = InHandle.GetWithPeriod();
+	const EGAEffectType EffectType = InHandle.GetEffectType();
+	const FGAEffect& Effect = InHandle.GetEffectRef();
+
+	if (bIsPeriodic)
 	{
+		ApplyEffectWithPeriod(InHandle, EffectType, Effect);
+		/*if (Effect.GameEffect->bExecuteOnApplication)
+			InHandle.GetContext().TargetComp->ExecuteEffect(InHandle);*/
+	}
+	else if(InHandle.GetAttribute().IsValid())
+	{
+		const EAFAttributeStacking AttributeStacking = InHandle.GetAttributeStacking();
+		switch (AttributeStacking)
+		{
 		case EAFAttributeStacking::Add:
 		{
 			//just add modifier
-			AddEffectDuration(InHandle); 
+			AddEffectDuration(InHandle, EffectType, Effect);
 			break;
 		}
 		case EAFAttributeStacking::Override:
 		{
 			if (CheckCanApplyDuration(InHandle))
+			{
 				ApplyOverrideEffect(InHandle);
+				AddEffectDuration(InHandle, EffectType, Effect);
+			}
 			break;
 		}
 		case EAFAttributeStacking::StrongerOverride:
 		{
 			if (CheckCanApplyDuration(InHandle))
+			{
 				ApplyOverrideEffect(InHandle);
+				AddEffectDuration(InHandle, EffectType, Effect);
+			}
 			break;
 		}
+		}
+		//if (Effect.GameEffect->bExecuteOnApplication)
+		//	InHandle.GetContext().TargetComp->ExecuteEffect(InHandle);
 	}
+	AddEffect(InHandle);
 }
-void FGAEffectContainer::ApplyEffectWithPeriod(const FGAEffectHandle& InHandle)
+void FGAEffectContainer::ApplyEffectWithPeriod(const FGAEffectHandle& InHandle, const EGAEffectType EffectType,
+	const FGAEffect& InEffect)
 {
 	UGAGameEffectSpec* Spec = InHandle.GetEffectSpec();
 	EGAEffectStacking Stacking = InHandle.GetEffectSpec()->Stacking;
@@ -326,7 +354,11 @@ void FGAEffectContainer::ApplyEffectWithPeriod(const FGAEffectHandle& InHandle)
 	{
 	case EGAEffectStacking::Override:
 	{
-			ApplyOverrideEffect(InHandle);
+		ApplyOverrideEffect(InHandle);
+		AddEffectDuration(InHandle, EffectType, InEffect);
+		AddEffectPeriod(InHandle, EffectType, InEffect);
+		//if (InEffect.GameEffect->bExecuteOnApplication)
+		//	InHandle.GetContext().TargetComp->ExecuteEffect(InHandle);
 		break;
 	}
 	case EGAEffectStacking::Duration:
@@ -341,13 +373,17 @@ void FGAEffectContainer::ApplyEffectWithPeriod(const FGAEffectHandle& InHandle)
 		}
 		else
 		{
-				AddEffectDuration(InHandle);
+			AddEffectDuration(InHandle, EffectType, InEffect);
+			AddEffectPeriod(InHandle, EffectType, InEffect);
 		}
 		break;
 	}
 	case EGAEffectStacking::Add:
 	{
-			AddEffectDuration(InHandle);
+		AddEffectDuration(InHandle, EffectType, InEffect);
+		AddEffectPeriod(InHandle, EffectType, InEffect);
+			//if (InEffect.GameEffect->bExecuteOnApplication)
+			//	InHandle.GetContext().TargetComp->ExecuteEffect(InHandle);
 		break;
 	}
 	default:
@@ -401,32 +437,29 @@ EGAEffectAggregation FGAEffectContainer::GetEffectAggregation(const FGAEffectHan
 	return Spec->EffectAggregation;
 }
 
-void FGAEffectContainer::AddEffectDuration(const FGAEffectHandle& HandleIn)
+void FGAEffectContainer::AddEffectDuration(const FGAEffectHandle& HandleIn, const EGAEffectType EffectType
+	, const FGAEffect& InEffect)
 {
-	FGAEffect& ExtEffect = HandleIn.GetEffectRef();
-	if (ExtEffect.GameEffect->EffectType == EGAEffectType::Duration
-		|| ExtEffect.GameEffect->EffectType == EGAEffectType::Periodic)
+	if (EffectType == EGAEffectType::Infinite)
 	{
-		FTimerManager& DurationTimer = HandleIn.GetContext().TargetComp->GetWorld()->GetTimerManager();
-
-		FTimerDelegate delDuration = FTimerDelegate::CreateUObject(HandleIn.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExpireEffect, HandleIn);
-		DurationTimer.SetTimer(ExtEffect.DurationTimerHandle, delDuration,
-			ExtEffect.GetDurationTime(), false);
+		UE_LOG(GameAttributesEffects, Log, TEXT("AddEffectDuration:: Effect Is inifnite do not setup duration"));
+		return;
 	}
-	if (ExtEffect.GameEffect->EffectType == EGAEffectType::Periodic)
-	{
-		FTimerManager& PeriodTimer = HandleIn.GetContext().TargetComp->GetWorld()->GetTimerManager();
+	FTimerManager& DurationTimer = HandleIn.GetContext().TargetComp->GetWorld()->GetTimerManager();
 
-		FTimerDelegate PeriodDuration = FTimerDelegate::CreateUObject(HandleIn.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExecuteEffect, HandleIn);
-		PeriodTimer.SetTimer(ExtEffect.PeriodTimerHandle, PeriodDuration,
-			ExtEffect.GetPeriodTime(), true);
-	}
-	if(ExtEffect.GameEffect->bExecuteOnApplication)
-		HandleIn.GetContext().TargetComp->ExecuteEffect(HandleIn);
-
-	AddEffect(HandleIn);
+	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(HandleIn.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExpireEffect, HandleIn);
+	DurationTimer.SetTimer(InEffect.DurationTimerHandle, delDuration,
+		InEffect.GetDurationTime(), false);
 }
+void FGAEffectContainer::AddEffectPeriod(const FGAEffectHandle& HandleIn, const EGAEffectType EffectType
+	, const FGAEffect& InEffect)
+{
+	//FTimerManager& PeriodTimer = HandleIn.GetContext().TargetComp->GetWorld()->GetTimerManager();
 
+	//FTimerDelegate PeriodDuration = FTimerDelegate::CreateUObject(HandleIn.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExecuteEffect, HandleIn);
+	//PeriodTimer.SetTimer(InEffect.PeriodTimerHandle, PeriodDuration,
+	//	InEffect.GetPeriodTime(), true);
+}
 void FGAEffectContainer::ExtendEffectDuration(const FGAEffectHandle& ExistingEffect, const FGAEffectHandle& HandleIn)
 {
 	FGAEffect& ExtEffect = ExistingEffect.GetEffectRef();
@@ -449,13 +482,15 @@ void FGAEffectContainer::ApplyOverrideEffect(const FGAEffectHandle& HandleIn)
 	{
 		RemoveEffect(handle);
 	}
-	handles = GetHandlesByAttribute(HandleIn);
-	for (const FGAEffectHandle& handle : handles)
+	if (!HandleIn.GetWithPeriod())
 	{
-		RemoveEffect(handle);
+		handles = GetHandlesByAttribute(HandleIn);
+		for (const FGAEffectHandle& handle : handles)
+		{
+			RemoveEffect(handle);
+		}
 	}
 	RemoveEffect(HandleIn);
-	AddEffectDuration(HandleIn);
 }
 
 TSet<FGAEffectHandle> FGAEffectContainer::GetHandlesByAttribute(const FGAEffectHandle& HandleIn)
@@ -700,4 +735,6 @@ UWorld* FGAEffectContainer::GetWorld() const
 UGAGameEffectSpec::UGAGameEffectSpec()
 {
 	ExecutionType = UGAEffectExecution::StaticClass();
+	ApplicationRequirement = UAFEffectApplicationRequirement::StaticClass();
+	Application = UAFEffectCustomApplication::StaticClass();
 }

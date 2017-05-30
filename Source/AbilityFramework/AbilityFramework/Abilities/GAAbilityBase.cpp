@@ -270,9 +270,16 @@ bool UGAAbilityBase::ApplyActivationEffect()
 	{
 		FHitResult HitIn;
 
-		AbilityComponent->ApplyEffectToTarget(ActivationEffect.Handle.GetEffect(), ActivationEffect.Handle);
+		AbilityComponent->ApplyEffectToTarget(ActivationEffect.Handle.GetEffect(), ActivationEffect.Handle, ActivationEffect);
 		if(!ActivationEffect.Handle.GetEffectRef().OnEffectExpired.IsBound())
 			ActivationEffect.Handle.GetEffectRef().OnEffectExpired.BindUObject(this, &UGAAbilityBase::NativeOnAbilityActivationFinish);
+
+		float PeriodCheck = Spec->Period.GetFloatValue(ActivationEffect.Handle.GetContext());
+		if (PeriodCheck > 0)
+		{
+			if (!ActivationEffect.Handle.GetEffectRef().OnEffectPeriod.IsBound())
+				ActivationEffect.Handle.GetEffectRef().OnEffectPeriod.BindUObject(this, &UGAAbilityBase::OnActivationEffectPeriod);
+		}
 	}
 	else
 	{
@@ -410,9 +417,10 @@ float UGAAbilityBase::GetAttributeVal(FGAAttribute AttributeIn) const
 {
 	return Attributes->GetCurrentAttributeValue(AttributeIn);
 }
-FGAEffectHandle UGAAbilityBase::ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn)
+FGAEffectHandle UGAAbilityBase::ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn,
+	FGAEffectProperty& InProperty)
 { 
-	return AbilityComponent->ApplyEffectToTarget(EffectIn, HandleIn);
+	return AbilityComponent->ApplyEffectToTarget(EffectIn, HandleIn, InProperty);
 };
 void UGAAbilityBase::RemoveTagContainer(const FGameplayTagContainer& TagsIn) 
 {

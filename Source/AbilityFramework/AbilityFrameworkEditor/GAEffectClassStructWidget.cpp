@@ -294,7 +294,6 @@ TSharedRef<SWidget> FGAEffectClassStructWidget::CreateEffectClassWidget()
 	return SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
 		.FillWidth(0.8)
-		.AutoWidth()
 		[
 			SAssignNew(ComboButton, SComboButton)
 			.OnGetMenuContent(this, &FGAEffectClassStructWidget::GenerateClassPicker)

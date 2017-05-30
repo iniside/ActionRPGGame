@@ -16,5 +16,6 @@ public:
 	UGAEffectExecution(const FObjectInitializer& ObjectInitializer);
 
 	virtual void PreModifyAttribute(const FGAEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAEffectContext& Context);
-	void ExecuteEffect(const FGAEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAEffectContext& Context);
+	virtual void ExecuteEffect(const FGAEffectHandle& HandleIn, FGAEffectMod& ModIn, 
+		FGAEffectContext& Context, FGAEffectProperty& InProperty);
 };

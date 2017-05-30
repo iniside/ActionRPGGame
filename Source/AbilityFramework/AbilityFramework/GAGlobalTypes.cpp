@@ -74,9 +74,10 @@ void FGAEffectHandle::AppendOwnedTags(const FGameplayTagContainer& TagsIn) const
 {
 	GetEffectPtr()->OwnedTags.AppendTags(TagsIn);
 }
-void FGAEffectHandle::ExecuteEffect(const FGAEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAEffectContext& Context)
+void FGAEffectHandle::ExecuteEffect(const FGAEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAEffectContext& Context,
+	FGAEffectProperty& InProperty)
 {
-	GetEffectRef().Execution->ExecuteEffect(HandleIn, ModIn, Context);
+	EffectPtr->Execution->ExecuteEffect(HandleIn, ModIn, Context, InProperty);
 }
 bool FGAEffectHandle::HasAllTags(const FGameplayTagContainer& TagsIn) const
 {
@@ -113,8 +114,17 @@ EGAAttributeMod FGAEffectHandle::GetAttributeMod() const
 }
 EAFAttributeStacking FGAEffectHandle::GetAttributeStacking() const
 {
-	return GetContext().TargetComp->GetAttribute(GetAttribute())->GetStacking();
+	return GetContext().TargetInterface->GetAttribute(GetAttribute())->GetStacking();
 }
+EGAEffectType FGAEffectHandle::GetEffectType() const
+{
+	return GetEffectSpec()->EffectType;
+}
+bool FGAEffectHandle::GetWithPeriod() const
+{
+	return GetEffectSpec()->bWithPeriod;
+}
+
 bool FGAEffectHandle::IsValid() const
 {
 	return (Handle != INDEX_NONE) && EffectPtr.IsValid() && EffectPtr->Context.IsValid();

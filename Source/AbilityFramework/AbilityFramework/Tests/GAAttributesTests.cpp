@@ -15,6 +15,10 @@
 #include "GACharacterAttributeTest.h"
 #include "GACustomCalculationTest.h"
 #include "GAffectSpecTestOne.h"
+#include "../Effects/ApplicationRequirement/AFAttributeStongerOverride.h"
+#include "../Effects/CustomApplications/AFAttributeDurationOverride.h"
+#include "../Effects/CustomApplications/AFPeriodApplicationOverride.h"
+#include "../Effects/CustomApplications/AFAtributeDurationAdd.h"
 
 #if WITH_EDITOR
 
@@ -256,6 +260,8 @@ public:
 		const TArray<FName>& AttributeTags = TArray<FName>(),
 		const TArray<FName>& ApplyTags = TArray<FName>(),
 		const FTagsInput& TagsIn = FTagsInput(),
+		TSubclassOf<UAFEffectApplicationRequirement> ApplReq = UAFEffectApplicationRequirement::StaticClass(),
+		TSubclassOf<UAFEffectCustomApplication> Appl = UAFEffectCustomApplication::StaticClass(),
 		TSubclassOf<UGAGameEffectSpec> CDO = UGAGameEffectSpec::StaticClass()
 	)
 	{
@@ -271,8 +277,11 @@ public:
 		cdo->EffectType = EGAEffectType::Duration;
 		cdo->Stacking = Stacking;
 		cdo->ExecutionType = UGAEffectExecution::StaticClass();
+		cdo->ApplicationRequirement = ApplReq;
+		cdo->Application = Appl;
 		cdo->OwnedTags = CreateTags(OwnedTags);
 		cdo->bExecuteOnApplication = true;
+		cdo->bWithPeriod = false;
 		if (AttributeTags.Num() > 0)
 			cdo->AttributeTags = CreateTags(AttributeTags);
 		if (ApplyTags.Num() > 0)
@@ -302,6 +311,7 @@ public:
 		const TArray<FName>& ApplyTags = TArray<FName>(),
 		const FTagsInput& TagsIn = FTagsInput(),
 		TSubclassOf<UGAGameEffectSpec> CDO = UGAGameEffectSpec::StaticClass(),
+		TSubclassOf<UAFEffectCustomApplication> Appl = UAFEffectCustomApplication::StaticClass(),
 		bool InExecuteOnApplication = false
 	)
 	{
@@ -312,10 +322,14 @@ public:
 		Spec = CDO;
 		UGAGameEffectSpec* cdo = Spec.GetClass().GetDefaultObject();
 		
-		cdo->EffectType = EGAEffectType::Periodic;
+		cdo->EffectType = EGAEffectType::Duration;
 		cdo->Stacking = Stacking;
 		cdo->ExecutionType = UGAEffectExecution::StaticClass();
+		cdo->ApplicationRequirement = UAFAttributeStongerOverride::StaticClass();
+		cdo->Application = Appl;
+
 		cdo->OwnedTags = CreateTags(OwnedTags);
+		cdo->bWithPeriod = true;
 		if (AttributeTags.Num() > 0)
 			cdo->AttributeTags = CreateTags(AttributeTags);
 		if (ApplyTags.Num() > 0)
@@ -343,16 +357,48 @@ public:
 	}
 
 	FGAEffectProperty CreateEffectInfiniteSpec(const TArray<FName>& OwnedTags, float ModValue,
-		EGAAttributeMod ModType, const FName& Attribute, EGAEffectStacking Stacking)
+		EGAAttributeMod ModType, const FName& Attribute, EGAEffectStacking Stacking,
+		const TArray<FName>& AttributeTags = TArray<FName>(),
+		const TArray<FName>& ApplyTags = TArray<FName>(),
+		const FTagsInput& TagsIn = FTagsInput(),
+		TSubclassOf<UGAGameEffectSpec> CDO = UGAGameEffectSpec::StaticClass()
+	)
 	{
 		const float Duration = 10;
 		const float PeriodSecs = 1.0f;
 		const float DamagePerPeriod = 5.f;
 		FGAEffectProperty Spec;
-		UGAGameEffectSpec* Effect = NewObject<UGAGameEffectSpec>(GetTransientPackage());
-		Effect->ExecutionType = UGAEffectExecution::StaticClass();
-		Effect->OwnedTags = CreateTags(OwnedTags);
-		Spec = Effect;
+		Spec = CDO;
+		UGAGameEffectSpec* cdo = Spec.GetClass().GetDefaultObject();
+
+		//UClass* clas = DuplicateObject<UClass>(UGAGameEffectSpec::StaticClass());
+		//Spec.Spec = 
+		cdo->EffectType = EGAEffectType::Infinite;
+		cdo->Stacking = Stacking;
+		cdo->ExecutionType = UGAEffectExecution::StaticClass();
+		cdo->OwnedTags = CreateTags(OwnedTags);
+		cdo->bExecuteOnApplication = true;
+		cdo->bWithPeriod = false;
+		if (AttributeTags.Num() > 0)
+			cdo->AttributeTags = CreateTags(AttributeTags);
+		if (ApplyTags.Num() > 0)
+			cdo->ApplyTags = CreateTags(ApplyTags);
+
+		cdo->RequiredTags = TagsIn.RequiredTags;
+		cdo->DenyTags = TagsIn.DenyTags;
+		cdo->OngoingRequiredTags = TagsIn.OngoingRequiredTags;
+
+		FGAAttributeModifier AttributeModifier;
+		AttributeModifier.Attribute = FGAAttribute(Attribute);
+		AttributeModifier.AttributeMod = ModType;
+		AttributeModifier.Magnitude.CalculationType = EGAMagnitudeCalculation::Direct;
+		AttributeModifier.Magnitude.DirectModifier.Value = ModValue;
+		cdo->AtributeModifier = AttributeModifier;
+		FGAMagnitude DurationMag;
+		DurationMag.CalculationType = EGAMagnitudeCalculation::Direct;
+		DurationMag.DirectModifier.Value = Duration;
+		cdo->Duration = DurationMag;
+
 		return Spec;
 	}
 
@@ -440,7 +486,8 @@ public:
 
 		FGAEffectProperty Effect = CreateEffectPeriodicSpec(OwnedTags, 5,
 			EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Override,
-			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass());
+			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(),
+			UAFPeriodApplicationOverride::StaticClass());
 
 
 		int32 NumApplications = 0;
@@ -532,7 +579,9 @@ public:
 
 		FGAEffectProperty Effect = CreateEffectDurationSpec(OwnedTags, 50,
 			EGAAttributeMod::Add, TEXT("Energy"), EGAEffectStacking::Override,
-			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass());
+			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(),
+			UAFEffectApplicationRequirement::StaticClass(),
+			UAFAttributeDurationOverride::StaticClass());
 
 		
 
@@ -592,7 +641,9 @@ public:
 
 		FGAEffectProperty Effect = CreateEffectDurationSpec(OwnedTags, 50,
 			EGAAttributeMod::Add, TEXT("Health"), EGAEffectStacking::Override,
-			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass());
+			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(),
+			UAFAttributeStongerOverride::StaticClass(),
+			UAFAttributeDurationOverride::StaticClass());
 
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
@@ -650,7 +701,9 @@ public:
 
 		FGAEffectProperty Effect = CreateEffectDurationSpec(OwnedTags, 30,
 			EGAAttributeMod::Add, TEXT("Health"), EGAEffectStacking::Override,
-			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass());
+			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(),
+			UAFAttributeStongerOverride::StaticClass(),
+			UAFAttributeDurationOverride::StaticClass());
 
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
@@ -708,7 +761,9 @@ public:
 
 		FGAEffectProperty Effect = CreateEffectDurationSpec(OwnedTags, 50,
 			EGAAttributeMod::Add, TEXT("Stamina"), EGAEffectStacking::Override,
-			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass());
+			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(),
+			UAFEffectApplicationRequirement::StaticClass(),
+			UAFAtributeDurationAdd::StaticClass());
 
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
@@ -752,7 +807,131 @@ public:
 		float FinishedVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
 		TestEqual("Source Stamina Finished: ", FinishedVal, 100.0f);
 	}
+	void Test_AtttributeStatckingeAddInfinite()
+	{
+		TArray<FName> OwnedTags;
+		OwnedTags.Add("Ability.Fireball");
+		TArray<FName> AttributeTags;
+		AttributeTags.Add(TEXT("Damage.Fire"));
+
+		TArray<FName> ApplyTags;
+		ApplyTags.Add(TEXT("Damage.Fire"));
+		ApplyTags.Add(TEXT("Ability.Fireball"));
+
+		FTagsInput TagsIn;
+
+		FGAEffectProperty Effect = CreateEffectInfiniteSpec(OwnedTags, 50,
+			EGAAttributeMod::Add, TEXT("Stamina"), EGAEffectStacking::Override,
+			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass());
+
+		int32 NumApplications = 0;
+		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
+		TestEqual("Source Stamina Pre: ", PreVal, 100.0f);
+
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+
+		TickWorld(SMALL_NUMBER);
+		//++NumApplications;
+		float PostVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
+		TestEqual("Source Stamina PPost: ", PostVal, 150.0f);
+		const int32 NumPeriods = 10;
+		const float PeriodSecs = 1.0f;
+		const float DamagePerPeriod = 5.f;
+		TickWorld(PeriodSecs * .1f);
+		for (int32 i = 0; i < NumPeriods; ++i)
+		{
+			// advance time by one period
+			TickWorld(PeriodSecs);
+			//if (i == 5)
+			//{
+			//	FGAEffectProperty EffectWeaker = CreateEffectDurationSpec(OwnedTags, 30,
+			//		EGAAttributeMod::Add, TEXT("Stamina"), EGAEffectStacking::Override,
+			//		AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass());
+			//	UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
+			//	float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
+			//	TestEqual("Source Stamina Post2: ", PostVal2, 180.0f);
+			//}
+
+			// check that health has been reduced
+
+		}
+		float PreFinishedVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
+		TestEqual("Source Stamina PreFinished: ", PreFinishedVal, 150.0f);
+		for (int32 i = 0; i < NumPeriods; ++i)
+		{
+			// advance time by one period
+			TickWorld(PeriodSecs);
+		}
+		TickWorld(PeriodSecs * 0.1f);
+		float FinishedVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
+		TestEqual("Source Stamina Finished: ", FinishedVal, 150.0f);
+		DestComponent->RemoveEffect(Effect.Handle);
+		float PostRemovedVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
+		TestEqual("Source Stamina Finished: ", PostRemovedVal, 100.0f);
+	}
+
 	void Test_EffectStatckingOverride()
+	{
+		TArray<FName> OwnedTags;
+		OwnedTags.Add("Ability.Fireball");
+		TArray<FName> AttributeTags;
+		AttributeTags.Add(TEXT("Damage.Fire"));
+
+		TArray<FName> ApplyTags;
+		ApplyTags.Add(TEXT("Damage.Fire"));
+		ApplyTags.Add(TEXT("Ability.Fireball"));
+
+		FTagsInput TagsIn;
+
+		FGAEffectProperty Effect = CreateEffectPeriodicSpec(OwnedTags, 5,
+			EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Override,
+			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(),
+			UAFPeriodApplicationOverride::StaticClass());
+
+		int32 NumApplications = 0;
+		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
+		TestEqual("Source Health Pre: ", PreVal, 100.0f);
+
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+
+		TickWorld(SMALL_NUMBER);
+		//++NumApplications;
+		float PostVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
+		TestEqual("Source Health PPost: ", PostVal, 100.0f);
+		const int32 NumPeriods = 10;
+		const float PeriodSecs = 1.0f;
+		const float DamagePerPeriod = 5.f;
+		TickWorld(PeriodSecs * .1f);
+		for (int32 i = 0; i < NumPeriods; ++i)
+		{
+			// advance time by one period
+			TickWorld(PeriodSecs);
+			if (i == 5)
+			{
+				float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Health"));
+				TestEqual("Source Health PPost2: ", PostVal2, 70.0f);
+				FGAEffectProperty EffectWeaker = CreateEffectPeriodicSpec(OwnedTags, 2,
+					EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Override,
+					AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass(),
+					UAFPeriodApplicationOverride::StaticClass());
+				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
+				//TestEqual("Source Health Post2: ", PostVal2, 150.0f);
+			}
+
+			// check that health has been reduced
+
+		}
+		for (int32 i = 0; i < NumPeriods; ++i)
+		{
+			// advance time by one period
+			TickWorld(PeriodSecs);
+		}
+		TickWorld(PeriodSecs * 0.1f);
+		float FinishedVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
+		TestEqual("Source Health Finished: ", FinishedVal, 32.0f);
+	}
+
+	void Test_EffectStatckingOverrideSameClass()
 	{
 		TArray<FName> OwnedTags;
 		OwnedTags.Add("Ability.Fireball");
@@ -808,8 +987,9 @@ public:
 		}
 		TickWorld(PeriodSecs * 0.1f);
 		float FinishedVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
-		TestEqual("Source Health Finished: ", FinishedVal, 52.0f);
+		TestEqual("Source Health Finished: ", FinishedVal, 32.0f);
 	}
+
 	void Test_EffectStatckingAdd()
 	{
 		TArray<FName> OwnedTags;
@@ -871,6 +1051,128 @@ public:
 		TestEqual("Source Health Finished: ", FinishedVal, 62.0f);
 	}
 
+	void Test_EffectStatckingDurationDifferentEffects()
+	{
+		TArray<FName> OwnedTags;
+		OwnedTags.Add("Ability.Fireball");
+		TArray<FName> AttributeTags;
+		AttributeTags.Add(TEXT("Damage.Fire"));
+
+		TArray<FName> ApplyTags;
+		ApplyTags.Add(TEXT("Damage.Fire"));
+		ApplyTags.Add(TEXT("Ability.Fireball"));
+
+		FTagsInput TagsIn;
+
+		FGAEffectProperty Effect = CreateEffectPeriodicSpec(OwnedTags, 1,
+			EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Duration,
+			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(), false);
+
+		int32 NumApplications = 0;
+		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
+		TestEqual("Source Health Pre: ", PreVal, 100.0f);
+
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+
+		TickWorld(SMALL_NUMBER);
+		//++NumApplications;
+		float PostVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
+		TestEqual("Source Health PPost: ", PostVal, 100.0f);
+		const int32 NumPeriods = 10;
+		const float PeriodSecs = 1.0f;
+		const float DamagePerPeriod = 5.f;
+		TickWorld(PeriodSecs * .1f);
+		for (int32 i = 0; i < NumPeriods; ++i)
+		{
+			// advance time by one period
+			TickWorld(PeriodSecs);
+			if (i == 5)
+			{
+				float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Health"));
+				TestEqual("Source Health PPost2: ", PostVal2, 94.0f);
+				FGAEffectProperty EffectWeaker = CreateEffectPeriodicSpec(OwnedTags, 2,
+					EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Duration,
+					AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass(), false);
+				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
+				//TestEqual("Source Health Post2: ", PostVal2, 150.0f);
+			}
+
+			// check that health has been reduced
+
+		}
+		float PreFinishedVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
+		TestEqual("Source Health PreFinishedVal: ", PreFinishedVal, 84.0f);
+		for (int32 i = 0; i < NumPeriods; ++i)
+		{
+			// advance time by one period
+			TickWorld(PeriodSecs);
+		}
+		TickWorld(PeriodSecs * 0.1f);
+		float FinishedVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
+		TestEqual("Source Health Finished: ", FinishedVal, 72.0f);
+	}
+
+	void Test_EffectStatckingDurationSameEffects()
+	{
+		TArray<FName> OwnedTags;
+		OwnedTags.Add("Ability.Fireball");
+		TArray<FName> AttributeTags;
+		AttributeTags.Add(TEXT("Damage.Fire"));
+
+		TArray<FName> ApplyTags;
+		ApplyTags.Add(TEXT("Damage.Fire"));
+		ApplyTags.Add(TEXT("Ability.Fireball"));
+
+		FTagsInput TagsIn;
+
+		FGAEffectProperty Effect = CreateEffectPeriodicSpec(OwnedTags, 2,
+			EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Duration,
+			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(), false);
+
+		int32 NumApplications = 0;
+		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
+		TestEqual("Source Health Pre: ", PreVal, 100.0f);
+
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+
+		TickWorld(SMALL_NUMBER);
+		//++NumApplications;
+		float PostVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
+		TestEqual("Source Health PPost: ", PostVal, 100.0f);
+		const int32 NumPeriods = 10;
+		const float PeriodSecs = 1.0f;
+		const float DamagePerPeriod = 5.f;
+		TickWorld(PeriodSecs * .1f);
+		for (int32 i = 0; i < NumPeriods; ++i)
+		{
+			// advance time by one period
+			TickWorld(PeriodSecs);
+			if (i == 5)
+			{
+				float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Health"));
+				TestEqual("Source Health PPost2: ", PostVal2, 88.0f);
+				FGAEffectProperty EffectWeaker = CreateEffectPeriodicSpec(OwnedTags, 2,
+					EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Duration,
+					AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(), false);
+				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
+				//TestEqual("Source Health Post2: ", PostVal2, 150.0f);
+			}
+
+			// check that health has been reduced
+
+		}
+		float PreFinishedVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
+		TestEqual("Source Health PreFinishedVal: ", PreFinishedVal, 80.0f);
+		for (int32 i = 0; i < NumPeriods; ++i)
+		{
+			// advance time by one period
+			TickWorld(PeriodSecs);
+		}
+		TickWorld(PeriodSecs * 0.1f);
+		float FinishedVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
+		TestEqual("Source Health Finished: ", FinishedVal, 60.0f);
+	}
+
 	void Test_StrongerOverrideNonStackingHealthBonus()
 	{
 		const float Duration = 10;
@@ -911,8 +1213,12 @@ public:
 		ADD_TEST(Test_AtttributeStatckingStrongerOverride);
 		ADD_TEST(Test_AtttributeStatckingStrongerOverrideReversed);
 		ADD_TEST(Test_AtttributeStatckingeAdd);
+		ADD_TEST(Test_AtttributeStatckingeAddInfinite);
 		ADD_TEST(Test_EffectStatckingOverride);
+		ADD_TEST(Test_EffectStatckingOverrideSameClass);
 		ADD_TEST(Test_EffectStatckingAdd);
+		ADD_TEST(Test_EffectStatckingDurationDifferentEffects);
+		ADD_TEST(Test_EffectStatckingDurationSameEffects);
 		ADD_TEST(Test_StrongerOverrideNonStackingHealthBonus);
 	};
 	virtual uint32 GetTestFlags() const override 

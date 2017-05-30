@@ -176,12 +176,13 @@ bool FAFAttributeBase::CheckIfStronger(const FGAEffectHandle& InHandle, const FG
 	}
 	return false;
 }
-float FAFAttributeBase::Modify(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn)
+float FAFAttributeBase::Modify(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn,
+	FGAEffectProperty& InProperty)
 {
 	float returnValue = -1;
-
-	if (HandleIn.GetEffectSpec()->EffectType == EGAEffectType::Duration
-		|| HandleIn.GetEffectSpec()->EffectType == EGAEffectType::Infinite)
+	bool isPeriod = InProperty.Period > 0;
+	bool IsDuration = InProperty.Duration > 0;
+	if ( !isPeriod & IsDuration)
 	{
 		FGAModifier AttrMod(ModIn.AttributeMod, ModIn.Value, HandleIn);
 		AttrMod.Tags.AppendTags(HandleIn.GetEffectSpec()->AttributeTags);
@@ -232,6 +233,13 @@ float FAFAttributeBase::Modify(const FGAEffectMod& ModIn, const FGAEffectHandle&
 		}
 	}
 	return returnValue;
+}
+float FAFAttributeBase::DurationModify(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn)
+{
+	FGAModifier AttrMod(ModIn.AttributeMod, ModIn.Value, HandleIn);
+	AttrMod.Tags.AppendTags(HandleIn.GetEffectSpec()->AttributeTags);
+	AddBonus(ModIn, HandleIn);
+	return ModIn.Value;
 }
 void FAFAttributeBase::AddBonus(const FGAEffectMod& ModIn, const FGAEffectHandle& Handle)
 {

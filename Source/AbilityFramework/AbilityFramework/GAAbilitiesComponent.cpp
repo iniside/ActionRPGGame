@@ -44,15 +44,19 @@ bool UGAAbilitiesComponent::GetShouldTick() const
 	return true;
 }
 
-void UGAAbilitiesComponent::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn)
+void UGAAbilitiesComponent::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn
+	,FGAEffectProperty& InProperty)
 { 
 	UGAAbilitiesComponent* blaBla = this;
 	//send message to self.
 	//MessageEndpoint->Send<FGAModifyAttributeValueMessage>(Message, GetMessageAddress());
-	float NewValue = DefaultAttributes->ModifyAttribute(ModIn, HandleIn);
+	float NewValue = DefaultAttributes->ModifyAttribute(ModIn, HandleIn, InProperty);
 	OnAttributeChanged.Broadcast(NewValue);
 };
-
+void UGAAbilitiesComponent::ApplyDuration(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn)
+{
+	float NewValue = DefaultAttributes->ApplyDuration(ModIn, HandleIn);
+}
 void UGAAbilitiesComponent::GetAttributeStructTest(FGAAttribute Name)
 {
 	DefaultAttributes->GetAttribute(Name);
@@ -90,22 +94,22 @@ void UGAAbilitiesComponent::DestroyComponent(bool bPromoteChildren)
 }
 
 FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToSelf(const FGAEffect& EffectIn
-	, const FGAEffectHandle& HandleIn)
+	, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty)
 {
 	OnEffectApplyToSelf.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
-	GameEffectContainer.ApplyEffect(EffectIn, HandleIn);
+	GameEffectContainer.ApplyEffect(EffectIn, HandleIn, InProperty);
 	FGAEffectCueParams CueParams;
 	CueParams.HitResult = EffectIn.Context.HitResult;
 	OnEffectApplied.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
 	return FGAEffectHandle();
 }
 FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToTarget(const FGAEffect& EffectIn
-	, const FGAEffectHandle& HandleIn)
+	, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty)
 {
 	FGAEffectCueParams CueParams;
 	CueParams.HitResult = EffectIn.Context.HitResult;
 	//execute cue from effect regardless if we have target object or not.
-	HandleIn.GetContextRef().TargetComp->ApplyEffectToSelf(EffectIn, HandleIn);
+	HandleIn.GetContextRef().TargetComp->ApplyEffectToSelf(EffectIn, HandleIn, InProperty);
 	MulticastApplyEffectCue(HandleIn, CueParams);
 
 	if (EffectIn.IsValid() && EffectIn.Context.TargetComp.IsValid())
@@ -134,7 +138,7 @@ void UGAAbilitiesComponent::OnAttributeModified(const FGAEffectMod& InMod,
 {
 
 }
-void UGAAbilitiesComponent::ExecuteEffect(FGAEffectHandle HandleIn)
+void UGAAbilitiesComponent::ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty)
 {
 	/*
 	this patth will give effects chance to do any replicated events, like applying cues.
@@ -150,8 +154,7 @@ void UGAAbilitiesComponent::ExecuteEffect(FGAEffectHandle HandleIn)
 	
 	Effect.OnExecuted();
 	MulticastExecuteEffectCue(HandleIn);
-
-	HandleIn.ExecuteEffect(HandleIn, Mod, HandleIn.GetContextRef());
+	HandleIn.ExecuteEffect(HandleIn, Mod, HandleIn.GetContextRef(), InProperty);
 
 	//GameEffectContainer.ExecuteEffect(HandleIn, HandleIn.GetEffectRef());
 }
@@ -302,97 +305,6 @@ void UGAAbilitiesComponent::GetSubobjectsWithStableNamesForNetworking(TArray<UOb
 	}
 }
 
-FGAEffectContext UGAAbilitiesComponent::MakeActorContext(class AActor* Target, class APawn* Instigator, UObject* Causer)
-{
-	FGAContextSetup ContextSetup = GetContextData(Instigator, Target);
-	FVector location = Target->GetActorLocation();
-	FGAEffectContext Context(
-		ContextSetup.TargetAttributes,
-		ContextSetup.IntigatorAttributes,
-		location, Target, Causer,
-		Instigator, ContextSetup.TargetComp, ContextSetup.InstigatorComp);
-	Context.HitResult = FHitResult(ForceInit);
-	return Context;
-}
-FGAEffectContext UGAAbilitiesComponent::MakeHitContext(const FHitResult& Target, class APawn* Instigator, UObject* Causer)
-{
-	FGAContextSetup ContextSetup = GetContextData(Instigator, Target.GetActor());
-	FGAEffectContext Context(
-		ContextSetup.TargetAttributes,
-		ContextSetup.IntigatorAttributes,
-		Target.Location, Target.GetActor(), Causer,
-		Instigator, ContextSetup.TargetComp, ContextSetup.InstigatorComp);
-	Context.HitResult = Target;
-	return Context;
-}
-void UGAAbilitiesComponent::AddTagsToEffect(FGAEffect* EffectIn)
-{
-	if (EffectIn)
-	{
-		EffectIn->AddOwnedTags(EffectIn->GameEffect->OwnedTags);
-		EffectIn->AddApplyTags(EffectIn->GameEffect->ApplyTags);
-	}
-}
-FGAEffectHandle UGAAbilitiesComponent::GenerateEffect(const FGAEffectSpec& SpecIn,
-	FGAEffectHandle HandleIn, const FHitResult& HitIn, class APawn* Instigator,
-	UObject* Causer)
-{
-	if (!SpecIn.Spec)
-	{
-		return FGAEffectHandle();
-	}
-	FGAEffectContext Context = MakeHitContext(HitIn, Instigator, Causer);
-	if (!Context.IsValid())
-	{
-		//if the handle is valid (valid pointer to effect and id)
-		//we want to preseve it and just set bad context.
-		if (HandleIn.IsValid() && Context.InstigatorComp.IsValid())
-		{
-			HandleIn.SetContext(Context);
-			Context.InstigatorComp->ApplyEffectToTarget(HandleIn.GetEffect(), HandleIn);
-			return HandleIn;
-		}
-		else
-		{
-			return FGAEffectHandle();
-		}
-	}
-	if (HandleIn.IsValid())
-	{
-		HandleIn.SetContext(Context);
-	}
-	else
-	{
-		FGAEffect* effect = new FGAEffect(SpecIn.Spec, Context);
-		AddTagsToEffect(effect);
-		//FGAEffectHandle& HandleCon = const_cast<FGAEffectHandle&>(HandleIn);
-		HandleIn = FGAEffectHandle::GenerateHandle(effect);
-		effect->Handle = HandleIn;
-	}
-	return HandleIn;
-}
-FGAContextSetup UGAAbilitiesComponent::GetContextData(AActor* Instigator, AActor* Target)
-{
-	IIGAAbilities* targetAttr = Cast<IIGAAbilities>(Target);
-	IIGAAbilities* instiAttr = Cast<IIGAAbilities>(Instigator);
-	UGAAbilitiesComponent* targetComp = nullptr;
-	if (targetAttr)
-	{
-		targetComp = targetAttr->GetAbilityComp();
-	}
-	UGAAbilitiesComponent* instiComp = nullptr;
-	if (instiAttr)
-	{
-		instiComp = instiAttr->GetAbilityComp();
-	}
-
-	FGAContextSetup Context(
-		instiAttr ? instiAttr->GetAttributes() : nullptr,
-		targetAttr ? targetAttr->GetAttributes() : nullptr,
-		instiComp, targetComp);
-
-	return Context;
-}
 
 FGAGenericDelegate& UGAAbilitiesComponent::GetTagEvent(FGameplayTag TagIn)
 {

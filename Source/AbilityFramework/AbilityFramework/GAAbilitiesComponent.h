@@ -281,9 +281,9 @@ public:
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	void Update();
 	FGAEffectHandle ApplyEffectToSelf(const FGAEffect& EffectIn,
-		const FGAEffectHandle& HandleIn);
+		const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);
 	FGAEffectHandle ApplyEffectToTarget(const FGAEffect& EffectIn,
-		const FGAEffectHandle& HandleIn);
+		const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);
 
 	void ApplyEffectToTarget(TSubclassOf<UGAGameEffectSpec> InSpecClass, 
 		const FGAEffectContext& InContext, const FGAEffectHandle& InHandle);
@@ -292,7 +292,7 @@ public:
 		const FGAEffectContext& ContextIn);
 
 	/* Have to to copy handle around, because timer delegates do not support references. */
-	void ExecuteEffect(FGAEffectHandle HandleIn);
+	void ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty);
 	/* ExpireEffect is used to remove existing effect naturally when their time expires. */
 	void ExpireEffect(FGAEffectHandle HandleIn);
 	/* RemoveEffect is used to remove effect by force. */
@@ -380,14 +380,6 @@ public:
 		void BP_TriggerTagEvent(FGameplayTag TagIn);
 	//Helper functions:
 public:
-
-	static FGAEffectContext MakeActorContext(class AActor* Target, class APawn* Instigator, UObject* Causer);
-	static FGAEffectContext MakeHitContext(const FHitResult& Target, class APawn* Instigator, UObject* Causer);
-	static void AddTagsToEffect(FGAEffect* EffectIn);
-	static FGAEffectHandle GenerateEffect(const FGAEffectSpec& SpecIn,
-		FGAEffectHandle HandleIn, const FHitResult& HitIn, class APawn* Instigator,
-		UObject* Causer);
-	static FGAContextSetup GetContextData(AActor* Instigator, AActor* Target);
 	/*
 	IGameplayTagAssetInterface Start
 	*/
@@ -465,7 +457,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 		float GetAttributeValue(FGAAttribute AttributeIn) const { return DefaultAttributes->GetCurrentAttributeValue(AttributeIn); };
 
-	void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn);// { DefaultAttributes->ModifyAttribute(ModIn, HandleIn); };
+	void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);// { DefaultAttributes->ModifyAttribute(ModIn, HandleIn); };
+	void ApplyDuration(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn);// { DefaultAttributes->ModifyAttribute(ModIn, HandleIn); };
 	FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn) { return DefaultAttributes->GetAttribute(AttributeIn); };
 	void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) { DefaultAttributes->RemoveBonus(AttributeIn, HandleIn, HandleIn.GetAttributeMod());  };
 	float NativeGetAttributeValue(const FGAAttribute AttributeIn) const { return 0; };
