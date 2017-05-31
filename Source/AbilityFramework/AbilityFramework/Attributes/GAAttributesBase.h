@@ -106,7 +106,6 @@ public:
 
 	void ModifyAttribute(const FGAEffect& EffectIn);
 	float ModifyAttribute(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);
-	float ApplyDuration(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn);
 	void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod);
 protected:
 	bool bNetAddressable;

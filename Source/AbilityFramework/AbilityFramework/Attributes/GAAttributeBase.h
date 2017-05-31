@@ -87,7 +87,6 @@ public:
 	bool CheckIfModsMatch(const FGAEffectHandle& InHandle, const FGAEffectMod& InMod);
 	bool CheckIfStronger(const FGAEffectHandle& InHandle, const FGAEffectMod& InMod);
 	float Modify(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);
-	float DurationModify(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn);
 	void AddBonus(const FGAEffectMod& ModIn, const FGAEffectHandle& Handle);
 	void RemoveBonus(const FGAEffectHandle& Handle, EGAAttributeMod InMod);
 	EAFAttributeStacking GetStacking() const { return Stacking; }

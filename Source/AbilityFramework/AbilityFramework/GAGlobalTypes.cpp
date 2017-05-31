@@ -116,14 +116,6 @@ EAFAttributeStacking FGAEffectHandle::GetAttributeStacking() const
 {
 	return GetContext().TargetInterface->GetAttribute(GetAttribute())->GetStacking();
 }
-EGAEffectType FGAEffectHandle::GetEffectType() const
-{
-	return GetEffectSpec()->EffectType;
-}
-bool FGAEffectHandle::GetWithPeriod() const
-{
-	return GetEffectSpec()->bWithPeriod;
-}
 
 bool FGAEffectHandle::IsValid() const
 {

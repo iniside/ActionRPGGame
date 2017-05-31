@@ -117,10 +117,6 @@ public:
 		FGameplayTag EffectTag;
 
 	UPROPERTY(EditAnywhere, Category = "Effect Info")
-		EGAEffectType EffectType;
-	UPROPERTY(EditAnywhere, Category = "Effect Info")
-		bool bWithPeriod;
-	UPROPERTY(EditAnywhere, Category = "Effect Info")
 		TSubclassOf<class UAFEffectApplicationRequirement> ApplicationRequirement;
 	/* 
 		How effect should stack. Only relevelant for periodic effects
@@ -128,8 +124,7 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, Category = "Stacking")
 		TSubclassOf<class UAFEffectCustomApplication> Application;
-	UPROPERTY(EditAnywhere, Category = "Stacking")
-		EGAEffectStacking Stacking;
+
 	UPROPERTY(EditAnywhere, Category = "Stacking")
 		int32 MaxStacks;
 	
@@ -624,37 +619,22 @@ public:
 
 	EGAEffectAggregation GetEffectAggregation(const FGAEffectHandle& HandleIn) const;
 
-	void AddEffectDuration(const FGAEffectHandle& HandleIn, const EGAEffectType EffectType,
-		const FGAEffect& InEffect);
-	void AddEffectPeriod(const FGAEffectHandle& HandleIn, const EGAEffectType EffectType,
-		const FGAEffect& InEffect);
-
 	void ExtendEffectDuration(const FGAEffectHandle& ExistingEffect, const FGAEffectHandle& HandleIn);
-	void ApplyOverrideEffect(const FGAEffectHandle& HandleIn);
 
 	TSet<FGAEffectHandle> GetHandlesByAttribute(const FGAEffectHandle& HandleIn);
 	TSet<FGAEffectHandle> GetHandlesByClass(const FGAEffectHandle& HandleIn);
-	void AddEffect(const FGAEffectHandle& HandleIn);
+	void AddEffect(const FGAEffectHandle& HandleIn, bool bInfinite = false);
 	void AddEffectByClass(const FGAEffectHandle& HandleIn);
 
-	void ApplyEffectWithDuration(const FGAEffectHandle& InHandle);
-	void ApplyEffectWithPeriod(const FGAEffectHandle& InHandle, const EGAEffectType EffectType,
-		const FGAEffect& InEffect);
-	bool CheckCanApplyDuration(const FGAEffectHandle& InHandle);
-	
 	void RemoveFromAttribute(const FGAEffectHandle& HandleIn);
 	void RemoveEffectProtected(const FGAEffectHandle& HandleIn);
 	void RemoveInstigatorEffect(const FGAEffectHandle& HandleIn);
 	void RemoveTargetEffect(const FGAEffectHandle& HandleIn);
-
-public:
 	void ApplyEffectInstance(class UGAEffectExtension* EffectIn);
 	//modifiers
 	void ApplyEffectsFromMods() {};
 	void DoesQualify() {};
 	bool IsEffectActive(const FGAEffectHandle& HandleIn);
-
-public:
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
 	{
 		//return FastArrayDeltaSerialize<FGAEffectRepInfo>(ActiveEffectInfos, DeltaParms, *this);

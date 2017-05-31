@@ -13,7 +13,9 @@ UCLASS()
 class ABILITYFRAMEWORK_API UAFPeriodApplicationAdd : public UAFEffectCustomApplication
 {
 	GENERATED_BODY()
-	
+public:
+	bool ApplyEffect(const FGAEffectHandle& InHandle, const struct FGAEffect& EffectIn,
+		FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer) override;
 	
 	
 	

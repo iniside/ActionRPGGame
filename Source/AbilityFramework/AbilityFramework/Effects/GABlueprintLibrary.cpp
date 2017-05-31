@@ -101,7 +101,7 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(UGAGameEffectSpec* SpecIn, FGAE
 	}
 	InEffect.Duration = SpecIn->Duration.GetFloatValue(Context);
 	InEffect.Period = SpecIn->Period.GetFloatValue(Context);
-	Context.InstigatorComp->ApplyEffectToTarget(HandleIn.GetEffect(), HandleIn, InEffect);
+	Context.InstigatorComp->ApplyEffectToTarget(HandleIn.GetEffectRef(), HandleIn, InEffect);
 	return HandleIn;
 }
 

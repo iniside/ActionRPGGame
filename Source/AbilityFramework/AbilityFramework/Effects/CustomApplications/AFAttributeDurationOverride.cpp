@@ -16,7 +16,7 @@ bool UAFAttributeDurationOverride::ApplyEffect(const FGAEffectHandle& InHandle, 
 	{
 		InContainer->RemoveEffect(handle);
 	}
-	if (!InHandle.GetWithPeriod())
+	//if (!InHandle.GetWithPeriod())
 	{
 		handles = InContainer->GetHandlesByAttribute(InHandle);
 		for (const FGAEffectHandle& handle : handles)
@@ -29,7 +29,7 @@ bool UAFAttributeDurationOverride::ApplyEffect(const FGAEffectHandle& InHandle, 
 	FTimerManager& DurationTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
 
 	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExpireEffect, InHandle);
-	DurationTimer.SetTimer(EffectIn.DurationTimerHandle, delDuration,
+	DurationTimer.SetTimer(InHandle.GetEffectPtr()->DurationTimerHandle, delDuration,
 		EffectIn.GetDurationTime(), false);
 
 	InContainer->AddEffect(InHandle);

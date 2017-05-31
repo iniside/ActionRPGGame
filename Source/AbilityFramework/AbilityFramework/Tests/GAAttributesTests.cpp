@@ -19,6 +19,9 @@
 #include "../Effects/CustomApplications/AFAttributeDurationOverride.h"
 #include "../Effects/CustomApplications/AFPeriodApplicationOverride.h"
 #include "../Effects/CustomApplications/AFAtributeDurationAdd.h"
+#include "../Effects/CustomApplications/AFPeriodApplicationAdd.h"
+#include "../Effects/CustomApplications/AFAttributeDurationInfinite.h"
+#include "../Effects/CustomApplications/AFPeriodApplicationExtend.h"
 
 #if WITH_EDITOR
 
@@ -243,7 +246,6 @@ public:
 		Spec = c;
 		//Spec = Effect;
 		UGAGameEffectSpec* cds = Spec.GetClass().GetDefaultObject();
-		cds->EffectType = EGAEffectType::Instant;
 		cds->ExecutionType = UGASpellExecutionTest::StaticClass();
 		FGAAttributeModifier AttributeModifier;
 		AttributeModifier.Attribute = FGAAttribute(Attribute);
@@ -274,14 +276,11 @@ public:
 		
 		//UClass* clas = DuplicateObject<UClass>(UGAGameEffectSpec::StaticClass());
 		//Spec.Spec = 
-		cdo->EffectType = EGAEffectType::Duration;
-		cdo->Stacking = Stacking;
 		cdo->ExecutionType = UGAEffectExecution::StaticClass();
 		cdo->ApplicationRequirement = ApplReq;
 		cdo->Application = Appl;
 		cdo->OwnedTags = CreateTags(OwnedTags);
 		cdo->bExecuteOnApplication = true;
-		cdo->bWithPeriod = false;
 		if (AttributeTags.Num() > 0)
 			cdo->AttributeTags = CreateTags(AttributeTags);
 		if (ApplyTags.Num() > 0)
@@ -322,14 +321,11 @@ public:
 		Spec = CDO;
 		UGAGameEffectSpec* cdo = Spec.GetClass().GetDefaultObject();
 		
-		cdo->EffectType = EGAEffectType::Duration;
-		cdo->Stacking = Stacking;
 		cdo->ExecutionType = UGAEffectExecution::StaticClass();
 		cdo->ApplicationRequirement = UAFAttributeStongerOverride::StaticClass();
 		cdo->Application = Appl;
 
 		cdo->OwnedTags = CreateTags(OwnedTags);
-		cdo->bWithPeriod = true;
 		if (AttributeTags.Num() > 0)
 			cdo->AttributeTags = CreateTags(AttributeTags);
 		if (ApplyTags.Num() > 0)
@@ -361,7 +357,9 @@ public:
 		const TArray<FName>& AttributeTags = TArray<FName>(),
 		const TArray<FName>& ApplyTags = TArray<FName>(),
 		const FTagsInput& TagsIn = FTagsInput(),
-		TSubclassOf<UGAGameEffectSpec> CDO = UGAGameEffectSpec::StaticClass()
+		TSubclassOf<UGAGameEffectSpec> CDO = UGAGameEffectSpec::StaticClass(),
+		TSubclassOf<UAFEffectApplicationRequirement> ApplReq = UAFEffectApplicationRequirement::StaticClass(),
+		TSubclassOf<UAFEffectCustomApplication> Appl = UAFEffectCustomApplication::StaticClass()
 	)
 	{
 		const float Duration = 10;
@@ -373,12 +371,11 @@ public:
 
 		//UClass* clas = DuplicateObject<UClass>(UGAGameEffectSpec::StaticClass());
 		//Spec.Spec = 
-		cdo->EffectType = EGAEffectType::Infinite;
-		cdo->Stacking = Stacking;
+		cdo->ApplicationRequirement = ApplReq;
+		cdo->Application = Appl;
 		cdo->ExecutionType = UGAEffectExecution::StaticClass();
 		cdo->OwnedTags = CreateTags(OwnedTags);
 		cdo->bExecuteOnApplication = true;
-		cdo->bWithPeriod = false;
 		if (AttributeTags.Num() > 0)
 			cdo->AttributeTags = CreateTags(AttributeTags);
 		if (ApplyTags.Num() > 0)
@@ -579,9 +576,10 @@ public:
 
 		FGAEffectProperty Effect = CreateEffectDurationSpec(OwnedTags, 50,
 			EGAAttributeMod::Add, TEXT("Energy"), EGAEffectStacking::Override,
-			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(),
-			UAFEffectApplicationRequirement::StaticClass(),
-			UAFAttributeDurationOverride::StaticClass());
+			AttributeTags, ApplyTags, TagsIn, UAFEffectApplicationRequirement::StaticClass(),
+			UAFAttributeDurationOverride::StaticClass(),
+			UGAGameEffectSpec::StaticClass()
+		);
 
 		
 
@@ -607,7 +605,10 @@ public:
 			{
 				FGAEffectProperty EffectWeaker = CreateEffectDurationSpec(OwnedTags, 30,
 					EGAAttributeMod::Add, TEXT("Energy"), EGAEffectStacking::Override,
-					AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass());
+					AttributeTags, ApplyTags, TagsIn, UAFEffectApplicationRequirement::StaticClass(),
+					UAFAttributeDurationOverride::StaticClass(),
+					UGAGameEffectSpec::StaticClass()
+				);
 				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
 				float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Energy"));
 				TestEqual("Source Health Post2: ", PostVal2, 130.0f);
@@ -641,9 +642,10 @@ public:
 
 		FGAEffectProperty Effect = CreateEffectDurationSpec(OwnedTags, 50,
 			EGAAttributeMod::Add, TEXT("Health"), EGAEffectStacking::Override,
-			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(),
-			UAFAttributeStongerOverride::StaticClass(),
-			UAFAttributeDurationOverride::StaticClass());
+			AttributeTags, ApplyTags, TagsIn, UAFAttributeStongerOverride::StaticClass(),
+			UAFAttributeDurationOverride::StaticClass(),
+			UGAGameEffectSpec::StaticClass()
+		);
 
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
@@ -667,7 +669,10 @@ public:
 			{
 				FGAEffectProperty EffectWeaker = CreateEffectDurationSpec(OwnedTags, 30,
 					EGAAttributeMod::Add, TEXT("Health"), EGAEffectStacking::Override,
-					AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass());
+					AttributeTags, ApplyTags, TagsIn, UAFAttributeStongerOverride::StaticClass(),
+					UAFAttributeDurationOverride::StaticClass(),
+					UGAGameEffectSpec::StaticClass()
+				);
 				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
 				float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 				TestEqual("Source Health Post2: ", PostVal2, 150.0f);
@@ -701,9 +706,10 @@ public:
 
 		FGAEffectProperty Effect = CreateEffectDurationSpec(OwnedTags, 30,
 			EGAAttributeMod::Add, TEXT("Health"), EGAEffectStacking::Override,
-			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(),
-			UAFAttributeStongerOverride::StaticClass(),
-			UAFAttributeDurationOverride::StaticClass());
+			AttributeTags, ApplyTags, TagsIn, UAFAttributeStongerOverride::StaticClass(),
+			UAFAttributeDurationOverride::StaticClass(),
+			UGAGameEffectSpec::StaticClass()
+		);
 
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
@@ -727,7 +733,10 @@ public:
 			{
 				FGAEffectProperty EffectWeaker = CreateEffectDurationSpec(OwnedTags, 50,
 					EGAAttributeMod::Add, TEXT("Health"), EGAEffectStacking::Override,
-					AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass());
+					AttributeTags, ApplyTags, TagsIn, UAFAttributeStongerOverride::StaticClass(),
+					UAFAttributeDurationOverride::StaticClass(),
+					UGAGameEffectSpec::StaticClass()
+				);
 				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
 				float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 				TestEqual("Source Health Post2: ", PostVal2, 150.0f);
@@ -761,9 +770,10 @@ public:
 
 		FGAEffectProperty Effect = CreateEffectDurationSpec(OwnedTags, 50,
 			EGAAttributeMod::Add, TEXT("Stamina"), EGAEffectStacking::Override,
-			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(),
-			UAFEffectApplicationRequirement::StaticClass(),
-			UAFAtributeDurationAdd::StaticClass());
+			AttributeTags, ApplyTags, TagsIn, UAFEffectApplicationRequirement::StaticClass(),
+			UAFAtributeDurationAdd::StaticClass(),
+			UGAGameEffectSpec::StaticClass()
+			);
 
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
@@ -787,7 +797,10 @@ public:
 			{
 				FGAEffectProperty EffectWeaker = CreateEffectDurationSpec(OwnedTags, 30,
 					EGAAttributeMod::Add, TEXT("Stamina"), EGAEffectStacking::Override,
-					AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass());
+					AttributeTags, ApplyTags, TagsIn, UAFEffectApplicationRequirement::StaticClass(),
+					UAFAtributeDurationAdd::StaticClass(),
+					UGAGameEffectSpec::StaticClass()
+				);
 				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
 				float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
 				TestEqual("Source Stamina Post2: ", PostVal2, 180.0f);
@@ -822,7 +835,10 @@ public:
 
 		FGAEffectProperty Effect = CreateEffectInfiniteSpec(OwnedTags, 50,
 			EGAAttributeMod::Add, TEXT("Stamina"), EGAEffectStacking::Override,
-			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass());
+			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(),
+			UAFEffectApplicationRequirement::StaticClass(),
+			UAFAttributeDurationInfinite::StaticClass()
+		);
 
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
@@ -946,7 +962,8 @@ public:
 
 		FGAEffectProperty Effect = CreateEffectPeriodicSpec(OwnedTags, 5,
 			EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Override,
-			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass());
+			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(),
+			UAFPeriodApplicationOverride::StaticClass());
 
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
@@ -972,7 +989,8 @@ public:
 				TestEqual("Source Health PPost2: ", PostVal2, 70.0f);
 				FGAEffectProperty EffectWeaker = CreateEffectPeriodicSpec(OwnedTags, 2,
 					EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Override,
-					AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass());
+					AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass(),
+					UAFPeriodApplicationOverride::StaticClass());
 				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
 				//TestEqual("Source Health Post2: ", PostVal2, 150.0f);
 			}
@@ -1005,7 +1023,8 @@ public:
 
 		FGAEffectProperty Effect = CreateEffectPeriodicSpec(OwnedTags, 2,
 			EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Add,
-			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(), false);
+			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(),
+			UAFPeriodApplicationAdd::StaticClass());
 
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
@@ -1031,7 +1050,8 @@ public:
 				TestEqual("Source Health PPost2: ", PostVal2, 88.0f);
 				FGAEffectProperty EffectWeaker = CreateEffectPeriodicSpec(OwnedTags, 2,
 					EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Add,
-					AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass(), false);
+					AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass(),
+					UAFPeriodApplicationAdd::StaticClass());
 				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
 				//TestEqual("Source Health Post2: ", PostVal2, 150.0f);
 			}
@@ -1066,7 +1086,8 @@ public:
 
 		FGAEffectProperty Effect = CreateEffectPeriodicSpec(OwnedTags, 1,
 			EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Duration,
-			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(), false);
+			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(),
+			UAFPeriodApplicationOverride::StaticClass());
 
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
@@ -1092,7 +1113,8 @@ public:
 				TestEqual("Source Health PPost2: ", PostVal2, 94.0f);
 				FGAEffectProperty EffectWeaker = CreateEffectPeriodicSpec(OwnedTags, 2,
 					EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Duration,
-					AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass(), false);
+					AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass(),
+					UAFPeriodApplicationOverride::StaticClass());
 				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
 				//TestEqual("Source Health Post2: ", PostVal2, 150.0f);
 			}
@@ -1127,7 +1149,8 @@ public:
 
 		FGAEffectProperty Effect = CreateEffectPeriodicSpec(OwnedTags, 2,
 			EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Duration,
-			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(), false);
+			AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(),
+			UAFPeriodApplicationExtend::StaticClass());
 
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
@@ -1153,7 +1176,8 @@ public:
 				TestEqual("Source Health PPost2: ", PostVal2, 88.0f);
 				FGAEffectProperty EffectWeaker = CreateEffectPeriodicSpec(OwnedTags, 2,
 					EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Duration,
-					AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(), false);
+					AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(),
+					UAFPeriodApplicationExtend::StaticClass());
 				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
 				//TestEqual("Source Health Post2: ", PostVal2, 150.0f);
 			}

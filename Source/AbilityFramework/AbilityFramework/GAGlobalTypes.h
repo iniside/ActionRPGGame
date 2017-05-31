@@ -378,8 +378,7 @@ public:
 	FGAAttribute GetAttribute() const;
 	EGAAttributeMod GetAttributeMod() const;
 	EAFAttributeStacking GetAttributeStacking() const;
-	EGAEffectType GetEffectType() const;
-	bool GetWithPeriod() const;
+
 	static FGAEffectHandle GenerateHandle(FGAEffect* EffectIn);
 	bool HasAllTags(const FGameplayTagContainer& TagsIn) const;
 	bool HasAllTagsExact(const FGameplayTagContainer& TagsIn) const;

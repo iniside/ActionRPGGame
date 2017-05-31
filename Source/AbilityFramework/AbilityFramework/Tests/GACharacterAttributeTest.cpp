@@ -47,10 +47,7 @@ void AGACharacterAttributeTest::ModifyAttribute(FGAEffectMod& ModIn, const FGAEf
 { 
 	GetAttributes()->ModifyAttribute(ModIn, HandleIn, InProperty);
 }
-void AGACharacterAttributeTest::ApplyDuration(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn)
-{
-	GetAttributes()->ApplyDuration(ModIn, HandleIn);
-}
+
 FAFAttributeBase* AGACharacterAttributeTest::GetAttribute(FGAAttribute AttributeIn)
 { 
 	return GetAttributes()->GetAttribute(AttributeIn);

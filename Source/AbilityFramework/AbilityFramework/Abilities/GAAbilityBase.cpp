@@ -264,17 +264,22 @@ bool UGAAbilityBase::ApplyActivationEffect()
 	FHitResult Hit(ForceInit);
 	
 	UGAGameEffectSpec* Spec = ActivationEffect.GetClass().GetDefaultObject();
-	ActivationEffect.Handle = UGABlueprintLibrary::MakeEffect(Spec, ActivationEffect.Handle, this, POwner, this, Hit);
-	float DurationCheck = Spec->Duration.GetFloatValue(ActivationEffect.Handle.GetContext());
-	if (DurationCheck > 0 || ActivationEffect.GetSpec()->EffectType == EGAEffectType::Infinite)
+	//ActivationEffect.Handle = UGABlueprintLibrary::MakeEffect(Spec, ActivationEffect.Handle, this, POwner, this, Hit);
+	FGAEffectContext ctx = UGABlueprintLibrary::MakeContext(this, POwner, this, Hit);
+	float DurationCheck = Spec->Duration.GetFloatValue(ctx);
+	float PeriodCheck = Spec->Period.GetFloatValue(ctx);
+	if (DurationCheck > 0 || PeriodCheck > 0)
 	{
 		FHitResult HitIn;
 
-		AbilityComponent->ApplyEffectToTarget(ActivationEffect.Handle.GetEffect(), ActivationEffect.Handle, ActivationEffect);
+		//AbilityComponent->ApplyEffectToTarget(ActivationEffect.Handle.GetEffect(), ActivationEffect.Handle, ActivationEffect);
+		UGABlueprintLibrary::ApplyGameEffectToObject(ActivationEffect,
+			this, POwner, this);
+
 		if(!ActivationEffect.Handle.GetEffectRef().OnEffectExpired.IsBound())
 			ActivationEffect.Handle.GetEffectRef().OnEffectExpired.BindUObject(this, &UGAAbilityBase::NativeOnAbilityActivationFinish);
 
-		float PeriodCheck = Spec->Period.GetFloatValue(ActivationEffect.Handle.GetContext());
+		
 		if (PeriodCheck > 0)
 		{
 			if (!ActivationEffect.Handle.GetEffectRef().OnEffectPeriod.IsBound())

@@ -4,18 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "Effects/AFEffectCustomApplication.h"
-#include "AFAtributeDurationAdd.generated.h"
+#include "AFAttributeDurationInfinite.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ABILITYFRAMEWORK_API UAFAtributeDurationAdd : public UAFEffectCustomApplication
+class ABILITYFRAMEWORK_API UAFAttributeDurationInfinite : public UAFEffectCustomApplication
 {
 	GENERATED_BODY()
 public:
 	virtual bool ApplyEffect(const FGAEffectHandle& InHandle, const struct FGAEffect& EffectIn,
 		FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer);
+	
 	
 	
 };

@@ -458,7 +458,7 @@ public:
 		float GetAttributeValue(FGAAttribute AttributeIn) const { return DefaultAttributes->GetCurrentAttributeValue(AttributeIn); };
 
 	void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);// { DefaultAttributes->ModifyAttribute(ModIn, HandleIn); };
-	void ApplyDuration(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn);// { DefaultAttributes->ModifyAttribute(ModIn, HandleIn); };
+	
 	FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn) { return DefaultAttributes->GetAttribute(AttributeIn); };
 	void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) { DefaultAttributes->RemoveBonus(AttributeIn, HandleIn, HandleIn.GetAttributeMod());  };
 	float NativeGetAttributeValue(const FGAAttribute AttributeIn) const { return 0; };

@@ -30,8 +30,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 		virtual float GetAttributeValue(FGAAttribute AttributeIn) const { return 0; };
 
-	//virtual FMessageAddress& GetAddress() const { return nullptr; }
-	virtual void ApplyDuration(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn) {};
 	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn,
 		struct FGAEffectProperty& InProperty) {};
 	virtual FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn) { return nullptr; };

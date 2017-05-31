@@ -20,15 +20,11 @@ void FGAEffectDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 	TArray<TWeakObjectPtr<UObject>> Objects;
 	DetailLayout.GetObjectsBeingCustomized(Objects);
 
-	TSharedPtr<IPropertyHandle> EffectTypeProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, EffectType), UGAGameEffectSpec::StaticClass());
+	/*TSharedPtr<IPropertyHandle> EffectTypeProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, EffectType), UGAGameEffectSpec::StaticClass());
 	FSimpleDelegate UpdateEffectTypeyDelegate = FSimpleDelegate::CreateSP(this, &FGAEffectDetails::OnDurationPolicyChange);
-	EffectTypeProp->SetOnPropertyValueChanged(UpdateEffectTypeyDelegate);
+	EffectTypeProp->SetOnPropertyValueChanged(UpdateEffectTypeyDelegate);*/
 
-	TSharedPtr<IPropertyHandle> WithPeriodProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, bWithPeriod), UGAGameEffectSpec::StaticClass());
-	FSimpleDelegate UpdateEffectWithPeriod = FSimpleDelegate::CreateSP(this, &FGAEffectDetails::OnDurationPolicyChange);
-	WithPeriodProp->SetOnPropertyValueChanged(UpdateEffectWithPeriod);
-
-	for (TWeakObjectPtr<UObject> obj : Objects)
+	/*for (TWeakObjectPtr<UObject> obj : Objects)
 	{
 		if (UGAGameEffectSpec* Spec = Cast<UGAGameEffectSpec>(obj.Get()))
 		{
@@ -41,8 +37,6 @@ void FGAEffectDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 				TSharedPtr<IPropertyHandle> PeriodProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Period), UGAGameEffectSpec::StaticClass());
 
 				DetailLayout.HideProperty(PeriodicStackingProp);
-				if(!bWithPeriod)
-					DetailLayout.HideProperty(PeriodProp);
 				break;
 			}
 			case EGAEffectType::Infinite:
@@ -55,8 +49,6 @@ void FGAEffectDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 
 				DetailLayout.HideProperty(DurationStackingProp);
 				DetailLayout.HideProperty(DurationProp);
-				if (!bWithPeriod)
-					DetailLayout.HideProperty(PeriodProp);
 				DetailLayout.HideProperty(MaxStackedDurationProp);
 				break;
 			}
@@ -77,7 +69,7 @@ void FGAEffectDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 			}
 			}
 		}
-	}
+	}*/
 }
 void FGAEffectDetails::OnDurationPolicyChange()
 {

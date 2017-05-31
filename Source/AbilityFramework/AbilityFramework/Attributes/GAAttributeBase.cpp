@@ -234,13 +234,7 @@ float FAFAttributeBase::Modify(const FGAEffectMod& ModIn, const FGAEffectHandle&
 	}
 	return returnValue;
 }
-float FAFAttributeBase::DurationModify(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn)
-{
-	FGAModifier AttrMod(ModIn.AttributeMod, ModIn.Value, HandleIn);
-	AttrMod.Tags.AppendTags(HandleIn.GetEffectSpec()->AttributeTags);
-	AddBonus(ModIn, HandleIn);
-	return ModIn.Value;
-}
+
 void FAFAttributeBase::AddBonus(const FGAEffectMod& ModIn, const FGAEffectHandle& Handle)
 {
 	switch (Stacking)

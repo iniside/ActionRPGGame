@@ -243,19 +243,7 @@ float UGAAttributesBase::ModifyAttribute(const FGAEffectMod& ModIn,
 	OnAttributeModified(ModIn, HandleIn);
 	return OutVal;
 }
-float UGAAttributesBase::ApplyDuration(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn)
-{
-	FAFAttributeBase* attr = nullptr;
 
-	attr = GetAttribute(ModIn.Attribute);
-	float OutVal = -1;
-	if (attr)
-	{
-		OutVal = attr->DurationModify(ModIn, HandleIn);
-	}
-	OnAttributeModified(ModIn, HandleIn);
-	return OutVal;
-}
 void UGAAttributesBase::RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod)
 {
 	FAFAttributeBase* attr = nullptr;

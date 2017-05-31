@@ -12,7 +12,7 @@ void UARCharacterMovementComponent::CalcVelocity(float DeltaTime, float Friction
 	const FVector AccelerationDir = GetCurrentAcceleration().GetSafeNormal();
 	float Dot = FVector::DotProduct(Forward, AccelerationDir);
 	//GEngine->AddOnScreenDebugMessage(0, 1, FColor::Red, FString::FormatAsNumber(Dot));
-	UE_LOG(LogTemp, Warning, TEXT("UARCharacterMovementComponent.CalcVelocity DotProduct: %f"), Dot);
+	//UE_LOG(LogTemp, Warning, TEXT("UARCharacterMovementComponent.CalcVelocity DotProduct: %f"), Dot);
 	if (Dot < 0)
 	{
 		//backward

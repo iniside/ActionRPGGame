@@ -31,7 +31,7 @@ public:
 	virtual class UGAAbilitiesComponent* GetAbilityComp() override;
 	virtual float GetAttributeValue(FGAAttribute AttributeIn) const override { return 0; };
 	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);// override { DefaultAttributes->ModifyAttribute(ModIn, HandleIn); };
-	virtual void ApplyDuration(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn);
+	
 	virtual FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn);// override { return DefaultAttributes->GetAttribute(AttributeIn); };
 	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) override;
 	virtual FGAEffectHandle ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn

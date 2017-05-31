@@ -53,10 +53,7 @@ void UGAAbilitiesComponent::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffect
 	float NewValue = DefaultAttributes->ModifyAttribute(ModIn, HandleIn, InProperty);
 	OnAttributeChanged.Broadcast(NewValue);
 };
-void UGAAbilitiesComponent::ApplyDuration(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn)
-{
-	float NewValue = DefaultAttributes->ApplyDuration(ModIn, HandleIn);
-}
+
 void UGAAbilitiesComponent::GetAttributeStructTest(FGAAttribute Name)
 {
 	DefaultAttributes->GetAttribute(Name);
