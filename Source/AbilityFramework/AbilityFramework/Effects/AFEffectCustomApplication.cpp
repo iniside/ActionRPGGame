@@ -6,7 +6,7 @@
 
 
 
-bool UAFEffectCustomApplication::ApplyEffect(const FGAEffectHandle& InHandle, const FGAEffect& EffectIn,
+bool UAFEffectCustomApplication::ApplyEffect(const FGAEffectHandle& InHandle, FGAEffect* EffectIn,
 	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer)
 {
 	InHandle.GetContext().TargetComp->ExecuteEffect(InHandle, InProperty);

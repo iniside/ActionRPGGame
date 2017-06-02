@@ -6,14 +6,14 @@
 #include "AFPeriodApplicationAdd.h"
 
 
-bool UAFPeriodApplicationAdd::ApplyEffect(const FGAEffectHandle& InHandle, const struct FGAEffect& EffectIn,
+bool UAFPeriodApplicationAdd::ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
 	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer)
 {
 	FTimerManager& DurationTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
 
-	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExpireEffect, InHandle);
+	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExpireEffect, InHandle, InProperty);
 	DurationTimer.SetTimer(InHandle.GetEffectPtr()->DurationTimerHandle, delDuration,
-		EffectIn.GetDurationTime(), false);
+		InProperty.Duration, false);
 
 	FTimerManager& PeriodTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
 

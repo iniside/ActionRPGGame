@@ -16,7 +16,7 @@ class ABILITYFRAMEWORK_API UAFEffectApplicationRequirement : public UObject
 	GENERATED_BODY()
 	
 public:
-	virtual bool CanApply(const FGAEffectHandle& InHandle)
+	virtual bool CanApply(FGAEffect* EffectIn, FGAEffectProperty& InProperty)
 	{
 		return true;
 	}

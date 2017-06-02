@@ -14,7 +14,7 @@ class ABILITYFRAMEWORK_API UAFAttributeStongerOverride : public UAFEffectApplica
 {
 	GENERATED_BODY()
 public:
-	virtual bool CanApply(const FGAEffectHandle& InHandle) override;
+	virtual bool CanApply(FGAEffect* EffectIn, FGAEffectProperty& InProperty) override;
 	
 	
 };

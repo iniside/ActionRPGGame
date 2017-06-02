@@ -159,7 +159,7 @@ bool FAFAttributeBase::CheckIfModsMatch(const FGAEffectHandle& InHandle, const F
 		return true;
 	return false; 
 }
-bool FAFAttributeBase::CheckIfStronger(const FGAEffectHandle& InHandle, const FGAEffectMod& InMod)
+bool FAFAttributeBase::CheckIfStronger(const FGAEffectMod& InMod)
 {
 	TMap<FGAEffectHandle, FGAEffectMod>& mods = Modifiers[static_cast<int32>(InMod.AttributeMod)];
 	auto It = mods.CreateConstIterator();
@@ -259,7 +259,7 @@ void FAFAttributeBase::AddBonus(const FGAEffectMod& ModIn, const FGAEffectHandle
 		}
 		case EAFAttributeStacking::StrongerOverride:
 		{
-			if (CheckIfStronger(Handle, ModIn))
+			if (CheckIfStronger(ModIn))
 			{
 				RemoveBonus(Handle, ModIn.AttributeMod);
 				TMap<FGAEffectHandle, FGAEffectMod>& mods = Modifiers[static_cast<int32>(ModIn.AttributeMod)];

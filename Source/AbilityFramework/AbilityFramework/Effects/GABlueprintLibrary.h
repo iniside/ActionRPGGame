@@ -11,12 +11,6 @@ class ABILITYFRAMEWORK_API UGABlueprintLibrary : public UBlueprintFunctionLibrar
 	GENERATED_UCLASS_BODY()
 public:
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
-		static void ApplyGameEffectProperty(UPARAM(ref) FGAEffectProperty& Handle);
-
-	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
-		static void ApplyGameEffect(FGAEffectHandle Handle);
-
-	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
 		static void ApplyGameEffectToObject(UPARAM(ref) FGAEffectProperty& InEffect,
 			class UObject* Target, class APawn* Instigator,
 			UObject* Causer);
@@ -63,7 +57,6 @@ public:
 		FGAEffectHandle HandleIn, class UObject* Target, class APawn* Instigator,
 		UObject* Causer, const FHitResult& HitIn);
 
-	static FGAEffectHandle ApplyEffect(const FGAEffectHandle& HandleIn);
 
 	static FGAEffectContext MakeContext(class UObject* Target, class APawn* Instigator, UObject* Causer, const FHitResult& HitIn);
 	static void AddTagsToEffect(FGAEffect* EffectIn);

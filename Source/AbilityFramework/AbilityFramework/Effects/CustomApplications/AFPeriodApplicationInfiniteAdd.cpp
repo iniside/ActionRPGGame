@@ -6,7 +6,7 @@
 #include "AFPeriodApplicationInfiniteAdd.h"
 
 
-bool UAFPeriodApplicationInfiniteAdd::ApplyEffect(const FGAEffectHandle& InHandle, const struct FGAEffect& EffectIn,
+bool UAFPeriodApplicationInfiniteAdd::ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
 	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer)
 {
 	FTimerManager& PeriodTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
@@ -15,7 +15,7 @@ bool UAFPeriodApplicationInfiniteAdd::ApplyEffect(const FGAEffectHandle& InHandl
 	PeriodTimer.SetTimer(InHandle.GetEffectPtr()->PeriodTimerHandle, PeriodDuration,
 		InProperty.Period, true);
 	InContainer->AddEffect(InHandle, true);
-	EffectIn.Context.TargetComp->ExecuteEffect(InHandle, InProperty);
+	EffectIn->Context.TargetComp->ExecuteEffect(InHandle, InProperty);
 	return true;
 }
 

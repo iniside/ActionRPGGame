@@ -37,8 +37,8 @@ public:
 
 	virtual float NativeGetAttributeValue(const FGAAttribute AttributeIn) const { return 0; };
 
-	virtual FGAEffectHandle ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn,
-		FGAEffectProperty& InProperty) { return FGAEffectHandle(); };
+	virtual FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn,
+		FGAEffectProperty& InProperty, FGAEffectContext& InContext) { return FGAEffectHandle(); };
 	virtual void RemoveTagContainer(const FGameplayTagContainer& TagsIn) {};
 	//override to allow gathering tags from causer
 	//those tags will be merged into effect owned tags.

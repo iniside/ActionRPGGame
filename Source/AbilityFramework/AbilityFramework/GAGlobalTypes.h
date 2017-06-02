@@ -398,6 +398,14 @@ public:
 		Handle = Other.Handle;
 		EffectPtr = Other.EffectPtr;
 	}
+
+	//FGAEffectHandle& operator=(const FGAEffectHandle& Other)
+	//{
+	//	Handle = Other.Handle;
+	//	EffectPtr = Other.EffectPtr;
+	//	return *this;
+	//}
+
 	void Reset();
 	bool IsValid() const;
 	friend uint32 GetTypeHash(const FGAEffectHandle& InHandle)
@@ -410,9 +418,20 @@ public:
 	{}
 
 	FGAEffectHandle(uint32 HandleIn, FGAEffect* EffectIn);
+	FGAEffectHandle(const FGAEffectHandle& Other);
 public:
 	~FGAEffectHandle();
 };
+//
+//template<>
+//struct TStructOpsTypeTraits< FGAEffectHandle > : public TStructOpsTypeTraitsBase2<FGAEffectHandle>
+//{
+//	enum
+//	{
+//		WithCopy = true,
+//	};
+//};
+
 DECLARE_MULTICAST_DELEGATE(FGAGenericDelegate);
 
 struct ABILITYFRAMEWORK_API EnumToString

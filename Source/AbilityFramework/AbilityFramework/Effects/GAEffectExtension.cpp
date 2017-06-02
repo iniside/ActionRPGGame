@@ -82,10 +82,10 @@ void UGAEffectExtension::InternalEffectEnded()
 	if (!OwningComp)
 		return;
 
-	for (FGAEffectHandle& Handle : OwnedEffects)
-	{
-		OwningComp->RemoveEffect(Handle);
-	}
+	//for (FGAEffectHandle& Handle : OwnedEffects)
+	//{
+	//	OwningComp->RemoveEffect(Handle);
+	//}
 
 	MarkPendingKill();
 }

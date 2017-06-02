@@ -323,10 +323,10 @@ void AARCharacter::RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& 
 {
 	GetAttributes()->RemoveBonus(AttributeIn, HandleIn, HandleIn.GetAttributeMod());
 }
-FGAEffectHandle AARCharacter::ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn,
-	FGAEffectProperty& InProperty)
+FGAEffectHandle AARCharacter::ApplyEffectToTarget(FGAEffect* EffectIn,
+	FGAEffectProperty& InProperty, FGAEffectContext& InContext)
 {
-	return GetAbilityComp()->ApplyEffectToTarget(EffectIn, HandleIn, InProperty);
+	return GetAbilityComp()->ApplyEffectToTarget(EffectIn, InProperty, InContext);
 };
 void AARCharacter::RemoveTagContainer(const FGameplayTagContainer& TagsIn)
 {

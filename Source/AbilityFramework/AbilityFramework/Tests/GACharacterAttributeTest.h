@@ -34,8 +34,8 @@ public:
 	
 	virtual FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn);// override { return DefaultAttributes->GetAttribute(AttributeIn); };
 	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) override;
-	virtual FGAEffectHandle ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn
-	, FGAEffectProperty& InProperty) override;// { return ApplyEffectToTarget(EffectIn, HandleIn); };
+	virtual FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn
+	, FGAEffectProperty& InProperty, FGAEffectContext& InContext) override;// { return ApplyEffectToTarget(EffectIn, HandleIn); };
 	virtual void RemoveTagContainer(const FGameplayTagContainer& TagsIn) override;
 	virtual float NativeGetAttributeValue(const FGAAttribute AttributeIn) const;// override { return 0; };
 };

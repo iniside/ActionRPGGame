@@ -8,19 +8,19 @@
 
 
 
-bool UAFPeriodApplicationOverride::ApplyEffect(const FGAEffectHandle& InHandle, const struct FGAEffect& EffectIn,
+bool UAFPeriodApplicationOverride::ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
 	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer)
 {
 	TSet<FGAEffectHandle> handles = InContainer->GetHandlesByClass(InHandle);
 	for (const FGAEffectHandle& handle : handles)
 	{
-		InContainer->RemoveEffect(handle);
+		InContainer->RemoveEffect(InProperty);
 	}
-	InContainer->RemoveEffect(InHandle);
+	InContainer->RemoveEffect(InProperty);
 
 	FTimerManager& DurationTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
 
-	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExpireEffect, InHandle);
+	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExpireEffect, InHandle, InProperty);
 	DurationTimer.SetTimer(InHandle.GetEffectPtr()->DurationTimerHandle, delDuration,
 		InProperty.Duration, false);
 

@@ -90,31 +90,31 @@ void UGAAbilitiesComponent::DestroyComponent(bool bPromoteChildren)
 	//PrimaryComponentTick.UnRegisterTickFunction();
 }
 
-FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToSelf(const FGAEffect& EffectIn
-	, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty)
+FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToSelf(FGAEffect* EffectIn
+	,FGAEffectProperty& InProperty, FGAEffectContext& InContext)
 {
-	OnEffectApplyToSelf.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
-	GameEffectContainer.ApplyEffect(EffectIn, HandleIn, InProperty);
-	FGAEffectCueParams CueParams;
-	CueParams.HitResult = EffectIn.Context.HitResult;
-	OnEffectApplied.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
+	//OnEffectApplyToSelf.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
+	GameEffectContainer.ApplyEffect(EffectIn, InProperty);
+	//FGAEffectCueParams CueParams;
+	//CueParams.HitResult = EffectIn.Context.HitResult;
+	//OnEffectApplied.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
 	return FGAEffectHandle();
 }
-FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToTarget(const FGAEffect& EffectIn
-	, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty)
+FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToTarget(FGAEffect* EffectIn
+	, FGAEffectProperty& InProperty, FGAEffectContext& InContext)
 {
-	FGAEffectCueParams CueParams;
-	CueParams.HitResult = EffectIn.Context.HitResult;
+	//FGAEffectCueParams CueParams;
+	//CueParams.HitResult = EffectIn.Context.HitResult;
 	//execute cue from effect regardless if we have target object or not.
-	HandleIn.GetContextRef().TargetComp->ApplyEffectToSelf(EffectIn, HandleIn, InProperty);
-	MulticastApplyEffectCue(HandleIn, CueParams);
+	InContext.TargetComp->ApplyEffectToSelf(EffectIn, InProperty, InContext);
+	//MulticastApplyEffectCue(HandleIn, CueParams);
 
-	if (EffectIn.IsValid() && EffectIn.Context.TargetComp.IsValid())
-	{
-		OnEffectApplyToTarget.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
+//	if (EffectIn.IsValid() && EffectIn.Context.TargetComp.IsValid())
+//	{
+		//OnEffectApplyToTarget.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
 	//	return EffectIn.Context.TargetComp->ApplyEffectToSelf(EffectIn, HandleIn);
-	}
-	return HandleIn;
+//	}
+	return FGAEffectHandle();
 }
 
 FGAEffectHandle UGAAbilitiesComponent::MakeGameEffect(TSubclassOf<class UGAGameEffectSpec> SpecIn,
@@ -155,29 +155,30 @@ void UGAAbilitiesComponent::ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectPro
 
 	//GameEffectContainer.ExecuteEffect(HandleIn, HandleIn.GetEffectRef());
 }
-void UGAAbilitiesComponent::ExpireEffect(FGAEffectHandle HandleIn)
+void UGAAbilitiesComponent::ExpireEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty)
 {
 	//call effect internal delegate:
-	HandleIn.GetEffectPtr()->OnExpired();
-	InternalRemoveEffect(HandleIn);
-	OnEffectExpired.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
+	//HandleIn.GetEffectPtr()->OnExpired();
+	//InternalRemoveEffect(HandleIn);
+	//OnEffectExpired.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
+	GameEffectContainer.RemoveEffectByHandle(HandleIn, InProperty);
 }
-void UGAAbilitiesComponent::RemoveEffect(const FGAEffectHandle& HandleIn)
+void UGAAbilitiesComponent::RemoveEffect(const FGAEffectProperty& InProperty)
 {
-	InternalRemoveEffect(HandleIn);
-	OnEffectRemoved.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
+	InternalRemoveEffect(InProperty);
+	//OnEffectRemoved.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
 }
-void UGAAbilitiesComponent::InternalRemoveEffect(const FGAEffectHandle& HandleIn)
+void UGAAbilitiesComponent::InternalRemoveEffect(const FGAEffectProperty& InProperty)
 {
-	FTimerManager& timer = GetWorld()->GetTimerManager();
-	timer.ClearTimer(HandleIn.GetEffectRef().PeriodTimerHandle);
-	timer.ClearTimer(HandleIn.GetEffectRef().DurationTimerHandle);
+	//FTimerManager& timer = GetWorld()->GetTimerManager();
+	//timer.ClearTimer(HandleIn.GetEffectRef().PeriodTimerHandle);
+	//timer.ClearTimer(HandleIn.GetEffectRef().DurationTimerHandle);
 	UE_LOG(GameAttributesEffects, Log, TEXT("UGAAbilitiesComponent:: Reset Timers and Remove Effect"));
 
-	MulticastRemoveEffectCue(HandleIn);
+	//MulticastRemoveEffectCue(HandleIn);
 	//periodic effects do not apply duration based modifiers to attributes.
 	//yet in anycase.
-	GameEffectContainer.RemoveEffect(HandleIn);
+	GameEffectContainer.RemoveEffect(InProperty);
 }
 
 void UGAAbilitiesComponent::ApplyInstacnedEffectToSelf(class UGAEffectExtension* EffectIn)

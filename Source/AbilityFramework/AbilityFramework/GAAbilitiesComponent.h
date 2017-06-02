@@ -280,10 +280,8 @@ public:
 	//////////// EFFECTS HANDLING
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	void Update();
-	FGAEffectHandle ApplyEffectToSelf(const FGAEffect& EffectIn,
-		const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);
-	FGAEffectHandle ApplyEffectToTarget(const FGAEffect& EffectIn,
-		const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);
+	FGAEffectHandle ApplyEffectToSelf(FGAEffect* EffectIn, FGAEffectProperty& InProperty, FGAEffectContext& InContext);
+	FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn, FGAEffectProperty& InProperty, FGAEffectContext& InContext);
 
 	void ApplyEffectToTarget(TSubclassOf<UGAGameEffectSpec> InSpecClass, 
 		const FGAEffectContext& InContext, const FGAEffectHandle& InHandle);
@@ -294,10 +292,10 @@ public:
 	/* Have to to copy handle around, because timer delegates do not support references. */
 	void ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty);
 	/* ExpireEffect is used to remove existing effect naturally when their time expires. */
-	void ExpireEffect(FGAEffectHandle HandleIn);
+	void ExpireEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty);
 	/* RemoveEffect is used to remove effect by force. */
-	void RemoveEffect(const FGAEffectHandle& HandleIn);
-	void InternalRemoveEffect(const FGAEffectHandle& HandleIn);
+	void RemoveEffect(const FGAEffectProperty& InProperty);
+	void InternalRemoveEffect(const FGAEffectProperty& InProperty);
 
 	void ApplyInstacnedEffectToSelf(class UGAEffectExtension* EffectIn);
 	void ApplyInstancedToTarget(class UGAEffectExtension* EffectIn);

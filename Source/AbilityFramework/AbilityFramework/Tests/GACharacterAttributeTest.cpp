@@ -56,10 +56,10 @@ void AGACharacterAttributeTest::RemoveBonus(FGAAttribute AttributeIn, const FGAE
 {
 	GetAttribute(AttributeIn)->RemoveBonus(HandleIn, InMod);
 }
-FGAEffectHandle AGACharacterAttributeTest::ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn,
-	FGAEffectProperty& InProperty)
+FGAEffectHandle AGACharacterAttributeTest::ApplyEffectToTarget(FGAEffect* EffectIn,
+	FGAEffectProperty& InProperty, FGAEffectContext& InContext)
 { 
-	return GetAbilityComp()->ApplyEffectToTarget(EffectIn, HandleIn, InProperty);
+	return GetAbilityComp()->ApplyEffectToTarget(EffectIn, InProperty, InContext);
 };
 void AGACharacterAttributeTest::RemoveTagContainer(const FGameplayTagContainer& TagsIn)
 {

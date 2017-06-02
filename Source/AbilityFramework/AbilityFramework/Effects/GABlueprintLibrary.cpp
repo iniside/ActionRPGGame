@@ -13,19 +13,7 @@ UGABlueprintLibrary::UGABlueprintLibrary(const FObjectInitializer& ObjectInitial
 {
 
 }
-void UGABlueprintLibrary::ApplyGameEffectProperty(FGAEffectProperty& Handle)
-{
 
-}
-void UGABlueprintLibrary::ApplyGameEffect(FGAEffectHandle Handle)
-{
-	if (!Handle.IsValid())
-		return;
-
-	FGAEffectContext& Context = Handle.GetContext();
-
-//	Context.InstigatorComp->ApplyEffectToTarget(Handle.GetEffect(), Handle);
-}
 
 void UGABlueprintLibrary::ApplyGameEffectToObject(UPARAM(ref) FGAEffectProperty& InEffect,
 	class UObject* Target, class APawn* Instigator,
@@ -59,23 +47,17 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(UGAGameEffectSpec* SpecIn, FGAE
 		UE_LOG(GameAttributesEffects, Error, TEXT("Invalid Effect Spec"));
 		return FGAEffectHandle();
 	}
-	InEffect.ApplicationRequirement = InEffect.GetSpec()->ApplicationRequirement.GetDefaultObject();
-	InEffect.Application = InEffect.GetSpec()->Application.GetDefaultObject();
-	InEffect.Execution = InEffect.GetSpec()->ExecutionType.GetDefaultObject();
+	if (!InEffect.IsInitialized())
+	{
+		InEffect.ApplicationRequirement = InEffect.GetSpec()->ApplicationRequirement.GetDefaultObject();
+		InEffect.Application = InEffect.GetSpec()->Application.GetDefaultObject();
+		InEffect.Execution = InEffect.GetSpec()->ExecutionType.GetDefaultObject();
+		InEffect.Spec = SpecIn;
+	}
 	FGAEffectContext Context = MakeContext(Target, Instigator, Causer, HitIn);
 	if (!Context.IsValid())
 	{
-		//if the handle is valid (valid pointer to effect and id)
-		//we want to preseve it and just set bad context.
-		if (HandleIn.IsValid())
-		{
-			HandleIn.SetContext(Context);
-			return HandleIn;
-		}
-		else
-		{
-			return FGAEffectHandle();
-		}
+		return FGAEffectHandle();
 	}
 	UGAAbilitiesComponent* Target2 = Context.TargetComp.Get();
 	if (!Target2->HasAll(SpecIn->RequiredTags))
@@ -87,21 +69,32 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(UGAGameEffectSpec* SpecIn, FGAE
 		return FGAEffectHandle();
 	}
 	UE_LOG(GameAttributesEffects, Log, TEXT("MakeOutgoingSpecObj: Created new Context: %s"), *Context.ToString());
-
-	if (HandleIn.IsValid())
+	InEffect.Duration = SpecIn->Duration.GetFloatValue(Context);
+	InEffect.Period = SpecIn->Period.GetFloatValue(Context);
+	FGAEffect* effect = nullptr;
+	if (InEffect.Duration <= 0 && InEffect.Period <= 0)
 	{
-		HandleIn.SetContext(Context);
+		if (!InEffect.Handle.IsValid())
+		{
+			effect = new FGAEffect(SpecIn, Context);
+			AddTagsToEffect(effect);
+			effect->Context = Context;
+			effect->GameEffect = SpecIn;
+		}
+		else
+		{
+			effect = InEffect.Handle.GetEffectPtr().Get();
+		}
 	}
 	else
 	{
-		FGAEffect* effect = new FGAEffect(SpecIn, Context);
+		effect = new FGAEffect(SpecIn, Context);
 		AddTagsToEffect(effect);
-		HandleIn = FGAEffectHandle::GenerateHandle(effect);
-		effect->Handle = HandleIn;
+		effect->Context = Context;
+		effect->GameEffect = SpecIn;
 	}
-	InEffect.Duration = SpecIn->Duration.GetFloatValue(Context);
-	InEffect.Period = SpecIn->Period.GetFloatValue(Context);
-	Context.InstigatorComp->ApplyEffectToTarget(HandleIn.GetEffectRef(), HandleIn, InEffect);
+
+	Context.InstigatorComp->ApplyEffectToTarget(effect, InEffect, Context);
 	return HandleIn;
 }
 
@@ -168,11 +161,7 @@ FGAEffectHandle UGABlueprintLibrary::MakeEffect(UGAGameEffectSpec* SpecIn,
 	}
 	return HandleIn;
 }
-FGAEffectHandle UGABlueprintLibrary::ApplyEffect(const FGAEffectHandle& HandleIn)
-{
-	//HandleIn.GetContextRef().InstigatorComp->ApplyEffectToTarget(HandleIn.GetEffect(), HandleIn);
-	return HandleIn;
-}
+
 FGAEffectContext UGABlueprintLibrary::MakeContext(class UObject* Target, class APawn* Instigator, UObject* Causer, const FHitResult& HitIn)
 {
 	IIGAAbilities* targetAttr = Cast<IIGAAbilities>(Target);

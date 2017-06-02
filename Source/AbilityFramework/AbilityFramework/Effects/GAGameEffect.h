@@ -295,13 +295,29 @@ public:
 		class UAFEffectCustomApplication* Application;
 	UPROPERTY()
 		class UGAEffectExecution* Execution;
+	UPROPERTY()
+		class UGAGameEffectSpec* Spec;
 
 	UPROPERTY()
 		float Duration;
 	UPROPERTY()
 		float Period;
-	/* Handle to effect created from SpecClass */
+	/* 
+		Handle to effect created from SpecClass 
+		This handle is only created and kept for instant effects,
+		so we don't create new object every time instant effect is created
+		as potentially there can be quite a lot of allocations.
+	*/
 	FGAEffectHandle Handle;
+	//target of handle, handle to effect.
+	//only used for duration effcts, and cleared after effect is removed.
+	TMap<UObject*, FGAEffectHandle> Handles;
+	FGAEffectProperty()
+		: ApplicationRequirement(nullptr),
+		Application(nullptr),
+		Execution(nullptr),
+		Spec(nullptr)
+	{};
 
 	TSubclassOf<UGAGameEffectSpec> GetClass() const { return SpecClass.SpecClass; }
 	const TSubclassOf<UGAGameEffectSpec>& GetClassRef() { return SpecClass.SpecClass; }
@@ -310,10 +326,20 @@ public:
 	//intentionally non const.
 	FGAEffectHandle& GetHandleRef() { return Handle; }
 	void SetHandle(const FGAEffectHandle& InHandle) { Handle = InHandle; };
+	void OnEffectRemoved(UObject* InTarget, const FGAEffectHandle& InHandle) {}
+
+	FObjectKey GetClassKey() const
+	{
+		return FObjectKey(GetClass());
+	}
 
 	const bool IsValid() const
 	{
 		return SpecClass.SpecClass ? true : false;
+	}
+	const bool IsInitialized() const
+	{
+		return ApplicationRequirement && Application && Execution && Spec;
 	}
 	const bool IsValidHandle() const
 	{
@@ -349,7 +375,7 @@ public:
 struct ABILITYFRAMEWORK_API FGAEffect : public TSharedFromThis<FGAEffect>
 {
 	/* Cached pointer to original effect spec. */
-	class UGAGameEffectSpec* GameEffect;
+	
 	class UGAEffectExecution* Execution;
 	UWorld* TargetWorld;
 	/* 
@@ -358,12 +384,14 @@ struct ABILITYFRAMEWORK_API FGAEffect : public TSharedFromThis<FGAEffect>
 		which can be furhter modified by Calculation object.
 	*/
 
-	//pointer ? Acces trough handle ?
-	FGAEffectContext Context;
+	
 	/* Contains all tags gathered on the way to application ? */
 
 	bool IsActive;
 public:
+	//pointer ? Acces trough handle ?
+	class UGAGameEffectSpec* GameEffect;
+	FGAEffectContext Context;
 	FGameplayTagContainer OwnedTags;
 	FGameplayTagContainer ApplyTags;
 	FGameplayTagContainer RequiredTags;
@@ -372,8 +400,7 @@ public:
 
 	mutable FTimerHandle PeriodTimerHandle;
 	mutable FTimerHandle DurationTimerHandle;
-	/* Spawmed by which ability. */
-	TWeakObjectPtr<class UGAAbilityBase> Ability;
+
 	FGAEffectMod AttributeMod;
 //because I'm fancy like that and like to make spearate public for fields and functions.
 public:
@@ -426,7 +453,7 @@ public:
 	~FGAEffect();
 
 private:
-	FGAEffectMod GetMod(FGAAttributeModifier& ModInfoIn);
+	FGAEffectMod GetMod(FGAAttributeModifier& ModInfoIn, class UGAGameEffectSpec* InSpec);
 };
 
 /*
@@ -567,6 +594,8 @@ struct ABILITYFRAMEWORK_API FGameCueContainer
 public:
 	void AddCue(FGAEffectHandle EffectHandle, FGAEffectCueParams CueParams);
 };
+
+
 USTRUCT(BlueprintType)
 struct ABILITYFRAMEWORK_API FGAEffectContainer : public FFastArraySerializer
 {
@@ -577,6 +606,10 @@ public:
 
 	TMap<FGAAttribute, TSet<FGAEffectHandle>> EffectByAttribute;
 
+	//TMap<FObjectKey, TQueue<FGAEffectHandle>> TestEffectByClass;
+
+	TMap<FObjectKey, TSharedPtr<TQueue<FGAEffectHandle>>> EffectByClass;
+	//TQueue<FGAEffectHandle> dupa;
 	/* All effects. */
 	TSet<FGAEffectHandle> ActiveEffectHandles;
 	/* 
@@ -608,28 +641,31 @@ public:
 	UPROPERTY(NotReplicated)
 		class UGAAbilitiesComponent* OwningComponent;
 public:
-	FGAEffectContainer();
-
-	void ApplyEffect(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);
+	//FGAEffectContainer();
+	void ApplyEffect(FGAEffect* EffectIn, FGAEffectProperty& InProperty);
 	/* Removesgiven number of effects of the same type. If Num == 0 Removes all effects */
-	void RemoveEffect(const FGAEffectHandle& HandleIn, int32 Num = 0);
+	void RemoveEffect(const FGAEffectProperty& HandleIn, int32 Num = 1);
+	/* Removesgiven number of effects of the same type. If Num == 0 Removes all effects */
+	void RemoveEffectByHandle(const FGAEffectHandle& InHandle, const FGAEffectProperty& InProperty);
 	/* Remove given number of effects of the same type */
 	void ApplyReplicationInfo(const FGAEffectHandle& HandleIn);
 	inline int32 GetEffectsNum() const { return ActiveEffectHandles.Num(); };
 
 	EGAEffectAggregation GetEffectAggregation(const FGAEffectHandle& HandleIn) const;
 
-	void ExtendEffectDuration(const FGAEffectHandle& ExistingEffect, const FGAEffectHandle& HandleIn);
-
 	TSet<FGAEffectHandle> GetHandlesByAttribute(const FGAEffectHandle& HandleIn);
 	TSet<FGAEffectHandle> GetHandlesByClass(const FGAEffectHandle& HandleIn);
+	
+	TSet<FGAEffectHandle> GetHandlesByClass(const FGAEffectProperty& InProperty,
+		const FGAEffectContext& InContext);
+
 	void AddEffect(const FGAEffectHandle& HandleIn, bool bInfinite = false);
 	void AddEffectByClass(const FGAEffectHandle& HandleIn);
 
 	void RemoveFromAttribute(const FGAEffectHandle& HandleIn);
-	void RemoveEffectProtected(const FGAEffectHandle& HandleIn);
-	void RemoveInstigatorEffect(const FGAEffectHandle& HandleIn);
-	void RemoveTargetEffect(const FGAEffectHandle& HandleIn);
+	void RemoveEffectProtected(const FGAEffectHandle& HandleIn, const FGAEffectProperty& InProperty);
+	void RemoveInstigatorEffect(const FGAEffectHandle& HandleIn, const FGAEffectProperty& InProperty);
+	void RemoveTargetEffect(const FGAEffectHandle& HandleIn, const FGAEffectProperty& InProperty);
 	void ApplyEffectInstance(class UGAEffectExtension* EffectIn);
 	//modifiers
 	void ApplyEffectsFromMods() {};
@@ -649,5 +685,6 @@ struct TStructOpsTypeTraits< FGAEffectContainer > : public TStructOpsTypeTraitsB
 	enum
 	{
 		WithNetDeltaSerializer = true,
+		WithCopy = false
 	};
 };

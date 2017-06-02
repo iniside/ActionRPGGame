@@ -82,7 +82,7 @@ FGAEffect::FGAEffect(class UGAGameEffectSpec* GameEffectIn,
 	const FGAEffectContext& ContextIn)
 	: GameEffect(GameEffectIn),
 	Context(ContextIn),
-	Execution(GameEffect->ExecutionType.GetDefaultObject())
+	Execution(GameEffectIn->ExecutionType.GetDefaultObject())
 {
 	OwnedTags = GameEffectIn->OwnedTags;
 	if (ContextIn.TargetComp.IsValid())
@@ -109,7 +109,7 @@ void FGAEffect::SetContext(const FGAEffectContext& ContextIn)
 
 FGAEffectMod FGAEffect::GetAttributeModifier()
 {
-	return GetMod(GameEffect->AtributeModifier);
+	return GetMod(GameEffect->AtributeModifier, GameEffect);
 }
 void FGAEffect::OnApplied()
 {
@@ -191,7 +191,8 @@ float FGAEffect::GetCurrentTickTime()
 	return CurrentTime - LastTickTime;
 }
 
-FGAEffectMod FGAEffect::GetMod(FGAAttributeModifier& ModInfoIn)
+FGAEffectMod FGAEffect::GetMod(FGAAttributeModifier& ModInfoIn
+	, class UGAGameEffectSpec* InSpec)
 {
 	FGAEffectMod ModOut;
 	if (GameEffect)
@@ -201,24 +202,24 @@ FGAEffectMod FGAEffect::GetMod(FGAAttributeModifier& ModInfoIn)
 			case EGAMagnitudeCalculation::Direct:
 			{
 				return FGAEffectMod (ModInfoIn.Attribute, 
-					ModInfoIn.Magnitude.DirectModifier.GetValue(), ModInfoIn.AttributeMod, Handle, Handle.GetEffectSpec()->AttributeTags);
+					ModInfoIn.Magnitude.DirectModifier.GetValue(), ModInfoIn.AttributeMod, Handle, InSpec->AttributeTags);
 			}
 			case EGAMagnitudeCalculation::AttributeBased:
 			{
 				return FGAEffectMod (ModInfoIn.Attribute, 
-					ModInfoIn.Magnitude.AttributeBased.GetValue(Context), ModInfoIn.AttributeMod, Handle, Handle.GetEffectSpec()->AttributeTags);
+					ModInfoIn.Magnitude.AttributeBased.GetValue(Context), ModInfoIn.AttributeMod, Handle, InSpec->AttributeTags);
 
 			}
 			case EGAMagnitudeCalculation::CurveBased:
 			{
 				return FGAEffectMod (ModInfoIn.Attribute, 
-					ModInfoIn.Magnitude.CurveBased.GetValue(Context), ModInfoIn.AttributeMod, Handle, Handle.GetEffectSpec()->AttributeTags);
+					ModInfoIn.Magnitude.CurveBased.GetValue(Context), ModInfoIn.AttributeMod, Handle, InSpec->AttributeTags);
 
 			}
 			case EGAMagnitudeCalculation::CustomCalculation:
 			{
 				return FGAEffectMod (ModInfoIn.Attribute, 
-					ModInfoIn.Magnitude.Custom.GetValue(Handle), ModInfoIn.AttributeMod, Handle, Handle.GetEffectSpec()->AttributeTags);
+					ModInfoIn.Magnitude.Custom.GetValue(Handle), ModInfoIn.AttributeMod, Handle, InSpec->AttributeTags);
 
 			}
 			default:
@@ -244,26 +245,57 @@ void FGameCueContainer::AddCue(FGAEffectHandle EffectHandle, FGAEffectCueParams 
 	}*/
 }
 
-void FGAEffectContainer::ApplyEffect(const FGAEffect& EffectIn
-	, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty)
+void FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectProperty& InProperty)
 {
-	if (EffectIn.GameEffect->ApplicationRequirement.GetDefaultObject()->CanApply(HandleIn))
+	if (InProperty.ApplicationRequirement->CanApply(EffectIn, InProperty))
 	{
-		if (EffectIn.GameEffect->Application.GetDefaultObject()->ApplyEffect(HandleIn,
-			EffectIn, InProperty, this))
+		
+		bool bHasDuration = InProperty.Duration > 0;
+		bool bHasPeriod = InProperty.Period > 0;
+		
+		if (bHasDuration || bHasPeriod)
 		{
-			UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::EffectApplied %s"), *HandleIn.GetEffectSpec()->GetName() );
+			FGAEffectHandle Handle = FGAEffectHandle::GenerateHandle(EffectIn);
+			EffectIn->Handle = Handle;
+			if (InProperty.Application->ApplyEffect(Handle,
+				EffectIn, InProperty, this))
+			{
+				//	UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::EffectApplied %s"), *HandleIn.GetEffectSpec()->GetName() );
+			}
 		}
+		else
+		{
+			if (InProperty.Handle.IsValid())
+			{
+				if (InProperty.Application->ApplyEffect(InProperty.Handle,
+					EffectIn, InProperty, this))
+				{
+					//	UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::EffectApplied %s"), *HandleIn.GetEffectSpec()->GetName() );
+				}
+			}
+			else
+			{
+				FGAEffectHandle Handle = FGAEffectHandle::GenerateHandle(EffectIn);
+				EffectIn->Handle = Handle;
+				InProperty.Handle = Handle;
+				if (InProperty.Application->ApplyEffect(Handle,
+					EffectIn, InProperty, this))
+				{
+					//	UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::EffectApplied %s"), *HandleIn.GetEffectSpec()->GetName() );
+				}
+			}
+		}
+		
 	}
-	HandleIn.GetEffectRef().OnApplied();
-	ApplyReplicationInfo(HandleIn);
+	EffectIn->OnApplied();
+	//ApplyReplicationInfo(HandleIn);
 	//apply additonal effect applied with this effect.
-	for (TSubclassOf<UGAGameEffectSpec> Spec : EffectIn.GameEffect->OnAppliedEffects)
-	{
-		FGAEffectHandle Handle = EffectIn.Context.TargetComp->MakeGameEffect(Spec, EffectIn.Context);
+	//for (TSubclassOf<UGAGameEffectSpec> Spec : EffectIn.GameEffect->OnAppliedEffects)
+	//{
+	//	FGAEffectHandle Handle = EffectIn.Context.TargetComp->MakeGameEffect(Spec, EffectIn.Context);
 
-		EffectIn.Context.InstigatorComp->ApplyEffectToTarget(Handle.GetEffect(), Handle, InProperty);
-	}
+	//	EffectIn.Context.InstigatorComp->ApplyEffectToTarget(Handle.GetEffect(), Handle, InProperty);
+	//}
 }
 
 void FGAEffectContainer::ApplyReplicationInfo(const FGAEffectHandle& HandleIn)
@@ -281,20 +313,6 @@ EGAEffectAggregation FGAEffectContainer::GetEffectAggregation(const FGAEffectHan
 {
 	UGAGameEffectSpec* Spec = HandleIn.GetEffectSpec();
 	return Spec->EffectAggregation;
-}
-
-void FGAEffectContainer::ExtendEffectDuration(const FGAEffectHandle& ExistingEffect, const FGAEffectHandle& HandleIn)
-{
-	FGAEffect& ExtEffect = ExistingEffect.GetEffectRef();
-	FGAEffect& Effect = HandleIn.GetEffectRef();
-	FTimerManager& DurationTimer = ExistingEffect.GetContext().TargetComp->GetWorld()->GetTimerManager();
-	float RemainingTime = DurationTimer.GetTimerRemaining(ExtEffect.DurationTimerHandle);
-	float NewDuration = RemainingTime + Effect.GetDurationTime();
-	DurationTimer.ClearTimer(ExtEffect.DurationTimerHandle);
-
-	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(ExistingEffect.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExpireEffect, ExistingEffect);
-	DurationTimer.SetTimer(ExtEffect.DurationTimerHandle, delDuration,
-		NewDuration, false);
 }
 
 TSet<FGAEffectHandle> FGAEffectContainer::GetHandlesByAttribute(const FGAEffectHandle& HandleIn)
@@ -330,10 +348,10 @@ TSet<FGAEffectHandle> FGAEffectContainer::GetHandlesByClass(const FGAEffectHandl
 	case EGAEffectAggregation::AggregateByTarget:
 	{
 		UGAAbilitiesComponent* Target = HandleIn.GetContextRef().TargetComp.Get();
-		TSet<FGAEffectHandle>* EffectByClass = TargetEffectByClass.Find(EffectClass);
-		if (EffectByClass)
+		TSet<FGAEffectHandle>* TargetEffect = TargetEffectByClass.Find(EffectClass);
+		if (TargetEffect)
 		{
-			return *EffectByClass;
+			return *TargetEffect;
 		}
 		break;
 	}
@@ -342,6 +360,45 @@ TSet<FGAEffectHandle> FGAEffectContainer::GetHandlesByClass(const FGAEffectHandl
 	}
 	return Handles;
 }
+
+TSet<FGAEffectHandle> FGAEffectContainer::GetHandlesByClass(const FGAEffectProperty& InProperty
+, const FGAEffectContext& InContext)
+{
+	TSet<FGAEffectHandle> Handles;
+	UGAGameEffectSpec* Spec = InProperty.Spec;
+	EGAEffectAggregation Aggregation = Spec->EffectAggregation;
+	UClass* EffectClass = Spec->GetClass();
+
+	switch (Aggregation)
+	{
+	case EGAEffectAggregation::AggregateByInstigator:
+	{
+		UGAAbilitiesComponent* Instigator = InContext.InstigatorComp.Get();
+		TMap<UClass*, TSet<FGAEffectHandle>>* EffectByClassMap = InstigatorEffectByClass.Find(Instigator);
+		//TSet<FGAEffectHandle>* EffectByClass;
+		if (EffectByClassMap)
+		{
+			return EffectByClassMap->FindRef(EffectClass);
+		}
+
+		break;
+	}
+	case EGAEffectAggregation::AggregateByTarget:
+	{
+		UGAAbilitiesComponent* Target = InContext.TargetComp.Get();
+		TSet<FGAEffectHandle>* TargetEffect = TargetEffectByClass.Find(EffectClass);
+		if (TargetEffect)
+		{
+			return *TargetEffect;
+		}
+		break;
+	}
+	default:
+		break;
+	}
+	return Handles;
+}
+
 void FGAEffectContainer::AddEffect(const FGAEffectHandle& HandleIn, bool bInfinite)
 {
 	TSet<FGAEffectHandle>& AttributeEffect = EffectByAttribute.FindOrAdd(HandleIn.GetAttribute());
@@ -349,6 +406,11 @@ void FGAEffectContainer::AddEffect(const FGAEffectHandle& HandleIn, bool bInfini
 	ActiveEffectHandles.Add(HandleIn);
 	AddEffectByClass(HandleIn);
 	UGAGameEffectSpec* Spec = HandleIn.GetEffectSpec();
+	FObjectKey key(HandleIn.GetEffectSpec()->GetClass());
+	TSharedPtr<TQueue<FGAEffectHandle>>& handles = EffectByClass.FindOrAdd(key);
+	if(!handles.IsValid())
+		handles = MakeShareable(new TQueue<FGAEffectHandle>());
+	handles->Enqueue(HandleIn);
 	if (bInfinite)
 	{
 		InfiniteEffects.Add(HandleIn);
@@ -369,8 +431,8 @@ void FGAEffectContainer::AddEffectByClass(const FGAEffectHandle& HandleIn)
 
 		
 		TMap<UClass*, TSet<FGAEffectHandle>>& EffectByClassMap = InstigatorEffectByClass.FindOrAdd(Instigator);
-		TSet<FGAEffectHandle>& EffectByClass = EffectByClassMap.FindOrAdd(EffectClass);
-		EffectByClass.Add(HandleIn);
+		TSet<FGAEffectHandle>& instigatorEffect = EffectByClassMap.FindOrAdd(EffectClass);
+		instigatorEffect.Add(HandleIn);
 		if (Target)
 		{
 			Target->AddTagContainer(Spec->ApplyTags);
@@ -379,8 +441,8 @@ void FGAEffectContainer::AddEffectByClass(const FGAEffectHandle& HandleIn)
 	}
 	case EGAEffectAggregation::AggregateByTarget:
 	{		
-		TSet<FGAEffectHandle>& EffectByClass = TargetEffectByClass.FindOrAdd(EffectClass);
-		EffectByClass.Add(HandleIn);
+		TSet<FGAEffectHandle>& TargetEffects = TargetEffectByClass.FindOrAdd(EffectClass);
+		TargetEffects.Add(HandleIn);
 		if (Target)
 		{
 			Target->AddTagContainer(Spec->ApplyTags);
@@ -408,40 +470,83 @@ void FGAEffectContainer::RemoveFromAttribute(const FGAEffectHandle& HandleIn)
 	Target->RemoveBonus(HandleIn.GetAttribute(), HandleIn, HandleIn.GetAttributeMod());
 	UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::RemoveFromAttribute %s = %f"), *HandleIn.GetAttribute().ToString(), Target->GetAttributeValue(HandleIn.GetAttribute()));
 }
-void FGAEffectContainer::RemoveEffectProtected(const FGAEffectHandle& HandleIn)
+void FGAEffectContainer::RemoveEffectProtected(const FGAEffectHandle& HandleIn
+	, const FGAEffectProperty& InProperty)
 {
 	RemoveFromAttribute(HandleIn);
 	ActiveEffectHandles.Remove(HandleIn);
 	InfiniteEffects.Remove(HandleIn);
+	TSharedPtr<TQueue<FGAEffectHandle>>* handles = EffectByClass.Find(FObjectKey(InProperty.GetClass()));
+	if (handles)
+	{
+		FGAEffectHandle OutHandle;
+		(*handles)->Dequeue(OutHandle);
+		if ((*handles)->IsEmpty())
+		{
+			EffectByClass.Remove(FObjectKey(InProperty.GetClass()));
+		}
+	}
 }
-void FGAEffectContainer::RemoveInstigatorEffect(const FGAEffectHandle& HandleIn)
+void FGAEffectContainer::RemoveInstigatorEffect(const FGAEffectHandle& HandleIn
+	, const FGAEffectProperty& InProperty)
 {
 	UGAAbilitiesComponent* Instigator = HandleIn.GetContextRef().InstigatorComp.Get();
 	UClass* EffectClass = HandleIn.GetEffectSpec()->GetClass();
-	TMap<UClass*, TSet<FGAEffectHandle>>* EffectByClass = InstigatorEffectByClass.Find(Instigator);
-	TSet<FGAEffectHandle>* HandlesToRemove = EffectByClass->Find(EffectClass);
-
+	TMap<UClass*, TSet<FGAEffectHandle>>* InstigatorEffect = InstigatorEffectByClass.Find(Instigator);
+	TSet<FGAEffectHandle>* HandlesToRemove = InstigatorEffect->Find(EffectClass);
+	IIGAAbilities* Target = HandleIn.GetContextRef().TargetInterface;
+	TSharedPtr<FGAEffect> Effect = HandleIn.GetEffectPtr();
 	if (HandlesToRemove)
 	{
 		HandlesToRemove->Remove(HandleIn);
 		if (HandlesToRemove->Num() <= 0)
 		{
-			EffectByClass->Remove(EffectClass);
+			InstigatorEffect->Remove(EffectClass);
 		}
 	}
-	RemoveEffectProtected(HandleIn);
-	TSharedPtr<FGAEffect> Effect = HandleIn.GetEffectPtr();
-	IIGAAbilities* Target = HandleIn.GetContextRef().TargetInterface;
+	RemoveEffectProtected(HandleIn, InProperty);
+	
+	
 	if (Effect.IsValid())
 	{
 		Effect->OnEffectRemoved.ExecuteIfBound();
 		Target->RemoveTagContainer(Effect->ApplyTags);
-		FTimerManager& DurationTimer = HandleIn.GetContext().TargetComp->GetWorld()->GetTimerManager();
+		FTimerManager& DurationTimer = Effect->Context.TargetComp->GetWorld()->GetTimerManager();
 		DurationTimer.ClearTimer(Effect->DurationTimerHandle);
 		DurationTimer.ClearTimer(Effect->PeriodTimerHandle);
 	}
 }
-void FGAEffectContainer::RemoveTargetEffect(const FGAEffectHandle& HandleIn)
+
+void FGAEffectContainer::RemoveEffectByHandle(const FGAEffectHandle& InHandle, const FGAEffectProperty& InProperty)
+{
+	UGAGameEffectSpec* Spec = InProperty.Spec;
+	EGAEffectAggregation Aggregation = Spec->EffectAggregation;
+	//TSet<FGAEffectHandle>* handles = EffectByClass.Find(FObjectKey(HandleIn.GetClass()));//GetHandlesByClass(HandleIn, InContext);
+
+	if (!ActiveEffectHandles.Contains(InHandle))
+	{
+		UE_LOG(GameAttributes, Log, TEXT("RemoveEffect Effect %s Is not applied"), *InHandle.GetEffectRef().ToString());
+		return;
+	}
+	switch (Aggregation)
+	{
+	case EGAEffectAggregation::AggregateByInstigator:
+	{
+		RemoveInstigatorEffect(InHandle, InProperty);
+		break;
+	}
+	case EGAEffectAggregation::AggregateByTarget:
+	{
+		RemoveTargetEffect(InHandle, InProperty);
+		break;
+	}
+	default:
+		break;
+	}
+}
+
+void FGAEffectContainer::RemoveTargetEffect(const FGAEffectHandle& HandleIn
+	, const FGAEffectProperty& InProperty)
 {
 	UClass* EffectClass = HandleIn.GetEffectSpec()->GetClass();
 	TSet<FGAEffectHandle>* Handles = TargetEffectByClass.Find(EffectClass);
@@ -458,7 +563,7 @@ void FGAEffectContainer::RemoveTargetEffect(const FGAEffectHandle& HandleIn)
 		}
 	}
 
-	RemoveEffectProtected(HandleIn);
+	RemoveEffectProtected(HandleIn, InProperty);
 	if (Effect.IsValid())
 	{
 		Effect->OnEffectRemoved.ExecuteIfBound();
@@ -466,37 +571,45 @@ void FGAEffectContainer::RemoveTargetEffect(const FGAEffectHandle& HandleIn)
 	}
 }
 
-void FGAEffectContainer::RemoveEffect(const FGAEffectHandle& HandleIn, int32 Num)
+void FGAEffectContainer::RemoveEffect(const FGAEffectProperty& HandleIn, int32 Num)
 {
-	if (!ActiveEffectHandles.Contains(HandleIn))
-	{
-		UE_LOG(GameAttributes, Log, TEXT("RemoveEffect Effect %s Is not applied"), *HandleIn.GetEffectRef().ToString());
-		return;
-	}
-	UGAGameEffectSpec* Spec = HandleIn.GetEffectSpec();
+	UGAGameEffectSpec* Spec = HandleIn.Spec;
 	EGAEffectAggregation Aggregation = Spec->EffectAggregation;
-	UClass* EffectClass = Spec->GetClass();
-
-	switch (Aggregation)
+	TSharedPtr<TQueue<FGAEffectHandle>>* handles = EffectByClass.Find(FObjectKey(HandleIn.GetClass()));//GetHandlesByClass(HandleIn, InContext);
+	
+	if (handles)
 	{
-	case EGAEffectAggregation::AggregateByInstigator:
-	{
-		RemoveInstigatorEffect(HandleIn);
-		break;
-	}
-	case EGAEffectAggregation::AggregateByTarget:
-	{
-		RemoveTargetEffect(HandleIn);
-		break;
-	}
-	default:
-		break;
+		for (int32 idx = 0; idx < Num; idx++)
+		{
+			FGAEffectHandle OutHandle;
+			(*handles)->Peek(OutHandle);
+			if (!ActiveEffectHandles.Contains(OutHandle))
+			{
+				UE_LOG(GameAttributes, Log, TEXT("RemoveEffect Effect %s Is not applied"), *OutHandle.GetEffectRef().ToString());
+				continue;
+			}
+			switch (Aggregation)
+			{
+			case EGAEffectAggregation::AggregateByInstigator:
+			{
+				RemoveInstigatorEffect(OutHandle, HandleIn);
+				break;
+			}
+			case EGAEffectAggregation::AggregateByTarget:
+			{
+				RemoveTargetEffect(OutHandle, HandleIn);
+				break;
+			}
+			default:
+				break;
+			}
+		}
 	}
 }
 
-FGAEffectContainer::FGAEffectContainer()
-{
-}
+//FGAEffectContainer::FGAEffectContainer()
+//{
+//}
 
 void FGAEffectContainer::ApplyEffectInstance(class UGAEffectExtension* EffectIn)
 {

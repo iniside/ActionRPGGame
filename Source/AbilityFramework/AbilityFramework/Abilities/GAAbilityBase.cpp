@@ -162,7 +162,7 @@ void UGAAbilityBase::OnCooldownEffectExpired()
 	CooldownEffectExpiredCounter++;
 	if (CooldownEffect.Handle.IsValid())
 	{
-		CooldownEffect.Handle.GetContextRef().InstigatorComp->RemoveEffect(CooldownEffect.Handle);
+		CooldownEffect.Handle.GetContextRef().InstigatorComp->RemoveEffect(CooldownEffect);
 	}
 }
 /* Functions for activation effect delegates */
@@ -215,7 +215,7 @@ void UGAAbilityBase::NativeFinishAbility()
 	OnConfirmDelegate.RemoveAll(this);
 	if (ActivationEffect.Handle.IsValid())
 	{
-		ActivationEffect.Handle.GetContextRef().InstigatorComp->RemoveEffect(ActivationEffect.Handle);
+		ActivationEffect.Handle.GetContextRef().InstigatorComp->RemoveEffect(ActivationEffect);
 	}
 	//remove effect.
 }
@@ -229,7 +229,7 @@ void UGAAbilityBase::NativeCancelActivation()
 	UGAAbilitiesComponent* AttrComp = ActivationEffect.Handle.GetContext().InstigatorComp.Get();
 	if (AttrComp)
 	{
-		AttrComp->RemoveEffect(ActivationEffect.Handle);
+		AttrComp->RemoveEffect(ActivationEffect);
 	}
 }
 
@@ -422,10 +422,10 @@ float UGAAbilityBase::GetAttributeVal(FGAAttribute AttributeIn) const
 {
 	return Attributes->GetCurrentAttributeValue(AttributeIn);
 }
-FGAEffectHandle UGAAbilityBase::ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn,
-	FGAEffectProperty& InProperty)
+FGAEffectHandle UGAAbilityBase::ApplyEffectToTarget(FGAEffect* EffectIn,
+	FGAEffectProperty& InProperty, FGAEffectContext& InContext)
 { 
-	return AbilityComponent->ApplyEffectToTarget(EffectIn, HandleIn, InProperty);
+	return AbilityComponent->ApplyEffectToTarget(EffectIn, InProperty, InContext);
 };
 void UGAAbilityBase::RemoveTagContainer(const FGameplayTagContainer& TagsIn) 
 {

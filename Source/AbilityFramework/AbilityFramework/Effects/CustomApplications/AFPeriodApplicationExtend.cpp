@@ -8,10 +8,10 @@
 
 
 
-bool UAFPeriodApplicationExtend::ApplyEffect(const FGAEffectHandle& InHandle, const struct FGAEffect& EffectIn,
+bool UAFPeriodApplicationExtend::ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
 	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer)
 {
-	TSet<FGAEffectHandle> handles = InContainer->GetHandlesByClass(InHandle);
+	TSet<FGAEffectHandle> handles = InContainer->GetHandlesByClass(InProperty, EffectIn->Context);
 	for (const FGAEffectHandle& handle : handles)
 	{
 		FGAEffect& ExtEffect = handle.GetEffectRef();
@@ -21,7 +21,7 @@ bool UAFPeriodApplicationExtend::ApplyEffect(const FGAEffectHandle& InHandle, co
 		float NewDuration = RemainingTime + Effect.GetDurationTime();
 		DurationTimer.ClearTimer(handle.GetEffectPtr()->DurationTimerHandle);
 
-		FTimerDelegate delDuration = FTimerDelegate::CreateUObject(handle.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExpireEffect, handle);
+		FTimerDelegate delDuration = FTimerDelegate::CreateUObject(handle.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExpireEffect, InHandle, InProperty);
 		DurationTimer.SetTimer(handle.GetEffectPtr()->DurationTimerHandle, delDuration,
 			NewDuration, false);
 	}
@@ -29,9 +29,9 @@ bool UAFPeriodApplicationExtend::ApplyEffect(const FGAEffectHandle& InHandle, co
 	{
 		FTimerManager& DurationTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
 
-		FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExpireEffect, InHandle);
+		FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExpireEffect, InHandle, InProperty);
 		DurationTimer.SetTimer(InHandle.GetEffectPtr()->DurationTimerHandle, delDuration,
-			EffectIn.GetDurationTime(), false);
+			InProperty.Duration, false);
 
 		FTimerManager& PeriodTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
 

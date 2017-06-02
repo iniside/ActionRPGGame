@@ -453,8 +453,8 @@ public:
 	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) override { Attributes->RemoveBonus(AttributeIn, HandleIn, HandleIn.GetAttributeMod()); };
 	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn
 	, FGAEffectProperty& InProperty) override { Attributes->ModifyAttribute(ModIn, HandleIn, InProperty); };
-	virtual FGAEffectHandle ApplyEffectToTarget(const FGAEffect& EffectIn, const FGAEffectHandle& HandleIn,
-		FGAEffectProperty& InProperty) override;
+	virtual FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn,
+		FGAEffectProperty& InProperty, FGAEffectContext& InContext) override;
 	virtual void RemoveTagContainer(const FGameplayTagContainer& TagsIn) override;
 
 	/* IIGAAbilities End **/

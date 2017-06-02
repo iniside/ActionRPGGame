@@ -14,7 +14,7 @@ class ABILITYFRAMEWORK_API UAFAttributeDurationInfinite : public UAFEffectCustom
 {
 	GENERATED_BODY()
 public:
-	virtual bool ApplyEffect(const FGAEffectHandle& InHandle, const struct FGAEffect& EffectIn,
+	virtual bool ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
 		FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer);
 	
 	

@@ -8,16 +8,16 @@
 
 
 
-bool UAFAtributeDurationAdd::ApplyEffect(const FGAEffectHandle& InHandle, const struct FGAEffect& EffectIn,
+bool UAFAtributeDurationAdd::ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
 	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer)
 {
 	FTimerManager& DurationTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
 
-	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExpireEffect, InHandle);
+	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExpireEffect, InHandle, InProperty);
 	DurationTimer.SetTimer(InHandle.GetEffectPtr()->DurationTimerHandle, delDuration,
-		EffectIn.GetDurationTime(), false);
+		InProperty.Duration, false);
 
 	InContainer->AddEffect(InHandle);
-	EffectIn.Context.TargetComp->ExecuteEffect(InHandle, InProperty);
+	EffectIn->Context.TargetComp->ExecuteEffect(InHandle, InProperty);
 	return true;
 }

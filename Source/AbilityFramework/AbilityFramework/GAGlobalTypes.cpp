@@ -31,6 +31,11 @@ FGAEffectHandle::FGAEffectHandle(uint32 HandleIn, FGAEffect* EffectIn)
 	EffectPtr(EffectIn)
 {
 }
+FGAEffectHandle::FGAEffectHandle(const FGAEffectHandle& Other)
+{
+	Handle = Other.Handle;
+	EffectPtr = Other.EffectPtr;
+}
 FGAEffectHandle::~FGAEffectHandle()
 {
 	Reset();
@@ -119,8 +124,13 @@ EAFAttributeStacking FGAEffectHandle::GetAttributeStacking() const
 
 bool FGAEffectHandle::IsValid() const
 {
-	return (Handle != INDEX_NONE) && EffectPtr.IsValid() && EffectPtr->Context.IsValid();
+	return (Handle != INDEX_NONE) && EffectPtr.IsValid();// && EffectPtr->Context.IsValid();
 }
+//void FGAEffectHandle::operator=(const FGAEffectHandle& Other)
+//{
+//	Handle = Other.Handle;
+//	//EffectPtr = Other.EffectPtr;
+//}
 void FGAEffectHandle::Reset()
 {
 	Handle = 0;
