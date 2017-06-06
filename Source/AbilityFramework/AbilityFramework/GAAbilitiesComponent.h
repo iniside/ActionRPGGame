@@ -132,6 +132,8 @@ public:
 	void HandleInputPressed(FGameplayTag TagIn, FGameplayTag ActionName);
 	void HandleInputReleased(FGameplayTag TagIn, FGameplayTag ActionName);
 
+	void TriggerAbylityByTag(FGameplayTag InTag);
+
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
 	{
 		return FFastArraySerializer::FastArrayDeltaSerialize<FGASAbilityItem, FGASAbilityContainer>(AbilitiesItems, DeltaParms, *this);
@@ -297,10 +299,7 @@ public:
 	void RemoveEffect(const FGAEffectProperty& InProperty);
 	void InternalRemoveEffect(const FGAEffectProperty& InProperty);
 
-	void ApplyInstacnedEffectToSelf(class UGAEffectExtension* EffectIn);
-	void ApplyInstancedToTarget(class UGAEffectExtension* EffectIn);
 
-	void RemoveInstancedFromSelf(class UGAEffectExtension* EffectIn);
 	/* Never call it directly. */
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes | UI")
 		TArray<FGAEffectUIData> GetEffectUIData();

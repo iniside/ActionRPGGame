@@ -41,11 +41,14 @@ class ABILITYFRAMEWORK_API UGAAttributesBase : public UObject
 {
 	GENERATED_BODY()
 public:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(ExposeOnSpawn))
+		UDataTable* AttributeValues;
 	UGAAttributesBase(const FObjectInitializer& ObjectInitializer);
 	~UGAAttributesBase();
 
 	virtual void InitializeAttributes(UGAAbilitiesComponent* InOwningAttributeComp);
-
+	void InitializeAttributesFromTable();
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Initialize Attributes"))
 		bool BP_InitializeAttributes();
 	/*

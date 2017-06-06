@@ -31,11 +31,7 @@ FGAEffectHandle::FGAEffectHandle(uint32 HandleIn, FGAEffect* EffectIn)
 	EffectPtr(EffectIn)
 {
 }
-FGAEffectHandle::FGAEffectHandle(const FGAEffectHandle& Other)
-{
-	Handle = Other.Handle;
-	EffectPtr = Other.EffectPtr;
-}
+
 FGAEffectHandle::~FGAEffectHandle()
 {
 	Reset();
@@ -116,10 +112,6 @@ FGAAttribute FGAEffectHandle::GetAttribute() const
 EGAAttributeMod FGAEffectHandle::GetAttributeMod() const
 {
 	return GetEffectSpec()->AtributeModifier.AttributeMod;
-}
-EAFAttributeStacking FGAEffectHandle::GetAttributeStacking() const
-{
-	return GetContext().TargetInterface->GetAttribute(GetAttribute())->GetStacking();
 }
 
 bool FGAEffectHandle::IsValid() const

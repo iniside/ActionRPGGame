@@ -372,6 +372,8 @@ public:
 	Calculcated magnitudes, captured attributes and tags, set duration.
 	Final effect which then is used to apply custom calculations and attribute changes.
 */
+DECLARE_MULTICAST_DELEGATE_OneParam(FAFEffectMulicastDelegate, const FGAEffectHandle&);
+
 struct ABILITYFRAMEWORK_API FGAEffect : public TSharedFromThis<FGAEffect>
 {
 	/* Cached pointer to original effect spec. */
@@ -405,9 +407,9 @@ public:
 //because I'm fancy like that and like to make spearate public for fields and functions.
 public:
 	//Simple delegates to make sure they are bound only to one object.
-	FSimpleDelegate OnEffectPeriod;
-	FSimpleDelegate OnEffectExpired;
-	FSimpleDelegate OnEffectRemoved;
+	FAFEffectMulicastDelegate OnEffectPeriod;
+	FAFEffectMulicastDelegate OnEffectExpired;
+	FAFEffectMulicastDelegate OnEffectRemoved;
 
 	float AppliedTime;
 	float LastTickTime;
@@ -608,7 +610,7 @@ public:
 
 	//TMap<FObjectKey, TQueue<FGAEffectHandle>> TestEffectByClass;
 
-	TMap<FObjectKey, TSharedPtr<TQueue<FGAEffectHandle>>> EffectByClass;
+	TMap<FObjectKey, TArray<FGAEffectHandle>> EffectByClass;
 	//TQueue<FGAEffectHandle> dupa;
 	/* All effects. */
 	TSet<FGAEffectHandle> ActiveEffectHandles;
@@ -642,7 +644,7 @@ public:
 		class UGAAbilitiesComponent* OwningComponent;
 public:
 	//FGAEffectContainer();
-	void ApplyEffect(FGAEffect* EffectIn, FGAEffectProperty& InProperty);
+	FGAEffectHandle ApplyEffect(FGAEffect* EffectIn, FGAEffectProperty& InProperty);
 	/* Removesgiven number of effects of the same type. If Num == 0 Removes all effects */
 	void RemoveEffect(const FGAEffectProperty& HandleIn, int32 Num = 1);
 	/* Removesgiven number of effects of the same type. If Num == 0 Removes all effects */
@@ -654,8 +656,7 @@ public:
 	EGAEffectAggregation GetEffectAggregation(const FGAEffectHandle& HandleIn) const;
 
 	TSet<FGAEffectHandle> GetHandlesByAttribute(const FGAEffectHandle& HandleIn);
-	TSet<FGAEffectHandle> GetHandlesByClass(const FGAEffectHandle& HandleIn);
-	
+
 	TSet<FGAEffectHandle> GetHandlesByClass(const FGAEffectProperty& InProperty,
 		const FGAEffectContext& InContext);
 

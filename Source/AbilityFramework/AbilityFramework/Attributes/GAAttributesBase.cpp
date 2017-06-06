@@ -46,6 +46,32 @@ void UGAAttributesBase::InitializeAttributes(UGAAbilitiesComponent* InOwningAttr
 	}*/
 	BP_InitializeAttributes();
 }
+
+void UGAAttributesBase::InitializeAttributesFromTable()
+{
+	if (!AttributeValues)
+		return;
+
+	for (TFieldIterator<UStructProperty> StrIt(GetClass(), EFieldIteratorFlags::IncludeSuper); StrIt; ++StrIt)
+	{
+		FAFAttributeBase* attr = StrIt->ContainerPtrToValuePtr<FAFAttributeBase>(this);
+		if (attr)
+		{
+			FName fieldName = StrIt->GetFName();
+			FString OutString;
+			FAFAtributeRowData* row = AttributeValues->FindRow<FAFAtributeRowData>(fieldName, OutString);
+			if (row)
+			{
+				attr->SetBaseValue(row->BaseValue);
+				attr->SetMaxValue(row->MaxValue);
+				attr->SetMinValue(row->MinValue);
+				attr->InitializeAttribute();
+			}
+			//TickableAttributes.Add(attr);
+		}
+	}
+}
+
 void UGAAttributesBase::Tick(float DeltaTime)
 {
 	for (FAFAttributeBase* Attribute : TickableAttributes)

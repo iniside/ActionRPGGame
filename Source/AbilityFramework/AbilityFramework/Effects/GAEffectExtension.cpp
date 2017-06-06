@@ -70,10 +70,6 @@ void UGAEffectExtension::InternallSelfRemoveEffect()
 		TimerManager.ClearTimer(DurationTimerHandle);
 		TimerManager.ClearTimer(PeriodTimerHandle);
 	}
-	if (Context.TargetComp.IsValid())
-	{
-		Context.TargetComp->RemoveInstancedFromSelf(this);
-	}
 	NativeOnEffectExpired();
 }
 void UGAEffectExtension::InternalEffectEnded()

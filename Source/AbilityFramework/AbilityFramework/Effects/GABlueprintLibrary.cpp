@@ -15,31 +15,29 @@ UGABlueprintLibrary::UGABlueprintLibrary(const FObjectInitializer& ObjectInitial
 }
 
 
-void UGABlueprintLibrary::ApplyGameEffectToObject(UPARAM(ref) FGAEffectProperty& InEffect,
+FGAEffectHandle UGABlueprintLibrary::ApplyGameEffectToObject(UPARAM(ref) FGAEffectProperty& InEffect,
 	class UObject* Target, class APawn* Instigator,
 	UObject* Causer)
 {
-
-
-	InEffect.Handle = ApplyEffectToObject(InEffect.GetSpec(), InEffect, InEffect.Handle, Target, Instigator, Causer);
+	return ApplyEffectToObject(InEffect.GetSpec(), InEffect, Target, Instigator, Causer);
 }
 
-void UGABlueprintLibrary::ApplyGameEffectToActor(UPARAM(ref) FGAEffectProperty& InEffect,
+FGAEffectHandle UGABlueprintLibrary::ApplyGameEffectToActor(UPARAM(ref) FGAEffectProperty& InEffect,
 	class AActor* Target, class APawn* Instigator,
 	UObject* Causer)
 {
-	InEffect.Handle = ApplyEffectToActor(InEffect.GetSpec(), InEffect, InEffect.Handle, Target, Instigator, Causer);
+	return ApplyEffectToActor(InEffect.GetSpec(), InEffect, Target, Instigator, Causer);
 }
 
-void UGABlueprintLibrary::ApplyGameEffectToLocation(UPARAM(ref) FGAEffectProperty& InEffect,
+FGAEffectHandle UGABlueprintLibrary::ApplyGameEffectToLocation(UPARAM(ref) FGAEffectProperty& InEffect,
 	const FHitResult& Target, class APawn* Instigator,
 	UObject* Causer)
 {
-	InEffect.Handle = ApplyEffectFromHit(InEffect.GetSpec(), InEffect, InEffect.Handle, Target, Instigator, Causer);
+	return ApplyEffectFromHit(InEffect.GetSpec(), InEffect, Target, Instigator, Causer);
 }
 
 FGAEffectHandle UGABlueprintLibrary::ApplyEffect(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
-	FGAEffectHandle HandleIn, class UObject* Target, class APawn* Instigator,
+	class UObject* Target, class APawn* Instigator,
 	UObject* Causer, const FHitResult& HitIn)
 {
 	if (!SpecIn)
@@ -94,31 +92,30 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(UGAGameEffectSpec* SpecIn, FGAE
 		effect->GameEffect = SpecIn;
 	}
 
-	Context.InstigatorComp->ApplyEffectToTarget(effect, InEffect, Context);
-	return HandleIn;
+	return Context.InstigatorComp->ApplyEffectToTarget(effect, InEffect, Context);
 }
 
 FGAEffectHandle UGABlueprintLibrary::ApplyEffectFromHit(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
-	FGAEffectHandle HandleIn, const FHitResult& Target, class APawn* Instigator,
+	const FHitResult& Target, class APawn* Instigator,
 	UObject* Causer)
 {
-	return ApplyEffect(SpecIn, InEffect, HandleIn, Target.GetActor(), Instigator, Causer, Target);
+	return ApplyEffect(SpecIn, InEffect, Target.GetActor(), Instigator, Causer, Target);
 }
 
 FGAEffectHandle UGABlueprintLibrary::ApplyEffectToActor(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
-	FGAEffectHandle HandleIn, class AActor* Target, class APawn* Instigator,
+	class AActor* Target, class APawn* Instigator,
 	UObject* Causer)
 {
 	FHitResult Hit(ForceInit);
-	return ApplyEffect(SpecIn, InEffect, HandleIn, Target, Instigator, Causer, Hit);
+	return ApplyEffect(SpecIn, InEffect, Target, Instigator, Causer, Hit);
 }
 
 FGAEffectHandle UGABlueprintLibrary::ApplyEffectToObject(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
-	FGAEffectHandle HandleIn, class UObject* Target, class APawn* Instigator,
+	class UObject* Target, class APawn* Instigator,
 	UObject* Causer)
 {
 	FHitResult Hit(ForceInit);
-	return ApplyEffect(SpecIn, InEffect, HandleIn, Target, Instigator, Causer, Hit);
+	return ApplyEffect(SpecIn, InEffect, Target, Instigator, Causer, Hit);
 }
 FGAEffectHandle UGABlueprintLibrary::MakeEffect(UGAGameEffectSpec* SpecIn,
 	FGAEffectHandle HandleIn, class UObject* Target, class APawn* Instigator,
@@ -181,9 +178,11 @@ FGAEffectContext UGABlueprintLibrary::MakeContext(class UObject* Target, class A
 	{
 		instiComp = instiAttr->GetAbilityComp();
 	}
-
-	FVector location = targetComp->GetOwner()->GetActorLocation();
-	FGAEffectContext Context(targetAttr->GetAttributes(), instiAttr->GetAttributes(),
+	
+	FVector location = targetComp ? targetComp->GetOwner()->GetActorLocation() : HitIn.ImpactPoint;
+	FGAEffectContext Context(
+		targetAttr ? targetAttr->GetAttributes() : nullptr,
+		instiAttr ? instiAttr->GetAttributes() : nullptr,
 		location, Target, Causer,
 		Instigator, targetComp, instiComp);
 	Context.HitResult = HitIn;

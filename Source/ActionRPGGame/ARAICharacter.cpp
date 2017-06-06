@@ -73,3 +73,29 @@ float AARAICharacter::GetAttributeValue(FGAAttribute AttributeIn) const
 {
 	return Attributes->DefaultAttributes->GetFloatValue(AttributeIn);
 }
+void AARAICharacter::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn
+	, FGAEffectProperty& InProperty)
+{
+	GetAttributes()->ModifyAttribute(ModIn, HandleIn, InProperty);
+}
+FAFAttributeBase* AARAICharacter::GetAttribute(FGAAttribute AttributeIn)
+{
+	return GetAttributes()->GetAttribute(AttributeIn);
+}
+void AARAICharacter::RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod)
+{
+	GetAttributes()->RemoveBonus(AttributeIn, HandleIn, HandleIn.GetAttributeMod());
+}
+FGAEffectHandle AARAICharacter::ApplyEffectToTarget(FGAEffect* EffectIn,
+	FGAEffectProperty& InProperty, FGAEffectContext& InContext)
+{
+	return GetAbilityComp()->ApplyEffectToTarget(EffectIn, InProperty, InContext);
+};
+void AARAICharacter::RemoveTagContainer(const FGameplayTagContainer& TagsIn)
+{
+	GetAbilityComp()->RemoveTagContainer(TagsIn);
+}
+float AARAICharacter::NativeGetAttributeValue(const FGAAttribute AttributeIn) const
+{
+	return 0;
+}

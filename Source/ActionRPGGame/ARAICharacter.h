@@ -41,6 +41,14 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
 		virtual float GetAttributeValue(FGAAttribute AttributeIn) const;
+
+	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);// override { DefaultAttributes->ModifyAttribute(ModIn, HandleIn); };
+	virtual FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn);// override { return DefaultAttributes->GetAttribute(AttributeIn); };
+	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod);// override { DefaultAttributes->RemoveBonus(AttributeIn, HandleIn); };
+	virtual FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn,
+		FGAEffectProperty& InProperty, FGAEffectContext& InContext) override;// { return ApplyEffectToTarget(EffectIn, HandleIn); };
+	virtual void RemoveTagContainer(const FGameplayTagContainer& TagsIn) override;
+	virtual float NativeGetAttributeValue(const FGAAttribute AttributeIn) const;// override { return 0; };
 	/** IIGAAbilities End */
 
 	/** IIGIPawn */

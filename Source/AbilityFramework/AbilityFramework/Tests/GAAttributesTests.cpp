@@ -117,17 +117,17 @@ public:
 		SourceComponent->GetAttributes<UGAAttributesTest>()->Health.SetMaxValue(500);
 		SourceComponent->GetAttributes<UGAAttributesTest>()->Energy.SetMaxValue(500);
 		SourceComponent->GetAttributes<UGAAttributesTest>()->Stamina.SetMaxValue(500);
-		SourceComponent->GetAttributes<UGAAttributesTest>()->Health.Stacking = EAFAttributeStacking::StrongerOverride;
+		/*SourceComponent->GetAttributes<UGAAttributesTest>()->Health.Stacking = EAFAttributeStacking::StrongerOverride;
 		SourceComponent->GetAttributes<UGAAttributesTest>()->Energy.Stacking = EAFAttributeStacking::Override;
 		SourceComponent->GetAttributes<UGAAttributesTest>()->Stamina.Stacking = EAFAttributeStacking::Add;
-
+*/
 		SourceComponent->GetAttributes<UGAAttributesTest>()->MagicalBonus.SetMaxValue(500);
 		SourceComponent->GetAttributes<UGAAttributesTest>()->PhysicalBonus.SetMaxValue(500);
 		SourceComponent->GetAttributes<UGAAttributesTest>()->MagicResistance.SetMaxValue(500);
 
-		SourceComponent->GetAttributes<UGAAttributesTest>()->MagicalBonus.Stacking = EAFAttributeStacking::Override;
-		SourceComponent->GetAttributes<UGAAttributesTest>()->PhysicalBonus.Stacking = EAFAttributeStacking::Add;
-		SourceComponent->GetAttributes<UGAAttributesTest>()->MagicResistance.Stacking = EAFAttributeStacking::Override;
+		//SourceComponent->GetAttributes<UGAAttributesTest>()->MagicalBonus.Stacking = EAFAttributeStacking::Override;
+		//SourceComponent->GetAttributes<UGAAttributesTest>()->PhysicalBonus.Stacking = EAFAttributeStacking::Add;
+		//SourceComponent->GetAttributes<UGAAttributesTest>()->MagicResistance.Stacking = EAFAttributeStacking::Override;
 
 		SourceComponent->GetAttributes<UGAAttributesTest>()->Health.InitializeAttribute();
 		SourceComponent->GetAttributes<UGAAttributesTest>()->Energy.InitializeAttribute();
@@ -147,9 +147,9 @@ public:
 		DestComponent->GetAttributes<UGAAttributesTest>()->Health.SetMaxValue(500);
 		DestComponent->GetAttributes<UGAAttributesTest>()->Energy.SetMaxValue(500);
 		DestComponent->GetAttributes<UGAAttributesTest>()->Stamina.SetMaxValue(500);
-		DestComponent->GetAttributes<UGAAttributesTest>()->Health.Stacking = EAFAttributeStacking::StrongerOverride;
+		/*DestComponent->GetAttributes<UGAAttributesTest>()->Health.Stacking = EAFAttributeStacking::StrongerOverride;
 		DestComponent->GetAttributes<UGAAttributesTest>()->Energy.Stacking = EAFAttributeStacking::Override;
-		DestComponent->GetAttributes<UGAAttributesTest>()->Stamina.Stacking = EAFAttributeStacking::Add;
+		DestComponent->GetAttributes<UGAAttributesTest>()->Stamina.Stacking = EAFAttributeStacking::Add;*/
 		DestComponent->GetAttributes<UGAAttributesTest>()->MagicalBonus.SetMaxValue(500);
 		DestComponent->GetAttributes<UGAAttributesTest>()->PhysicalBonus.SetMaxValue(500);
 		DestComponent->GetAttributes<UGAAttributesTest>()->MagicResistance.SetMaxValue(500);
@@ -172,9 +172,9 @@ public:
 		TargetCompOne->GetAttributes<UGAAttributesTest>()->Health.SetMaxValue(500);
 		TargetCompOne->GetAttributes<UGAAttributesTest>()->Energy.SetMaxValue(500);
 		TargetCompOne->GetAttributes<UGAAttributesTest>()->Stamina.SetMaxValue(500);
-		TargetCompOne->GetAttributes<UGAAttributesTest>()->Health.Stacking = EAFAttributeStacking::StrongerOverride;
-		TargetCompOne->GetAttributes<UGAAttributesTest>()->Energy.Stacking = EAFAttributeStacking::Override;
-		TargetCompOne->GetAttributes<UGAAttributesTest>()->Stamina.Stacking = EAFAttributeStacking::Add;
+		//TargetCompOne->GetAttributes<UGAAttributesTest>()->Health.Stacking = EAFAttributeStacking::StrongerOverride;
+		//TargetCompOne->GetAttributes<UGAAttributesTest>()->Energy.Stacking = EAFAttributeStacking::Override;
+		//TargetCompOne->GetAttributes<UGAAttributesTest>()->Stamina.Stacking = EAFAttributeStacking::Add;
 		TargetCompOne->GetAttributes<UGAAttributesTest>()->MagicalBonus.SetMaxValue(500);
 		TargetCompOne->GetAttributes<UGAAttributesTest>()->PhysicalBonus.SetMaxValue(500);
 		TargetCompOne->GetAttributes<UGAAttributesTest>()->MagicResistance.SetMaxValue(500);
@@ -198,9 +198,9 @@ public:
 		TargetCompTwo->GetAttributes<UGAAttributesTest>()->Health.SetMaxValue(500);
 		TargetCompTwo->GetAttributes<UGAAttributesTest>()->Energy.SetMaxValue(500);
 		TargetCompTwo->GetAttributes<UGAAttributesTest>()->Stamina.SetMaxValue(500);
-		TargetCompTwo->GetAttributes<UGAAttributesTest>()->Health.Stacking = EAFAttributeStacking::StrongerOverride;
-		TargetCompTwo->GetAttributes<UGAAttributesTest>()->Energy.Stacking = EAFAttributeStacking::Override;
-		TargetCompTwo->GetAttributes<UGAAttributesTest>()->Stamina.Stacking = EAFAttributeStacking::Add;
+		//TargetCompTwo->GetAttributes<UGAAttributesTest>()->Health.Stacking = EAFAttributeStacking::StrongerOverride;
+		//TargetCompTwo->GetAttributes<UGAAttributesTest>()->Energy.Stacking = EAFAttributeStacking::Override;
+		//TargetCompTwo->GetAttributes<UGAAttributesTest>()->Stamina.Stacking = EAFAttributeStacking::Add;
 		TargetCompTwo->GetAttributes<UGAAttributesTest>()->MagicalBonus.SetMaxValue(500);
 		TargetCompTwo->GetAttributes<UGAAttributesTest>()->PhysicalBonus.SetMaxValue(500);
 		TargetCompTwo->GetAttributes<UGAAttributesTest>()->MagicResistance.SetMaxValue(500);
@@ -305,6 +305,8 @@ public:
 		//Spec = Effect;
 		UGAGameEffectSpec* cds = Spec.GetClass().GetDefaultObject();
 		cds->ExecutionType = UGASpellExecutionTest::StaticClass();
+		cds->ApplicationRequirement = UAFEffectApplicationRequirement::StaticClass();
+		cds->Application = UAFEffectCustomApplication::StaticClass();
 		FGAAttributeModifier AttributeModifier;
 		AttributeModifier.Attribute = FGAAttribute(Attribute);
 		AttributeModifier.AttributeMod = ModType;
@@ -888,6 +890,129 @@ public:
 		float FinishedVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
 		TestEqual("Source Stamina Finished: ", FinishedVal, 100.0f);
 	}
+	void Test_AtttributeStatckingeAddSameProp()
+	{
+		TArray<FName> OwnedTags;
+		OwnedTags.Add("Ability.Fireball");
+		TArray<FName> AttributeTags;
+		AttributeTags.Add(TEXT("Damage.Fire"));
+
+		TArray<FName> ApplyTags;
+		ApplyTags.Add(TEXT("Damage.Fire"));
+		ApplyTags.Add(TEXT("Ability.Fireball"));
+
+		FTagsInput TagsIn;
+
+		FGAEffectProperty Effect = CreateEffectDurationSpec(OwnedTags, 50,
+			EGAAttributeMod::Add, TEXT("Stamina"), EGAEffectStacking::Override,
+			AttributeTags, ApplyTags, TagsIn, UAFEffectApplicationRequirement::StaticClass(),
+			UAFAtributeDurationAdd::StaticClass(),
+			UGAGameEffectSpec::StaticClass()
+		);
+
+		int32 NumApplications = 0;
+		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
+		TestEqual("Source Stamina Pre: ", PreVal, 100.0f);
+
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+
+		TickWorld(SMALL_NUMBER);
+		//++NumApplications;
+		float PostVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
+		TestEqual("Source Stamina PPost: ", PostVal, 150.0f);
+		const int32 NumPeriods = 10;
+		const float PeriodSecs = 1.0f;
+		const float DamagePerPeriod = 5.f;
+		TickWorld(PeriodSecs * .1f);
+		for (int32 i = 0; i < NumPeriods; ++i)
+		{
+			// advance time by one period
+			TickWorld(PeriodSecs);
+			if (i == 5)
+			{
+				UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+				float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
+				TestEqual("Source Stamina Post2: ", PostVal2, 200.0f);
+			}
+
+			// check that health has been reduced
+
+		}
+		float PreFinishedVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
+		TestEqual("Source Stamina PreFinished: ", PreFinishedVal, 150.0f);
+		for (int32 i = 0; i < NumPeriods; ++i)
+		{
+			// advance time by one period
+			TickWorld(PeriodSecs);
+		}
+		TickWorld(PeriodSecs * 0.1f);
+		float FinishedVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
+		TestEqual("Source Stamina Finished: ", FinishedVal, 100.0f);
+	}
+
+	void Test_AtttributeStatckingeAddSamePropDifferentTargets()
+	{
+		TArray<FName> OwnedTags;
+		OwnedTags.Add("Ability.Fireball");
+		TArray<FName> AttributeTags;
+		AttributeTags.Add(TEXT("Damage.Fire"));
+
+		TArray<FName> ApplyTags;
+		ApplyTags.Add(TEXT("Damage.Fire"));
+		ApplyTags.Add(TEXT("Ability.Fireball"));
+
+		FTagsInput TagsIn;
+
+		FGAEffectProperty Effect = CreateEffectDurationSpec(OwnedTags, 50,
+			EGAAttributeMod::Add, TEXT("Stamina"), EGAEffectStacking::Override,
+			AttributeTags, ApplyTags, TagsIn, UAFEffectApplicationRequirement::StaticClass(),
+			UAFAtributeDurationAdd::StaticClass(),
+			UGAGameEffectSpec::StaticClass()
+		);
+
+		int32 NumApplications = 0;
+		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
+		TestEqual("Source Stamina Pre: ", PreVal, 100.0f);
+
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+
+		TickWorld(SMALL_NUMBER);
+		//++NumApplications;
+		float PostVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
+		TestEqual("Source Stamina PPost: ", PostVal, 150.0f);
+		const int32 NumPeriods = 10;
+		const float PeriodSecs = 1.0f;
+		const float DamagePerPeriod = 5.f;
+		TickWorld(PeriodSecs * .1f);
+		for (int32 i = 0; i < NumPeriods; ++i)
+		{
+			// advance time by one period
+			TickWorld(PeriodSecs);
+			if (i == 5)
+			{
+				UGABlueprintLibrary::ApplyGameEffectToActor(Effect, TargetOne, SourceActor, SourceActor);
+				float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
+				TestEqual("Source Stamina Post2: ", PostVal2, 150.0f);
+			}
+
+			// check that health has been reduced
+
+		}
+		float PreFinishedVal = TargetCompOne->GetAttributeValue(FGAAttribute("Stamina"));
+		TestEqual("TargetCompOne Stamina PreFinished: ", PreFinishedVal, 150.0f);
+		for (int32 i = 0; i < NumPeriods; ++i)
+		{
+			// advance time by one period
+			TickWorld(PeriodSecs);
+		}
+		TickWorld(PeriodSecs * 0.1f);
+		float FinishedVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
+		TestEqual("Source Stamina Finished: ", FinishedVal, 100.0f);
+
+		float TargetOneFinish = TargetCompOne->GetAttributeValue(FGAAttribute("Stamina"));
+		TestEqual("TargetCompOne Stamina PreFinished: ", TargetOneFinish, 100.0f);
+	}
+
 	void Test_AtttributeStatckingeAddInfinite()
 	{
 		TArray<FName> OwnedTags;
@@ -1233,7 +1358,7 @@ public:
 		const int32 NumPeriods = 10;
 		const float PeriodSecs = 1.0f;
 		const float DamagePerPeriod = 5.f;
-		TickWorld(PeriodSecs * .1f);
+		//TickWorld(PeriodSecs * .1f);
 		for (int32 i = 0; i < NumPeriods; ++i)
 		{
 			// advance time by one period
@@ -1242,6 +1367,7 @@ public:
 			{
 				float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 				TestEqual("DestComponent Health PPost2: ", PostVal2, 88.0f);
+				
 				/*FGAEffectProperty EffectWeaker = CreateEffectPeriodicSpec(OwnedTags, 2,
 				EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Add,
 				AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass(),
@@ -1249,13 +1375,12 @@ public:
 				UGABlueprintLibrary::ApplyGameEffectToActor(Effect, TargetOne, SourceActor, SourceActor);
 				//TestEqual("Source Health Post2: ", PostVal2, 150.0f);
 			}
-
+			UE_LOG(AbilityFramework, Log, TEXT("Val: %d"), i * 2);
 			// check that health has been reduced
 
 		}
-		TickWorld(PeriodSecs * 0.1f);
 		float PreFinishedVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
-		TestEqual("DestComponent Health PreFinishedVal: ", PreFinishedVal, 82.0f);
+		TestEqual("DestComponent Health PreFinishedVal: ", PreFinishedVal, 80.0f);;
 		for (int32 i = 0; i < NumPeriods; ++i)
 		{
 			// advance time by one period
@@ -1433,6 +1558,8 @@ public:
 		ADD_TEST(Test_AtttributeStatckingStrongerOverride);
 		ADD_TEST(Test_AtttributeStatckingStrongerOverrideReversed);
 		ADD_TEST(Test_AtttributeStatckingeAdd);
+		ADD_TEST(Test_AtttributeStatckingeAddSameProp);
+		ADD_TEST(Test_AtttributeStatckingeAddSamePropDifferentTargets);
 		ADD_TEST(Test_AtttributeStatckingeAddInfinite);
 		ADD_TEST(Test_EffectStatckingOverride);
 		ADD_TEST(Test_EffectStatckingOverrideSameClass);

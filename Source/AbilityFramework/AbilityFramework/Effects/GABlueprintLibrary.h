@@ -11,7 +11,7 @@ class ABILITYFRAMEWORK_API UGABlueprintLibrary : public UBlueprintFunctionLibrar
 	GENERATED_UCLASS_BODY()
 public:
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
-		static void ApplyGameEffectToObject(UPARAM(ref) FGAEffectProperty& InEffect,
+		static FGAEffectHandle ApplyGameEffectToObject(UPARAM(ref) FGAEffectProperty& InEffect,
 			class UObject* Target, class APawn* Instigator,
 			UObject* Causer);
 
@@ -21,7 +21,7 @@ public:
 		and just change context of effect.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
-		static void ApplyGameEffectToActor(UPARAM(ref) FGAEffectProperty& InEffect,
+		static FGAEffectHandle ApplyGameEffectToActor(UPARAM(ref) FGAEffectProperty& InEffect,
 			class AActor* Target, class APawn* Instigator,
 			UObject* Causer);
 	/*
@@ -31,24 +31,24 @@ public:
 	*/
 	
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
-		static void ApplyGameEffectToLocation(UPARAM(ref) FGAEffectProperty& InEffect,
+		static FGAEffectHandle ApplyGameEffectToLocation(UPARAM(ref) FGAEffectProperty& InEffect,
 			const FHitResult& Target, class APawn* Instigator,
 			UObject* Causer);
 
 	static FGAEffectHandle ApplyEffect(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
-		FGAEffectHandle HandleIn, class UObject* Target, class APawn* Instigator,
+		class UObject* Target, class APawn* Instigator,
 		UObject* Causer, const FHitResult& HitIn);
 
 	static FGAEffectHandle ApplyEffectFromHit(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
-		FGAEffectHandle HandleIn, const FHitResult& Target, class APawn* Instigator,
+		const FHitResult& Target, class APawn* Instigator,
 		UObject* Causer);
 	
 	static FGAEffectHandle ApplyEffectToActor(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
-		FGAEffectHandle HandleIn, class AActor* Target, class APawn* Instigator,
+		 class AActor* Target, class APawn* Instigator,
 		UObject* Causer);
 
 	static FGAEffectHandle ApplyEffectToObject(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
-		FGAEffectHandle HandleIn, class UObject* Target, class APawn* Instigator,
+		class UObject* Target, class APawn* Instigator,
 		UObject* Causer);
 	/*
 		Create Effect but does not apply it.

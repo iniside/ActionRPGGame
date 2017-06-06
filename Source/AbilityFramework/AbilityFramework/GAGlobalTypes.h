@@ -202,6 +202,21 @@ enum class EGAStackingChannel : uint8
 	Channel031,
 	Channel032,
 };
+
+USTRUCT()
+struct FAFAtributeRowData : public FTableRowBase
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		float BaseValue;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		float MinValue;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		float MaxValue;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		TSubclassOf<class UGAAttributeExtension> Extension;
+};
 USTRUCT(BlueprintType)
 struct ABILITYFRAMEWORK_API FGAEffectMessageContext
 {
@@ -377,7 +392,6 @@ public:
 	struct FGAEffectMod GetAttributeModifier() const;
 	FGAAttribute GetAttribute() const;
 	EGAAttributeMod GetAttributeMod() const;
-	EAFAttributeStacking GetAttributeStacking() const;
 
 	static FGAEffectHandle GenerateHandle(FGAEffect* EffectIn);
 	bool HasAllTags(const FGameplayTagContainer& TagsIn) const;
@@ -418,7 +432,6 @@ public:
 	{}
 
 	FGAEffectHandle(uint32 HandleIn, FGAEffect* EffectIn);
-	FGAEffectHandle(const FGAEffectHandle& Other);
 public:
 	~FGAEffectHandle();
 };

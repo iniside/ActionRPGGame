@@ -204,6 +204,7 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, Category = "Config")
 		FGAEffectProperty CooldownEffect;
+	FGAEffectHandle CooldownEffectHandle;
 	/*
 		Tags applied to the time of activation ability.
 		Only applies to abilities, which are not instant (for now).
@@ -217,6 +218,7 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, Category = "Config")
 		FGAEffectProperty ActivationEffect;
+	FGAEffectHandle ActivationEffectHandle;
 	/*
 		These attributes will be reduced by specified amount when ability is activated.
 		Attribute cost from Ability Owner attributes
@@ -267,7 +269,7 @@ public: //because I'm to lazy to write all those friend states..
 		float LastCooldownTime;
 	virtual void TickAbility(float DeltaSeconds, ELevelTick TickType, FGAAbilityTick& ThisTickFunction);
 	UFUNCTION()
-		void OnActivationEffectPeriod();
+		void OnActivationEffectPeriod(const FGAEffectHandle& InHandle);
 
 	UFUNCTION()
 		void OnRep_CooldownStarted();
@@ -381,7 +383,7 @@ public:
 	UFUNCTION()
 		void OnCooldownEffectExpired();
 	UFUNCTION()
-		void NativeOnAbilityActivationFinish();
+		void NativeOnAbilityActivationFinish(const FGAEffectHandle& InHandle);
 	UFUNCTION()
 		void NativeOnAbilityActivationCancel();
 

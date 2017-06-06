@@ -160,13 +160,13 @@ void UGAAbilityBase::OnCooldownEffectExpired()
 {
 	UE_LOG(AbilityFramework, Log, TEXT("Cooldown expired In Ability: %s"), *GetName());
 	CooldownEffectExpiredCounter++;
-	if (CooldownEffect.Handle.IsValid())
+	if (CooldownEffectHandle.IsValid())
 	{
-		CooldownEffect.Handle.GetContextRef().InstigatorComp->RemoveEffect(CooldownEffect);
+		CooldownEffectHandle.GetContextRef().InstigatorComp->RemoveEffect(CooldownEffect);
 	}
 }
 /* Functions for activation effect delegates */
-void UGAAbilityBase::NativeOnAbilityActivationFinish()
+void UGAAbilityBase::NativeOnAbilityActivationFinish(const FGAEffectHandle& InHandle)
 {
 	//OnAbilityExecutedNative();
 	UE_LOG(AbilityFramework, Log, TEXT("Ability Activation Effect Expired In Ability: %s"), *GetName());
@@ -194,7 +194,7 @@ void UGAAbilityBase::NativeOnAbilityActivationCancel()
 	OnActivationCancel();
 	//AbilityActivatedCounter++;
 }
-void UGAAbilityBase::OnActivationEffectPeriod()
+void UGAAbilityBase::OnActivationEffectPeriod(const FGAEffectHandle& InHandle)
 {
 	UE_LOG(AbilityFramework, Log, TEXT("Ability Activation Effect Period In Ability: %s"), *GetName());
 	AbilityPeriodCounter++;
@@ -213,9 +213,9 @@ void UGAAbilityBase::NativeFinishAbility()
 	AbilityComponent->ExecutingAbility = nullptr;
 	OnConfirmDelegate.Clear();
 	OnConfirmDelegate.RemoveAll(this);
-	if (ActivationEffect.Handle.IsValid())
+	//if (ActivationEffect.Handle.IsValid())
 	{
-		ActivationEffect.Handle.GetContextRef().InstigatorComp->RemoveEffect(ActivationEffect);
+		AbilityComponent->RemoveEffect(ActivationEffect);
 	}
 	//remove effect.
 }
@@ -227,9 +227,9 @@ void UGAAbilityBase::CancelActivation()
 void UGAAbilityBase::NativeCancelActivation()
 {
 	UGAAbilitiesComponent* AttrComp = ActivationEffect.Handle.GetContext().InstigatorComp.Get();
-	if (AttrComp)
+	if (AbilityComponent)
 	{
-		AttrComp->RemoveEffect(ActivationEffect);
+		AbilityComponent->RemoveEffect(ActivationEffect);
 	}
 }
 
@@ -264,31 +264,30 @@ bool UGAAbilityBase::ApplyActivationEffect()
 	FHitResult Hit(ForceInit);
 	
 	UGAGameEffectSpec* Spec = ActivationEffect.GetClass().GetDefaultObject();
-	//ActivationEffect.Handle = UGABlueprintLibrary::MakeEffect(Spec, ActivationEffect.Handle, this, POwner, this, Hit);
 	FGAEffectContext ctx = UGABlueprintLibrary::MakeContext(this, POwner, this, Hit);
 	float DurationCheck = Spec->Duration.GetFloatValue(ctx);
 	float PeriodCheck = Spec->Period.GetFloatValue(ctx);
 	if (DurationCheck > 0 || PeriodCheck > 0)
 	{
 		FHitResult HitIn;
-
-		//AbilityComponent->ApplyEffectToTarget(ActivationEffect.Handle.GetEffect(), ActivationEffect.Handle, ActivationEffect);
-		UGABlueprintLibrary::ApplyGameEffectToObject(ActivationEffect,
+		if (ActivationEffectHandle.IsValid())
+			ActivationEffectHandle.Reset();
+		ActivationEffectHandle = UGABlueprintLibrary::ApplyGameEffectToObject(ActivationEffect,
 			this, POwner, this);
-
-		if(!ActivationEffect.Handle.GetEffectRef().OnEffectExpired.IsBound())
-			ActivationEffect.Handle.GetEffectRef().OnEffectExpired.BindUObject(this, &UGAAbilityBase::NativeOnAbilityActivationFinish);
+		
+		//if(!ActivationEffectHandle.GetEffectRef().OnEffectExpired.)
+			ActivationEffectHandle.GetEffectRef().OnEffectExpired.AddUObject(this, &UGAAbilityBase::NativeOnAbilityActivationFinish);
 
 		
 		if (PeriodCheck > 0)
 		{
-			if (!ActivationEffect.Handle.GetEffectRef().OnEffectPeriod.IsBound())
-				ActivationEffect.Handle.GetEffectRef().OnEffectPeriod.BindUObject(this, &UGAAbilityBase::OnActivationEffectPeriod);
+			//if (!ActivationEffectHandle.GetEffectRef().OnEffectPeriod.IsBound())
+			ActivationEffectHandle.GetEffectRef().OnEffectPeriod.AddUObject(this, &UGAAbilityBase::OnActivationEffectPeriod);
 		}
 	}
 	else
 	{
-		NativeOnAbilityActivationFinish();
+		NativeOnAbilityActivationFinish(FGAEffectHandle());
 	}
 	return false;
 }
@@ -451,7 +450,7 @@ bool UGAAbilityBase::BP_ApplyAbilityAttributeCost()
 bool UGAAbilityBase::CheckCooldown()
 {
 	bool bOnCooldown = false;
-	bOnCooldown = AbilityComponent->IsEffectActive(CooldownEffect.Handle);
+	bOnCooldown = AbilityComponent->IsEffectActive(CooldownEffectHandle);
 	return bOnCooldown; //temp
 }
 bool UGAAbilityBase::CheckExecuting()
@@ -467,9 +466,9 @@ void UGAAbilityBase::BP_ApplyCooldown()
 
 float UGAAbilityBase::GetCurrentActivationTime()
 {
-	if (ActivationEffect.Handle.IsValid())
+	if (ActivationEffectHandle.IsValid())
 	{
-		return ActivationEffect.Handle.GetEffectPtr()->GetCurrentActivationTime();
+		return ActivationEffectHandle.GetEffectPtr()->GetCurrentActivationTime();
 	}
 	return 0;
 }

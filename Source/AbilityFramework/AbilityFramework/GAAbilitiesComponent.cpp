@@ -94,11 +94,10 @@ FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToSelf(FGAEffect* EffectIn
 	,FGAEffectProperty& InProperty, FGAEffectContext& InContext)
 {
 	//OnEffectApplyToSelf.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
-	GameEffectContainer.ApplyEffect(EffectIn, InProperty);
+	return GameEffectContainer.ApplyEffect(EffectIn, InProperty);
 	//FGAEffectCueParams CueParams;
 	//CueParams.HitResult = EffectIn.Context.HitResult;
 	//OnEffectApplied.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
-	return FGAEffectHandle();
 }
 FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 	, FGAEffectProperty& InProperty, FGAEffectContext& InContext)
@@ -106,7 +105,7 @@ FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 	//FGAEffectCueParams CueParams;
 	//CueParams.HitResult = EffectIn.Context.HitResult;
 	//execute cue from effect regardless if we have target object or not.
-	InContext.TargetComp->ApplyEffectToSelf(EffectIn, InProperty, InContext);
+	return InContext.TargetComp->ApplyEffectToSelf(EffectIn, InProperty, InContext);
 	//MulticastApplyEffectCue(HandleIn, CueParams);
 
 //	if (EffectIn.IsValid() && EffectIn.Context.TargetComp.IsValid())
@@ -114,7 +113,6 @@ FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 		//OnEffectApplyToTarget.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
 	//	return EffectIn.Context.TargetComp->ApplyEffectToSelf(EffectIn, HandleIn);
 //	}
-	return FGAEffectHandle();
 }
 
 FGAEffectHandle UGAAbilitiesComponent::MakeGameEffect(TSubclassOf<class UGAGameEffectSpec> SpecIn,
@@ -181,23 +179,6 @@ void UGAAbilitiesComponent::InternalRemoveEffect(const FGAEffectProperty& InProp
 	GameEffectContainer.RemoveEffect(InProperty);
 }
 
-void UGAAbilitiesComponent::ApplyInstacnedEffectToSelf(class UGAEffectExtension* EffectIn)
-{
-	GameEffectContainer.ApplyEffectInstance(EffectIn);
-}
-void UGAAbilitiesComponent::ApplyInstancedToTarget(class UGAEffectExtension* EffectIn)
-{
-	//FGAEffectCueParams CueParams;
-	//CueParams.HitResult = EffectIn->Context.HitResult;
-	//execute cue from effect regardless if we have target object or not.
-	//MulticastApplyEffectCue(HandleIn, EffectIn->Cue, CueParams);
-	EffectIn->Context.TargetComp->ApplyInstacnedEffectToSelf(EffectIn);
-}
-
-void UGAAbilitiesComponent::RemoveInstancedFromSelf(class UGAEffectExtension* EffectIn)
-{
-
-}
 TArray<FGAEffectUIData> UGAAbilitiesComponent::GetEffectUIData()
 {
 	TArray<FGAEffectUIData> dataReturn;
@@ -417,6 +398,20 @@ void FGASAbilityContainer::HandleInputReleased(FGameplayTag TagIn, FGameplayTag 
 	}
 }
 
+void FGASAbilityContainer::TriggerAbylityByTag(FGameplayTag InTag)
+{
+	UGAAbilityBase* ability = AbilitiesInputs.FindRef(InTag);
+	if (ability)
+	{
+		if (ability->IsWaitingForConfirm())
+		{
+			ability->ConfirmAbility();
+			return;
+		}
+		ability->OnNativeInputPressed(FGameplayTag());
+	}
+}
+
 bool UGAAbilitiesComponent::CanActivateAbility()
 {
 	//if there are no activate abilities, we can activate the selected one.
@@ -441,6 +436,7 @@ void UGAAbilitiesComponent::InitializeComponent()
 	if (DefaultAttributes)
 	{
 		DefaultAttributes->InitializeAttributes(this);
+		DefaultAttributes->InitializeAttributesFromTable();
 	}
 	GameEffectContainer.OwningComponent = this;
 	ActiveCues.OwningComp = this;
