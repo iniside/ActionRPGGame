@@ -7,9 +7,9 @@
 #include "AFPeriodApplicationInfiniteAdd.generated.h"
 
 /**
- * 
+ * Periodic effect will be applied for infinite amount of time.
  */
-UCLASS()
+UCLASS(meta = (DisplayName = "Periodic Infinite Add"))
 class ABILITYFRAMEWORK_API UAFPeriodApplicationInfiniteAdd : public UAFEffectCustomApplication
 {
 	GENERATED_BODY()
@@ -18,6 +18,14 @@ public:
 		FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer);
 
 	
-	
+
+	virtual bool ShowPeriod() override
+	{
+		return true;
+	}
+	virtual bool ShowDuration() override
+	{
+		return false;
+	}
 	
 };

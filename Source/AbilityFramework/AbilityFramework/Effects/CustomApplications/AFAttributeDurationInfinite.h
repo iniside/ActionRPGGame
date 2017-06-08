@@ -7,9 +7,9 @@
 #include "AFAttributeDurationInfinite.generated.h"
 
 /**
- * 
+ * Adds infinite duration effect.
  */
-UCLASS()
+UCLASS(meta = (DisplayName = "Duration Infinite Add"))
 class ABILITYFRAMEWORK_API UAFAttributeDurationInfinite : public UAFEffectCustomApplication
 {
 	GENERATED_BODY()
@@ -17,6 +17,13 @@ public:
 	virtual bool ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
 		FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer);
 	
-	
+	virtual bool ShowPeriod() override
+	{
+		return false;
+	}
+	virtual bool ShowDuration() override
+	{
+		return false;
+	}
 	
 };

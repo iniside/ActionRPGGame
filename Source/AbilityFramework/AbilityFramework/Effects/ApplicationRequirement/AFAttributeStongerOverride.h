@@ -7,14 +7,16 @@
 #include "AFAttributeStongerOverride.generated.h"
 
 /**
- * 
+ * USe only with Duration Based application.
+ * Effect will be applied if the attribute modifier is stronger than the current one on Attribute.
  */
-UCLASS()
+UCLASS(BlueprintType, meta = (DisplayName = "Attribute Stronger"))
 class ABILITYFRAMEWORK_API UAFAttributeStongerOverride : public UAFEffectApplicationRequirement
 {
 	GENERATED_BODY()
 public:
-	virtual bool CanApply(FGAEffect* EffectIn, FGAEffectProperty& InProperty) override;
+	virtual bool CanApply(FGAEffect* EffectIn, FGAEffectProperty& InProperty,
+		struct FGAEffectContainer* InContainer) override;
 	
 	
 };

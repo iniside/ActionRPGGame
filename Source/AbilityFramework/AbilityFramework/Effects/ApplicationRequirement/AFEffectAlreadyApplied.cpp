@@ -6,3 +6,12 @@
 
 
 
+bool UAFEffectAlreadyApplied::CanApply(FGAEffect* EffectIn, FGAEffectProperty& InProperty,
+	struct FGAEffectContainer* InContainer)
+{
+	if (InContainer->ContainsEffectOfClass(InProperty))
+	{
+		return false;
+	}
+	return true;
+}

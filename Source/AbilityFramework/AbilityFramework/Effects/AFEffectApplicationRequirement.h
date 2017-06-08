@@ -8,15 +8,16 @@
 #include "AFEffectApplicationRequirement.generated.h"
 
 /**
- * 
+ * Default requirment always passes.
  */
-UCLASS()
+UCLASS(meta=(DisplayName = "No Requirement"))
 class ABILITYFRAMEWORK_API UAFEffectApplicationRequirement : public UObject
 {
 	GENERATED_BODY()
 	
 public:
-	virtual bool CanApply(FGAEffect* EffectIn, FGAEffectProperty& InProperty)
+	virtual bool CanApply(FGAEffect* EffectIn, FGAEffectProperty& InProperty,
+		struct FGAEffectContainer* InContainer)
 	{
 		return true;
 	}

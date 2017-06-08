@@ -7,9 +7,9 @@
 #include "AFAttributeDurationOverride.generated.h"
 
 /**
- * 
+ * If effect of the same class is already applied it will be removed, and new one will be applied.
  */
-UCLASS()
+UCLASS(meta = (DisplayName = "Duration Override"))
 class ABILITYFRAMEWORK_API UAFAttributeDurationOverride : public UAFEffectCustomApplication
 {
 	GENERATED_BODY()
@@ -17,6 +17,14 @@ public:
 	virtual bool ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
 		FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer);
 	
-	
+
+	virtual bool ShowPeriod() override
+	{
+		return false;
+	}
+	virtual bool ShowDuration() override
+	{
+		return true;
+	}
 	
 };

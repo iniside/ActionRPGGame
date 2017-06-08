@@ -8,7 +8,8 @@
 
 
 
-bool UAFAttributeStongerOverride::CanApply(FGAEffect* EffectIn, FGAEffectProperty& InProperty)
+bool UAFAttributeStongerOverride::CanApply(FGAEffect* EffectIn, FGAEffectProperty& InProperty,
+	struct FGAEffectContainer* InContainer)
 {
 	bool bCanApply = true;
 	FGAAttribute Attribute = InProperty.Spec->AtributeModifier.Attribute;

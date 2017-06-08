@@ -28,7 +28,7 @@ DECLARE_CYCLE_STAT_EXTERN(TEXT("AttributeComponentApplyEffect"), STAT_ApplyEffec
 DECLARE_CYCLE_STAT_EXTERN(TEXT("AttributeComponentModifyAttribute"), STAT_ModifyAttribute, STATGROUP_AttributeComponent, );
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGAOnAttributeChanged);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGAOnAttributeModifed, const FGAModifiedAttribute&, attr);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGAOnAttributeModifed, const FGAEffectMod&, Mod, float, Value);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGAGenericEffectDelegate, const FGAEffectHandle&, Handle, const FGameplayTagContainer&, Tags);
 
@@ -199,6 +199,8 @@ public:
 		FGAModifiedAttributeData ModifiedAttribute;
 	UFUNCTION()
 		void OnRep_AttributeChanged();
+	UPROPERTY(BlueprintAssignable, Category = "Game Attributes")
+		FGAOnAttributeModifed OnAttributePreModifed;
 	UPROPERTY(BlueprintAssignable, Category = "Game Attributes")
 		FGAOnAttributeModifed OnAttributeModifed;
 

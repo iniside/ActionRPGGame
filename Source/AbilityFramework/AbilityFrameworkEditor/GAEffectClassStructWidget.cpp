@@ -293,7 +293,7 @@ TSharedRef<SWidget> FGAEffectClassStructWidget::CreateEffectClassWidget()
 	//EffectName.Create(TAttribute<FText>::FGetter::CreateRaw(this, &FGAEffectClassStructWidget::GetClassName));
 	return SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
-		.FillWidth(0.8)
+		.FillWidth(0.7)
 		[
 			SAssignNew(ComboButton, SComboButton)
 			.OnGetMenuContent(this, &FGAEffectClassStructWidget::GenerateClassPicker)
@@ -312,7 +312,7 @@ TSharedRef<SWidget> FGAEffectClassStructWidget::CreateEffectClassWidget()
 			MakeNewBlueprintButton()
 		]
 		+SHorizontalBox::Slot()
-			.FillWidth(0.1)
+			.FillWidth(0.2)
 		[
 			SNew(SButton)
 			.OnClicked(this, &FGAEffectClassStructWidget::OnEditButtonClicked)

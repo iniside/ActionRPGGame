@@ -8,6 +8,11 @@
 
 class FGAEffectDetails : public IDetailCustomization
 {
+
+protected:
+	bool bIsDuration;
+	bool bIsPeriodic;
+	TSharedPtr<IPropertyHandle> ApplicationTypeHandle;
 public:
 	/** Makes a new instance of this detail layout class for a specific detail view requesting it */
 	static TSharedRef<IDetailCustomization> MakeInstance();

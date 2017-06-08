@@ -11,11 +11,11 @@
 bool UAFPeriodApplicationOverride::ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
 	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer)
 {
-	TSet<FGAEffectHandle> handles = InContainer->GetHandlesByClass(InProperty, EffectIn->Context);
-	for (const FGAEffectHandle& handle : handles)
-	{
-		InContainer->RemoveEffect(InProperty);
-	}
+	//TSet<FGAEffectHandle> handles = InContainer->GetHandlesByClass(InProperty, EffectIn->Context);
+	//for (const FGAEffectHandle& handle : handles)
+	//{
+	//	InContainer->RemoveEffect(InProperty);
+	//}
 	InContainer->RemoveEffect(InProperty);
 
 	FTimerManager& DurationTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();

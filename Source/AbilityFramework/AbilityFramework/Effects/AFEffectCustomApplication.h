@@ -9,9 +9,9 @@
 #include "AFEffectCustomApplication.generated.h"
 
 /**
- * 
+ * Default application used for instant effects.
  */
-UCLASS()
+UCLASS(meta = (DisplayName = "Default Application"))
 class ABILITYFRAMEWORK_API UAFEffectCustomApplication : public UObject
 {
 	GENERATED_BODY()
@@ -19,5 +19,12 @@ public:
 	virtual bool ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
 		FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer);
 	
-	
+	virtual bool ShowPeriod()
+	{
+		return false;
+	}
+	virtual bool ShowDuration()
+	{
+		return false;
+	}
 };

@@ -122,7 +122,7 @@ public:
 		How effect should stack. Only relevelant for periodic effects
 		and modifiers applied on period.
 	*/
-	UPROPERTY(EditAnywhere, Category = "Stacking")
+	UPROPERTY(EditAnywhere, Category = "Effect Info")
 		TSubclassOf<class UAFEffectCustomApplication> Application;
 
 	UPROPERTY(EditAnywhere, Category = "Stacking")
@@ -138,12 +138,13 @@ public:
 	/* Total duration of effect (if applicable) */
 	UPROPERTY(EditAnywhere, Category = "Duration")
 		FGAMagnitude Duration;
-	/* Total duration of effect (if applicable) */
-	UPROPERTY(EditAnywhere, Category = "Duration")
-		float MaxStackedDuration;
 	/* Duration of single period. */
 	UPROPERTY(EditAnywhere, Category = "Duration")
 		FGAMagnitude Period;
+	/* Total duration of effect (if applicable) */
+	UPROPERTY(EditAnywhere, Category = "Duration")
+		float MaxStackedDuration;
+
 	/* IF true, effect will tick instantly upon application. */
 	UPROPERTY(EditAnywhere, Category = "Duration")
 		bool bTickOnApplication;
@@ -672,6 +673,7 @@ public:
 	void ApplyEffectsFromMods() {};
 	void DoesQualify() {};
 	bool IsEffectActive(const FGAEffectHandle& HandleIn);
+	bool ContainsEffectOfClass(const FGAEffectProperty& InProperty);
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
 	{
 		//return FastArrayDeltaSerialize<FGAEffectRepInfo>(ActiveEffectInfos, DeltaParms, *this);

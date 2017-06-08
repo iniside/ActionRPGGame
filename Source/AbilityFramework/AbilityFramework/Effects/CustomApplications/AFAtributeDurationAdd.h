@@ -7,9 +7,9 @@
 #include "AFAtributeDurationAdd.generated.h"
 
 /**
- * 
+ * Adds New duration Effect.
  */
-UCLASS()
+UCLASS(meta = (DisplayName = "Duration Add"))
 class ABILITYFRAMEWORK_API UAFAtributeDurationAdd : public UAFEffectCustomApplication
 {
 	GENERATED_BODY()
@@ -17,5 +17,12 @@ public:
 	virtual bool ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
 		FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer);
 	
-	
+	virtual bool ShowPeriod() override
+	{
+		return false;
+	}
+	virtual bool ShowDuration() override
+	{
+		return true;
+	}
 };

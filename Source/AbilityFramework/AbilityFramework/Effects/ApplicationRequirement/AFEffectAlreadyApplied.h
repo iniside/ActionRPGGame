@@ -7,13 +7,17 @@
 #include "AFEffectAlreadyApplied.generated.h"
 
 /**
- * 
+ * If effect of the same type is already applied, it will be skipped.
  */
-UCLASS()
+UCLASS(meta = (DisplayName = "Only One Of Type"))
 class ABILITYFRAMEWORK_API UAFEffectAlreadyApplied : public UAFEffectApplicationRequirement
 {
 	GENERATED_BODY()
-	
+public:
+	virtual bool CanApply(FGAEffect* EffectIn, FGAEffectProperty& InProperty,
+		struct FGAEffectContainer* InContainer) override;
+
+
 	
 	
 	

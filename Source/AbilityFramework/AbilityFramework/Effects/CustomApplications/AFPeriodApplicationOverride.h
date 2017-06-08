@@ -7,9 +7,9 @@
 #include "AFPeriodApplicationOverride.generated.h"
 
 /**
- * 
+ * If effect of the same class already exist it will be removed and new effect will be appllied.
  */
-UCLASS()
+UCLASS(meta = (DisplayName = "Periodic Override"))
 class ABILITYFRAMEWORK_API UAFPeriodApplicationOverride : public UAFEffectCustomApplication
 {
 	GENERATED_BODY()
@@ -17,6 +17,13 @@ public:
 	virtual bool ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
 		FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer);
 	
-	
+	virtual bool ShowPeriod() override
+	{
+		return true;
+	}
+	virtual bool ShowDuration() override
+	{
+		return true;
+	}
 	
 };

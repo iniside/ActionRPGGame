@@ -248,9 +248,8 @@ void FGameCueContainer::AddCue(FGAEffectHandle EffectHandle, FGAEffectCueParams 
 FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectProperty& InProperty)
 {
 	FGAEffectHandle Handle;
-	if (InProperty.ApplicationRequirement->CanApply(EffectIn, InProperty))
+	if (InProperty.ApplicationRequirement->CanApply(EffectIn, InProperty, this))
 	{
-		
 		bool bHasDuration = InProperty.Duration > 0;
 		bool bHasPeriod = InProperty.Period > 0;
 		
@@ -430,9 +429,9 @@ void FGAEffectContainer::RemoveFromAttribute(const FGAEffectHandle& HandleIn)
 		}
 	}
 
-	UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::RemoveFromAttribute %s = %f"), *HandleIn.GetAttribute().ToString(), Target->GetAttributeValue(HandleIn.GetAttribute()));
+	//UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::RemoveFromAttribute %s = %f"), *HandleIn.GetAttribute().ToString(), Target->GetAttributeValue(HandleIn.GetAttribute()));
 	Target->RemoveBonus(HandleIn.GetAttribute(), HandleIn, HandleIn.GetAttributeMod());
-	UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::RemoveFromAttribute %s = %f"), *HandleIn.GetAttribute().ToString(), Target->GetAttributeValue(HandleIn.GetAttribute()));
+	//UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::RemoveFromAttribute %s = %f"), *HandleIn.GetAttribute().ToString(), Target->GetAttributeValue(HandleIn.GetAttribute()));
 }
 void FGAEffectContainer::RemoveEffectProtected(const FGAEffectHandle& HandleIn
 	, const FGAEffectProperty& InProperty)
@@ -467,9 +466,6 @@ void FGAEffectContainer::RemoveInstigatorEffect(const FGAEffectHandle& HandleIn
 			InstigatorEffect->Remove(EffectClass);
 		}
 	}
-	RemoveEffectProtected(HandleIn, InProperty);
-	
-	
 	if (Effect.IsValid())
 	{
 		Effect->OnEffectRemoved.Broadcast(Effect->Handle);
@@ -478,6 +474,8 @@ void FGAEffectContainer::RemoveInstigatorEffect(const FGAEffectHandle& HandleIn
 		DurationTimer.ClearTimer(Effect->DurationTimerHandle);
 		DurationTimer.ClearTimer(Effect->PeriodTimerHandle);
 	}
+	RemoveEffectProtected(HandleIn, InProperty);
+
 }
 
 void FGAEffectContainer::RemoveEffectByHandle(const FGAEffectHandle& InHandle, const FGAEffectProperty& InProperty)
@@ -599,6 +597,15 @@ void FGAEffectContainer::ApplyEffectInstance(class UGAEffectExtension* EffectIn)
 bool FGAEffectContainer::IsEffectActive(const FGAEffectHandle& HandleIn)
 {
 	if (ActiveEffectHandles.Contains(HandleIn))
+	{
+		return true;
+	}
+	return false;
+}
+bool FGAEffectContainer::ContainsEffectOfClass(const FGAEffectProperty& InProperty)
+{
+	FObjectKey key(InProperty.GetClass());
+	if (EffectByClass.Contains(key))
 	{
 		return true;
 	}

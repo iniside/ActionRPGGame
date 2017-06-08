@@ -47,10 +47,9 @@ bool UGAAbilitiesComponent::GetShouldTick() const
 void UGAAbilitiesComponent::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn
 	,FGAEffectProperty& InProperty)
 { 
-	UGAAbilitiesComponent* blaBla = this;
-	//send message to self.
-	//MessageEndpoint->Send<FGAModifyAttributeValueMessage>(Message, GetMessageAddress());
+	OnAttributePreModifed.Broadcast(ModIn, 0);
 	float NewValue = DefaultAttributes->ModifyAttribute(ModIn, HandleIn, InProperty);
+	OnAttributeModifed.Broadcast(ModIn, NewValue);
 	OnAttributeChanged.Broadcast(NewValue);
 };
 
@@ -168,14 +167,10 @@ void UGAAbilitiesComponent::RemoveEffect(const FGAEffectProperty& InProperty)
 }
 void UGAAbilitiesComponent::InternalRemoveEffect(const FGAEffectProperty& InProperty)
 {
-	//FTimerManager& timer = GetWorld()->GetTimerManager();
-	//timer.ClearTimer(HandleIn.GetEffectRef().PeriodTimerHandle);
-	//timer.ClearTimer(HandleIn.GetEffectRef().DurationTimerHandle);
 	UE_LOG(GameAttributesEffects, Log, TEXT("UGAAbilitiesComponent:: Reset Timers and Remove Effect"));
 
 	//MulticastRemoveEffectCue(HandleIn);
-	//periodic effects do not apply duration based modifiers to attributes.
-	//yet in anycase.
+
 	GameEffectContainer.RemoveEffect(InProperty);
 }
 
@@ -253,10 +248,10 @@ void UGAAbilitiesComponent::OnRep_ActiveCues()
 
 void UGAAbilitiesComponent::OnRep_AttributeChanged()
 {
-	for (FGAModifiedAttribute& attr : ModifiedAttribute.Mods)
-	{
-		attr.Causer->OnAttributeModifed.Broadcast(attr);
-	}
+	//for (FGAModifiedAttribute& attr : ModifiedAttribute.Mods)
+	//{
+	//	attr.Causer->OnAttributeModifed.Broadcast(attr);
+	//}
 }
 bool UGAAbilitiesComponent::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
 {

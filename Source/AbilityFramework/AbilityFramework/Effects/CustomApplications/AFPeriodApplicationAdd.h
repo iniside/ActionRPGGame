@@ -7,16 +7,23 @@
 #include "AFPeriodApplicationAdd.generated.h"
 
 /**
- * 
+ * Adds new periodic effect.
  */
-UCLASS()
+UCLASS(meta = (DisplayName = "Periodic Add"))
 class ABILITYFRAMEWORK_API UAFPeriodApplicationAdd : public UAFEffectCustomApplication
 {
 	GENERATED_BODY()
 public:
 	bool ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
 		FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer) override;
-	
-	
+
+	virtual bool ShowPeriod() override
+	{
+		return true;
+	}
+	virtual bool ShowDuration() override
+	{
+		return true;
+	}
 	
 };
