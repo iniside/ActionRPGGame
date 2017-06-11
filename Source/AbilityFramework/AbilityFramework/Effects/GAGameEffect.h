@@ -116,13 +116,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Effect Info")
 		FGameplayTag EffectTag;
 
-	UPROPERTY(EditAnywhere, Category = "Effect Info")
+	UPROPERTY(EditAnywhere, meta=(UseDisplayName), Category = "Effect Info")
 		TSubclassOf<class UAFEffectApplicationRequirement> ApplicationRequirement;
 	/* 
 		How effect should stack. Only relevelant for periodic effects
 		and modifiers applied on period.
 	*/
-	UPROPERTY(EditAnywhere, Category = "Effect Info")
+	UPROPERTY(EditAnywhere, meta = (UseDisplayName), Category = "Effect Info")
 		TSubclassOf<class UAFEffectCustomApplication> Application;
 
 	UPROPERTY(EditAnywhere, Category = "Stacking")
@@ -606,12 +606,17 @@ struct ABILITYFRAMEWORK_API FGAEffectContainer : public FFastArraySerializer
 public:
 	UPROPERTY()
 		TArray<FGAEffectRepInfo> ActiveEffectInfos;
+	//IDK might be actually easier to map Handles to active effects on clients
+	//as Handle should be synced between client and server.
+	//that's why handle should only be created on server (and by that, effects).
+	TMap<FGAEffectHandle, FGAEffectRepInfo> EffectInfos;
+
+
 
 	TMap<FGAAttribute, TSet<FGAEffectHandle>> EffectByAttribute;
 
-	//TMap<FObjectKey, TQueue<FGAEffectHandle>> TestEffectByClass;
-
 	TMap<FObjectKey, TArray<FGAEffectHandle>> EffectByClass;
+
 	//TQueue<FGAEffectHandle> dupa;
 	/* All effects. */
 	TSet<FGAEffectHandle> ActiveEffectHandles;
@@ -645,7 +650,8 @@ public:
 		class UGAAbilitiesComponent* OwningComponent;
 public:
 	//FGAEffectContainer();
-	FGAEffectHandle ApplyEffect(FGAEffect* EffectIn, FGAEffectProperty& InProperty);
+	FGAEffectHandle ApplyEffect(FGAEffect* EffectIn, FGAEffectProperty& InProperty
+		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 	/* Removesgiven number of effects of the same type. If Num == 0 Removes all effects */
 	void RemoveEffect(const FGAEffectProperty& HandleIn, int32 Num = 1);
 	/* Removesgiven number of effects of the same type. If Num == 0 Removes all effects */

@@ -16,7 +16,8 @@ void UGAEffectExecution::PreModifyAttribute(const FGAEffectHandle& HandleIn, FGA
 	UE_LOG(GameAttributesEffects, Log, TEXT("Sample execution class implementation"));
 }
 void UGAEffectExecution::ExecuteEffect(const FGAEffectHandle& HandleIn, FGAEffectMod& ModIn, 
-	FGAEffectContext& Context, FGAEffectProperty& InProperty)
+	FGAEffectContext& Context, FGAEffectProperty& InProperty,
+	const FAFFunctionModifier& Modifier)
 {
 	PreModifyAttribute(HandleIn, ModIn, Context);
 	Context.TargetInterface->ModifyAttribute(ModIn, HandleIn, InProperty);

@@ -90,21 +90,23 @@ void UGAAbilitiesComponent::DestroyComponent(bool bPromoteChildren)
 }
 
 FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToSelf(FGAEffect* EffectIn
-	,FGAEffectProperty& InProperty, FGAEffectContext& InContext)
+	,FGAEffectProperty& InProperty, FGAEffectContext& InContext
+	, const FAFFunctionModifier& Modifier)
 {
 	//OnEffectApplyToSelf.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
-	return GameEffectContainer.ApplyEffect(EffectIn, InProperty);
+	return GameEffectContainer.ApplyEffect(EffectIn, InProperty, Modifier);
 	//FGAEffectCueParams CueParams;
 	//CueParams.HitResult = EffectIn.Context.HitResult;
 	//OnEffectApplied.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
 }
 FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToTarget(FGAEffect* EffectIn
-	, FGAEffectProperty& InProperty, FGAEffectContext& InContext)
+	, FGAEffectProperty& InProperty, FGAEffectContext& InContext
+	, const FAFFunctionModifier& Modifier)
 {
 	//FGAEffectCueParams CueParams;
 	//CueParams.HitResult = EffectIn.Context.HitResult;
 	//execute cue from effect regardless if we have target object or not.
-	return InContext.TargetComp->ApplyEffectToSelf(EffectIn, InProperty, InContext);
+	return InContext.TargetComp->ApplyEffectToSelf(EffectIn, InProperty, InContext, Modifier);
 	//MulticastApplyEffectCue(HandleIn, CueParams);
 
 //	if (EffectIn.IsValid() && EffectIn.Context.TargetComp.IsValid())
@@ -132,7 +134,8 @@ void UGAAbilitiesComponent::OnAttributeModified(const FGAEffectMod& InMod,
 {
 
 }
-void UGAAbilitiesComponent::ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty)
+void UGAAbilitiesComponent::ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty
+	,FAFFunctionModifier Modifier)
 {
 	/*
 	this patth will give effects chance to do any replicated events, like applying cues.
@@ -148,9 +151,8 @@ void UGAAbilitiesComponent::ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectPro
 	
 	Effect.OnExecuted();
 	MulticastExecuteEffectCue(HandleIn);
-	HandleIn.ExecuteEffect(HandleIn, Mod, HandleIn.GetContextRef(), InProperty);
+	InProperty.Execution->ExecuteEffect(HandleIn, Mod, HandleIn.GetContextRef(), InProperty, Modifier);
 
-	//GameEffectContainer.ExecuteEffect(HandleIn, HandleIn.GetEffectRef());
 }
 void UGAAbilitiesComponent::ExpireEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty)
 {

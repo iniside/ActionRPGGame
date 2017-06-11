@@ -15,7 +15,12 @@ class ABILITYFRAMEWORK_API UAFPeriodApplicationAdd : public UAFEffectCustomAppli
 	GENERATED_BODY()
 public:
 	bool ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
-		FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer) override;
+		FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer,
+		const FAFFunctionModifier& Modifier = FAFFunctionModifier()) override;
+	virtual void ExecuteEffect(const FGAEffectHandle& InHandle,
+		FGAEffectProperty& InProperty,
+		const FAFFunctionModifier& Modifier = FAFFunctionModifier())
+	{};
 
 	virtual bool ShowPeriod() override
 	{

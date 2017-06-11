@@ -53,8 +53,7 @@ public class ActionRPGGame : ModuleRules
                 "ActorSequence",
                 "RHI",
                 "RenderCore",
-                "ShaderCore",
-                "DistanceAnimation"
+                "ShaderCore"
                 });
         PrivateDependencyModuleNames.AddRange(
         new string[]
@@ -64,7 +63,7 @@ public class ActionRPGGame : ModuleRules
         );
         if (Target.Type == TargetRules.TargetType.Editor)
         {
-            PublicDependencyModuleNames.AddRange(new string[] { "UnrealEd", "PropertyEditor", "DistanceAnimationEditor" });
+            PublicDependencyModuleNames.AddRange(new string[] { "UnrealEd", "PropertyEditor" });
         }
     }
 

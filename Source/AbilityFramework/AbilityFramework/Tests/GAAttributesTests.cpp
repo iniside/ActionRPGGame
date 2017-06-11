@@ -520,7 +520,8 @@ public:
 
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 		TestEqual("Source Health Pre: ", PreVal, 100.0f);
-		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+		FAFFunctionModifier FuncMod;
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 
 		float PostVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 		TestEqual("Source Health Post: ", PostVal, 90.0f);
@@ -560,8 +561,8 @@ public:
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 		TestEqual("Source Health Pre: ", PreVal, 100.0f);
-		
-		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+		FAFFunctionModifier FuncMod;
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 		
 		TickWorld(SMALL_NUMBER);
 		++NumApplications;
@@ -607,8 +608,8 @@ public:
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 		TestEqual("Source Health Pre: ", PreVal, 100.0f);
-
-		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+		FAFFunctionModifier FuncMod;
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 
 		TickWorld(SMALL_NUMBER);
 		//++NumApplications;
@@ -656,8 +657,8 @@ public:
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Energy"));
 		TestEqual("Source Health Pre: ", PreVal, 100.0f);
-
-		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+		FAFFunctionModifier FuncMod;
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 
 		TickWorld(SMALL_NUMBER);
 		//++NumApplications;
@@ -679,7 +680,7 @@ public:
 					UAFAttributeDurationOverride::StaticClass(),
 					UGAGameEffectSpec::StaticClass()
 				);
-				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
+				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor, FuncMod);
 				float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Energy"));
 				TestEqual("Source Health Post2: ", PostVal2, 130.0f);
 			}
@@ -720,8 +721,8 @@ public:
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 		TestEqual("Source Health Pre: ", PreVal, 100.0f);
-
-		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+		FAFFunctionModifier FuncMod;
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 
 		TickWorld(SMALL_NUMBER);
 		//++NumApplications;
@@ -743,7 +744,7 @@ public:
 					UAFAttributeDurationOverride::StaticClass(),
 					UGAGameEffectSpec::StaticClass()
 				);
-				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
+				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor, FuncMod);
 				float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 				TestEqual("Source Health Post2: ", PostVal2, 150.0f);
 			}
@@ -784,8 +785,8 @@ public:
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 		TestEqual("Source Health Pre: ", PreVal, 100.0f);
-
-		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+		FAFFunctionModifier FuncMod;
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 
 		TickWorld(SMALL_NUMBER);
 		//++NumApplications;
@@ -807,7 +808,7 @@ public:
 					UAFAttributeDurationOverride::StaticClass(),
 					UGAGameEffectSpec::StaticClass()
 				);
-				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
+				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor, FuncMod);
 				float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 				TestEqual("Source Health Post2: ", PostVal2, 150.0f);
 			}
@@ -848,8 +849,8 @@ public:
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
 		TestEqual("Source Stamina Pre: ", PreVal, 100.0f);
-
-		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+		FAFFunctionModifier FuncMod;
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 
 		TickWorld(SMALL_NUMBER);
 		//++NumApplications;
@@ -871,7 +872,7 @@ public:
 					UAFAtributeDurationAdd::StaticClass(),
 					UGAGameEffectSpec::StaticClass()
 				);
-				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
+				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor, FuncMod);
 				float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
 				TestEqual("Source Stamina Post2: ", PostVal2, 180.0f);
 			}
@@ -913,8 +914,8 @@ public:
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
 		TestEqual("Source Stamina Pre: ", PreVal, 100.0f);
-
-		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+		FAFFunctionModifier FuncMod;
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 
 		TickWorld(SMALL_NUMBER);
 		//++NumApplications;
@@ -930,7 +931,7 @@ public:
 			TickWorld(PeriodSecs);
 			if (i == 5)
 			{
-				UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+				UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 				float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
 				TestEqual("Source Stamina Post2: ", PostVal2, 200.0f);
 			}
@@ -973,8 +974,8 @@ public:
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
 		TestEqual("Source Stamina Pre: ", PreVal, 100.0f);
-
-		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+		FAFFunctionModifier FuncMod;
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 
 		TickWorld(SMALL_NUMBER);
 		//++NumApplications;
@@ -990,7 +991,7 @@ public:
 			TickWorld(PeriodSecs);
 			if (i == 5)
 			{
-				UGABlueprintLibrary::ApplyGameEffectToActor(Effect, TargetOne, SourceActor, SourceActor);
+				UGABlueprintLibrary::ApplyGameEffectToActor(Effect, TargetOne, SourceActor, SourceActor, FuncMod);
 				float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
 				TestEqual("Source Stamina Post2: ", PostVal2, 150.0f);
 			}
@@ -1036,8 +1037,8 @@ public:
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
 		TestEqual("Source Stamina Pre: ", PreVal, 100.0f);
-
-		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+		FAFFunctionModifier FuncMod;
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 
 		TickWorld(SMALL_NUMBER);
 		//++NumApplications;
@@ -1056,7 +1057,7 @@ public:
 			//	FGAEffectProperty EffectWeaker = CreateEffectDurationSpec(OwnedTags, 30,
 			//		EGAAttributeMod::Add, TEXT("Stamina"), EGAEffectStacking::Override,
 			//		AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass());
-			//	UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
+			//	UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor, FuncMod);
 			//	float PostVal2 = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
 			//	TestEqual("Source Stamina Post2: ", PostVal2, 180.0f);
 			//}
@@ -1100,8 +1101,8 @@ public:
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 		TestEqual("Source Health Pre: ", PreVal, 100.0f);
-
-		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+		FAFFunctionModifier FuncMod;
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 
 		TickWorld(SMALL_NUMBER);
 		//++NumApplications;
@@ -1123,7 +1124,7 @@ public:
 					EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Override,
 					AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass(),
 					UAFPeriodApplicationOverride::StaticClass());
-				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
+				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor, FuncMod);
 				//TestEqual("Source Health Post2: ", PostVal2, 150.0f);
 			}
 
@@ -1161,8 +1162,8 @@ public:
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 		TestEqual("Source Health Pre: ", PreVal, 100.0f);
-
-		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+		FAFFunctionModifier FuncMod;
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 
 		TickWorld(SMALL_NUMBER);
 		//++NumApplications;
@@ -1184,7 +1185,7 @@ public:
 					EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Override,
 					AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass(),
 					UAFPeriodApplicationOverride::StaticClass());
-				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
+				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor, FuncMod);
 				//TestEqual("Source Health Post2: ", PostVal2, 150.0f);
 			}
 
@@ -1222,8 +1223,8 @@ public:
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 		TestEqual("Source Health Pre: ", PreVal, 100.0f);
-
-		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+		FAFFunctionModifier FuncMod;
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 
 		TickWorld(SMALL_NUMBER);
 		//++NumApplications;
@@ -1245,7 +1246,7 @@ public:
 					EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Add,
 					AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass(),
 					UAFPeriodApplicationAdd::StaticClass());
-				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
+				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor, FuncMod);
 				//TestEqual("Source Health Post2: ", PostVal2, 150.0f);
 			}
 
@@ -1285,8 +1286,8 @@ public:
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 		TestEqual("Source Health Pre: ", PreVal, 100.0f);
-
-		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+		FAFFunctionModifier FuncMod;
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 
 		TickWorld(SMALL_NUMBER);
 		//++NumApplications;
@@ -1308,7 +1309,7 @@ public:
 					EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Add,
 					AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass(),
 					UAFPeriodApplicationAdd::StaticClass());*/
-				UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+				UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 				//TestEqual("Source Health Post2: ", PostVal2, 150.0f);
 			}
 
@@ -1348,8 +1349,8 @@ public:
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 		TestEqual("Source Health Pre: ", PreVal, 100.0f);
-
-		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+		FAFFunctionModifier FuncMod;
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 
 		TickWorld(SMALL_NUMBER);
 		//++NumApplications;
@@ -1372,7 +1373,7 @@ public:
 				EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Add,
 				AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass(),
 				UAFPeriodApplicationAdd::StaticClass());*/
-				UGABlueprintLibrary::ApplyGameEffectToActor(Effect, TargetOne, SourceActor, SourceActor);
+				UGABlueprintLibrary::ApplyGameEffectToActor(Effect, TargetOne, SourceActor, SourceActor, FuncMod);
 				//TestEqual("Source Health Post2: ", PostVal2, 150.0f);
 			}
 			UE_LOG(AbilityFramework, Log, TEXT("Val: %d"), i * 2);
@@ -1413,8 +1414,8 @@ public:
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 		TestEqual("Source Health Pre: ", PreVal, 100.0f);
-
-		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+		FAFFunctionModifier FuncMod;
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 
 		TickWorld(SMALL_NUMBER);
 		//++NumApplications;
@@ -1436,7 +1437,7 @@ public:
 					EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Duration,
 					AttributeTags, ApplyTags, TagsIn, UGAffectSpecTestOne::StaticClass(),
 					UAFPeriodApplicationOverride::StaticClass());
-				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
+				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor, FuncMod);
 				//TestEqual("Source Health Post2: ", PostVal2, 150.0f);
 			}
 
@@ -1476,8 +1477,8 @@ public:
 		int32 NumApplications = 0;
 		float PreVal = DestComponent->GetAttributeValue(FGAAttribute("Health"));
 		TestEqual("Source Health Pre: ", PreVal, 100.0f);
-
-		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor);
+		FAFFunctionModifier FuncMod;
+		UGABlueprintLibrary::ApplyGameEffectToActor(Effect, DestActor, SourceActor, SourceActor, FuncMod);
 
 		TickWorld(SMALL_NUMBER);
 		//++NumApplications;
@@ -1499,7 +1500,7 @@ public:
 					EGAAttributeMod::Subtract, TEXT("Health"), EGAEffectStacking::Duration,
 					AttributeTags, ApplyTags, TagsIn, UGAGameEffectSpec::StaticClass(),
 					UAFPeriodApplicationExtend::StaticClass());
-				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor);
+				UGABlueprintLibrary::ApplyGameEffectToActor(EffectWeaker, DestActor, SourceActor, SourceActor, FuncMod);
 				//TestEqual("Source Health Post2: ", PostVal2, 150.0f);
 			}
 

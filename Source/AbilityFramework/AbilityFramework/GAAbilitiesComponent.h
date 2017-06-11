@@ -156,9 +156,6 @@ class ABILITYFRAMEWORK_API UGAAbilitiesComponent : public UGameplayTasksComponen
 		/* Attributes handling */
 public:
 	friend struct FAFMessageTick;
-	FAsyncUObjectRunnable* TestRunnable;
-	FRunnableThread* RouterThread;
-	UAsyncUObject* TEstAsyncUObject;
 	UPROPERTY(EditAnywhere, Category = "Test")
 		FGameplayTag TagTest;
 	/*
@@ -193,6 +190,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Replicated)
 		class UGAAttributesBase* DefaultAttributes;
 
+	//probabaly replace FGameplayTag with FObjectKey
 	TMap<FGameplayTag, class UGAAttributesBase*> AdditionalAttributes;
 
 	UPROPERTY(ReplicatedUsing = OnRep_AttributeChanged)
@@ -284,8 +282,12 @@ public:
 	//////////// EFFECTS HANDLING
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	void Update();
-	FGAEffectHandle ApplyEffectToSelf(FGAEffect* EffectIn, FGAEffectProperty& InProperty, FGAEffectContext& InContext);
-	FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn, FGAEffectProperty& InProperty, FGAEffectContext& InContext);
+	FGAEffectHandle ApplyEffectToSelf(FGAEffect* EffectIn, 
+		FGAEffectProperty& InProperty, FGAEffectContext& InContext
+		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
+	FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn, 
+		FGAEffectProperty& InProperty, FGAEffectContext& InContext
+		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
 	void ApplyEffectToTarget(TSubclassOf<UGAGameEffectSpec> InSpecClass, 
 		const FGAEffectContext& InContext, const FGAEffectHandle& InHandle);
@@ -294,7 +296,8 @@ public:
 		const FGAEffectContext& ContextIn);
 
 	/* Have to to copy handle around, because timer delegates do not support references. */
-	void ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty);
+	void ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty
+		,FAFFunctionModifier Modifier);
 	/* ExpireEffect is used to remove existing effect naturally when their time expires. */
 	void ExpireEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty);
 	/* RemoveEffect is used to remove effect by force. */

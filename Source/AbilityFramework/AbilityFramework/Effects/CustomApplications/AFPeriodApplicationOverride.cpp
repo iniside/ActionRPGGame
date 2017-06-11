@@ -9,7 +9,8 @@
 
 
 bool UAFPeriodApplicationOverride::ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
-	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer)
+	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer,
+	const FAFFunctionModifier& Modifier)
 {
 	//TSet<FGAEffectHandle> handles = InContainer->GetHandlesByClass(InProperty, EffectIn->Context);
 	//for (const FGAEffectHandle& handle : handles)
@@ -26,7 +27,7 @@ bool UAFPeriodApplicationOverride::ApplyEffect(const FGAEffectHandle& InHandle, 
 
 	FTimerManager& PeriodTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
 
-	FTimerDelegate PeriodDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExecuteEffect, InHandle, InProperty);
+	FTimerDelegate PeriodDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExecuteEffect, InHandle, InProperty, Modifier);
 	PeriodTimer.SetTimer(InHandle.GetEffectPtr()->PeriodTimerHandle, PeriodDuration,
 		InProperty.Period, true);
 

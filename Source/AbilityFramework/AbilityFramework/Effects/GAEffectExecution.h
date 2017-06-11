@@ -17,5 +17,6 @@ public:
 
 	virtual void PreModifyAttribute(const FGAEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAEffectContext& Context);
 	virtual void ExecuteEffect(const FGAEffectHandle& HandleIn, FGAEffectMod& ModIn, 
-		FGAEffectContext& Context, FGAEffectProperty& InProperty);
+		FGAEffectContext& Context, FGAEffectProperty& InProperty,
+		const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 };

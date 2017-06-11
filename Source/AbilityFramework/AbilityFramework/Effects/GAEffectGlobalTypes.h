@@ -5,6 +5,25 @@
 #include "../GAGlobalTypes.h"
 #include "GAEffectGlobalTypes.generated.h"
 
+
+USTRUCT(BlueprintType)
+struct FAFFunctionModifier
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY()
+		float Additive;
+	UPROPERTY()
+		float Subtract;
+	UPROPERTY()
+		float Multiply;
+	UPROPERTY()
+		float Divide;
+	
+	FAFFunctionModifier()
+	{};
+};
+
 /*
 Base concept behind those attributes calculations (not sure if these are any good solutions
 /performance firendly but:

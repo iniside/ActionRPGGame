@@ -272,8 +272,10 @@ bool UGAAbilityBase::ApplyActivationEffect()
 		FHitResult HitIn;
 		if (ActivationEffectHandle.IsValid())
 			ActivationEffectHandle.Reset();
+
+		FAFFunctionModifier Modifier;
 		ActivationEffectHandle = UGABlueprintLibrary::ApplyGameEffectToObject(ActivationEffect,
-			this, POwner, this);
+			this, POwner, this, Modifier);
 		
 		//if(!ActivationEffectHandle.GetEffectRef().OnEffectExpired.)
 			ActivationEffectHandle.GetEffectRef().OnEffectExpired.AddUObject(this, &UGAAbilityBase::NativeOnAbilityActivationFinish);

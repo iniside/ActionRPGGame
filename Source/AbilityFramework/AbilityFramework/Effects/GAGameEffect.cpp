@@ -245,7 +245,8 @@ void FGameCueContainer::AddCue(FGAEffectHandle EffectHandle, FGAEffectCueParams 
 	}*/
 }
 
-FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectProperty& InProperty)
+FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectProperty& InProperty
+	, const FAFFunctionModifier& Modifier)
 {
 	FGAEffectHandle Handle;
 	if (InProperty.ApplicationRequirement->CanApply(EffectIn, InProperty, this))
@@ -260,6 +261,7 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 			if (InProperty.Application->ApplyEffect(Handle,
 				EffectIn, InProperty, this))
 			{
+				InProperty.Application->ExecuteEffect(Handle, InProperty, Modifier);
 				//	UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::EffectApplied %s"), *HandleIn.GetEffectSpec()->GetName() );
 			}
 		}
@@ -270,6 +272,7 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 				if (InProperty.Application->ApplyEffect(InProperty.Handle,
 					EffectIn, InProperty, this))
 				{
+					InProperty.Application->ExecuteEffect(Handle, InProperty, Modifier);
 					//	UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::EffectApplied %s"), *HandleIn.GetEffectSpec()->GetName() );
 				}
 			}
@@ -281,6 +284,7 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 				if (InProperty.Application->ApplyEffect(Handle,
 					EffectIn, InProperty, this))
 				{
+					InProperty.Application->ExecuteEffect(Handle, InProperty, Modifier);
 					//	UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::EffectApplied %s"), *HandleIn.GetEffectSpec()->GetName() );
 				}
 			}

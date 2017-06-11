@@ -17,28 +17,28 @@ UGABlueprintLibrary::UGABlueprintLibrary(const FObjectInitializer& ObjectInitial
 
 FGAEffectHandle UGABlueprintLibrary::ApplyGameEffectToObject(UPARAM(ref) FGAEffectProperty& InEffect,
 	class UObject* Target, class APawn* Instigator,
-	UObject* Causer)
+	UObject* Causer, const FAFFunctionModifier& Modifier)
 {
-	return ApplyEffectToObject(InEffect.GetSpec(), InEffect, Target, Instigator, Causer);
+	return ApplyEffectToObject(InEffect.GetSpec(), InEffect, Target, Instigator, Causer, Modifier);
 }
 
 FGAEffectHandle UGABlueprintLibrary::ApplyGameEffectToActor(UPARAM(ref) FGAEffectProperty& InEffect,
 	class AActor* Target, class APawn* Instigator,
-	UObject* Causer)
+	UObject* Causer, const FAFFunctionModifier& Modifier)
 {
-	return ApplyEffectToActor(InEffect.GetSpec(), InEffect, Target, Instigator, Causer);
+	return ApplyEffectToActor(InEffect.GetSpec(), InEffect, Target, Instigator, Causer, Modifier);
 }
 
 FGAEffectHandle UGABlueprintLibrary::ApplyGameEffectToLocation(UPARAM(ref) FGAEffectProperty& InEffect,
 	const FHitResult& Target, class APawn* Instigator,
-	UObject* Causer)
+	UObject* Causer, const FAFFunctionModifier& Modifier)
 {
-	return ApplyEffectFromHit(InEffect.GetSpec(), InEffect, Target, Instigator, Causer);
+	return ApplyEffectFromHit(InEffect.GetSpec(), InEffect, Target, Instigator, Causer, Modifier);
 }
 
 FGAEffectHandle UGABlueprintLibrary::ApplyEffect(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
 	class UObject* Target, class APawn* Instigator,
-	UObject* Causer, const FHitResult& HitIn)
+	UObject* Causer, const FHitResult& HitIn, const FAFFunctionModifier& Modifier )
 {
 	if (!SpecIn)
 	{
@@ -92,30 +92,30 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(UGAGameEffectSpec* SpecIn, FGAE
 		effect->GameEffect = SpecIn;
 	}
 
-	return Context.InstigatorComp->ApplyEffectToTarget(effect, InEffect, Context);
+	return Context.InstigatorComp->ApplyEffectToTarget(effect, InEffect, Context, Modifier);
 }
 
 FGAEffectHandle UGABlueprintLibrary::ApplyEffectFromHit(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
 	const FHitResult& Target, class APawn* Instigator,
-	UObject* Causer)
+	UObject* Causer, const FAFFunctionModifier& Modifier)
 {
-	return ApplyEffect(SpecIn, InEffect, Target.GetActor(), Instigator, Causer, Target);
+	return ApplyEffect(SpecIn, InEffect, Target.GetActor(), Instigator, Causer, Target, Modifier);
 }
 
 FGAEffectHandle UGABlueprintLibrary::ApplyEffectToActor(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
 	class AActor* Target, class APawn* Instigator,
-	UObject* Causer)
+	UObject* Causer, const FAFFunctionModifier& Modifier)
 {
 	FHitResult Hit(ForceInit);
-	return ApplyEffect(SpecIn, InEffect, Target, Instigator, Causer, Hit);
+	return ApplyEffect(SpecIn, InEffect, Target, Instigator, Causer, Hit, Modifier);
 }
 
 FGAEffectHandle UGABlueprintLibrary::ApplyEffectToObject(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
 	class UObject* Target, class APawn* Instigator,
-	UObject* Causer)
+	UObject* Causer, const FAFFunctionModifier& Modifier)
 {
 	FHitResult Hit(ForceInit);
-	return ApplyEffect(SpecIn, InEffect, Target, Instigator, Causer, Hit);
+	return ApplyEffect(SpecIn, InEffect, Target, Instigator, Causer, Hit, Modifier);
 }
 FGAEffectHandle UGABlueprintLibrary::MakeEffect(UGAGameEffectSpec* SpecIn,
 	FGAEffectHandle HandleIn, class UObject* Target, class APawn* Instigator,

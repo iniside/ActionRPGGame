@@ -217,17 +217,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		TSubclassOf<class UGAAttributeExtension> Extension;
 };
-USTRUCT(BlueprintType)
-struct ABILITYFRAMEWORK_API FGAEffectMessageContext
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	FMessageAddress InstigatorAddress;
-	//Adress of  target.
-	FMessageAddress TargetAddress;
 
-	FMessageAddress CauserAddress;
-};
 
 USTRUCT(BlueprintType)
 struct ABILITYFRAMEWORK_API FGAEffectContext

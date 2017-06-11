@@ -2,7 +2,7 @@
 #include "../Effects/GAGameEffect.h"
 #include "../GAGlobalTypes.h"
 #include "../Attributes/GAAttributeBase.h"
-
+#include "GAEffectGlobalTypes.h"
 #include "GABlueprintLibrary.generated.h"
 
 UCLASS(BlueprintType, Blueprintable)
@@ -13,7 +13,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
 		static FGAEffectHandle ApplyGameEffectToObject(UPARAM(ref) FGAEffectProperty& InEffect,
 			class UObject* Target, class APawn* Instigator,
-			UObject* Causer);
+			UObject* Causer, const FAFFunctionModifier& Modifier);
 
 	/*
 		Makes outgoing effect spec and assign handle to it.
@@ -23,7 +23,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
 		static FGAEffectHandle ApplyGameEffectToActor(UPARAM(ref) FGAEffectProperty& InEffect,
 			class AActor* Target, class APawn* Instigator,
-			UObject* Causer);
+			UObject* Causer, const FAFFunctionModifier& Modifier);
 	/*
 		Makes outgoing effect spec and assign handle to it.
 		If valid handle is provided it will instead reuse existing effect spec from handle,
@@ -33,23 +33,23 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
 		static FGAEffectHandle ApplyGameEffectToLocation(UPARAM(ref) FGAEffectProperty& InEffect,
 			const FHitResult& Target, class APawn* Instigator,
-			UObject* Causer);
+			UObject* Causer, const FAFFunctionModifier& Modifier);
 
 	static FGAEffectHandle ApplyEffect(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
 		class UObject* Target, class APawn* Instigator,
-		UObject* Causer, const FHitResult& HitIn);
+		UObject* Causer, const FHitResult& HitIn, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
 	static FGAEffectHandle ApplyEffectFromHit(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
 		const FHitResult& Target, class APawn* Instigator,
-		UObject* Causer);
+		UObject* Causer, const FAFFunctionModifier& Modifier);
 	
 	static FGAEffectHandle ApplyEffectToActor(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
 		 class AActor* Target, class APawn* Instigator,
-		UObject* Causer);
+		UObject* Causer, const FAFFunctionModifier& Modifier);
 
 	static FGAEffectHandle ApplyEffectToObject(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
 		class UObject* Target, class APawn* Instigator,
-		UObject* Causer);
+		UObject* Causer, const FAFFunctionModifier& Modifier);
 	/*
 		Create Effect but does not apply it.
 	*/

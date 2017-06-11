@@ -7,8 +7,15 @@
 
 
 bool UAFEffectCustomApplication::ApplyEffect(const FGAEffectHandle& InHandle, FGAEffect* EffectIn,
-	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer)
+	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer,
+	const FAFFunctionModifier& Modifier)
 {
-	InHandle.GetContext().TargetComp->ExecuteEffect(InHandle, InProperty);
 	return true;
+}
+
+void UAFEffectCustomApplication::ExecuteEffect(const FGAEffectHandle& InHandle,
+	FGAEffectProperty& InProperty,
+	const FAFFunctionModifier& Modifier)
+{
+	InHandle.GetContext().TargetComp->ExecuteEffect(InHandle, InProperty, Modifier);
 }

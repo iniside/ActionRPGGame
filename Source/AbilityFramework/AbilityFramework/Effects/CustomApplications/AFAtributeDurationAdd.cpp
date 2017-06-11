@@ -9,7 +9,8 @@
 
 
 bool UAFAtributeDurationAdd::ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
-	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer)
+	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer,
+	const FAFFunctionModifier& Modifier)
 {
 	FTimerManager& DurationTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
 
@@ -18,6 +19,6 @@ bool UAFAtributeDurationAdd::ApplyEffect(const FGAEffectHandle& InHandle, struct
 		InProperty.Duration, false);
 
 	InContainer->AddEffect(InHandle);
-	EffectIn->Context.TargetComp->ExecuteEffect(InHandle, InProperty);
+	//EffectIn->Context.TargetComp->ExecuteEffect(InHandle, InProperty);
 	return true;
 }
