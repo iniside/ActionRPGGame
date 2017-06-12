@@ -34,6 +34,15 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGAGenericEffectDelegate, const FGA
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGAOnAttributeChanged2, float, NewValue);
 
+
+USTRUCT()
+struct FAFEventData
+{
+	GENERATED_USTRUCT_BODY()
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAFEventDelegate , FAFEventData, NewValue);
+
 USTRUCT()
 struct FGAModifiedAttributeData
 {
@@ -238,7 +247,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Effects")
 		TArray<TSubclassOf<UGAGameEffectSpec>> DefaultEffects;
 
-	TMap<FGameplayTag, FGAGenericDelegate> GenericTagEvents;
+	TMap<FGameplayTag, FAFEventDelegate> EffectEvents;
 
 	virtual bool GetShouldTick() const override;
 
@@ -376,10 +385,8 @@ public:
 	*/
 	void OnAttributeModified(const FGAEffectMod& InMod, const FGAEffectHandle& InHandle, UGAAttributesBase* InAttributeSet);
 
-	FGAGenericDelegate& GetTagEvent(FGameplayTag TagIn);
-	void NativeTriggerTagEvent(FGameplayTag TagIn);
-	UFUNCTION(BlueprintCallable, Category = "Game Abilities")
-		void BP_TriggerTagEvent(FGameplayTag TagIn);
+	FAFEventDelegate& GetTagEvent(FGameplayTag TagIn);
+	void NativeTriggerTagEvent(FGameplayTag TagIn, const FAFEventData& InEventData);
 	//Helper functions:
 public:
 	/*

@@ -373,10 +373,6 @@ public:
 	FGAEffectContext& GetContext();
 	FGAEffectContext& GetContext() const;
 
-	/* Executes effect trough provided execution class. */
-	void ExecuteEffect(const FGAEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAEffectContext& Context,
-		struct FGAEffectProperty& InProperty);
-
 	void AppendOwnedTags(const FGameplayTagContainer& TagsIn);
 	void AppendOwnedTags(const FGameplayTagContainer& TagsIn) const;
 	struct FGAEffectMod GetAttributeModifier() const;

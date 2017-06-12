@@ -204,6 +204,17 @@ public:
 		FGameplayTagContainer EffectTags;
 
 	/*
+		When effect is appied trigger events with these tags.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTagContainer AppliedEventTags;
+	/*
+		When effect is executed trigger events with these tags.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTagContainer ExecuteEventTags;
+
+	/*
 		Tags applied to attribute when effect is applying non-instant effect.
 		Owned tags of another effect are checked against these tags to calculate
 		modifier.
@@ -379,7 +390,7 @@ struct ABILITYFRAMEWORK_API FGAEffect : public TSharedFromThis<FGAEffect>
 {
 	/* Cached pointer to original effect spec. */
 	
-	class UGAEffectExecution* Execution;
+	TWeakObjectPtr<class UGAEffectExtension> Extension;
 	UWorld* TargetWorld;
 	/* 
 		Calculated mods ready to be applied. 

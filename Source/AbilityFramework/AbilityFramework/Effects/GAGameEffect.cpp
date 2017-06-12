@@ -81,10 +81,13 @@ float FGAMagnitude::GetFloatValue(const FGAEffectContext& Context)
 FGAEffect::FGAEffect(class UGAGameEffectSpec* GameEffectIn,
 	const FGAEffectContext& ContextIn)
 	: GameEffect(GameEffectIn),
-	Context(ContextIn),
-	Execution(GameEffectIn->ExecutionType.GetDefaultObject())
+	Context(ContextIn)
 {
 	OwnedTags = GameEffectIn->OwnedTags;
+	if (GameEffect->Extension)
+	{
+		Extension = NewObject<UGAEffectExtension>(Context.Target.Get(), GameEffect->Extension);
+	}
 	if (ContextIn.TargetComp.IsValid())
 	{
 		TargetWorld = ContextIn.TargetComp->GetWorld();
@@ -115,6 +118,10 @@ void FGAEffect::OnApplied()
 {
 	IsActive = true;
 	AppliedTime = TargetWorld->TimeSeconds;
+	if (Extension.IsValid())
+	{
+		Extension->NativeOnEffectApplied();
+	}
 }
 void FGAEffect::OnDuration()
 {
@@ -123,16 +130,28 @@ void FGAEffect::OnDuration()
 void FGAEffect::OnExecuted()
 {
 	OnEffectPeriod.Broadcast(Handle);
+	if (Extension.IsValid())
+	{
+		Extension->NativeOnEffectExecuted();
+	}
 }
 void FGAEffect::OnExpired()
 {
 	OnEffectExpired.Broadcast(Handle);
 	IsActive = false;
+	if (Extension.IsValid())
+	{
+		Extension->NativeOnEffectExpired();
+	}
 }
 void FGAEffect::OnRemoved()
 {
 	OnEffectRemoved.Broadcast(Handle);
 	IsActive = false;
+	if (Extension.IsValid())
+	{
+		Extension->NativeOnEffectRemoved();
+	}
 }
 void FGAEffect::DurationExpired()
 {
@@ -583,18 +602,7 @@ void FGAEffectContainer::RemoveEffect(const FGAEffectProperty& HandleIn, int32 N
 
 void FGAEffectContainer::ApplyEffectInstance(class UGAEffectExtension* EffectIn)
 {
-	//do something ?
-	switch (EffectIn->EffectAggregation)
-	{
-	case EGAEffectAggregation::AggregateByInstigator:
-	{
-		break;
-	}
-	case EGAEffectAggregation::AggregateByTarget:
-	{
-		break;
-	}
-	}
+
 }
 
 

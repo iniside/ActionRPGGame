@@ -21,60 +21,36 @@ class ABILITYFRAMEWORK_API UGAEffectExtension : public UObject
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, Category = "Effect Info")
-		float Duration;
-
-	UPROPERTY(EditAnywhere, Category = "Effect Info")
-		float Period;
-
-	UPROPERTY(EditAnywhere, Category = "Effect Info")
-		EGAEffectAggregation EffectAggregation;
-
 	UPROPERTY(BlueprintReadOnly, Category = "Context")
 		FGAEffectContext Context;
 
-	/*
-		Effects owned by this instance, they will be removed when this instance is removed.
-	*/
-	UPROPERTY()
-		TArray<FGAEffectHandle> OwnedEffects;
-protected:
-	FTimerHandle DurationTimerHandle;
-	FTimerHandle PeriodTimerHandle;
 public:
 	UGAEffectExtension(const FObjectInitializer& ObjectInitializer);
 	void SetParameters(const FGAEffectContext& ContextIn);
 	void BeginEffect();
 
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes | Effects")
-	FGAEffectHandle ApplyEffect(TSubclassOf<class UGAGameEffectSpec> SpecIn);
 	/*
 		This event is always executed once upon application.
 	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
-		void OnEffectInstanceApplied();
+		void OnEffectApplied();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
-		void OnEffectInstancePeriod();
-
-	void NativeOnEffectApplied();
-	void NativeOnEffectPeriod();
-	void NativeOnEffectExpired();
-	void NativeOnEffectRemoved();
-
-	/*
-		Event executed when this effect is removed by force.
-	*/
-	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
-		void OnEffectInstanceRemoved();
+		void OnEffectExecuted();
 	/*
 		Event executed when effet naturally expires.
 	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
-		void OnEffectInstanceExpired();
+		void OnEffectExpired();
+	/*
+		Event executed when this effect is removed by force.
+	*/
+	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
+		void OnEffectRemoved();
 
+	void NativeOnEffectApplied();
+	void NativeOnEffectExecuted();
+	void NativeOnEffectExpired();
+	void NativeOnEffectRemoved();
 
 	virtual UWorld* GetWorld() const override;
-protected:
-	void InternallSelfRemoveEffect();
-	void InternalEffectEnded();
 };

@@ -14,76 +14,23 @@ void UGAEffectExtension::SetParameters(const FGAEffectContext& ContextIn)
 }
 void UGAEffectExtension::BeginEffect()
 {
-	UWorld* World = GetWorld();
-	//if there is no valid world, don't do anything.
-	if (World)
-	{
-		NativeOnEffectApplied();
-		if (Duration > 0)
-		{
-			FTimerManager& TimerManager = World->GetTimerManager();
-			FTimerDelegate Del = FTimerDelegate::CreateUObject(this, &UGAEffectExtension::InternallSelfRemoveEffect);
-
-			TimerManager.SetTimer(DurationTimerHandle, Del, Duration, false);
-		}
-		if (Period > 0)
-		{
-			FTimerManager& TimerManager = World->GetTimerManager();
-			FTimerDelegate Del = FTimerDelegate::CreateUObject(this, &UGAEffectExtension::NativeOnEffectPeriod);
-
-			TimerManager.SetTimer(PeriodTimerHandle, Del, Period, true);
-		}
-	}
 }
 
-FGAEffectHandle UGAEffectExtension::ApplyEffect(TSubclassOf<class UGAGameEffectSpec> SpecIn)
-{
-	FGAEffectHandle handle = Context.InstigatorComp->MakeGameEffect(SpecIn, Context);
-
-	//Context.InstigatorComp->ApplyEffectToTarget(handle.GetEffect(), handle);
-	return handle;
-}
 void UGAEffectExtension::NativeOnEffectApplied()
 {
-	OnEffectInstanceApplied();
+	OnEffectApplied();
 }
-void UGAEffectExtension::NativeOnEffectPeriod()
+void UGAEffectExtension::NativeOnEffectExecuted()
 {
-	OnEffectInstancePeriod();
+	OnEffectExecuted();
 }
 void UGAEffectExtension::NativeOnEffectExpired()
 {
-	InternalEffectEnded();
-	OnEffectInstanceExpired();
+	OnEffectExpired();
 }
 void UGAEffectExtension::NativeOnEffectRemoved()
 {
-	InternalEffectEnded();
-	OnEffectInstanceRemoved();
-}
-void UGAEffectExtension::InternallSelfRemoveEffect()
-{
-	UWorld* World = GetWorld();
-	if (World)
-	{
-		FTimerManager& TimerManager = World->GetTimerManager();
-		TimerManager.ClearTimer(DurationTimerHandle);
-		TimerManager.ClearTimer(PeriodTimerHandle);
-	}
-	NativeOnEffectExpired();
-}
-void UGAEffectExtension::InternalEffectEnded()
-{
-	UGAAbilitiesComponent* OwningComp = Context.TargetComp.Get();
-	if (!OwningComp)
-		return;
-
-	//for (FGAEffectHandle& Handle : OwnedEffects)
-	//{
-	//	OwningComp->RemoveEffect(Handle);
-	//}
-
-	MarkPendingKill();
+	OnEffectRemoved();
 }
 
 UWorld* UGAEffectExtension::GetWorld() const

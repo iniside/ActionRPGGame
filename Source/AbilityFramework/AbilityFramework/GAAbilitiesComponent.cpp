@@ -282,25 +282,21 @@ void UGAAbilitiesComponent::GetSubobjectsWithStableNamesForNetworking(TArray<UOb
 }
 
 
-FGAGenericDelegate& UGAAbilitiesComponent::GetTagEvent(FGameplayTag TagIn)
+FAFEventDelegate& UGAAbilitiesComponent::GetTagEvent(FGameplayTag TagIn)
 {
-	FGAGenericDelegate& Delegate = GenericTagEvents.FindChecked(TagIn);
+	FAFEventDelegate& Delegate = EffectEvents.FindChecked(TagIn);
 	return Delegate;
 }
-void UGAAbilitiesComponent::NativeTriggerTagEvent(FGameplayTag TagIn)
+void UGAAbilitiesComponent::NativeTriggerTagEvent(FGameplayTag TagIn, const FAFEventData& InEventData)
 {
-	FGAGenericDelegate* Delegate = GenericTagEvents.Find(TagIn);
+	FAFEventDelegate* Delegate = EffectEvents.Find(TagIn);
 	if (Delegate)
 	{
 		if (Delegate->IsBound())
 		{
-			Delegate->Broadcast();
+			Delegate->Broadcast(InEventData);
 		}
 	}
-}
-void UGAAbilitiesComponent::BP_TriggerTagEvent(FGameplayTag TagIn)
-{
-	NativeTriggerTagEvent(TagIn);
 }
 void UGAAbilitiesComponent::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {

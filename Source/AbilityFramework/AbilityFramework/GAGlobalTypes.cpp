@@ -75,11 +75,7 @@ void FGAEffectHandle::AppendOwnedTags(const FGameplayTagContainer& TagsIn) const
 {
 	GetEffectPtr()->OwnedTags.AppendTags(TagsIn);
 }
-void FGAEffectHandle::ExecuteEffect(const FGAEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAEffectContext& Context,
-	FGAEffectProperty& InProperty)
-{
-	EffectPtr->Execution->ExecuteEffect(HandleIn, ModIn, Context, InProperty);
-}
+
 bool FGAEffectHandle::HasAllTags(const FGameplayTagContainer& TagsIn) const
 {
 	return EffectPtr->OwnedTags.HasAll(TagsIn);

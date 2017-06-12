@@ -69,4 +69,7 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Game Effect System")
 	static UGAAbilitiesComponent* GetInstigatorComponent(const FGAEffectHandle& InHandle);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
+		static void BroadcastEffectEvent(UObject* Target, FGameplayTag EventTag);
 };

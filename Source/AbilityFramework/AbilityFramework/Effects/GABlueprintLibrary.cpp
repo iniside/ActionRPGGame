@@ -212,3 +212,17 @@ UGAAbilitiesComponent* UGABlueprintLibrary::GetInstigatorComponent(const FGAEffe
 {
 	return InHandle.GetContextRef().TargetComp.Get();
 }
+
+void UGABlueprintLibrary::BroadcastEffectEvent(UObject* Target, FGameplayTag EventTag)
+{
+	IIGAAbilities* targetAttr = Cast<IIGAAbilities>(Target);
+	if (!targetAttr)
+		return;
+
+	UGAAbilitiesComponent* TargetComp = targetAttr->GetAbilityComp();
+	if (!TargetComp)
+		return;
+
+	FAFEventData EventData;
+	TargetComp->NativeTriggerTagEvent(EventTag, EventData);
+}
