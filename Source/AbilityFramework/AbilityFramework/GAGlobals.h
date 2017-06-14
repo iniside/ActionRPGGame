@@ -30,7 +30,7 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct ABILITYFRAMEWORK_API FGASAbilityNotifyData
+struct ABILITYFRAMEWORK_API FAFAbilityNotifyData
 {
 	GENERATED_USTRUCT_BODY()
 public:

@@ -355,7 +355,7 @@ public:
 
 		cdo->RequiredTags = TagsIn.RequiredTags;
 		cdo->DenyTags = TagsIn.DenyTags;
-		cdo->OngoingRequiredTags = TagsIn.OngoingRequiredTags;
+		cdo->ExecutionRequiredTags = TagsIn.OngoingRequiredTags;
 
 		FGAAttributeModifier AttributeModifier;
 		AttributeModifier.Attribute = FGAAttribute(Attribute);
@@ -403,7 +403,7 @@ public:
 
 		cdo->RequiredTags = TagsIn.RequiredTags;
 		cdo->DenyTags = TagsIn.DenyTags;
-		cdo->OngoingRequiredTags = TagsIn.OngoingRequiredTags;
+		cdo->ExecutionRequiredTags = TagsIn.OngoingRequiredTags;
 		cdo->bExecuteOnApplication = InExecuteOnApplication;
 		FGAAttributeModifier AttributeModifier;
 		AttributeModifier.Attribute = FGAAttribute(Attribute);
@@ -453,7 +453,7 @@ public:
 
 		cdo->RequiredTags = TagsIn.RequiredTags;
 		cdo->DenyTags = TagsIn.DenyTags;
-		cdo->OngoingRequiredTags = TagsIn.OngoingRequiredTags;
+		cdo->ExecutionRequiredTags = TagsIn.OngoingRequiredTags;
 
 		FGAAttributeModifier AttributeModifier;
 		AttributeModifier.Attribute = FGAAttribute(Attribute);

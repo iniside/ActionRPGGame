@@ -18,7 +18,7 @@ class ABILITYFRAMEWORK_API UGAAbilityTask_Repeat : public UGAAbilityTask
 	UPROPERTY(BlueprintAssignable)
 		FGASOnTaskRepeated OnTaskRepeated;
 	
-	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "Game Abilities | Tasks")
+	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
 		static UGAAbilityTask_Repeat* CreateRepeatTask(UObject* WorldContextObject,
 			FName InTaskName);
 };

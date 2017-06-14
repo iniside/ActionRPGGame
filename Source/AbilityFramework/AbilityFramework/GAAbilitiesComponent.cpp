@@ -39,6 +39,17 @@ UGAAbilitiesComponent::UGAAbilitiesComponent(const FObjectInitializer& ObjectIni
 	PrimaryComponentTick.TickGroup = ETickingGroup::TG_DuringPhysics;
 
 }
+
+void UGAAbilitiesComponent::BroadcastAttributeChange(const FGAAttribute& InAttribute,
+	const FAFAttributeChangedData& InData)
+{
+	FAFAttributeChangedDelegate* Delegate = AttributeChanged.Find(InAttribute);
+	if (Delegate)
+	{
+		Delegate->Broadcast(InData);
+	}
+}
+
 bool UGAAbilitiesComponent::GetShouldTick() const
 {
 	return true;
@@ -50,7 +61,6 @@ void UGAAbilitiesComponent::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffect
 	OnAttributePreModifed.Broadcast(ModIn, 0);
 	float NewValue = DefaultAttributes->ModifyAttribute(ModIn, HandleIn, InProperty);
 	OnAttributeModifed.Broadcast(ModIn, NewValue);
-	OnAttributeChanged.Broadcast(NewValue);
 };
 
 void UGAAbilitiesComponent::GetAttributeStructTest(FGAAttribute Name)
@@ -81,18 +91,21 @@ void UGAAbilitiesComponent::BeginPlay()
 void UGAAbilitiesComponent::DestroyComponent(bool bPromoteChildren)
 {
 	Super::DestroyComponent(bPromoteChildren);
-	//PrimaryComponentTick.SetTickFunctionEnable(false);
-	//PrimaryComponentTick.bCanEverTick = false;
-	//PrimaryComponentTick.bRunOnAnyThread = true;
-	//PrimaryComponentTick.bAllowTickOnDedicatedServer = false;
-	
-	//PrimaryComponentTick.UnRegisterTickFunction();
 }
 
 FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToSelf(FGAEffect* EffectIn
 	,FGAEffectProperty& InProperty, FGAEffectContext& InContext
 	, const FAFFunctionModifier& Modifier)
 {
+	const FGameplayTagContainer& AppliedEventTags = InProperty.GetSpec()->AppliedEventTags;
+	FAFEventData Data;
+	for (const FGameplayTag& Tag : AppliedEventTags)
+	{
+		if (FAFEventDelegate* Event = EffectEvents.Find(Tag))
+		{
+			Event->Broadcast(Data);
+		}
+	}
 	//OnEffectApplyToSelf.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
 	return GameEffectContainer.ApplyEffect(EffectIn, InProperty, Modifier);
 	//FGAEffectCueParams CueParams;
@@ -116,19 +129,6 @@ FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 //	}
 }
 
-FGAEffectHandle UGAAbilitiesComponent::MakeGameEffect(TSubclassOf<class UGAGameEffectSpec> SpecIn,
-	const FGAEffectContext& ContextIn)
-{
-	FGAEffect* effect = new FGAEffect(SpecIn.GetDefaultObject(), ContextIn);
-	if (effect)
-	{
-		effect->OwnedTags.AppendTags(effect->GameEffect->OwnedTags);
-		effect->ApplyTags.AppendTags(effect->GameEffect->ApplyTags);
-	}
-	FGAEffectHandle handle = FGAEffectHandle::GenerateHandle(effect);
-	effect->Handle = handle;
-	return handle;
-}
 void UGAAbilitiesComponent::OnAttributeModified(const FGAEffectMod& InMod, 
 	const FGAEffectHandle& InHandle, UGAAttributesBase* InAttributeSet)
 {
@@ -142,6 +142,27 @@ void UGAAbilitiesComponent::ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectPro
 	WE do not make any replication at the ApplyEffect because some effect might want to apply cues
 	on periods on expiration etc, and all those will go trouch ExecuteEffect path.
 	*/
+	const FGameplayTagContainer& RequiredTags = InProperty.GetSpec()->RequiredTags;
+	if (RequiredTags.Num() > 0)
+	{
+		if (!HasAll(RequiredTags))
+		{
+			UE_LOG(GameAttributesEffects, Log, TEXT("UGAAbilitiesComponent:: Effect %s not executed, require tags: %s"), *HandleIn.GetEffectSpec()->GetName(), *RequiredTags.ToString());
+			return;
+		}
+	}
+
+	//apply execution events:
+	const FGameplayTagContainer& ExecuteEventTags = InProperty.GetSpec()->ExecuteEventTags;
+	FAFEventData Data;
+	for (const FGameplayTag& Tag : ExecuteEventTags)
+	{
+		if (FAFEventDelegate* Event = EffectEvents.Find(Tag))
+		{
+			Event->Broadcast(Data);
+		}
+	}
+
 	OnEffectExecuted.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
 	UE_LOG(GameAttributesEffects, Log, TEXT("UGAAbilitiesComponent:: Effect %s executed"), *HandleIn.GetEffectSpec()->GetName());
 	FGAEffect& Effect = HandleIn.GetEffectRef();
@@ -152,6 +173,10 @@ void UGAAbilitiesComponent::ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectPro
 	Effect.OnExecuted();
 	MulticastExecuteEffectCue(HandleIn);
 	InProperty.Execution->ExecuteEffect(HandleIn, Mod, HandleIn.GetContextRef(), InProperty, Modifier);
+	PostExecuteEffect();
+}
+void UGAAbilitiesComponent::PostExecuteEffect()
+{
 
 }
 void UGAAbilitiesComponent::ExpireEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty)
@@ -317,7 +342,25 @@ bool UGAAbilitiesComponent::HasAnyMatchingGameplayTags(const FGameplayTagContain
 	return AppliedTags.HasAny(TagContainer);
 }
 
+bool UGAAbilitiesComponent::DenyEffectApplication(const FGameplayTagContainer& InTags)
+{
+	bool bDenyApplication = false;
+	if (InTags.Num() > 0)
+	{
+		bDenyApplication = HasAll(InTags);
+	}
+	return bDenyApplication;
+}
 
+bool UGAAbilitiesComponent::HaveEffectRquiredTags(const FGameplayTagContainer& InTags)
+{
+	bool bAllowApplication = true;
+	if (InTags.Num() > 0)
+	{
+		bAllowApplication = HasAll(InTags);
+	}
+	return bAllowApplication;
+}
 void FGASAbilityItem::PreReplicatedRemove(const struct FGASAbilityContainer& InArraySerializer)
 {
 
@@ -586,6 +629,7 @@ void UGAAbilitiesComponent::OnRep_PlayMontage()
 		UE_LOG(AbilityFramework, Log, TEXT("OnRep_PlayMontage MontageName: %s SectionNAme: %s ForceRep: %s"), *RepMontage.CurrentMontage->GetName(), *RepMontage.SectionName.ToString(), *FString::FormatAsNumber(RepMontage.ForceRep)); 
 	}
 }
+
 void UGAAbilitiesComponent::PlayMontage(UAnimMontage* MontageIn, FName SectionName, float Speed)
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
@@ -602,9 +646,14 @@ void UGAAbilitiesComponent::PlayMontage(UAnimMontage* MontageIn, FName SectionNa
 		{
 			AnimInst->Montage_JumpToSection(SectionName, MontageIn);
 		}
+
 		UE_LOG(AbilityFramework, Log, TEXT("PlayMontage MontageName: %s SectionNAme: %s Where: %s"), *MontageIn->GetName(), *SectionName.ToString(), (GetOwnerRole() < ENetRole::ROLE_Authority ? TEXT("Client") : TEXT("Server")));
 		RepMontage.SectionName = SectionName;
 		RepMontage.CurrentMontage = MontageIn;
 		RepMontage.ForceRep++;
 	}
+}
+void UGAAbilitiesComponent::MulticastPlayMontage_Implementation(UAnimMontage* MontageIn, FName SectionName, float Speed = 1)
+{
+
 }

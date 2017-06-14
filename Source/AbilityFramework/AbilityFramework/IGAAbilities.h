@@ -21,13 +21,13 @@ class IIGAAbilities
 public:
 	virtual FVector GetSocketLocation(FName SocketNameIn){ return FVector::ZeroVector; };
 
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
 		virtual class UGAAttributesBase* GetAttributes() = 0;
 
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
 		virtual class UGAAbilitiesComponent* GetAbilityComp() { return nullptr; };
 
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
 		virtual float GetAttributeValue(FGAAttribute AttributeIn) const { return 0; };
 
 	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn,

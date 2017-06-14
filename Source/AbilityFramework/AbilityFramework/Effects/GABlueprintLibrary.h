@@ -10,7 +10,7 @@ class ABILITYFRAMEWORK_API UGABlueprintLibrary : public UBlueprintFunctionLibrar
 {
 	GENERATED_UCLASS_BODY()
 public:
-	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Effects")
 		static FGAEffectHandle ApplyGameEffectToObject(UPARAM(ref) FGAEffectProperty& InEffect,
 			class UObject* Target, class APawn* Instigator,
 			UObject* Causer, const FAFFunctionModifier& Modifier);
@@ -20,7 +20,7 @@ public:
 		If valid handle is provided it will instead reuse existing effect spec from handle,
 		and just change context of effect.
 	*/
-	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Effects")
 		static FGAEffectHandle ApplyGameEffectToActor(UPARAM(ref) FGAEffectProperty& InEffect,
 			class AActor* Target, class APawn* Instigator,
 			UObject* Causer, const FAFFunctionModifier& Modifier);
@@ -30,7 +30,7 @@ public:
 		and just change context of effect.
 	*/
 	
-	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Effects")
 		static FGAEffectHandle ApplyGameEffectToLocation(UPARAM(ref) FGAEffectProperty& InEffect,
 			const FHitResult& Target, class APawn* Instigator,
 			UObject* Causer, const FAFFunctionModifier& Modifier);
@@ -61,15 +61,15 @@ public:
 	static FGAEffectContext MakeContext(class UObject* Target, class APawn* Instigator, UObject* Causer, const FHitResult& HitIn);
 	static void AddTagsToEffect(FGAEffect* EffectIn);
 
-	UFUNCTION(BlueprintPure, Category = "Game Effect System")
+	UFUNCTION(BlueprintPure, Category = "AbilityFramework|Effects")
 	static FGAEffectContext& GetContext(const FGAEffectHandle& InHandle);
 
-	UFUNCTION(BlueprintPure, Category = "Game Effect System")
+	UFUNCTION(BlueprintPure, Category = "AbilityFramework|Effects")
 	static UGAAbilitiesComponent* GetTargetComponent(const FGAEffectHandle& InHandle);
 
-	UFUNCTION(BlueprintPure, Category = "Game Effect System")
+	UFUNCTION(BlueprintPure, Category = "AbilityFramework|Effects")
 	static UGAAbilitiesComponent* GetInstigatorComponent(const FGAEffectHandle& InHandle);
 
-	UFUNCTION(BlueprintCallable, Category = "Game Effect System")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Effects")
 		static void BroadcastEffectEvent(UObject* Target, FGameplayTag EventTag);
 };

@@ -90,23 +90,7 @@ void UGAAbilityBase::InitAbility()
 }
 void UGAAbilityBase::OnRep_InitAbility()
 {
-	if (!ActorCue)
-	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Instigator = POwner;
-		SpawnParams.Owner = POwner;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		//can be null.
-		UWorld* world = GetWorld();
-		if (world)
-		{
-			ActorCue = world->SpawnActor<AGACueActor>(ActorCueClass, POwner->GetActorLocation(), FRotator(0, 0, 0), SpawnParams);
-			if (ActorCue)
-			{
-				ActorCue->OwningAbility = this;
-			}
-		}
-	}
+
 }
 void UGAAbilityBase::OnNativeInputPressed(FGameplayTag ActionName)
 {
@@ -177,10 +161,6 @@ void UGAAbilityBase::NativeOnAbilityActivationFinish(const FGAEffectHandle& InHa
 		ActivationEffectHandle.GetContextRef().InstigatorComp->RemoveEffect(ActivationEffectHandle);
 	}*/
 	OnActivationFinished();
-	if (Cue)
-	{
-		Cue->OnAbilityActivated();
-	}
 }
 void UGAAbilityBase::NativeOnAbilityActivationCancel()
 {
@@ -198,12 +178,12 @@ void UGAAbilityBase::OnActivationEffectPeriod(const FGAEffectHandle& InHandle)
 {
 	UE_LOG(AbilityFramework, Log, TEXT("Ability Activation Effect Period In Ability: %s"), *GetName());
 	AbilityPeriodCounter++;
-	OnAbilityPeriod();
+	OnPeriod();
 }
 void UGAAbilityBase::FinishAbility()
 {
 	UE_LOG(AbilityFramework, Log, TEXT("FinishExecution in ability %s"), *GetName());
-	OnAbilityFinished();
+	OnFinished();
 	NativeFinishAbility();
 	AbilityComponent->AppliedTags.RemoveTagContainer(ActivationAddedTags);
 }
@@ -506,22 +486,6 @@ class UWorld* UGAAbilityBase::GetWorld() const
 void UGAAbilityBase::PlayMontage(UAnimMontage* MontageIn, FName SectionName, float Speed)
 {
 	AbilityComponent->PlayMontage(MontageIn, SectionName, Speed);
-}
-
-void UGAAbilityBase::ActivateActorCue(FVector Location)
-{
-	if (ActorCue)
-	{
-
-		ActorCue->SetActorLocation(Location);
-		ActorCue->SetActorHiddenInGame(false);
-		ActorCue->OnActivated();
-	}
-}
-
-void UGAAbilityBase::MulticastActivateActorCue_Implementation(FVector Location)
-{
-
 }
 
 //replication

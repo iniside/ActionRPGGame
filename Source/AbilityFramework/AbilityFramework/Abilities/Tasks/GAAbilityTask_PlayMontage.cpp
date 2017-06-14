@@ -2,7 +2,6 @@
 
 #include "../../AbilityFramework.h"
 #include "../../GAAbilitiesComponent.h"
-#include "../../AbilityCues/GAAbilityCue.h"
 #include "GAAbilityTask_PlayMontage.h"
 
 UGAAbilityTask_PlayMontage* UGAAbilityTask_PlayMontage::AbilityPlayMontage(UObject* WorldContextObject,
@@ -17,71 +16,30 @@ UGAAbilityTask_PlayMontage* UGAAbilityTask_PlayMontage::AbilityPlayMontage(UObje
 
 void UGAAbilityTask_PlayMontage::Activate()
 {
-	//AbilityComponent->OnAbilityStartNotify.Clear();
-	//AbilityComponent->OnAbilityEndNotify.Clear();
-	//AbilityComponent->OnAbilityNotify.Clear();
-	//AbilityComponent->OnAbilityStartNotify.AddUObject(this, &UGAAbilityTask_PlayMontage::BroadcastStartNotify);
-	//AbilityComponent->OnAbilityEndNotify.AddUObject(this, &UGAAbilityTask_PlayMontage::BroadcastEndNotify);
-	//AbilityComponent->OnAbilityNotify.AddUObject(this, &UGAAbilityTask_PlayMontage::BroadcastGenericNotify);
-	AbilityComponent->OnAbilityStartNotify.Unbind();
-	AbilityComponent->OnAbilityEndNotify.Unbind();
-	AbilityComponent->OnAbilityNotify.Unbind();
-	AbilityComponent->OnAbilityNotifyStateStart.Unbind();
-	AbilityComponent->OnAbilityNotifyStateTick.Unbind();
-	AbilityComponent->OnAbilityNotifyStateEnd.Unbind();
+
+	AbilityComponent->OnAbilityNotifyBegin.Unbind();
+	AbilityComponent->OnAbilityNotifyTick.Unbind();
+	AbilityComponent->OnAbilityNotifyEnd.Unbind();
 	
-	AbilityComponent->OnAbilityStartNotify.BindUObject(this, &UGAAbilityTask_PlayMontage::BroadcastStartNotify);
-	AbilityComponent->OnAbilityEndNotify.BindUObject(this, &UGAAbilityTask_PlayMontage::BroadcastEndNotify);
-	AbilityComponent->OnAbilityNotify.BindUObject(this, &UGAAbilityTask_PlayMontage::BroadcastGenericNotify);
-	
-	AbilityComponent->OnAbilityNotifyStateStart.BindUObject(this, &UGAAbilityTask_PlayMontage::BroadcastStartNotifyState);
-	AbilityComponent->OnAbilityNotifyStateTick.BindUObject(this, &UGAAbilityTask_PlayMontage::BroadcastTickNotifyState);
-	AbilityComponent->OnAbilityNotifyStateEnd.BindUObject(this, &UGAAbilityTask_PlayMontage::BroadcastEndNotifyState);
+	AbilityComponent->OnAbilityNotifyBegin.BindUObject(this, &UGAAbilityTask_PlayMontage::BroadcastStartNotifyState);
+	AbilityComponent->OnAbilityNotifyTick.BindUObject(this, &UGAAbilityTask_PlayMontage::BroadcastTickNotifyState);
+	AbilityComponent->OnAbilityNotifyEnd.BindUObject(this, &UGAAbilityTask_PlayMontage::BroadcastEndNotifyState);
 	
 	Ability->PlayMontage(Montage, SectionName, PlayRate);
 
 	
-	Played.Broadcast();
+	//Played.Broadcast();
 }
 
-void UGAAbilityTask_PlayMontage::BroadcastStartNotify(const FGASAbilityNotifyData& DataIn)
+void UGAAbilityTask_PlayMontage::BroadcastStartNotifyState(const FAFAbilityNotifyData& DataIn, const FGameplayTag& InTag, const FName& InName)
 {
-	StartNotify.Broadcast();
-	if(Ability->Cue)
-		Ability->Cue->OnAbilityStartNotify();
-
-	DataStart = DataIn;
+	NotifyBegin.Broadcast(DataIn, InTag, InName);
 }
-void UGAAbilityTask_PlayMontage::BroadcastEndNotify(const FGASAbilityNotifyData& DataIn)
+void UGAAbilityTask_PlayMontage::BroadcastEndNotifyState(const FAFAbilityNotifyData& DataIn, const FGameplayTag& InTag, const FName& InName)
 {
-	EndNotify.Broadcast();
-	DataEnd = DataIn;
-	if (Ability->Cue)
-		Ability->Cue->OnAbilityEndNotify();
-	EndTask();
+	NotifyTick.Broadcast(DataIn, InTag, InName);
 }
-void UGAAbilityTask_PlayMontage::BroadcastGenericNotify(const FGASAbilityNotifyData& DataIn)
+void UGAAbilityTask_PlayMontage::BroadcastTickNotifyState(const FAFAbilityNotifyData& DataIn, const FGameplayTag& InTag, const FName& InName)
 {
-	GenericNotify.Broadcast();
-	if (Ability->Cue)
-		Ability->Cue->OnAbilityNotify();
-	DataGeneric = DataIn;
-}
-void UGAAbilityTask_PlayMontage::BroadcastStartNotifyState(const FGASAbilityNotifyData& DataIn)
-{
-	NotifyStateStart.Broadcast();
-	if (Ability->Cue)
-		Ability->Cue->OnAbilityNotifyStateStart();
-}
-void UGAAbilityTask_PlayMontage::BroadcastEndNotifyState(const FGASAbilityNotifyData& DataIn)
-{
-	NotifyStateTick.Broadcast();
-	if (Ability->Cue)
-		Ability->Cue->OnAbilityNotifyStateTick();
-}
-void UGAAbilityTask_PlayMontage::BroadcastTickNotifyState(const FGASAbilityNotifyData& DataIn)
-{
-	NotifyStateTick.Broadcast();
-	if (Ability->Cue)
-		Ability->Cue->OnAbilityNotifyStateEnd();
+	NotifyEnd.Broadcast(DataIn, InTag, InName);
 }

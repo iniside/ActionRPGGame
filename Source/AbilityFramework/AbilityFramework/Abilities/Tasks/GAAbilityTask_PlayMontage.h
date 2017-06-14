@@ -6,8 +6,7 @@
 #include "GAGlobals.h"
 #include "GAAbilityTask_PlayMontage.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGASGenericMontageDelegateNoData);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGASGenericMontageDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FGASGenericMontageDelegate, FAFAbilityNotifyData, Data, FGameplayTag, Tag, FName, NotifyName);
 
 /**
  *
@@ -22,41 +21,23 @@ public:
 		UAnimMontage* Montage;
 	FName SectionName;
 	float PlayRate;
-	/* Represents data from current notify. It's mutable and data changes with each called notify. */
-	UPROPERTY(BlueprintReadOnly, Category = "Notify Data")
-		FGASAbilityNotifyData DataStart;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Notify Data")
-		FGASAbilityNotifyData DataEnd;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Notify Data")
-		FGASAbilityNotifyData DataGeneric;
 
 	UPROPERTY(BlueprintAssignable)
-		FGASGenericMontageDelegateNoData Played;
+		FGASGenericMontageDelegate Played;
 	UPROPERTY(BlueprintAssignable)
-		FGASGenericMontageDelegate StartNotify;
+		FGASGenericMontageDelegate NotifyBegin;
 	UPROPERTY(BlueprintAssignable)
-		FGASGenericMontageDelegate EndNotify;
+		FGASGenericMontageDelegate NotifyTick;
 	UPROPERTY(BlueprintAssignable)
-		FGASGenericMontageDelegate GenericNotify;
-	UPROPERTY(BlueprintAssignable)
-		FGASGenericMontageDelegate NotifyStateStart;
-	UPROPERTY(BlueprintAssignable)
-		FGASGenericMontageDelegate NotifyStateTick;
-	UPROPERTY(BlueprintAssignable)
-		FGASGenericMontageDelegate NotifyStateEnd;
+		FGASGenericMontageDelegate NotifyEnd;
 
-	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "Game Abilities | Tasks")
+	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
 		static UGAAbilityTask_PlayMontage* AbilityPlayMontage(UObject* WorldContextObject,
 			FName InTaskName, UAnimMontage* MontageIn, FName SectionNameIn, float PlayRateIn);
 
 	virtual void Activate() override;
 
-	void BroadcastStartNotify(const FGASAbilityNotifyData& DataIn);
-	void BroadcastEndNotify(const FGASAbilityNotifyData& DataIn);
-	void BroadcastGenericNotify(const FGASAbilityNotifyData& DataIn);
-	void BroadcastStartNotifyState(const FGASAbilityNotifyData& DataIn);
-	void BroadcastEndNotifyState(const FGASAbilityNotifyData& DataIn);
-	void BroadcastTickNotifyState(const FGASAbilityNotifyData& DataIn);
+	void BroadcastStartNotifyState(const FAFAbilityNotifyData& DataIn, const FGameplayTag& InTag, const FName& InName);
+	void BroadcastEndNotifyState(const FAFAbilityNotifyData& DataIn, const FGameplayTag& InTag, const FName& InName);
+	void BroadcastTickNotifyState(const FAFAbilityNotifyData& DataIn, const FGameplayTag& InTag, const FName& InName);
 };

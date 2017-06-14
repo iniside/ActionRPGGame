@@ -58,11 +58,11 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(UGAGameEffectSpec* SpecIn, FGAE
 		return FGAEffectHandle();
 	}
 	UGAAbilitiesComponent* Target2 = Context.TargetComp.Get();
-	if (!Target2->HasAll(SpecIn->RequiredTags))
+	if (!Target2->HaveEffectRquiredTags(SpecIn->RequiredTags))
 	{
 		return FGAEffectHandle();
 	}
-	if (SpecIn->DenyTags.Num() > 0 && Target2->HasAll(SpecIn->DenyTags))
+	if (Target2->DenyEffectApplication(SpecIn->DenyTags))
 	{
 		return FGAEffectHandle();
 	}

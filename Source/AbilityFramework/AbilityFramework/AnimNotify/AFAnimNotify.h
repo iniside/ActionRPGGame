@@ -4,18 +4,22 @@
 
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "GAGlobals.h"
-#include "GASAnimNotify.generated.h"
+#include "AFAnimNotify.generated.h"
 
 /**
  * 
  */
-UCLASS()
-class ABILITYFRAMEWORK_API UGASAnimNotify : public UAnimNotify
+UCLASS(meta=(DisplayName = "Ability Notify"))
+class ABILITYFRAMEWORK_API UAFAnimNotify : public UAnimNotify
 {
 	GENERATED_BODY()
 
 		virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
 	
 	UPROPERTY(EditAnywhere)
-		FGASAbilityNotifyData Data;
+		FAFAbilityNotifyData Data;
+	UPROPERTY(EditAnywhere)
+		FGameplayTag Tag;
+	UPROPERTY(EditAnywhere)
+		FName Name;
 };

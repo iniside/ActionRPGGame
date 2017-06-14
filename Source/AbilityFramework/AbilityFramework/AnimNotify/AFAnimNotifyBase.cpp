@@ -3,17 +3,16 @@
 #include "AbilityFramework.h"
 #include "GAAbilitiesComponent.h"
 #include "IGAAbilities.h"
-#include "GASAnimNotify.h"
+#include "AFAnimNotifyBase.h"
 
 
 
 
-void UGASAnimNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+void UAFAnimNotifyBase::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
 	IIGAAbilities* IAbilities = Cast<IIGAAbilities>(MeshComp->GetOwner());
 	if (!IAbilities)
 		return;
 
 	UGAAbilitiesComponent* Comp = IAbilities->GetAbilityComp();
-	Comp->OnAbilityNotify.ExecuteIfBound(Data);
 }

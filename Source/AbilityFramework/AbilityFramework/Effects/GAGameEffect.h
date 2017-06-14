@@ -243,9 +243,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Tags")
 		FGameplayTagContainer RequiredTags;
 
-	/* Tags, required for this effect to be active. If these tags are not present, effect will be ignored. */
+	/* Tags, required for this effect to be executed. If these tags are not present, effect will be ignored. */
 	UPROPERTY(EditAnywhere, Category = "Tags")
-		FGameplayTagContainer OngoingRequiredTags;
+		FGameplayTagContainer ExecutionRequiredTags;
 public:
 	UGAGameEffectSpec();
 };

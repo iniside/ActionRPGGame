@@ -87,6 +87,7 @@ FGAEffect::FGAEffect(class UGAGameEffectSpec* GameEffectIn,
 	if (GameEffect->Extension)
 	{
 		Extension = NewObject<UGAEffectExtension>(Context.Target.Get(), GameEffect->Extension);
+		Extension->OwningComponent = Context.TargetComp.Get();
 	}
 	if (ContextIn.TargetComp.IsValid())
 	{
@@ -104,6 +105,11 @@ FGAEffect::FGAEffect(class UGAGameEffectSpec* GameEffectIn,
 }
 FGAEffect::~FGAEffect()
 {
+	if (Extension.IsValid())
+	{
+		Extension->MarkPendingKill();
+		Extension.Reset();
+	}
 }
 void FGAEffect::SetContext(const FGAEffectContext& ContextIn)
 {
@@ -552,6 +558,9 @@ void FGAEffectContainer::RemoveTargetEffect(const FGAEffectHandle& HandleIn
 	{
 		Effect->OnEffectRemoved.Broadcast(Effect->Handle);
 		Target->RemoveTagContainer(Effect->ApplyTags);
+		FTimerManager& DurationTimer = Effect->Context.TargetComp->GetWorld()->GetTimerManager();
+		DurationTimer.ClearTimer(Effect->DurationTimerHandle);
+		DurationTimer.ClearTimer(Effect->PeriodTimerHandle);
 	}
 }
 

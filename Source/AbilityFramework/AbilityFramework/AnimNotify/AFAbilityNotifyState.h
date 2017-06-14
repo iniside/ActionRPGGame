@@ -4,18 +4,22 @@
 
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "GAGlobals.h"
-#include "GASAbilityNotifyState.generated.h"
+#include "AFAbilityNotifyState.generated.h"
 
 /**
  * 
  */
-UCLASS()
-class ABILITYFRAMEWORK_API UGASAbilityNotifyState : public UAnimNotifyState
+UCLASS(meta = (DisplayName = "Ability Notify State"))
+class ABILITYFRAMEWORK_API UAFAbilityNotifyState : public UAnimNotifyState
 {
 	GENERATED_BODY()
 protected:
 	UPROPERTY(EditAnywhere, Category = "Data")
-		FGASAbilityNotifyData Data;
+		FAFAbilityNotifyData Data;
+	UPROPERTY(EditAnywhere)
+		FGameplayTag Tag;
+	UPROPERTY(EditAnywhere)
+		FName Name;
 	UPROPERTY()
 	class UGAAbilitiesComponent* CachedAbilitiesComp;
 public:

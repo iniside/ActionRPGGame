@@ -44,6 +44,7 @@ public:
 		UGAAbilityBase* ThisAbility = CastChecked<UGAAbilityBase>(WorldContextObject);
 		if (UGAAbilityTask* CachedTask = ThisAbility->GetAbilityTask(InTaskName))
 		{
+			CachedTask->InitTask(*ThisAbility, ThisAbility->GetGameplayTaskDefaultPriority());
 			return Cast<T>(CachedTask);
 		}
 		MyObj->Ability = ThisAbility;

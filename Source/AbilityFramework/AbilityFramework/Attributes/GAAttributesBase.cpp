@@ -284,4 +284,6 @@ void UGAAttributesBase::RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHan
 void UGAAttributesBase::OnAttributeModified(const FGAEffectMod& InMod, const FGAEffectHandle& InHandle)
 {
 	OwningAttributeComp->OnAttributeModified(InMod, InHandle, this);
+	FAFAttributeChangedData Data;
+	OwningAttributeComp->BroadcastAttributeChange(InMod.Attribute, Data);
 }

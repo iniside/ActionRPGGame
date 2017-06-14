@@ -9,16 +9,16 @@ class ABILITYFRAMEWORK_API UGAAttributesBlueprintFunctionLibrary : public UBluep
 {
 	GENERATED_UCLASS_BODY()
 public:
-	UFUNCTION(BlueprintPure, meta=(DisplayName="Equal"), Category = "GameAttributes")
+	UFUNCTION(BlueprintPure, meta=(DisplayName="Equal"), Category = "AbilityFramework|Attributes")
 		static bool EqualAttribute(const FGAAttribute& Compare, FGAAttribute Against);
 
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
 		static FName GetAttribute(FGAAttribute AttributeIn);
 
-	UFUNCTION(BlueprintPure, Category = "Game Attributes")
+	UFUNCTION(BlueprintPure, Category = "AbilityFramework|Attributes")
 		static float GetFinalAttributeValue(AActor* Target, FGAAttribute Name);
 
-	UFUNCTION(BlueprintPure, Category = "Game Attributes")
+	UFUNCTION(BlueprintPure, Category = "AbilityFramework|Attributes")
 		static float GetCurrentAttributeValue(AActor* Target, FGAAttribute Name);
 
 	/**
@@ -29,6 +29,6 @@ public:
 	*
 	*  @return value of attribute from actor.
 	*/
-	UFUNCTION(BlueprintPure, Category = "Game Attributes")
+	UFUNCTION(BlueprintPure, Category = "AbilityFramework|Attributes")
 		static float GetAttributeFloat(AActor* Target, FGAAttribute AttributeIn);
 };

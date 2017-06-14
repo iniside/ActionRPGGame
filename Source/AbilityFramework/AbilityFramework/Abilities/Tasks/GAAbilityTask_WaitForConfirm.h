@@ -18,7 +18,7 @@ public:
 	UPROPERTY(BlueprintAssignable)
 		FGASOnConfirmed OnConfirmed;
 
-	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "Game Abilities | Tasks")
+	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
 		static UGAAbilityTask_WaitForConfirm* CreateWaitConfirmTask(UObject* WorldContextObject,
 			FName InTaskName);
 

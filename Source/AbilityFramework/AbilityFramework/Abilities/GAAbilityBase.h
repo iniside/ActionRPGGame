@@ -149,7 +149,7 @@ public:
 	FSimpleDelegate ConfirmDelegate;
 
 	/* Attributes specific to ability. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "Attributes")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "AbilityFramework|Abilities")
 		UGAAttributesBase* Attributes;
 
 	UPROPERTY()
@@ -159,15 +159,15 @@ public:
 	*/
 	/*
 	*/
-	UPROPERTY(VisibleAnywhere, Replicated, BlueprintReadOnly, Category = "Default")
+	UPROPERTY(VisibleAnywhere, Replicated, BlueprintReadOnly, Category = "AbilityFramework|Abilities")
 		APawn* POwner;
-	UPROPERTY(VisibleAnywhere, Replicated, BlueprintReadOnly, Category = "Default")
+	UPROPERTY(VisibleAnywhere, Replicated, BlueprintReadOnly, Category = "AbilityFramework|Abilities")
 		ACharacter* Character;
-	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Default")
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "AbilityFramework|Abilities")
 		APlayerController* PCOwner;
-	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Default")
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "AbilityFramework|Abilities")
 		class AAIController* AICOwner;
-	UPROPERTY(BlueprintReadOnly, Category = "Default")
+	UPROPERTY(BlueprintReadOnly, Category = "AbilityFramework|Abilities")
 		class UGAAbilitiesComponent* AbilityComponent;
 
 	/* 
@@ -176,28 +176,12 @@ public:
 
 		It will need some common interfaces for getting data out.
 	*/
-	UPROPERTY(BlueprintReadOnly, Category = "Default")
+	UPROPERTY(BlueprintReadOnly, Category = "AbilityFramework|Abilities")
 		class AActor* AvatarActor;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Default")
+	UPROPERTY(BlueprintReadOnly, Category = "AbilityFramework|Abilities")
 		UCameraComponent* OwnerCamera;
-	/*
-		TSubclassOf<> could be better, for runtime customization (ie, different cues for single
-		ability). On other hand, instanced is easier to customize in editor. 
-	*/
-	UPROPERTY(EditAnywhere, Instanced, Category = "Cue")
-	class UGAAbilityCue* Cue;
-	/*
-		Array ?
-		Should it be spawned automatically ?
-		Where should it spawn then ? (in world, location, rotation etc ?).
-		It should be spawned only on client side.
-	*/
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cue")
-		TSubclassOf<class AGACueActor> ActorCueClass;
 
-	UPROPERTY()
-	class AGACueActor* ActorCue;
 	/*
 		Tags applied to instigator of this ability, for duration of cooldown.
 		Duration of this effect equals cooldown of ability.
@@ -306,7 +290,7 @@ public: //because I'm to lazy to write all those friend states..
 public:
 	UGAAbilityBase(const FObjectInitializer& ObjectInitializer);
 
-	UFUNCTION(BlueprintCallable, Category = "Game Abilities System")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
 		void PlayMontage(UAnimMontage* MontageIn, FName SectionName, float Speed = 1);
 
 	virtual void InitAbility();
@@ -322,11 +306,11 @@ public:
 
 		To start ability execution you must call ExecuteAbility.
 	*/
-	UFUNCTION(BlueprintImplementableEvent, Category = "Game Abilities System")
+	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnInputPressed(FGameplayTag ActionName);
 
 	void OnNativeInputReleased(FGameplayTag ActionName);
-	UFUNCTION(BlueprintImplementableEvent, Category = "Game Abilities System")
+	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnInputReleased(FGameplayTag ActionName);
 
 
@@ -338,21 +322,21 @@ public:
 		Called when ability get message to activate.
 		For player it usually means on button press.
 	*/
-	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities Framework")
+	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnActivate();
 
 	/*
 		Called When activation effect expired.
 		In case of instant effects, called right after OnActivate.
 	*/
-	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities Framework")
+	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnActivationFinished();
 
 	/*
 		Called when ability deactivates.
 		For player it usually means in input release.
 	*/
-	UFUNCTION(BlueprintImplementableEvent, Category = "Abilities Framework")
+	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnDeactivate();
 	/*
 		In blueprint, call this function to trigger event of the same name,
@@ -365,20 +349,20 @@ public:
 		ActiveState will always be called first, so it is possible to bypass entire state stage if ActivationState will
 		go straight away for event call.
 	*/
-	UFUNCTION(BlueprintCallable, Category = "Game Abilities System")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
 		void StartActivation();
 
 
 	/* Event called when ability activation has been canceled. */
-	UFUNCTION(BlueprintImplementableEvent, Category = "Game Abilities System")
+	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnActivationCancel();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Game Abilities System")
-		void OnAbilityPeriod();
+	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
+		void OnPeriod();
 
 	/* Event called when ability finishes it's execution. Called AFTER OnAbilityExecuted. */
-	UFUNCTION(BlueprintImplementableEvent, Category = "Game Abilities System")
-		void OnAbilityFinished();
+	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
+		void OnFinished();
 
 	UFUNCTION()
 		void OnCooldownEffectExpired();
@@ -390,13 +374,13 @@ public:
 	/*
 		Finishes ability. Use it to finish ability after activation or released input.
 	*/
-	UFUNCTION(BlueprintCallable, Category = "Game Abilities System")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
 		void FinishAbility();
 	void NativeFinishAbility();
 	/*
 		Stop effect activation and remove activation effect.
 	*/
-	UFUNCTION(BlueprintCallable, Category = "Game Abilities System")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
 		void CancelActivation();
 	void NativeCancelActivation();
 
@@ -407,20 +391,20 @@ public:
 	bool CanReleaseAbility();
 	
 	float GetCurrentActivationTime() const;
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Get Current Activation Time"), Category = "Game Abilities System")
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Get Current Activation Time"), Category = "AbilityFramework|Abilities")
 		float BP_GetCurrentActivationTime() const;
 	float GetCurrentCooldownTime() const;
 
 	float GetPeriodTime() const;
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Get Period Time"), Category = "Game Abilities System")
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Get Period Time"), Category = "AbilityFramework|Abilities")
 		float BP_GetPeriodTime() const;
 
 	float GetCooldownTime() const;
-	UFUNCTION(BlueprintPure, meta=(DisplayName = "Get Cooldown Time"), Category = "Game Abilities System")
+	UFUNCTION(BlueprintPure, meta=(DisplayName = "Get Cooldown Time"), Category = "AbilityFramework|Abilities")
 		float BP_GetCooldownTime() const;
 
 	float GetActivationTime() const;
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Get Activation Time"), Category = "Game Abilities System")
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Get Activation Time"), Category = "AbilityFramework|Abilities")
 		float BP_GetActivationTime() const;
 
 	/** GameplayTaskOwnerInterface - Begin */
@@ -448,7 +432,7 @@ public:
 	/** IIGAAbilities Begin */
 	virtual class UGAAttributesBase* GetAttributes() override;
 	virtual class UGAAbilitiesComponent* GetAbilityComp() override;
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities|Attributes")
 	virtual float GetAttributeValue(FGAAttribute AttributeIn) const override;
 	virtual float NativeGetAttributeValue(const FGAAttribute AttributeIn) const override;
 	virtual FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn) override { return Attributes->GetAttribute(AttributeIn); };
@@ -460,17 +444,8 @@ public:
 	virtual void RemoveTagContainer(const FGameplayTagContainer& TagsIn) override;
 
 	/* IIGAAbilities End **/
-	UFUNCTION(BlueprintPure, Category = "Game Attributes")
+	UFUNCTION(BlueprintPure, Category = "AbilityFramework|Abilities|Attributes")
 		virtual float GetAttributeVal(FGAAttribute AttributeIn) const;
-
-	/*
-		Cues handling
-	*/
-	UFUNCTION(BlueprintCallable, Category = "Game Abilities System | Cues")
-		void ActivateActorCue(FVector Location);
-	UFUNCTION(NetMulticast, Reliable, Category = "Game Abilities System | Cues")
-		void MulticastActivateActorCue(FVector Location);
-	void MulticastActivateActorCue_Implementation(FVector Location);
 
 public: //protected ?
 	bool ApplyCooldownEffect();
@@ -480,19 +455,19 @@ public: //protected ?
 	bool CheckCooldown();
 	bool CheckExecuting();
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Apply Cooldown"), Category = "Game Abilities System")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Apply Cooldown"), Category = "AbilityFramework|Abilities")
 		void BP_ApplyCooldown();
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Apply Attribute Cost"), Category = "Game Abilities System")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Apply Attribute Cost"), Category = "AbilityFramework|Abilities")
 		bool BP_ApplyAttributeCost();
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Apply Ability Attribute Cost"), Category = "Game Abilities System")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Apply Ability Attribute Cost"), Category = "AbilityFramework|Abilities")
 		bool BP_ApplyAbilityAttributeCost();
 
-	UFUNCTION(BlueprintCallable, Category = "Game Abilities System")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
 		float GetCurrentActivationTime();
 
-	UFUNCTION(BlueprintCallable, Category = "Game Abilities System")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
 		float CalculateAnimationSpeed(UAnimMontage* MontageIn);
 
 	/* Replication */
@@ -511,9 +486,9 @@ public: //protected ?
 	virtual APlayerController* GetGamePlayerController() { return PCOwner; }
 	/* IIGIPawn **/
 
-	UFUNCTION(BlueprintCallable, Category = "Game Abilities System")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
 		void ExecuteAbilityInputPressedFromTag(FGameplayTag AbilityTagIn, FGameplayTag ActionName);
-	UFUNCTION(BlueprintCallable, Category = "Game Abilities System")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
 		void ExecuteAbilityInputReleasedFromTag(FGameplayTag AbilityTagIn, FGameplayTag ActionName);
 
 	virtual class UWorld* GetWorld() const override;
@@ -531,18 +506,18 @@ public: //protected ?
 	}
 
 	/* Tracing Helpers Start */
-	UFUNCTION(BlueprintCallable, Category = "Game Abilities System | Tracing")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities|Tracing")
 		bool LineTraceSingleByChannel(const FVector Start, const FVector End, ETraceTypeQuery TraceChannel, bool bTraceComplex, FHitResult& OutHit);
 	/* Traces location from owner camera position if no camera available traces from eyes */
-	UFUNCTION(BlueprintCallable, Category = "Game Abilities System | Tracing")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities|Tracing")
 		bool LineTraceSingleByChannelFromCamera(float Range, ETraceTypeQuery TraceChannel, bool bTraceComplex, FHitResult& OutHit,
 			EDrawDebugTrace::Type DrawDebugType, bool bIgnoreSelf, FLinearColor TraceColor, FLinearColor TraceHitColor, float DrawTime);
 	/* Traces from ability avatar socket. */
-	UFUNCTION(BlueprintCallable, Category = "Game Abilities System | Tracing")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities|Tracing")
 		bool LineTraceSingleByChannelFromSocket(FName SocketName, float Range, ETraceTypeQuery TraceChannel, bool bTraceComplex, FHitResult& OutHit,
 			EDrawDebugTrace::Type DrawDebugType, bool bIgnoreSelf, FLinearColor TraceColor, FLinearColor TraceHitColor, float DrawTime);
 	/* Make first trace from camera location and then second trace from avatar socket in direction of first trace. */
-	UFUNCTION(BlueprintCallable, Category = "Game Abilities System | Tracing")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities|Tracing")
 		bool LineTraceSingleByChannelCorrected(FName SocketName, float Range, ETraceTypeQuery TraceChannel, bool bTraceComplex, FHitResult& OutHit,
 			EDrawDebugTrace::Type DrawDebugType, bool bIgnoreSelf, FLinearColor TraceColor, FLinearColor TraceHitColor, float DrawTime);
 	/* Tracing Helpers End */

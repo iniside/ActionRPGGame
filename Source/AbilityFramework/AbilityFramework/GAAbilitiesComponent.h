@@ -32,17 +32,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGAOnAttributeModifed, const FGAEff
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGAGenericEffectDelegate, const FGAEffectHandle&, Handle, const FGameplayTagContainer&, Tags);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGAOnAttributeChanged2, float, NewValue);
-
-
-USTRUCT()
-struct FAFEventData
-{
-	GENERATED_USTRUCT_BODY()
-};
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAFEventDelegate , FAFEventData, NewValue);
-
+DECLARE_MULTICAST_DELEGATE_OneParam(FAFEventDelegate , FAFEventData);
+DECLARE_MULTICAST_DELEGATE_OneParam(FAFAttributeChangedDelegate, FAFAttributeChangedData);
 USTRUCT()
 struct FGAModifiedAttributeData
 {
@@ -89,7 +80,7 @@ public:
 	{};
 };
 DECLARE_MULTICAST_DELEGATE_TwoParams(FGASOnActiveAbilityAdded, int32, int32);
-DECLARE_DELEGATE_OneParam(FGASMontageGenericDelegate, const FGASAbilityNotifyData&);
+DECLARE_DELEGATE_ThreeParams(FAFMontageGenericDelegate, const FAFAbilityNotifyData&, const FGameplayTag&, const FName&);
 /* TODO:: Implement fast serialization for structs. */
 /* TODO:: REmove all those structs for customization and replace it with something sane like tmap. */
 /**/
@@ -179,6 +170,9 @@ public:
 	UPROPERTY()
 		FGACountedTagContainer AppliedTags;
 
+	UPROPERTY()
+		FGACountedTagContainer ImmunityTags;
+
 	UFUNCTION()
 		void OnRep_ActiveEffects();
 
@@ -211,8 +205,6 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Game Attributes")
 		FGAOnAttributeModifed OnAttributeModifed;
 
-	UPROPERTY(BlueprintAssignable, Category = "Game Attributes")
-		FGAOnAttributeChanged2 OnAttributeChanged;
 	/* Effect/Attribute System Delegates */
 	UPROPERTY(BlueprintAssignable, Category = "Effect")
 		FGAGenericEffectDelegate OnEffectApplied;
@@ -225,9 +217,6 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Effect")
 		FGAGenericEffectDelegate OnEffectExecuted;
-	/* Called when efect period ticked. */
-	UPROPERTY(BlueprintAssignable, Category = "Effect")
-		FGAGenericEffectDelegate OnEffectTicked;
 
 	UPROPERTY(BlueprintAssignable, Category = "Effect")
 		FGAGenericEffectDelegate OnEffectExpired;
@@ -248,6 +237,10 @@ public:
 		TArray<TSubclassOf<UGAGameEffectSpec>> DefaultEffects;
 
 	TMap<FGameplayTag, FAFEventDelegate> EffectEvents;
+	TMap<FGAAttribute, FAFAttributeChangedDelegate> AttributeChanged;
+
+	void BroadcastAttributeChange(const FGAAttribute& InAttribute, 
+		const FAFAttributeChangedData& InData);
 
 	virtual bool GetShouldTick() const override;
 
@@ -301,12 +294,11 @@ public:
 	void ApplyEffectToTarget(TSubclassOf<UGAGameEffectSpec> InSpecClass, 
 		const FGAEffectContext& InContext, const FGAEffectHandle& InHandle);
 
-	FGAEffectHandle MakeGameEffect(TSubclassOf<class UGAGameEffectSpec> SpecIn,
-		const FGAEffectContext& ContextIn);
 
 	/* Have to to copy handle around, because timer delegates do not support references. */
 	void ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty
 		,FAFFunctionModifier Modifier);
+	virtual void PostExecuteEffect();
 	/* ExpireEffect is used to remove existing effect naturally when their time expires. */
 	void ExpireEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty);
 	/* RemoveEffect is used to remove effect by force. */
@@ -315,16 +307,16 @@ public:
 
 
 	/* Never call it directly. */
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes | UI")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes|UI")
 		TArray<FGAEffectUIData> GetEffectUIData();
 
 	/*
 	Get Last Index of effect for UI display.
 	*/
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes | UI")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes|UI")
 		int32 GetEffectUIIndex();
 
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes | UI")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes|UI")
 		FGAEffectUIData GetEffectUIDataByIndex(int32 IndexIn);
 	/*
 	Need prediction for spawning effects on client,
@@ -432,6 +424,9 @@ public:
 	/*
 	IGameplayTagAssetInterface End
 	*/
+
+	bool DenyEffectApplication(const FGameplayTagContainer& InTags);
+	bool HaveEffectRquiredTags(const FGameplayTagContainer& InTags);
 	/*
 	Effect Container Wrapp Start
 	*/
@@ -460,10 +455,10 @@ public:
 	inline int32 GetEffectsNum() const { return GameEffectContainer.GetEffectsNum(); };
 	/* Active Effects Wrapper End */
 
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
 		class UGAAttributesBase* GetAttributes() { return DefaultAttributes; };
 
-	UFUNCTION(BlueprintCallable, Category = "Game Attributes")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
 		float GetAttributeValue(FGAAttribute AttributeIn) const { return DefaultAttributes->GetCurrentAttributeValue(AttributeIn); };
 
 	void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);// { DefaultAttributes->ModifyAttribute(ModIn, HandleIn); };
@@ -500,12 +495,9 @@ public:
 	*/
 	bool bIsAnyAbilityActive;
 
-	FGASMontageGenericDelegate OnAbilityStartNotify;
-	FGASMontageGenericDelegate OnAbilityEndNotify;
-	FGASMontageGenericDelegate OnAbilityNotify;
-	FGASMontageGenericDelegate OnAbilityNotifyStateStart;
-	FGASMontageGenericDelegate OnAbilityNotifyStateTick;
-	FGASMontageGenericDelegate OnAbilityNotifyStateEnd;
+	FAFMontageGenericDelegate OnAbilityNotifyBegin;
+	FAFMontageGenericDelegate OnAbilityNotifyTick;
+	FAFMontageGenericDelegate OnAbilityNotifyEnd;
 	
 	class IIGIPawn* PawnInterface;
 private:
@@ -516,8 +508,10 @@ private:
 	UFUNCTION()
 		void OnRep_PlayMontage();
 public:
-	UFUNCTION(BlueprintCallable, Category = "Game Abilities")
-	void PlayMontage(UAnimMontage* MontageIn, FName SectionName, float Speed = 1);
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework")
+		void PlayMontage(UAnimMontage* MontageIn, FName SectionName, float Speed = 1);
+	UFUNCTION(NetMulticast, Unreliable)
+		void MulticastPlayMontage(UAnimMontage* MontageIn, FName SectionName, float Speed = 1);
 public:
 	/*
 		Checks on client and server, if we can activate ability. Called from InputPressed
@@ -528,11 +522,11 @@ public:
 	{
 		return nullptr;
 	}
-	UFUNCTION(BlueprintCallable, Category = "Game Abilities")
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
 		void BP_BindAbilityToAction(FGameplayTag ActionName, FGameplayTag AbilityTag);
 	void BindAbilityToAction(UInputComponent* InputComponent, FGameplayTag ActionName, FGameplayTag AbilityTag);
 	
-	UFUNCTION(BlueprintCallable, meta=(DisplayName="Input Pressed"), Category = "Game Abilities")
+	UFUNCTION(BlueprintCallable, meta=(DisplayName="Input Pressed"), Category = "AbilityFramework|Abilities")
 		void BP_InputPressed(FGameplayTag AbilityTag, FGameplayTag ActionName);
 
 	void NativeInputPressed(FGameplayTag AbilityTag, FGameplayTag ActionName);
@@ -543,7 +537,7 @@ public:
 	void SendAbilityActivationMessage(FGameplayTag AbilityTag, FGameplayTag ActionName);
 
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Input Released"), Category = "Game Abilities")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Input Released"), Category = "AbilityFramework|Abilities")
 		void BP_InputReleased(FGameplayTag AbilityTag, FGameplayTag ActionName);
 
 	void NativeInputReleased(FGameplayTag AbilityTag, FGameplayTag ActionName);
@@ -554,13 +548,13 @@ public:
 	void SendAbilityDeactivationMessage(FGameplayTag AbilityTag, FGameplayTag ActionName);
 	//void BindAbilitiesToInputComponent(UInputComponent* InputComponentIn, )
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Add Ability"), Category = "Game Ability System")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Add Ability"), Category = "AbilityFramework|Abilities")
 		void BP_AddAbility(TSubclassOf<class UGAAbilityBase> AbilityClass, FGameplayTag ActionName);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Remove Ability"), Category = "Game Ability System")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Remove Ability"), Category = "AbilityFramework|Abilities")
 		void BP_RemoveAbility(FGameplayTag TagIn);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Get Ability By Tag"), Category = "Game Ability System")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Get Ability By Tag"), Category = "AbilityFramework|Abilities")
 		UGAAbilityBase* BP_GetAbilityByTag(FGameplayTag TagIn);
 	/*
 		Should be called on server.
@@ -568,7 +562,7 @@ public:
 	*/
 	void NativeAddAbilitiesFromSet(TSubclassOf<class UGAAbilitySet> AbilitySet);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Add Abilities From Set"), Category = "Game Ability System")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Add Abilities From Set"), Category = "AbilityFramework|Abilities")
 	void BP_AddAbilitiesFromSet(TSubclassOf<class UGAAbilitySet> AbilitySet);
 
 	bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags) override;

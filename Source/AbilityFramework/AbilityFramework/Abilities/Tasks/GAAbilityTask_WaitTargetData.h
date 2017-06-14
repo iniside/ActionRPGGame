@@ -23,14 +23,14 @@ public:
 	UPROPERTY()
 		class AGATargetingActor* TargetActor;
 
-	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "Game Abilities | Tasks")
+	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
 		static UGAAbilityTask_WaitTargetData* WaitTargetData(UObject* WorldContextObject, 
 			FName InTaskName, TSubclassOf<class AGATargetingActor> Class, float InRange, ETraceTypeQuery InTraceChannel);
 
-	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "Game Abilities")
+	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
 		bool BeginSpawningActor(UObject* WorldContextObject, TSubclassOf<class AGATargetingActor> Class, class AGATargetingActor*& SpawnedActor);
 
-	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "Game Abilities")
+	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
 		void FinishSpawningActor(UObject* WorldContextObject, class AGATargetingActor* SpawnedActor);
 
 	virtual void Activate() override;

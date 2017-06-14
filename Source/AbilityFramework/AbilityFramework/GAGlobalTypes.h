@@ -202,6 +202,11 @@ enum class EGAStackingChannel : uint8
 	Channel031,
 	Channel032,
 };
+USTRUCT()
+struct FAFEventData
+{
+	GENERATED_USTRUCT_BODY()
+};
 
 USTRUCT()
 struct FAFAtributeRowData : public FTableRowBase
@@ -572,6 +577,13 @@ public:
 	//	AttributeName = *AttributeNameIn;
 	//};
 };
+
+USTRUCT()
+struct FAFAttributeChangedData
+{
+	GENERATED_BODY()
+};
+
 /* Final calculcated mod from effect, which can be modified by Calculation object. */
 USTRUCT()
 struct FGAEffectMod
