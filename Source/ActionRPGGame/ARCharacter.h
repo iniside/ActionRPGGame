@@ -226,6 +226,9 @@ protected:
 
     UFUNCTION(BlueprintImplementableEvent, Category = "Character Death")
         void OnPostControllerRep(class AARPlayerController* ControllerOut);
+	
+	UFUNCTION(BlueprintImplementableEvent, Category = "Input")
+		void OnPostInputSetup();
 protected:
     // APawn interface
     virtual void SetupPlayerInputComponent(class UInputComponent* InInputComponent) override;

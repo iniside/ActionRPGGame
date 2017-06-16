@@ -106,8 +106,11 @@ FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToSelf(FGAEffect* EffectIn
 			Event->Broadcast(Data);
 		}
 	}
+
 	//OnEffectApplyToSelf.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
-	return GameEffectContainer.ApplyEffect(EffectIn, InProperty, Modifier);
+	FGAEffectHandle Handle = GameEffectContainer.ApplyEffect(EffectIn, InProperty, Modifier);
+	GameEffectContainer.MarkArrayDirty();
+	return Handle;
 	//FGAEffectCueParams CueParams;
 	//CueParams.HitResult = EffectIn.Context.HitResult;
 	//OnEffectApplied.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
@@ -261,8 +264,9 @@ void UGAAbilitiesComponent::GetLifetimeReplicatedProps(TArray< class FLifetimePr
 
 	DOREPLIFETIME(UGAAbilitiesComponent, ActiveCues);
 
-	DOREPLIFETIME(UGAAbilitiesComponent, AbilityContainer);
+	DOREPLIFETIME_CONDITION(UGAAbilitiesComponent, AbilityContainer, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UGAAbilitiesComponent, RepMontage, COND_SkipOwner);
+	//DOREPLIFETIME(UGAAbilitiesComponent, RepMontage);
 }
 void UGAAbilitiesComponent::OnRep_ActiveEffects()
 {
@@ -371,6 +375,16 @@ void FGASAbilityItem::PostReplicatedAdd(const struct FGASAbilityContainer& InArr
 	{
 		//should be safe, since we only modify the non replicated part of struct.
 		FGASAbilityContainer& InArraySerializerC = const_cast<FGASAbilityContainer&>(InArraySerializer);
+		Ability->AbilityComponent = InArraySerializer.AbilitiesComp.Get();
+		if (InArraySerializer.AbilitiesComp->PawnInterface)
+		{
+			Ability->POwner = InArraySerializer.AbilitiesComp->PawnInterface->GetGamePawn();
+			Ability->PCOwner = InArraySerializer.AbilitiesComp->PawnInterface->GetGamePlayerController();
+			Ability->OwnerCamera = InArraySerializer.AbilitiesComp->PawnInterface->GetPawnCamera();
+			//ability->AIOwner = PawnInterface->GetGameController();
+		}
+		Ability->InitAbility();
+		
 		InArraySerializerC.AbilitiesInputs.Add(Ability->AbilityTag, Ability); //.Add(Ability->AbilityTag, Ability);
 	}
 }
@@ -399,18 +413,18 @@ UGAAbilityBase* FGASAbilityContainer::AddAbility(TSubclassOf<class UGAAbilityBas
 		FGASAbilityItem AbilityItem;
 		AbilityItem.Ability = ability;
 		AbilitiesItems.Add(AbilityItem);
-		if (ActionName.IsValid())
+	/*	if (ActionName.IsValid())
 		{
 			UInputComponent* InputComponent = AbilitiesComp->GetOwner()->FindComponentByClass<UInputComponent>();
 			AbilitiesComp->BindAbilityToAction(InputComponent, ActionName, Tag);
-		}
+		}*/
 		return ability;
 	}
 	return nullptr;
 }
 UGAAbilityBase* FGASAbilityContainer::GetAbility(FGameplayTag TagIn)
 {
-	return nullptr;
+	return AbilitiesInputs.FindRef(TagIn);
 }
 void FGASAbilityContainer::HandleInputPressed(FGameplayTag TagIn, FGameplayTag ActionName)
 {
@@ -448,20 +462,6 @@ void FGASAbilityContainer::TriggerAbylityByTag(FGameplayTag InTag)
 	}
 }
 
-bool UGAAbilitiesComponent::CanActivateAbility()
-{
-	//if there are no activate abilities, we can activate the selected one.
-	//this should be configarable ie. how many abilities can be activated at the same time ?
-	//if (!bIsAnyAbilityActive && !ExecutingAbility)
-	//{
-	//	return true;
-	//}
-	if (!ExecutingAbility)
-	{
-		return true;
-	}
-	return false;
-}
 void UGAAbilitiesComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
@@ -496,6 +496,8 @@ void UGAAbilitiesComponent::BP_BindAbilityToAction(FGameplayTag ActionName, FGam
 }
 void UGAAbilitiesComponent::BindAbilityToAction(UInputComponent* InputComponent, FGameplayTag ActionName, FGameplayTag AbilityTag)
 {
+	if (!InputComponent)
+		return;
 	{
 		FInputActionBinding AB(ActionName.GetTagName(), IE_Pressed);
 		AB.ActionDelegate.GetDelegateForManualSet().BindUObject(this, &UGAAbilitiesComponent::NativeInputPressed, AbilityTag, ActionName);
@@ -517,7 +519,16 @@ void UGAAbilitiesComponent::NativeInputPressed(FGameplayTag AbilityTag, FGamepla
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
+		//naive needs better qynchornization to what going on where.
+		if (UGAAbilityBase* Ability = AbilityContainer.GetAbility(AbilityTag))
+		{
+			if (Ability->AbilityComponent == this)
+			{
+				AbilityContainer.HandleInputPressed(AbilityTag, ActionName);
+			}
+		}
 		ServerNativeInputPressed(AbilityTag, ActionName);
+		
 	}
 	else
 	{
@@ -544,6 +555,13 @@ void UGAAbilitiesComponent::NativeInputReleased(FGameplayTag AbilityTag, FGamepl
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
+		if (UGAAbilityBase* Ability = AbilityContainer.GetAbility(AbilityTag))
+		{
+			if (Ability->AbilityComponent == this)
+			{
+				AbilityContainer.HandleInputReleased(AbilityTag, ActionName);
+			}
+		}
 		ServerNativeInputReleased(AbilityTag, ActionName);
 	}
 	else
@@ -563,12 +581,21 @@ bool UGAAbilitiesComponent::ServerNativeInputReleased_Validate(FGameplayTag Abil
 	return true;
 }
 
-void UGAAbilitiesComponent::BP_AddAbility(TSubclassOf<class UGAAbilityBase> AbilityClass, FGameplayTag ActionName)
+void UGAAbilitiesComponent::BP_AddAbility(TSubclassOf<class UGAAbilityBase> AbilityClass, 
+	FGameplayTag ActionName, bool bAutoBind)
 {
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+		return;
 	//AddAbilityToActiveList(AbilityClass);
 	InstanceAbility(AbilityClass, ActionName);
+	if(bAutoBind)
+		ClientOnAbilityAdded(AbilityClass->GetDefaultObject<UGAAbilityBase>()->AbilityTag, ActionName);
 }
-
+void UGAAbilitiesComponent::ClientOnAbilityAdded_Implementation(FGameplayTag AbilityTag, FGameplayTag ActionTag)
+{
+	UInputComponent* InputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
+	BindAbilityToAction(InputComponent, ActionTag, AbilityTag);
+}
 void UGAAbilitiesComponent::BP_RemoveAbility(FGameplayTag TagIn)
 {
 	
@@ -582,6 +609,7 @@ UGAAbilityBase* UGAAbilitiesComponent::InstanceAbility(TSubclassOf<class UGAAbil
 	if (AbilityClass)
 	{
 		UGAAbilityBase* ability = AbilityContainer.AddAbility(AbilityClass, ActionName);
+		AbilityContainer.MarkArrayDirty();
 		return ability;
 	}
 	return nullptr;
@@ -632,7 +660,7 @@ void UGAAbilitiesComponent::OnRep_PlayMontage()
 
 void UGAAbilitiesComponent::PlayMontage(UAnimMontage* MontageIn, FName SectionName, float Speed)
 {
-	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	//if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
 		//Probabaly want to do something different here for client non authority montage plays.
 		//return;

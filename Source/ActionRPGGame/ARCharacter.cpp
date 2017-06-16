@@ -451,7 +451,7 @@ void AARCharacter::SetupPlayerInputComponent(class UInputComponent* InInputCompo
 	InInputComponent->BindTouch(IE_Pressed, this, &AARCharacter::TouchStarted);
 	InInputComponent->BindTouch(IE_Released, this, &AARCharacter::TouchStopped);
 
-
+	OnPostInputSetup();
     //InputComponent->BindAction("ActionButton1", IE_Pressed, this, &AARCharacter::InputActionBar<0>);
 }
 void AARCharacter::ActivateAbility()

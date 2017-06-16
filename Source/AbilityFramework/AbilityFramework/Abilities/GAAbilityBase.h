@@ -7,17 +7,9 @@
 #include "GameplayTaskOwnerInterface.h"
 #include "../Attributes/GAAttributesBase.h"
 #include "IGAAbilities.h"
-
+#include "AFAbilityActivationSpec.h"
 #include "GAAbilityBase.generated.h"
 
-UENUM()
-enum class EGASAbilityActivationType : uint8
-{
-	Instant,
-	Timed,
-	PeriodicTimed,
-	PeriodicInstant,
-};
 /*
 	TODO::
 	1. Add virtual functions, for default behaviours inside ability.
@@ -119,10 +111,6 @@ class ABILITYFRAMEWORK_API UGAAbilityBase : public UObject, public IIGIPawn, pub
 public:
 	FGAAbilityTick TickFunction;
 
-	/* Ability configs */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Config")
-		EGASAbilityActivationType ActivationType;
-
 	/* By default all abilities are considered to be replicated. */
 	UPROPERTY(EditAnywhere, Category = "Replication")
 		bool bReplicate;
@@ -186,7 +174,7 @@ public:
 		Tags applied to instigator of this ability, for duration of cooldown.
 		Duration of this effect equals cooldown of ability.
 	*/
-	UPROPERTY(EditAnywhere, Category = "Config")
+	UPROPERTY(EditAnywhere, meta=(AllowedClass="AFAbilityCooldownSpec"), Category = "Config")
 		FGAEffectProperty CooldownEffect;
 	FGAEffectHandle CooldownEffectHandle;
 	/*
@@ -200,7 +188,7 @@ public:
 
 		Add Periodic Effect ? (For abilities with period).
 	*/
-	UPROPERTY(EditAnywhere, Category = "Config")
+	UPROPERTY(EditAnywhere, meta = (AllowedClass = "AFAbilityActivationSpec"), Category = "Config")
 		FGAEffectProperty ActivationEffect;
 	FGAEffectHandle ActivationEffectHandle;
 	/*
@@ -287,6 +275,14 @@ public: //because I'm to lazy to write all those friend states..
 	UPROPERTY(ReplicatedUsing = OnRep_InitAbility)
 		uint8 InitAbilityCounter;
 
+	UPROPERTY(BlueprintAssignable)
+		FGASGenericAbilityDelegate OnInputPressedDelegate;
+	UPROPERTY(BlueprintAssignable)
+		FGASGenericAbilityDelegate OnInputReleasedDelegate;
+	UPROPERTY(BlueprintAssignable)
+		FGASGenericAbilityDelegate OnActivateBeginDelegate;
+	UPROPERTY(BlueprintAssignable)
+		FGASGenericAbilityDelegate OnActivationFinishedDelegate;
 public:
 	UGAAbilityBase(const FObjectInitializer& ObjectInitializer);
 

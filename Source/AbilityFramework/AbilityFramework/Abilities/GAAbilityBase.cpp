@@ -94,24 +94,19 @@ void UGAAbilityBase::OnRep_InitAbility()
 }
 void UGAAbilityBase::OnNativeInputPressed(FGameplayTag ActionName)
 {
-	//Check for cooldown and don't all inputs if on cooldown. Because.
-	//if (CanUseAbility())
 	{
 		UE_LOG(AbilityFramework, Log, TEXT("OnNativeInputPressed in ability %s"), *GetName());
 		OnInputPressed(ActionName);
+		OnInputPressedDelegate.Broadcast();
 	}
-	//else
-	//{
-	//	UE_LOG(AbilityFramework, Log, TEXT("OnNativeInputPressed in ability %s is on Cooldown."), *GetName());
-	//}
 }
 
 void UGAAbilityBase::OnNativeInputReleased(FGameplayTag ActionName)
 {
-	//if (CanReleaseAbility())
 	{
 		UE_LOG(AbilityFramework, Log, TEXT("OnNativeInputReleased in ability %s"), *GetName());
 		OnInputReleased(ActionName);
+		OnInputReleasedDelegate.Broadcast();
 	}
 }
 
@@ -136,6 +131,7 @@ void UGAAbilityBase::NativeOnBeginAbilityActivation()
 	//ActivationInfo.SetActivationInfo();
 	ApplyActivationEffect();
 	OnActivate();
+	OnActivateBeginDelegate.Broadcast();
 	AbilityComponent->AppliedTags.AddTagContainer(ActivationAddedTags);
 	//OnAbilityExecuted();
 }
@@ -152,15 +148,9 @@ void UGAAbilityBase::OnCooldownEffectExpired()
 /* Functions for activation effect delegates */
 void UGAAbilityBase::NativeOnAbilityActivationFinish(const FGAEffectHandle& InHandle)
 {
-	//OnAbilityExecutedNative();
 	UE_LOG(AbilityFramework, Log, TEXT("Ability Activation Effect Expired In Ability: %s"), *GetName());
-	//AbilityComponent->ExecutingAbility = nullptr;
-	//do not do it automatically.
-	/*if (ActivationEffectHandle.IsValid())
-	{
-		ActivationEffectHandle.GetContextRef().InstigatorComp->RemoveEffect(ActivationEffectHandle);
-	}*/
 	OnActivationFinished();
+	OnActivationFinishedDelegate.Broadcast();
 }
 void UGAAbilityBase::NativeOnAbilityActivationCancel()
 {

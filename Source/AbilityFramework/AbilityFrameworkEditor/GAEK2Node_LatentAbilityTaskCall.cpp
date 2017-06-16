@@ -4,7 +4,7 @@
 #include "Kismet/KismetArrayLibrary.h"
 #include "GameplayTask.h"
 #include "Abilities/Tasks/GAAbilityTask.h"
-#include "Abilities/GASBlueprintFunctionLibrary.h"
+#include "Abilities/AFBlueprintFunctionLibrary.h"
 #include "Abilities/GAAbilityBase.h"
 #include "KismetCompiler.h"
 #include "BlueprintEditorUtils.h"

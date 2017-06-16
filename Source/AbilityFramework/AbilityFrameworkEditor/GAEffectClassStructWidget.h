@@ -18,6 +18,7 @@ protected:
 	TSharedPtr<class SComboButton> ComboButton;
 
 	TSharedPtr<SWindow> EffectEditorWindow;
+	UBlueprint* EditedBlueprint;
 public:
 	FGAEffectClassStructWidget() {};
 	FGAEffectClassStructWidget(TSharedPtr<IPropertyHandle> InStructPropertyHandle,
@@ -42,6 +43,7 @@ public:
 
 	FText GetClassName() const;
 	FText GetDisplayValueAsString() const;
+	UClass* GetClassFromString(const FString& ClassName);
 	TSharedRef<SWidget> GenerateClassPicker();
 	void OnClassPicked(UClass* InClass);
 	void SendToObjects(const FString& NewValue);
@@ -49,5 +51,7 @@ public:
 	TSharedRef<SWidget> MakeNewBlueprintButton();
 	FReply MakeNewBlueprint();
 	FReply OnEditButtonClicked();
+	FReply OnSaveButtonClicked();
+	FReply OnSaveCloseButtonClicked();
 	FReply OnCloseButtonClicked();
 };

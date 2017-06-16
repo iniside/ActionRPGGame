@@ -513,16 +513,11 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 		void MulticastPlayMontage(UAnimMontage* MontageIn, FName SectionName, float Speed = 1);
 public:
-	/*
-		Checks on client and server, if we can activate ability. Called from InputPressed
-	*/
-	virtual bool CanActivateAbility();
-	
 	inline class UGAAbilityBase* GetGASAbility(int32 IndexIn)
 	{
 		return nullptr;
 	}
-	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Bind Ability To Action"), Category = "AbilityFramework|Abilities")
 		void BP_BindAbilityToAction(FGameplayTag ActionName, FGameplayTag AbilityTag);
 	void BindAbilityToAction(UInputComponent* InputComponent, FGameplayTag ActionName, FGameplayTag AbilityTag);
 	
@@ -534,7 +529,7 @@ public:
 		void ServerNativeInputPressed(FGameplayTag AbilityTag, FGameplayTag ActionName);
 	virtual void ServerNativeInputPressed_Implementation(FGameplayTag AbilityTag, FGameplayTag ActionName);
 	virtual bool ServerNativeInputPressed_Validate(FGameplayTag AbilityTag, FGameplayTag ActionName);
-	void SendAbilityActivationMessage(FGameplayTag AbilityTag, FGameplayTag ActionName);
+
 
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Input Released"), Category = "AbilityFramework|Abilities")
@@ -545,11 +540,13 @@ public:
 		void ServerNativeInputReleased(FGameplayTag AbilityTag, FGameplayTag ActionName);
 	virtual void ServerNativeInputReleased_Implementation(FGameplayTag AbilityTag, FGameplayTag ActionName);
 	virtual bool ServerNativeInputReleased_Validate(FGameplayTag AbilityTag, FGameplayTag ActionName);
-	void SendAbilityDeactivationMessage(FGameplayTag AbilityTag, FGameplayTag ActionName);
-	//void BindAbilitiesToInputComponent(UInputComponent* InputComponentIn, )
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Add Ability"), Category = "AbilityFramework|Abilities")
-		void BP_AddAbility(TSubclassOf<class UGAAbilityBase> AbilityClass, FGameplayTag ActionName);
+		void BP_AddAbility(TSubclassOf<class UGAAbilityBase> AbilityClass, FGameplayTag ActionName, bool bAutoBind = true);
+
+	/* Callback from server, after ability has been added. */
+	UFUNCTION(Client, Reliable)
+		void ClientOnAbilityAdded(FGameplayTag AbilityTag, FGameplayTag ActionTag);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Remove Ability"), Category = "AbilityFramework|Abilities")
 		void BP_RemoveAbility(FGameplayTag TagIn);

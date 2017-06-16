@@ -7,7 +7,7 @@
 #include "Editor/PropertyEditor/Private/IDetailsViewPrivate.h"
 #include "Editor/PropertyEditor/Private/SDetailsViewBase.h"
 #include "Editor/PropertyEditor/Private/SDetailsView.h"
-//D:\Unreal\UnrealEngine-Master\Engine\Source\Editor\PropertyEditor\Private\SDetailsView.h
+
 #include "STextCombobox.h"
 #include "STreeView.h"
 #include "SButton.h"
@@ -23,6 +23,7 @@
 #include "AssetToolsModule.h"
 #include "KismetCompilerModule.h"
 #include "Kismet2/KismetEditorUtilities.h"
+#include "Kismet2/CompilerResultsLog.h"
 #include "EffectEditor/GAEffectEditor.h"
 #include "SMyBlueprint.h"
 #include "SKismetInspector.h"
@@ -33,11 +34,14 @@
 #include "EffectEditor/GAEffectBlueprintFactory.h"
 #include "GAEffectClassStructWidget.h"
 #include "GAEffectDetails.h"
+#include "AFAbilityActionSpecDetails.h"
+#include "Abilities/AFAbilityActivationSpec.h"
+
 class SEffectCreateDialog : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SEffectCreateDialog) {}
-
+		SLATE_ARGUMENT(UClass*, MetaClass);
 	SLATE_END_ARGS()
 
 		/** Constructs this widget with InArgs */
@@ -45,7 +49,7 @@ public:
 	{
 		bOkClicked = false;
 		ParentClass = UGAGameEffectSpec::StaticClass();
-
+		MetaClass = InArgs._MetaClass;
 		ChildSlot
 			[
 				SNew(SBorder)
@@ -162,7 +166,7 @@ private:
 		TSharedPtr<FGameplayAbilityBlueprintParentFilter> Filter = MakeShareable(new FGameplayAbilityBlueprintParentFilter);
 
 		// All child child classes of UGameplayAbility are valid.
-		Filter->AllowedChildrenOfClasses.Add(UGAGameEffectSpec::StaticClass());
+		Filter->AllowedChildrenOfClasses.Add(MetaClass.Get());
 		Options.ClassFilter = Filter;
 
 		ParentClassContainer->ClearChildren();
@@ -238,6 +242,8 @@ private:
 	/** The selected class */
 	TWeakObjectPtr<UClass> ParentClass;
 
+	TWeakObjectPtr<UClass> MetaClass;
+
 	/** True if Ok was clicked */
 	bool bOkClicked;
 };
@@ -293,7 +299,7 @@ TSharedRef<SWidget> FGAEffectClassStructWidget::CreateEffectClassWidget()
 	//EffectName.Create(TAttribute<FText>::FGetter::CreateRaw(this, &FGAEffectClassStructWidget::GetClassName));
 	return SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
-		.FillWidth(0.7)
+		.AutoWidth()
 		[
 			SAssignNew(ComboButton, SComboButton)
 			.OnGetMenuContent(this, &FGAEffectClassStructWidget::GenerateClassPicker)
@@ -307,12 +313,12 @@ TSharedRef<SWidget> FGAEffectClassStructWidget::CreateEffectClassWidget()
 			]
 		]
 		+SHorizontalBox::Slot()
-			.FillWidth(0.1)
+			.AutoWidth()
 		[
 			MakeNewBlueprintButton()
 		]
 		+SHorizontalBox::Slot()
-			.FillWidth(0.2)
+			.AutoWidth()
 		[
 			SNew(SButton)
 			.OnClicked(this, &FGAEffectClassStructWidget::OnEditButtonClicked)
@@ -362,18 +368,31 @@ FText FGAEffectClassStructWidget::GetDisplayValueAsString() const
 				return FText::FromString(GetClassDisplayName(ObjectValue));
 			}
 
-			return FText::GetEmpty();
+			return FText::FromString("None");
 		}
 
-		return FText::GetEmpty();
+		return FText::FromString("None");
 	}
 	else
 	{
-		return FText::GetEmpty();
+		return FText::FromString("None");
 	}
 
 }
+UClass* FGAEffectClassStructWidget::GetClassFromString(const FString& ClassName)
+{
+	if (ClassName.IsEmpty() || ClassName == "None")
+	{
+		return nullptr;
+	}
 
+	UClass* Class = FindObject<UClass>(ANY_PACKAGE, *ClassName);
+	if (!Class)
+	{
+		Class = LoadObject<UClass>(nullptr, *ClassName);
+	}
+	return Class;
+}
 TSharedRef<SWidget> FGAEffectClassStructWidget::GenerateClassPicker()
 {
 	FClassViewerInitializationOptions Options;
@@ -386,8 +405,19 @@ TSharedRef<SWidget> FGAEffectClassStructWidget::GenerateClassPicker()
 	}
 
 	TSharedPtr<FPropertyEditorClassFilter> ClassFilter = MakeShareable(new FPropertyEditorClassFilter);
+	UClass* MetaClass = UGAGameEffectSpec::StaticClass();
+	TSharedPtr<IPropertyHandle> EffectPropertyHandleLocal = StructPropertyHandle->GetParentHandle();
+	if (EffectPropertyHandleLocal.IsValid())
+	{
+		FString ClassName = EffectPropertyHandleLocal->GetMetaData("AllowedClass");
+		UClass* temp = GetClassFromString(ClassName);
+		if (temp)
+		{
+			MetaClass = temp;
+		}
+	}
 	Options.ClassFilter = ClassFilter;
-	ClassFilter->ClassPropertyMetaClass = UGAGameEffectSpec::StaticClass();
+	ClassFilter->ClassPropertyMetaClass = MetaClass;
 	ClassFilter->InterfaceThatMustBeImplemented = nullptr;// UInterface::StaticClass();
 	ClassFilter->bAllowAbstract = false;
 	Options.bIsBlueprintBaseOnly = false;
@@ -459,7 +489,18 @@ TSharedRef<SWidget> FGAEffectClassStructWidget::MakeNewBlueprintButton()
 
 FReply FGAEffectClassStructWidget::MakeNewBlueprint()
 {
-	TSharedRef<SEffectCreateDialog> Dialog = SNew(SEffectCreateDialog);
+	UClass* MetaClass = UGAGameEffectSpec::StaticClass();
+	TSharedPtr<IPropertyHandle> EffectPropertyHandleLocal = StructPropertyHandle->GetParentHandle();
+	if (EffectPropertyHandleLocal.IsValid())
+	{
+		FString ClassName = EffectPropertyHandleLocal->GetMetaData("AllowedClass");
+		UClass* temp = GetClassFromString(ClassName);
+		if (temp)
+		{
+			MetaClass = temp;
+		}
+	}
+	TSharedRef<SEffectCreateDialog> Dialog = SNew(SEffectCreateDialog).MetaClass(MetaClass);
 	Dialog->ConfigureProperties(this);
 	if (ParentClass)
 	{
@@ -472,7 +513,7 @@ FReply FGAEffectClassStructWidget::MakeNewBlueprint()
 			UProperty* prop = StructPropertyHandle->GetProperty();
 			OuterName = prop->GetOuter()->GetName();
 		}
-		FString NewNameSuggestion = FString::Printf(TEXT("GAE_%s_"), *OuterName);
+		FString NewNameSuggestion = FString::Printf(TEXT("AFE_%s_"), *OuterName);
 		
 
 		UClass* BlueprintClass = UGAGameEffectSpec::StaticClass();
@@ -485,6 +526,8 @@ FReply FGAEffectClassStructWidget::MakeNewBlueprint()
 		FString Name;
 		FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
 		AssetToolsModule.Get().CreateUniqueAssetName(PackageName, TEXT(""), PackageName, Name);
+
+		
 
 		TSharedPtr<SDlgPickAssetPath> PickAssetPathWidget =
 			SNew(SDlgPickAssetPath)
@@ -539,8 +582,10 @@ FReply FGAEffectClassStructWidget::OnEditButtonClicked()
 {
 	if (EffectEditorWindow.IsValid())
 	{
+		EffectEditorWindow->RequestDestroyWindow();
+		EffectEditorWindow.Reset();
 		// already open, just show it
-		EffectEditorWindow->BringToFront(true);
+		//EffectEditorWindow->BringToFront(true);
 	}
 	else
 	{
@@ -570,7 +615,19 @@ FReply FGAEffectClassStructWidget::OnEditButtonClicked()
 		FPropertyEditorModule& PropertyEditorModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
 		TSharedRef<IDetailsView> DetailView = PropertyEditorModule.CreateDetailView(Args);
 		TArray<UObject*> InObjects;
-		DetailView->RegisterInstancedCustomPropertyLayout(UGAGameEffectSpec::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FGAEffectDetails::MakeInstance));
+		if (Blueprint)
+		{
+			EditedBlueprint = Blueprint;
+			if (Blueprint->ParentClass && Blueprint->ParentClass->IsChildOf(UAFAbilityActivationSpec::StaticClass()))
+			{
+				DetailView->RegisterInstancedCustomPropertyLayout(UAFAbilityActivationSpec::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityActionSpecDetails::MakeInstance));
+			}
+			else if (Blueprint->ParentClass && Blueprint->ParentClass->IsChildOf(UGAGameEffectSpec::StaticClass()))
+			{
+				DetailView->RegisterInstancedCustomPropertyLayout(UGAGameEffectSpec::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FGAEffectDetails::MakeInstance));
+			}
+		}
+		//DetailView->RegisterInstancedCustomPropertyLayout(UGAGameEffectSpec::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FGAEffectDetails::MakeInstance));
 		InObjects.Add(Class->ClassDefaultObject);
 		DetailView->SetObjects(InObjects);
 		
@@ -591,6 +648,7 @@ FReply FGAEffectClassStructWidget::OnEditButtonClicked()
 					+SHorizontalBox::Slot()
 					[
 						SNew(SButton)
+						.OnClicked(this, &FGAEffectClassStructWidget::OnSaveButtonClicked)
 						[
 							SNew(STextBlock)
 							.Text(FText::FromString("Save"))
@@ -599,9 +657,10 @@ FReply FGAEffectClassStructWidget::OnEditButtonClicked()
 					+ SHorizontalBox::Slot()
 					[
 						SNew(SButton)
+						.OnClicked(this, &FGAEffectClassStructWidget::OnSaveCloseButtonClicked)
 						[
 							SNew(STextBlock)
-							.Text(FText::FromString("SSave/Close"))
+							.Text(FText::FromString("Save/Close"))
 						]
 					]
 					+ SHorizontalBox::Slot()
@@ -635,6 +694,58 @@ FReply FGAEffectClassStructWidget::OnEditButtonClicked()
 	}
 
 	return FReply::Handled();
+}
+FReply FGAEffectClassStructWidget::OnSaveButtonClicked()
+{
+	if (EditedBlueprint)
+	{
+		FCompilerResultsLog LogResults;
+		LogResults.BeginEvent(TEXT("Compile"));
+		LogResults.bLogDetailedResults = false;
+		LogResults.EventDisplayThresholdMs = 0.1;
+		EBlueprintCompileOptions CompileOptions = EBlueprintCompileOptions::None;
+		CompileOptions |= EBlueprintCompileOptions::SaveIntermediateProducts;
+
+		FKismetEditorUtilities::CompileBlueprint(EditedBlueprint, CompileOptions, &LogResults);
+		TArray<UPackage*> PackagesToSave;
+		check((EditedBlueprint != nullptr) && EditedBlueprint->IsAsset());
+		PackagesToSave.Add(EditedBlueprint->GetOutermost());
+
+		FEditorFileUtils::PromptForCheckoutAndSave(PackagesToSave, true, /*bPromptToSave=*/ false);
+		EditedBlueprint = nullptr;
+	}
+	return FReply::Unhandled();
+}
+FReply FGAEffectClassStructWidget::OnSaveCloseButtonClicked()
+{
+	if (EditedBlueprint)
+	{
+		FCompilerResultsLog LogResults;
+		LogResults.BeginEvent(TEXT("Compile"));
+		LogResults.bLogDetailedResults = false;
+		LogResults.EventDisplayThresholdMs = 0.1;
+		EBlueprintCompileOptions CompileOptions = EBlueprintCompileOptions::None;
+		CompileOptions |= EBlueprintCompileOptions::SaveIntermediateProducts;
+
+		FKismetEditorUtilities::CompileBlueprint(EditedBlueprint, CompileOptions, &LogResults);
+		TArray<UPackage*> PackagesToSave;
+		check((EditedBlueprint != nullptr) && EditedBlueprint->IsAsset());
+		PackagesToSave.Add(EditedBlueprint->GetOutermost());
+
+		FEditorFileUtils::PromptForCheckoutAndSave(PackagesToSave, true, /*bPromptToSave=*/ false);
+
+		EditedBlueprint = nullptr;
+
+		if (EffectEditorWindow.IsValid())
+		{
+			EffectEditorWindow->RequestDestroyWindow();
+			EffectEditorWindow = nullptr;
+			
+			return FReply::Handled();
+		}
+	}
+	
+	return FReply::Unhandled();
 }
 FReply FGAEffectClassStructWidget::OnCloseButtonClicked()
 {
