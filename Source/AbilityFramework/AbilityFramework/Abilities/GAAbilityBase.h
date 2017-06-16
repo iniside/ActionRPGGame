@@ -188,7 +188,7 @@ public:
 
 		Add Periodic Effect ? (For abilities with period).
 	*/
-	UPROPERTY(EditAnywhere, meta = (AllowedClass = "AFAbilityActivationSpec"), Category = "Config")
+	UPROPERTY(EditAnywhere, meta = (AllowedClass = "AFAbilityActivationSpec,AFAbilityPeriodSpec"), Category = "Config")
 		FGAEffectProperty ActivationEffect;
 	FGAEffectHandle ActivationEffectHandle;
 	/*

@@ -9,6 +9,10 @@
 #include "Effects/GAGameEffect.h"
 #include "GAEffectDetails.h"
 #include "Effects/AFEffectCustomApplication.h"
+#include "AFEffectCustomizationCommon.h"
+#include "Abilities/AFAbilityActivationSpec.h"
+#include "Abilities/AFAbilityPeriodSpec.h"
+#include "Abilities/AFAbilityCooldownSpec.h"
 TSharedRef<IDetailCustomization> FGAEffectDetails::MakeInstance()
 {
 	return MakeShareable(new FGAEffectDetails);
@@ -25,50 +29,78 @@ void FGAEffectDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 	FSimpleDelegate UpdateEffectTypeyDelegate = FSimpleDelegate::CreateSP(this, &FGAEffectDetails::OnDurationPolicyChange);
 	ApplicationTypeHandle->SetOnPropertyValueChanged(UpdateEffectTypeyDelegate);
 
+	DurationHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Duration), UGAGameEffectSpec::StaticClass());
+	PeriodHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Period), UGAGameEffectSpec::StaticClass());
+	DurationHandle->SetOnPropertyValueChanged(UpdateEffectTypeyDelegate);
+	PeriodHandle->SetOnPropertyValueChanged(UpdateEffectTypeyDelegate);
+
+	DurationCalcTypeHandle = DurationHandle->GetChildHandle("CalculationType");
+	PeriodCalcTypeHandle = PeriodHandle->GetChildHandle("CalculationType");
+
+	DurationCalcTypeHandle->SetOnPropertyValueChanged(UpdateEffectTypeyDelegate);
+	PeriodCalcTypeHandle->SetOnPropertyValueChanged(UpdateEffectTypeyDelegate);
+
 	for (TWeakObjectPtr<UObject> obj : Objects)
 	{
 		if (UGAGameEffectSpec* Spec = Cast<UGAGameEffectSpec>(obj.Get()))
 		{
-			bIsDuration = Spec->Application.GetDefaultObject()->ShowDuration();
-			bIsPeriodic = Spec->Application.GetDefaultObject()->ShowPeriod();
-
-			if (bIsPeriodic && bIsDuration)
+			if (!Spec->IsA(UAFAbilityActivationSpec::StaticClass())
+				&& !Spec->IsA(UAFAbilityPeriodSpec::StaticClass())
+				&& !Spec->IsA(UAFAbilityCooldownSpec::StaticClass())
+				)
 			{
+				bIsDuration = Spec->Application.GetDefaultObject()->ShowDuration();
+				bIsPeriodic = Spec->Application.GetDefaultObject()->ShowPeriod();
 
-			}
-			else if (!bIsPeriodic && bIsDuration)
-			{
-				TSharedPtr<IPropertyHandle> MaxStacksProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, MaxStacks), UGAGameEffectSpec::StaticClass());
-				TSharedPtr<IPropertyHandle> DurationProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Duration), UGAGameEffectSpec::StaticClass());
-				TSharedPtr<IPropertyHandle> PeriodProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Period), UGAGameEffectSpec::StaticClass());
-				TSharedPtr<IPropertyHandle> MaxStackedDurationProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, MaxStackedDuration), UGAGameEffectSpec::StaticClass());
+				if (bIsPeriodic && bIsDuration)
+				{
+					DetailLayout.HideProperty(PeriodHandle);
+					DetailLayout.HideProperty(DurationHandle);
+					FAFEffectCustomizationCommon::CreateMagnitudeLayout(DetailLayout, DurationHandle, "Duration");
+					FAFEffectCustomizationCommon::CreateMagnitudeLayout(DetailLayout, PeriodHandle, "Period");
+				}
+				else if (!bIsPeriodic && bIsDuration)
+				{
+					TSharedPtr<IPropertyHandle> MaxStacksProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, MaxStacks), UGAGameEffectSpec::StaticClass());
+					TSharedPtr<IPropertyHandle> MaxStackedDurationHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, MaxStackedDuration), UGAGameEffectSpec::StaticClass());
 
-				DetailLayout.HideProperty(MaxStacksProp);
-				DetailLayout.HideProperty(PeriodProp);
-				DetailLayout.HideProperty(MaxStackedDurationProp);
-			}
-			else if (bIsPeriodic && !bIsDuration)
-			{
-				TSharedPtr<IPropertyHandle> MaxStacksProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, MaxStacks), UGAGameEffectSpec::StaticClass());
-				TSharedPtr<IPropertyHandle> DurationProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Duration), UGAGameEffectSpec::StaticClass());
-				TSharedPtr<IPropertyHandle> PeriodProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Period), UGAGameEffectSpec::StaticClass());
-				TSharedPtr<IPropertyHandle> MaxStackedDurationProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, MaxStackedDuration), UGAGameEffectSpec::StaticClass());
+					DetailLayout.HideProperty(MaxStacksProp);
+					DetailLayout.HideProperty(PeriodHandle);
+					DetailLayout.HideProperty(DurationHandle);
+					DetailLayout.HideProperty(MaxStackedDurationHandle);
 
-				DetailLayout.HideProperty(MaxStacksProp);
-				DetailLayout.HideProperty(DurationProp);
-				DetailLayout.HideProperty(MaxStackedDurationProp);
-			}
-			else if (!bIsPeriodic && !bIsDuration)
-			{
-				TSharedPtr<IPropertyHandle> MaxStacksProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, MaxStacks), UGAGameEffectSpec::StaticClass());
-				TSharedPtr<IPropertyHandle> DurationProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Duration), UGAGameEffectSpec::StaticClass());
-				TSharedPtr<IPropertyHandle> PeriodProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Period), UGAGameEffectSpec::StaticClass());
-				TSharedPtr<IPropertyHandle> MaxStackedDurationProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, MaxStackedDuration), UGAGameEffectSpec::StaticClass());
+					FAFEffectCustomizationCommon::CreateMagnitudeLayout(DetailLayout, DurationHandle, "Duration");
+				}
+				else if (bIsPeriodic && !bIsDuration)
+				{
+					TSharedPtr<IPropertyHandle> MaxStacksProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, MaxStacks), UGAGameEffectSpec::StaticClass());
+					TSharedPtr<IPropertyHandle> MaxStackedDurationHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, MaxStackedDuration), UGAGameEffectSpec::StaticClass());
 
-				DetailLayout.HideProperty(MaxStacksProp);
-				DetailLayout.HideProperty(DurationProp);
-				DetailLayout.HideProperty(PeriodProp);
-				DetailLayout.HideProperty(MaxStackedDurationProp);
+					DetailLayout.HideProperty(MaxStacksProp);
+					DetailLayout.HideProperty(DurationHandle);
+					DetailLayout.HideProperty(PeriodHandle);
+					DetailLayout.HideProperty(MaxStackedDurationHandle);
+
+					FAFEffectCustomizationCommon::CreateMagnitudeLayout(DetailLayout, PeriodHandle, "Period");
+				}
+				else if (!bIsPeriodic && !bIsDuration)
+				{
+					TSharedPtr<IPropertyHandle> MaxStacksProp = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, MaxStacks), UGAGameEffectSpec::StaticClass());
+					TSharedPtr<IPropertyHandle> MaxStackedDurationHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, MaxStackedDuration), UGAGameEffectSpec::StaticClass());
+
+					DetailLayout.HideProperty(MaxStacksProp);
+					DetailLayout.HideProperty(DurationHandle);
+					DetailLayout.HideProperty(PeriodHandle);
+					DetailLayout.HideProperty(MaxStackedDurationHandle);
+					DetailLayout.HideCategory("Duration");
+					FAFEffectCustomizationCommon::HideProperty(DetailLayout, "EffectAggregation");
+					FAFEffectCustomizationCommon::HideProperty(DetailLayout, "OnExpiredEffects");
+					FAFEffectCustomizationCommon::HideProperty(DetailLayout, "OnRemovedEffects");
+					FAFEffectCustomizationCommon::HideProperty(DetailLayout, "AttributeTags");
+					FAFEffectCustomizationCommon::HideProperty(DetailLayout, "AppliedImmunityTags");
+					FAFEffectCustomizationCommon::HideProperty(DetailLayout, "ApplyTags");
+
+				}
 			}
 		}
 	}

@@ -139,7 +139,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Duration")
 		FGAMagnitude Duration;
 	/* Duration of single period. */
-	UPROPERTY(EditAnywhere, Category = "Duration")
+	UPROPERTY(EditAnywhere, Category = "Period")
 		FGAMagnitude Period;
 	/* Total duration of effect (if applicable) */
 	UPROPERTY(EditAnywhere, Category = "Duration")

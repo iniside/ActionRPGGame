@@ -4,7 +4,7 @@
 #include "Kismet/KismetArrayLibrary.h"
 #include "GameplayTask.h"
 #include "Effects/EffectTasks/AFEffectTask.h"
-#include "Abilities/GASBlueprintFunctionLibrary.h"
+#include "Abilities/AFBlueprintFunctionLibrary.h"
 #include "Effects/GAEffectExtension.h"
 #include "KismetCompiler.h"
 #include "BlueprintEditorUtils.h"

@@ -6,7 +6,7 @@
 #include "IDetailCustomization.h"
 #include "PropertyHandle.h"
 
-class FAFAbilityActivationSpecDetails : public IDetailCustomization
+class FAFAbilityPeriodSpecDetails : public IDetailCustomization
 {
 
 protected:
@@ -22,6 +22,7 @@ private:
 	TSharedPtr<IPropertyHandle> DurationProperty;
 	TSharedPtr<IPropertyHandle> PeriodProperty;
 	TSharedPtr<IPropertyHandle> DurationCalcTypeProp;
+	TSharedPtr<IPropertyHandle> PeriodCalcTypeProp;
 	IDetailLayoutBuilder* MyDetailLayout;
 	/** IDetailCustomization interface */
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailLayout) override;

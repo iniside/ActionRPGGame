@@ -6,7 +6,7 @@
 #include "IDetailCustomization.h"
 #include "PropertyHandle.h"
 
-class FAFAbilityActivationSpecDetails : public IDetailCustomization
+class FAFAbilityCooldownSpecDetails : public IDetailCustomization
 {
 
 protected:

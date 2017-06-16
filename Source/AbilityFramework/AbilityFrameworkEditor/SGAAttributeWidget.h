@@ -6,6 +6,22 @@
 
 DECLARE_DELEGATE_OneParam(FGAOnAttributeSelected, FString);
 
+class FAFAttributeNode
+{
+	FString NodeName;
+	
+	FString Attribute;
+
+	TWeakPtr<FAFAttributeNode> ParentNode;
+
+	TArray<TSharedPtr<FAFAttributeNode> > ChildNodes;
+};
+
+class FAFAttributeTree
+{
+
+};
+
 class SGAAttributeWidget : public SCompoundWidget
 {
 	SLATE_BEGIN_ARGS(SGAAttributeWidget)

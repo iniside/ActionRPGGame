@@ -13,8 +13,8 @@ UCLASS()
 class ABILITYFRAMEWORK_API UAFAbilityCooldownSpec : public UGAGameEffectSpec
 {
 	GENERATED_BODY()
-	
-	
+public:
+	UAFAbilityCooldownSpec();
 	
 	
 };

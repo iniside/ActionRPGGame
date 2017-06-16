@@ -4,18 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Effects/GAGameEffect.h"
-#include "AFAbilityActivationSpec.generated.h"
+#include "AFAbilityPeriodSpec.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ABILITYFRAMEWORK_API UAFAbilityActivationSpec : public UGAGameEffectSpec
+class ABILITYFRAMEWORK_API UAFAbilityPeriodSpec : public UGAGameEffectSpec
 {
 	GENERATED_BODY()
-	
 public:
-	UAFAbilityActivationSpec();
+	UAFAbilityPeriodSpec();
 	
 	
 };

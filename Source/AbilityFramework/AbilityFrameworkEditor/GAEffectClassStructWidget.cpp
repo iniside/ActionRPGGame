@@ -35,13 +35,17 @@
 #include "GAEffectClassStructWidget.h"
 #include "GAEffectDetails.h"
 #include "AFAbilityActionSpecDetails.h"
+#include "AFAbilityPeriodSpecDetails.h"
+#include "AFAbilityCooldownSpecDetails.h"
 #include "Abilities/AFAbilityActivationSpec.h"
+#include "Abilities/AFAbilityPeriodSpec.h"
+#include "Abilities/AFAbilityCooldownSpec.h"
 
 class SEffectCreateDialog : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SEffectCreateDialog) {}
-		SLATE_ARGUMENT(UClass*, MetaClass);
+		SLATE_ARGUMENT(TSet<const UClass*>, MetaClass);
 	SLATE_END_ARGS()
 
 		/** Constructs this widget with InArgs */
@@ -166,7 +170,7 @@ private:
 		TSharedPtr<FGameplayAbilityBlueprintParentFilter> Filter = MakeShareable(new FGameplayAbilityBlueprintParentFilter);
 
 		// All child child classes of UGameplayAbility are valid.
-		Filter->AllowedChildrenOfClasses.Add(MetaClass.Get());
+		Filter->AllowedChildrenOfClasses = MetaClass;
 		Options.ClassFilter = Filter;
 
 		ParentClassContainer->ClearChildren();
@@ -242,7 +246,7 @@ private:
 	/** The selected class */
 	TWeakObjectPtr<UClass> ParentClass;
 
-	TWeakObjectPtr<UClass> MetaClass;
+	TSet<const UClass*> MetaClass;
 
 	/** True if Ok was clicked */
 	bool bOkClicked;
@@ -404,22 +408,58 @@ TSharedRef<SWidget> FGAEffectClassStructWidget::GenerateClassPicker()
 		Options.PropertyHandle = EffectPropertyHandle;
 	}
 
-	TSharedPtr<FPropertyEditorClassFilter> ClassFilter = MakeShareable(new FPropertyEditorClassFilter);
-	UClass* MetaClass = UGAGameEffectSpec::StaticClass();
+	
+	class FGameplayAbilityBlueprintParentFilter : public IClassViewerFilter
+	{
+	public:
+		/** All children of these classes will be included unless filtered out by another setting. */
+		TSet< const UClass* > AllowedChildrenOfClasses;
+
+		FGameplayAbilityBlueprintParentFilter() {}
+
+		virtual bool IsClassAllowed(const FClassViewerInitializationOptions& InInitOptions, const UClass* InClass, TSharedRef< FClassViewerFilterFuncs > InFilterFuncs) override
+		{
+			// If it appears on the allowed child-of classes list (or there is nothing on that list)
+			return InFilterFuncs->IfInChildOfClassesSet(AllowedChildrenOfClasses, InClass) != EFilterReturn::Failed;
+		}
+
+		virtual bool IsUnloadedClassAllowed(const FClassViewerInitializationOptions& InInitOptions, const TSharedRef< const IUnloadedBlueprintData > InUnloadedClassData, TSharedRef< FClassViewerFilterFuncs > InFilterFuncs) override
+		{
+			// If it appears on the allowed child-of classes list (or there is nothing on that list)
+			return InFilterFuncs->IfInChildOfClassesSet(AllowedChildrenOfClasses, InUnloadedClassData) != EFilterReturn::Failed;
+		}
+	};
+	TSharedPtr<FGameplayAbilityBlueprintParentFilter> ClassFilter = MakeShareable(new FGameplayAbilityBlueprintParentFilter);
+	
+	TSet<const UClass*> MetaClass;
 	TSharedPtr<IPropertyHandle> EffectPropertyHandleLocal = StructPropertyHandle->GetParentHandle();
 	if (EffectPropertyHandleLocal.IsValid())
 	{
 		FString ClassName = EffectPropertyHandleLocal->GetMetaData("AllowedClass");
-		UClass* temp = GetClassFromString(ClassName);
-		if (temp)
+		TArray<FString> ClassNames;
+		//ClassName.Pars
+		ClassName.ParseIntoArray(ClassNames, TEXT(","));
+		if (ClassNames.Num() > 0)
 		{
-			MetaClass = temp;
+			for (const FString& name : ClassNames)
+			{
+				UClass* temp = GetClassFromString(name);
+				if (temp)
+				{
+					MetaClass.Add(temp);
+				}
+			}
+		}
+		else
+		{
+			MetaClass.Add(UGAGameEffectSpec::StaticClass());
 		}
 	}
+	ClassFilter->AllowedChildrenOfClasses = MetaClass;
 	Options.ClassFilter = ClassFilter;
-	ClassFilter->ClassPropertyMetaClass = MetaClass;
-	ClassFilter->InterfaceThatMustBeImplemented = nullptr;// UInterface::StaticClass();
-	ClassFilter->bAllowAbstract = false;
+	//ClassFilter->ClassPropertyMetaClass = MetaClass;
+	//ClassFilter->InterfaceThatMustBeImplemented = nullptr;// UInterface::StaticClass();
+	//ClassFilter->bAllowAbstract = false;
 	Options.bIsBlueprintBaseOnly = false;
 	Options.bIsPlaceableOnly = false;
 	Options.DisplayMode = EClassViewerDisplayMode::TreeView;// : EClassViewerDisplayMode::ListView;
@@ -489,16 +529,26 @@ TSharedRef<SWidget> FGAEffectClassStructWidget::MakeNewBlueprintButton()
 
 FReply FGAEffectClassStructWidget::MakeNewBlueprint()
 {
-	UClass* MetaClass = UGAGameEffectSpec::StaticClass();
+	TSet<const UClass*> MetaClass;
 	TSharedPtr<IPropertyHandle> EffectPropertyHandleLocal = StructPropertyHandle->GetParentHandle();
-	if (EffectPropertyHandleLocal.IsValid())
+	FString ClassName = EffectPropertyHandleLocal->GetMetaData("AllowedClass");
+	TArray<FString> ClassNames;
+	//ClassName.Pars
+	ClassName.ParseIntoArray(ClassNames, TEXT(","));
+	if (ClassNames.Num() > 0)
 	{
-		FString ClassName = EffectPropertyHandleLocal->GetMetaData("AllowedClass");
-		UClass* temp = GetClassFromString(ClassName);
-		if (temp)
+		for (const FString& name : ClassNames)
 		{
-			MetaClass = temp;
+			UClass* temp = GetClassFromString(name);
+			if (temp)
+			{
+				MetaClass.Add(temp);
+			}
 		}
+	}
+	else
+	{
+		MetaClass.Add(UGAGameEffectSpec::StaticClass());
 	}
 	TSharedRef<SEffectCreateDialog> Dialog = SNew(SEffectCreateDialog).MetaClass(MetaClass);
 	Dialog->ConfigureProperties(this);
@@ -512,6 +562,7 @@ FReply FGAEffectClassStructWidget::MakeNewBlueprint()
 		{
 			UProperty* prop = StructPropertyHandle->GetProperty();
 			OuterName = prop->GetOuter()->GetName();
+			OuterName = prop->GetPathName();
 		}
 		FString NewNameSuggestion = FString::Printf(TEXT("AFE_%s_"), *OuterName);
 		
@@ -582,12 +633,13 @@ FReply FGAEffectClassStructWidget::OnEditButtonClicked()
 {
 	if (EffectEditorWindow.IsValid())
 	{
-		EffectEditorWindow->RequestDestroyWindow();
+		//EffectEditorWindow->RequestDestroyWindow();
+		EffectEditorWindow->DestroyWindowImmediately();
 		EffectEditorWindow.Reset();
 		// already open, just show it
 		//EffectEditorWindow->BringToFront(true);
 	}
-	else
+	
 	{
 		UObject* OutVal = nullptr;
 		UGAEffectBlueprint* Blueprint = nullptr;
@@ -620,7 +672,15 @@ FReply FGAEffectClassStructWidget::OnEditButtonClicked()
 			EditedBlueprint = Blueprint;
 			if (Blueprint->ParentClass && Blueprint->ParentClass->IsChildOf(UAFAbilityActivationSpec::StaticClass()))
 			{
-				DetailView->RegisterInstancedCustomPropertyLayout(UAFAbilityActivationSpec::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityActionSpecDetails::MakeInstance));
+				DetailView->RegisterInstancedCustomPropertyLayout(UAFAbilityActivationSpec::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityActivationSpecDetails::MakeInstance));
+			}
+			else if (Blueprint->ParentClass && Blueprint->ParentClass->IsChildOf(UAFAbilityPeriodSpec::StaticClass()))
+			{
+				DetailView->RegisterInstancedCustomPropertyLayout(UAFAbilityPeriodSpec::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityPeriodSpecDetails::MakeInstance));
+			}
+			else if (Blueprint->ParentClass && Blueprint->ParentClass->IsChildOf(UAFAbilityCooldownSpec::StaticClass()))
+			{
+				DetailView->RegisterInstancedCustomPropertyLayout(UAFAbilityCooldownSpec::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityCooldownSpecDetails::MakeInstance));
 			}
 			else if (Blueprint->ParentClass && Blueprint->ParentClass->IsChildOf(UGAGameEffectSpec::StaticClass()))
 			{
@@ -630,9 +690,10 @@ FReply FGAEffectClassStructWidget::OnEditButtonClicked()
 		//DetailView->RegisterInstancedCustomPropertyLayout(UGAGameEffectSpec::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FGAEffectDetails::MakeInstance));
 		InObjects.Add(Class->ClassDefaultObject);
 		DetailView->SetObjects(InObjects);
-		
+		FString WindowTitle = "Effect Editor: ";
+		WindowTitle += Blueprint->GetName();
 		EffectEditorWindow = SNew(SWindow)
-			.Title(FText::FromString("Effect Editor"))
+			.Title(FText::FromString(WindowTitle))
 			.HasCloseButton(true)
 			.ClientSize(FVector2D(600, 400));
 		EffectEditorWindow->SetContent(

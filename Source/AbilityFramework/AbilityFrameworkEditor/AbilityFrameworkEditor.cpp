@@ -8,9 +8,11 @@
 #include "GAAttributeDetailCustomization.h"
 
 #include "GAEffectDetails.h"
-#include "GAEffectSpecStructCustomization.h"
+//#include "GAEffectSpecStructCustomization.h"
 #include "GAEffectPropertyStructCustomization.h"
 #include "AFAbilityActionSpecDetails.h"
+#include "AFAbilityPeriodSpecDetails.h"
+#include "AFAbilityCooldownSpecDetails.h"
 
 #include "AssetToolsModule.h"
 #include "IAssetTypeActions.h"
@@ -88,14 +90,15 @@ class FAbilityFrameworkEditor : public IAbilityFrameworkEditor
 	{
 		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 		PropertyModule.RegisterCustomPropertyTypeLayout("GAAttribute", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGAAttributeDetailCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("GAEffectClass", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGAEffectSpecStructCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout("GAEffectProperty", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGAEffectPropertyStructCustomization::MakeInstance));
 
 		TSharedPtr<FGAAttributePanelGraphPinFactory> GAAttributePanelGraphPinFactory = MakeShareable(new FGAAttributePanelGraphPinFactory());
 		FEdGraphUtilities::RegisterVisualPinFactory(GAAttributePanelGraphPinFactory);
 
+		PropertyModule.RegisterCustomClassLayout("AFAbilityActivationSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityActivationSpecDetails::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout("AFAbilityPeriodSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityPeriodSpecDetails::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout("AFAbilityCooldownSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityCooldownSpecDetails::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout("GAGameEffectSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FGAEffectDetails::MakeInstance));
-		PropertyModule.RegisterCustomClassLayout("AFAbilityActivationSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityActionSpecDetails::MakeInstance));
 
 		IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
 		TSharedRef<IAssetTypeActions> GABAction = MakeShareable(new FAssetTypeActions_GAEffectBlueprint());
@@ -113,9 +116,12 @@ class FAbilityFrameworkEditor : public IAbilityFrameworkEditor
 		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 		PropertyModule.UnregisterCustomClassLayout("GAGameEffectSpec");
 		PropertyModule.UnregisterCustomClassLayout("AFAbilityActivationSpec");
+		PropertyModule.UnregisterCustomClassLayout("AFAbilityPeriodSpec");
+		PropertyModule.UnregisterCustomClassLayout("AFAbilityCooldownSpec");
 
 		PropertyModule.UnregisterCustomPropertyTypeLayout("GAAttribute");
-		PropertyModule.UnregisterCustomPropertyTypeLayout("GAEffectClass");
+		PropertyModule.UnregisterCustomPropertyTypeLayout("GAEffectProperty");
+
 		UGAEffectCueSequence::OnInitializeSequence().Remove(OnInitializeSequenceHandle);
 		BlueprintEditorTabBinding = nullptr;
 		if (FModuleManager::Get().IsModuleLoaded("AssetTools"))

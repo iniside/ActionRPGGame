@@ -6,16 +6,16 @@
 #include "STextCombobox.h"
 #include "STreeView.h"
 
-#include "Abilities/AFAbilityActivationSpec.h"
-#include "AFAbilityActionSpecDetails.h"
+#include "Abilities/AFAbilityCooldownSpec.h"
+#include "AFAbilityCooldownSpecDetails.h"
 #include "Effects/AFEffectCustomApplication.h"
 #include "AFEffectCustomizationCommon.h"
-TSharedRef<IDetailCustomization> FAFAbilityActivationSpecDetails::MakeInstance()
+TSharedRef<IDetailCustomization> FAFAbilityCooldownSpecDetails::MakeInstance()
 {
-	return MakeShareable(new FAFAbilityActivationSpecDetails);
+	return MakeShareable(new FAFAbilityCooldownSpecDetails);
 }
 
-void FAFAbilityActivationSpecDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
+void FAFAbilityCooldownSpecDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 {
 	MyDetailLayout = &DetailLayout;
 
@@ -23,12 +23,12 @@ void FAFAbilityActivationSpecDetails::CustomizeDetails(IDetailLayoutBuilder& Det
 	DetailLayout.GetObjectsBeingCustomized(Objects);
 
 	ApplicationTypeHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Application), UGAGameEffectSpec::StaticClass());
-	FSimpleDelegate UpdateEffectTypeyDelegate = FSimpleDelegate::CreateSP(this, &FAFAbilityActivationSpecDetails::OnDurationPolicyChange);
+	FSimpleDelegate UpdateEffectTypeyDelegate = FSimpleDelegate::CreateSP(this, &FAFAbilityCooldownSpecDetails::OnDurationPolicyChange);
 	ApplicationTypeHandle->SetOnPropertyValueChanged(UpdateEffectTypeyDelegate);
 
 	for (TWeakObjectPtr<UObject> obj : Objects)
 	{
-		if (UAFAbilityActivationSpec* Spec = Cast<UAFAbilityActivationSpec>(obj.Get()))
+		if (UAFAbilityCooldownSpec* Spec = Cast<UAFAbilityCooldownSpec>(obj.Get()))
 		{
 			bIsDuration = Spec->Application.GetDefaultObject()->ShowDuration();
 			bIsPeriodic = Spec->Application.GetDefaultObject()->ShowPeriod();
@@ -69,7 +69,7 @@ void FAFAbilityActivationSpecDetails::CustomizeDetails(IDetailLayoutBuilder& Det
 		}
 	}
 }
-void FAFAbilityActivationSpecDetails::OnDurationPolicyChange()
+void FAFAbilityCooldownSpecDetails::OnDurationPolicyChange()
 {
 	MyDetailLayout->ForceRefreshDetails();
 }
