@@ -333,12 +333,14 @@ public:
 
 	TSubclassOf<UGAGameEffectSpec> GetClass() const { return SpecClass.SpecClass; }
 	const TSubclassOf<UGAGameEffectSpec>& GetClassRef() { return SpecClass.SpecClass; }
-	UGAGameEffectSpec* GetSpec() const { return SpecClass.SpecClass->GetDefaultObject<UGAGameEffectSpec>(); }
+	UGAGameEffectSpec* GetSpec() const { return Spec; }
 
 	//intentionally non const.
 	FGAEffectHandle& GetHandleRef() { return Handle; }
 	void SetHandle(const FGAEffectHandle& InHandle) { Handle = InHandle; };
 	void OnEffectRemoved(UObject* InTarget, const FGAEffectHandle& InHandle) {}
+	void Initialize();
+	void InitializeIfNotInitialized();
 
 	FObjectKey GetClassKey() const
 	{
@@ -353,6 +355,7 @@ public:
 	{
 		return ApplicationRequirement && Application && Execution && Spec;
 	}
+	
 	const bool IsValidHandle() const
 	{
 		return Handle.IsValid();
@@ -541,7 +544,7 @@ struct ABILITYFRAMEWORK_API FGAInstigatorInstancedEffectContainer
 */
 
 USTRUCT(BlueprintType)
-struct ABILITYFRAMEWORK_API FGAEffectRepInfo : public FFastArraySerializerItem
+struct ABILITYFRAMEWORK_API FAFEffectRepInfo : public FFastArraySerializerItem
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -560,8 +563,8 @@ public:
 
 	FSimpleDelegate OnAppliedDelegate;
 
-	UPROPERTY()
-		FGAEffectContext Context;
+	//UPROPERTY()
+	//	FGAEffectContext Context;
 
 	void OnApplied();
 	void OnPeriod();
@@ -572,15 +575,15 @@ public:
 	void PostReplicatedChange(const struct FGAEffectContainer& InArraySerializer);
 
 
-	FGAEffectRepInfo()
+	FAFEffectRepInfo()
 	{};
 
-	const bool operator==(const FGAEffectRepInfo& Other) const
+	const bool operator==(const FAFEffectRepInfo& Other) const
 	{
 		return Handle == Other.Handle;
 	}
 
-	FGAEffectRepInfo(float AppliedTimeIn, float PeriodTimeIn, float DurationIn, float ReplicationTimeIn)
+	FAFEffectRepInfo(float AppliedTimeIn, float PeriodTimeIn, float DurationIn, float ReplicationTimeIn)
 		: AppliedTime(AppliedTimeIn),
 		PeriodTime(PeriodTimeIn),
 		Duration(DurationIn),
@@ -616,11 +619,11 @@ struct ABILITYFRAMEWORK_API FGAEffectContainer : public FFastArraySerializer
 	GENERATED_USTRUCT_BODY()
 public:
 	UPROPERTY()
-		TArray<FGAEffectRepInfo> ActiveEffectInfos;
+		TArray<FAFEffectRepInfo> ActiveEffectInfos;
 	//IDK might be actually easier to map Handles to active effects on clients
 	//as Handle should be synced between client and server.
 	//that's why handle should only be created on server (and by that, effects).
-	TMap<FGAEffectHandle, FGAEffectRepInfo> EffectInfos;
+	mutable TMap<FGAEffectHandle, FAFEffectRepInfo*> EffectInfos;
 
 
 
@@ -694,7 +697,7 @@ public:
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
 	{
 		//return FastArrayDeltaSerialize<FGAEffectRepInfo>(ActiveEffectInfos, DeltaParms, *this);
-		return FFastArraySerializer::FastArrayDeltaSerialize<FGAEffectRepInfo, FGAEffectContainer>(ActiveEffectInfos, DeltaParms, *this);
+		return FFastArraySerializer::FastArrayDeltaSerialize<FAFEffectRepInfo, FGAEffectContainer>(ActiveEffectInfos, DeltaParms, *this);
 	}
 	UWorld* GetWorld() const;
 	

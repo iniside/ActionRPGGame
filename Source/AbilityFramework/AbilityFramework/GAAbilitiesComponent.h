@@ -28,12 +28,15 @@ DECLARE_CYCLE_STAT_EXTERN(TEXT("AttributeComponentApplyEffect"), STAT_ApplyEffec
 DECLARE_CYCLE_STAT_EXTERN(TEXT("AttributeComponentModifyAttribute"), STAT_ModifyAttribute, STATGROUP_AttributeComponent, );
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGAOnAttributeChanged);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGAOnAttributeModifed, const FGAEffectMod&, Mod, float, Value);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGAOnAttributeModifed, const FAFAttributeChangedData&, Mod);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGAGenericEffectDelegate, const FGAEffectHandle&, Handle, const FGameplayTagContainer&, Tags);
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FAFEventDelegate , FAFEventData);
 DECLARE_MULTICAST_DELEGATE_OneParam(FAFAttributeChangedDelegate, FAFAttributeChangedData);
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FAFEffectRepInfoDelegate, FAFEffectRepInfo*);
+
 USTRUCT()
 struct FGAModifiedAttributeData
 {
@@ -228,6 +231,8 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_GameEffectContainer)
 		FGAEffectContainer GameEffectContainer;
 
+	FAFEffectRepInfoDelegate OnEffectRepInfoApplied;
+	FAFEffectRepInfoDelegate OnEffectRepInfoRemoved;
 	/*
 		Default effects applied when character spawns.
 		Can contain things like attribute regen, racial bonuses

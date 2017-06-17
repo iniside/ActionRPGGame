@@ -6,10 +6,12 @@
 #include "IDetailCustomization.h"
 #include "PropertyHandle.h"
 
-class FAFAbilityActivationSpecDetails : public IDetailCustomization
+class FAFAbilityInfiniteDurationSpecDetails : public IDetailCustomization
 {
 
 protected:
+	bool bIsDuration;
+	bool bIsPeriodic;
 	TSharedPtr<IPropertyHandle> ApplicationTypeHandle;
 public:
 	/** Makes a new instance of this detail layout class for a specific detail view requesting it */
@@ -17,8 +19,8 @@ public:
 
 private:
 	TSharedPtr<IPropertyHandle> MyProperty;
-	//TSharedPtr<IPropertyHandle> DurationProperty;
-	//TSharedPtr<IPropertyHandle> PeriodProperty;
+	TSharedPtr<IPropertyHandle> DurationProperty;
+	TSharedPtr<IPropertyHandle> PeriodProperty;
 	TSharedPtr<IPropertyHandle> DurationCalcTypeProp;
 	TSharedPtr<IDetailLayoutBuilder> MyDetailLayout;
 	/** IDetailCustomization interface */

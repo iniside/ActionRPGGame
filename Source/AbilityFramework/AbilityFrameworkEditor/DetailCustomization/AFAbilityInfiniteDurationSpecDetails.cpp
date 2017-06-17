@@ -6,27 +6,29 @@
 #include "STextCombobox.h"
 #include "STreeView.h"
 
-#include "Abilities/AFAbilityCooldownSpec.h"
-#include "AFAbilityCooldownSpecDetails.h"
+#include "Abilities/AFAbilityInfiniteDurationSpec.h"
+#include "AFAbilityInfiniteDurationSpecDetails.h"
 #include "Effects/AFEffectCustomApplication.h"
 #include "AFEffectCustomizationCommon.h"
-TSharedRef<IDetailCustomization> FAFAbilityCooldownSpecDetails::MakeInstance()
+TSharedRef<IDetailCustomization> FAFAbilityInfiniteDurationSpecDetails::MakeInstance()
 {
-	return MakeShareable(new FAFAbilityCooldownSpecDetails);
+	return MakeShareable(new FAFAbilityInfiniteDurationSpecDetails);
 }
 
-void FAFAbilityCooldownSpecDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
+void FAFAbilityInfiniteDurationSpecDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 {
+	
+
 	TArray<TWeakObjectPtr<UObject>> Objects;
 	DetailLayout.GetObjectsBeingCustomized(Objects);
 
 	ApplicationTypeHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Application), UGAGameEffectSpec::StaticClass());
-	FSimpleDelegate UpdateEffectTypeyDelegate = FSimpleDelegate::CreateSP(this, &FAFAbilityCooldownSpecDetails::OnDurationPolicyChange);
+	FSimpleDelegate UpdateEffectTypeyDelegate = FSimpleDelegate::CreateSP(this, &FAFAbilityInfiniteDurationSpecDetails::OnDurationPolicyChange);
 	ApplicationTypeHandle->SetOnPropertyValueChanged(UpdateEffectTypeyDelegate);
 
 	for (TWeakObjectPtr<UObject> obj : Objects)
 	{
-		if (UAFAbilityCooldownSpec* Spec = Cast<UAFAbilityCooldownSpec>(obj.Get()))
+		if (UAFAbilityInfiniteDurationSpec* Spec = Cast<UAFAbilityInfiniteDurationSpec>(obj.Get()))
 		{
 			MyDetailLayout = MakeShareable(&DetailLayout);
 			bIsDuration = Spec->Application.GetDefaultObject()->ShowDuration();
@@ -68,7 +70,7 @@ void FAFAbilityCooldownSpecDetails::CustomizeDetails(IDetailLayoutBuilder& Detai
 		}
 	}
 }
-void FAFAbilityCooldownSpecDetails::OnDurationPolicyChange()
+void FAFAbilityInfiniteDurationSpecDetails::OnDurationPolicyChange()
 {
 	if(MyDetailLayout.IsValid())
 		MyDetailLayout->ForceRefreshDetails();

@@ -32,13 +32,13 @@ FGAEffectEditor::FGAEffectEditor()
 	//bCreateDefaultToolbar = false;
 }
 
-FGAEffectEditor::~FGAEffectEditor()
-{
-	FEditorDelegates::OnAssetPostImport.RemoveAll(this);
-	FReimportManager::Instance()->OnPostReimport().RemoveAll(this);
-
-	// NOTE: Any tabs that we still have hanging out when destroyed will be cleaned up by FBaseToolkit's destructor
-}
+//FGAEffectEditor::~FGAEffectEditor()
+//{
+//	FEditorDelegates::OnAssetPostImport.RemoveAll(this);
+//	FReimportManager::Instance()->OnPostReimport().RemoveAll(this);
+//
+//	// NOTE: Any tabs that we still have hanging out when destroyed will be cleaned up by FBaseToolkit's destructor
+//}
 void FGAEffectEditor::InitAssetEditor(const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost, const FName AppIdentifier, const TSharedRef<FTabManager::FLayout>& StandaloneDefaultLayout, const bool bCreateDefaultStandaloneMenu, const bool bCreateDefaultToolbar, const TArray<UObject*>& ObjectsToEdit, const bool bInIsToolbarFocusable)
 {
 	FAssetEditorToolkit::InitAssetEditor(Mode, InitToolkitHost, AppIdentifier, StandaloneDefaultLayout, true, true, ObjectsToEdit, true);

@@ -22,7 +22,7 @@ private:
 	TSharedPtr<IPropertyHandle> DurationProperty;
 	TSharedPtr<IPropertyHandle> PeriodProperty;
 	TSharedPtr<IPropertyHandle> DurationCalcTypeProp;
-	IDetailLayoutBuilder* MyDetailLayout;
+	TSharedPtr<IDetailLayoutBuilder> MyDetailLayout;
 	/** IDetailCustomization interface */
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailLayout) override;
 

@@ -21,6 +21,7 @@ public:
 		UAnimMontage* Montage;
 	FName SectionName;
 	float PlayRate;
+	bool bUseActivationTime;
 
 	UPROPERTY(BlueprintAssignable)
 		FGASGenericMontageDelegate Played;
@@ -33,7 +34,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
 		static UGAAbilityTask_PlayMontage* AbilityPlayMontage(UObject* WorldContextObject,
-			FName InTaskName, UAnimMontage* MontageIn, FName SectionNameIn, float PlayRateIn);
+			FName InTaskName, UAnimMontage* MontageIn, FName SectionNameIn, float PlayRateIn,
+			bool bInUseActivationTime);
 
 	virtual void Activate() override;
 

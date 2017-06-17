@@ -6,31 +6,32 @@
 #include "STextCombobox.h"
 #include "STreeView.h"
 
-#include "Abilities/AFAbilityCooldownSpec.h"
-#include "AFAbilityCooldownSpecDetails.h"
+#include "Abilities/AFAbilityInfinitePeriodicSpec.h"
+#include "AFAbilityInfinitePeriodSpecDetails.h"
 #include "Effects/AFEffectCustomApplication.h"
 #include "AFEffectCustomizationCommon.h"
-TSharedRef<IDetailCustomization> FAFAbilityCooldownSpecDetails::MakeInstance()
+TSharedRef<IDetailCustomization> FAFAbilityInfinitePeriodSpecDetails::MakeInstance()
 {
-	return MakeShareable(new FAFAbilityCooldownSpecDetails);
+	return MakeShareable(new FAFAbilityInfinitePeriodSpecDetails);
 }
 
-void FAFAbilityCooldownSpecDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
+void FAFAbilityInfinitePeriodSpecDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 {
 	TArray<TWeakObjectPtr<UObject>> Objects;
 	DetailLayout.GetObjectsBeingCustomized(Objects);
 
 	ApplicationTypeHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Application), UGAGameEffectSpec::StaticClass());
-	FSimpleDelegate UpdateEffectTypeyDelegate = FSimpleDelegate::CreateSP(this, &FAFAbilityCooldownSpecDetails::OnDurationPolicyChange);
+	FSimpleDelegate UpdateEffectTypeyDelegate = FSimpleDelegate::CreateSP(this, &FAFAbilityInfinitePeriodSpecDetails::OnDurationPolicyChange);
 	ApplicationTypeHandle->SetOnPropertyValueChanged(UpdateEffectTypeyDelegate);
 
 	for (TWeakObjectPtr<UObject> obj : Objects)
 	{
-		if (UAFAbilityCooldownSpec* Spec = Cast<UAFAbilityCooldownSpec>(obj.Get()))
+		if (UAFAbilityInfinitePeriodicSpec* Spec = Cast<UAFAbilityInfinitePeriodicSpec>(obj.Get()))
 		{
 			MyDetailLayout = MakeShareable(&DetailLayout);
 			bIsDuration = Spec->Application.GetDefaultObject()->ShowDuration();
 			bIsPeriodic = Spec->Application.GetDefaultObject()->ShowPeriod();
+
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "ApplicationRequirement");
 			//FAFEffectCustomizationCommon::HideProperty(DetailLayout, "Application");
 
@@ -63,12 +64,17 @@ void FAFAbilityCooldownSpecDetails::CustomizeDetails(IDetailLayoutBuilder& Detai
 			DetailLayout.HideProperty(DurationProperty);
 			DetailLayout.HideProperty(PeriodProperty);
 			DurationCalcTypeProp = DurationProperty->GetChildHandle("CalculationType");
+			PeriodCalcTypeProp = PeriodProperty->GetChildHandle("CalculationType");
+
 			FAFEffectCustomizationCommon::CreateMagnitudeLayout(DetailLayout, DurationProperty, "Duration");
+			FAFEffectCustomizationCommon::CreateMagnitudeLayout(DetailLayout, PeriodProperty, "Period");
+
 			DurationCalcTypeProp->SetOnPropertyValueChanged(UpdateEffectTypeyDelegate);
+			PeriodCalcTypeProp->SetOnPropertyValueChanged(UpdateEffectTypeyDelegate);
 		}
 	}
 }
-void FAFAbilityCooldownSpecDetails::OnDurationPolicyChange()
+void FAFAbilityInfinitePeriodSpecDetails::OnDurationPolicyChange()
 {
 	if(MyDetailLayout.IsValid())
 		MyDetailLayout->ForceRefreshDetails();

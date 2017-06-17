@@ -90,18 +90,28 @@ struct FGAActiationInfo
 		float Duration;
 	UPROPERTY()
 		float Period;
+	UPROPERTY()
+		bool bApplyActivationEffect;
 
-	inline void SetActivationInfo(float TimeStampIn, float DurationIn, float PeriodIn)
+	inline void SetActivationInfo(float TimeStampIn, float DurationIn, float PeriodIn,
+		bool bApplyActivationEffectIn)
 	{
 		TimeStamp = TimeStampIn;
 		Duration = DurationIn;
 		Period = PeriodIn;
+		bApplyActivationEffect = bApplyActivationEffectIn;
 		//always increment to make sure it is replicated.
 		ForceReplication++;
 	}
 
 	UPROPERTY()
 		int8 ForceReplication;
+};
+
+enum EAFAbilityState
+{
+	Waiting,
+	Activating
 };
 
 UCLASS(BlueprintType, Blueprintable)
@@ -188,7 +198,7 @@ public:
 
 		Add Periodic Effect ? (For abilities with period).
 	*/
-	UPROPERTY(EditAnywhere, meta = (AllowedClass = "AFAbilityActivationSpec,AFAbilityPeriodSpec"), Category = "Config")
+	UPROPERTY(EditAnywhere, meta = (AllowedClass = "AFAbilityActivationSpec,AFAbilityPeriodSpec,AFAbilityInfiniteDurationSpec,AFAbilityInfinitePeriodicSpec"), Category = "Config")
 		FGAEffectProperty ActivationEffect;
 	FGAEffectHandle ActivationEffectHandle;
 	/*
@@ -233,6 +243,27 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Tags")
 		FGameplayTagContainer ActivationBlockedTags;
+
+	/*
+		This ability can't be activated if any of these tags is on owner.
+		Usefull if you want to make sure only certain abilities can be used togather
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Tags")
+		FGameplayTagContainer AbilityDenyTags;
+
+	/* 
+		Overrides AbilityDenyTags if any of these tags is present,
+		ability can be activated.
+		Setting it up properly can allow to hve jump ability, during which we can use any ability,
+		Pull ability, which deny all other abilities and push which deny other abilities.
+		But we can allow Push to be used when Pull is active.
+		Ie. Push apply Tag Ability.Push
+		We check for deny tag Ability from AbilityDenyTags. True.
+		Then We check for tag Ability.Push from AbilityAllowedTags. True.
+
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Tags")
+		FGameplayTagContainer AbilityAllowedTags;
 
 public: //because I'm to lazy to write all those friend states..
 	UPROPERTY()
@@ -283,6 +314,9 @@ public: //because I'm to lazy to write all those friend states..
 		FGASGenericAbilityDelegate OnActivateBeginDelegate;
 	UPROPERTY(BlueprintAssignable)
 		FGASGenericAbilityDelegate OnActivationFinishedDelegate;
+protected:
+	EAFAbilityState AbilityState;
+
 public:
 	UGAAbilityBase(const FObjectInitializer& ObjectInitializer);
 
@@ -310,7 +344,7 @@ public:
 		void OnInputReleased(FGameplayTag ActionName);
 
 
-	virtual void NativeOnBeginAbilityActivation();
+	virtual void NativeOnBeginAbilityActivation(bool bApplyActivationEffect);
 
 	void NativeOnAbilityConfirmed();
 
@@ -344,9 +378,12 @@ public:
 
 		ActiveState will always be called first, so it is possible to bypass entire state stage if ActivationState will
 		go straight away for event call.
+
+		bApplyActivationEffect - should apply activation effect ?
+		if Period or Activation is > 0, it will be overrided to true.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
-		void StartActivation();
+		void StartActivation(bool bApplyActivationEffect);
 
 
 	/* Event called when ability activation has been canceled. */
@@ -445,11 +482,11 @@ public:
 
 public: //protected ?
 	bool ApplyCooldownEffect();
-	bool ApplyActivationEffect();
+	bool ApplyActivationEffect(bool bApplyActivationEffect);
 	bool ApplyAttributeCost();
 	bool ApplyAbilityAttributeCost();
-	bool CheckCooldown();
-	bool CheckExecuting();
+	bool IsOnCooldown();
+	bool IsActivating();
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Apply Cooldown"), Category = "AbilityFramework|Abilities")
 		void BP_ApplyCooldown();

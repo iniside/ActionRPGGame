@@ -13,6 +13,8 @@
 #include "AFAbilityActionSpecDetails.h"
 #include "AFAbilityPeriodSpecDetails.h"
 #include "AFAbilityCooldownSpecDetails.h"
+#include "DetailCustomization/AFAbilityInfiniteDurationSpecDetails.h"
+#include "DetailCustomization/AFAbilityInfinitePeriodSpecDetails.h"
 
 #include "AssetToolsModule.h"
 #include "IAssetTypeActions.h"
@@ -95,10 +97,12 @@ class FAbilityFrameworkEditor : public IAbilityFrameworkEditor
 		TSharedPtr<FGAAttributePanelGraphPinFactory> GAAttributePanelGraphPinFactory = MakeShareable(new FGAAttributePanelGraphPinFactory());
 		FEdGraphUtilities::RegisterVisualPinFactory(GAAttributePanelGraphPinFactory);
 
+		PropertyModule.RegisterCustomClassLayout("GAGameEffectSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FGAEffectDetails::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout("AFAbilityActivationSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityActivationSpecDetails::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout("AFAbilityPeriodSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityPeriodSpecDetails::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout("AFAbilityCooldownSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityCooldownSpecDetails::MakeInstance));
-		PropertyModule.RegisterCustomClassLayout("GAGameEffectSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FGAEffectDetails::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout("AFAbilityInfinitePeriodicSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityInfinitePeriodSpecDetails::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout("AFAbilityInfiniteDurationSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityInfiniteDurationSpecDetails::MakeInstance));
 
 		IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
 		TSharedRef<IAssetTypeActions> GABAction = MakeShareable(new FAssetTypeActions_GAEffectBlueprint());
@@ -118,6 +122,8 @@ class FAbilityFrameworkEditor : public IAbilityFrameworkEditor
 		PropertyModule.UnregisterCustomClassLayout("AFAbilityActivationSpec");
 		PropertyModule.UnregisterCustomClassLayout("AFAbilityPeriodSpec");
 		PropertyModule.UnregisterCustomClassLayout("AFAbilityCooldownSpec");
+		PropertyModule.UnregisterCustomClassLayout("AFAbilityInfiniteDurationSpec");
+		PropertyModule.UnregisterCustomClassLayout("AFAbilityInfinitePeriodicSpec");
 
 		PropertyModule.UnregisterCustomPropertyTypeLayout("GAAttribute");
 		PropertyModule.UnregisterCustomPropertyTypeLayout("GAEffectProperty");

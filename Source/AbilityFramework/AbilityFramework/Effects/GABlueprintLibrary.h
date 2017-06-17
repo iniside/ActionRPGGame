@@ -35,19 +35,19 @@ public:
 			const FHitResult& Target, class APawn* Instigator,
 			UObject* Causer, const FAFFunctionModifier& Modifier);
 
-	static FGAEffectHandle ApplyEffect(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
+	static FGAEffectHandle ApplyEffect(FGAEffectProperty& InEffect,
 		class UObject* Target, class APawn* Instigator,
 		UObject* Causer, const FHitResult& HitIn, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
-	static FGAEffectHandle ApplyEffectFromHit(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
+	static FGAEffectHandle ApplyEffectFromHit(FGAEffectProperty& InEffect,
 		const FHitResult& Target, class APawn* Instigator,
 		UObject* Causer, const FAFFunctionModifier& Modifier);
 	
-	static FGAEffectHandle ApplyEffectToActor(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
+	static FGAEffectHandle ApplyEffectToActor(FGAEffectProperty& InEffect,
 		 class AActor* Target, class APawn* Instigator,
 		UObject* Causer, const FAFFunctionModifier& Modifier);
 
-	static FGAEffectHandle ApplyEffectToObject(UGAGameEffectSpec* SpecIn, FGAEffectProperty& InEffect,
+	static FGAEffectHandle ApplyEffectToObject(FGAEffectProperty& InEffect,
 		class UObject* Target, class APawn* Instigator,
 		UObject* Causer, const FAFFunctionModifier& Modifier);
 	/*
