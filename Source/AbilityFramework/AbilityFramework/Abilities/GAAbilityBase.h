@@ -90,18 +90,28 @@ struct FGAActiationInfo
 		float Duration;
 	UPROPERTY()
 		float Period;
+	UPROPERTY()
+		bool bApplyActivationEffect;
 
-	inline void SetActivationInfo(float TimeStampIn, float DurationIn, float PeriodIn)
+	inline void SetActivationInfo(float TimeStampIn, float DurationIn, float PeriodIn,
+		bool bApplyActivationEffectIn)
 	{
 		TimeStamp = TimeStampIn;
 		Duration = DurationIn;
 		Period = PeriodIn;
+		bApplyActivationEffect = bApplyActivationEffectIn;
 		//always increment to make sure it is replicated.
 		ForceReplication++;
 	}
 
 	UPROPERTY()
 		int8 ForceReplication;
+};
+
+enum EAFAbilityState
+{
+	Waiting,
+	Activating
 };
 
 UCLASS(BlueprintType, Blueprintable)
@@ -283,6 +293,9 @@ public: //because I'm to lazy to write all those friend states..
 		FGASGenericAbilityDelegate OnActivateBeginDelegate;
 	UPROPERTY(BlueprintAssignable)
 		FGASGenericAbilityDelegate OnActivationFinishedDelegate;
+protected:
+	EAFAbilityState AbilityState;
+
 public:
 	UGAAbilityBase(const FObjectInitializer& ObjectInitializer);
 
@@ -310,7 +323,7 @@ public:
 		void OnInputReleased(FGameplayTag ActionName);
 
 
-	virtual void NativeOnBeginAbilityActivation();
+	virtual void NativeOnBeginAbilityActivation(bool bApplyActivationEffect);
 
 	void NativeOnAbilityConfirmed();
 
@@ -344,9 +357,12 @@ public:
 
 		ActiveState will always be called first, so it is possible to bypass entire state stage if ActivationState will
 		go straight away for event call.
+
+		bApplyActivationEffect - should apply activation effect ?
+		if Period or Activation is > 0, it will be overrided to true.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
-		void StartActivation();
+		void StartActivation(bool bApplyActivationEffect);
 
 
 	/* Event called when ability activation has been canceled. */
@@ -445,7 +461,7 @@ public:
 
 public: //protected ?
 	bool ApplyCooldownEffect();
-	bool ApplyActivationEffect();
+	bool ApplyActivationEffect(bool bApplyActivationEffect);
 	bool ApplyAttributeCost();
 	bool ApplyAbilityAttributeCost();
 	bool CheckCooldown();

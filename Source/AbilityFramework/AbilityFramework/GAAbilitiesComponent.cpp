@@ -58,9 +58,14 @@ bool UGAAbilitiesComponent::GetShouldTick() const
 void UGAAbilitiesComponent::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn
 	,FGAEffectProperty& InProperty)
 { 
-	OnAttributePreModifed.Broadcast(ModIn, 0);
+	//OnAttributePreModifed.Broadcast(ModIn, 0);
 	float NewValue = DefaultAttributes->ModifyAttribute(ModIn, HandleIn, InProperty);
-	OnAttributeModifed.Broadcast(ModIn, NewValue);
+	FAFAttributeChangedData Data;
+	Data.Mod = ModIn;
+	Data.Target = HandleIn.GetContext().Target;
+	Data.Location = HandleIn.GetContext().HitResult.Location;
+	OnAttributeModifed.Broadcast(Data);
+	HandleIn.GetContext().InstigatorComp->OnAttributeModifed.Broadcast(Data);
 };
 
 void UGAAbilitiesComponent::GetAttributeStructTest(FGAAttribute Name)

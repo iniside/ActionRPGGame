@@ -5,12 +5,14 @@
 #include "GAAbilityTask_PlayMontage.h"
 
 UGAAbilityTask_PlayMontage* UGAAbilityTask_PlayMontage::AbilityPlayMontage(UObject* WorldContextObject,
-	FName InTaskName, UAnimMontage* MontageIn, FName SectionNameIn, float PlayRateIn)
+	FName InTaskName, UAnimMontage* MontageIn, FName SectionNameIn, float PlayRateIn,
+	bool bInUseActivationTim)
 {
 	auto MyObj = NewAbilityTask<UGAAbilityTask_PlayMontage>(WorldContextObject);
 	MyObj->Montage = MontageIn;
 	MyObj->SectionName = SectionNameIn;
 	MyObj->PlayRate = PlayRateIn;
+	MyObj->bUseActivationTime = bInUseActivationTim;
 	return MyObj;
 }
 

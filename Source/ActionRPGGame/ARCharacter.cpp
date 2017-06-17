@@ -72,7 +72,7 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
     Attributes = ObjectInitializer.CreateDefaultSubobject<UGAAbilitiesComponent>(this, TEXT("Attributes"));
     Attributes->SetIsReplicated(true);
     Attributes->SetNetAddressable();
-	
+	GetNetMode();
 	
     // Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
     // are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -313,7 +313,7 @@ float AARCharacter::GetAttributeValue(FGAAttribute AttributeIn) const
 void AARCharacter::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn
 	, FGAEffectProperty& InProperty)
 {
-	GetAttributes()->ModifyAttribute(ModIn, HandleIn, InProperty);
+	Attributes->ModifyAttribute(ModIn, HandleIn, InProperty);
 }
 FAFAttributeBase* AARCharacter::GetAttribute(FGAAttribute AttributeIn)
 {

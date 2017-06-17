@@ -773,7 +773,7 @@ FReply FGAEffectClassStructWidget::OnSaveButtonClicked()
 		PackagesToSave.Add(EditedBlueprint->GetOutermost());
 
 		FEditorFileUtils::PromptForCheckoutAndSave(PackagesToSave, true, /*bPromptToSave=*/ false);
-		EditedBlueprint = nullptr;
+		//EditedBlueprint = nullptr;
 	}
 	return FReply::Unhandled();
 }
