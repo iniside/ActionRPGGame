@@ -33,7 +33,7 @@ void FAFAbilityActivationSpecDetails::CustomizeDetails(IDetailLayoutBuilder& Det
 			bIsDuration = Spec->Application.GetDefaultObject()->ShowDuration();
 			bIsPeriodic = Spec->Application.GetDefaultObject()->ShowPeriod();
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "ApplicationRequirement");
-			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "Application");
+			//FAFEffectCustomizationCommon::HideProperty(DetailLayout, "Application");
 
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "EffectAggregation");
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "MaxStackedDuration");

@@ -55,6 +55,21 @@ void UGAAbilityBase::TickAbility(float DeltaSeconds, ELevelTick TickType, FGAAbi
 
 void UGAAbilityBase::InitAbility()
 {
+	//still want to initialize, as Spec is used in multiple places.
+	if (!ActivationEffect.IsInitialized())
+	{
+		ActivationEffect.ApplicationRequirement = ActivationEffect.GetSpec()->ApplicationRequirement.GetDefaultObject();
+		ActivationEffect.Application = ActivationEffect.GetSpec()->Application.GetDefaultObject();
+		ActivationEffect.Execution = ActivationEffect.GetSpec()->ExecutionType.GetDefaultObject();
+		ActivationEffect.Spec = ActivationEffect.GetSpec();
+	}
+	if (!CooldownEffect.IsInitialized())
+	{
+		CooldownEffect.ApplicationRequirement = CooldownEffect.GetSpec()->ApplicationRequirement.GetDefaultObject();
+		CooldownEffect.Application = CooldownEffect.GetSpec()->Application.GetDefaultObject();
+		CooldownEffect.Execution = CooldownEffect.GetSpec()->ExecutionType.GetDefaultObject();
+		CooldownEffect.Spec = CooldownEffect.GetSpec();
+	}
 	if (AbilityComponent)
 	{
 		World = AbilityComponent->GetWorld();
@@ -110,17 +125,18 @@ void UGAAbilityBase::OnNativeInputReleased(FGameplayTag ActionName)
 	}
 }
 
-void UGAAbilityBase::StartActivation()
+void UGAAbilityBase::StartActivation(bool bApplyActivationEffect)
 {
 	if (!CanUseAbility())
 	{
 		return;
 	}
 	//AbilityComponent->ExecutingAbility = this;
-	NativeOnBeginAbilityActivation();
+	AbilityState = EAFAbilityState::Activating;
+	NativeOnBeginAbilityActivation(bApplyActivationEffect);
 }
 
-void UGAAbilityBase::NativeOnBeginAbilityActivation()
+void UGAAbilityBase::NativeOnBeginAbilityActivation(bool bApplyActivationEffect)
 {
 	UE_LOG(AbilityFramework, Log, TEXT("Begin Executing Ability: %s"), *GetName());
 
@@ -129,7 +145,7 @@ void UGAAbilityBase::NativeOnBeginAbilityActivation()
 		OnConfirmCastingEndedDelegate.Broadcast();
 	}
 	//ActivationInfo.SetActivationInfo();
-	ApplyActivationEffect();
+	ApplyActivationEffect(bApplyActivationEffect);
 	OnActivate();
 	OnActivateBeginDelegate.Broadcast();
 	AbilityComponent->AppliedTags.AddTagContainer(ActivationAddedTags);
@@ -175,6 +191,7 @@ void UGAAbilityBase::FinishAbility()
 	UE_LOG(AbilityFramework, Log, TEXT("FinishExecution in ability %s"), *GetName());
 	OnFinished();
 	NativeFinishAbility();
+	AbilityState = EAFAbilityState::Waiting;
 	AbilityComponent->AppliedTags.RemoveTagContainer(ActivationAddedTags);
 }
 void UGAAbilityBase::NativeFinishAbility()
@@ -227,7 +244,7 @@ bool UGAAbilityBase::ApplyCooldownEffect()
 
 	return false;
 }
-bool UGAAbilityBase::ApplyActivationEffect()
+bool UGAAbilityBase::ApplyActivationEffect(bool bApplyActivationEffect)
 {
 	if (!ActivationEffect.GetSpec())
 		return false;
@@ -238,6 +255,11 @@ bool UGAAbilityBase::ApplyActivationEffect()
 	float DurationCheck = Spec->Duration.GetFloatValue(ctx);
 	float PeriodCheck = Spec->Period.GetFloatValue(ctx);
 	if (DurationCheck > 0 || PeriodCheck > 0)
+	{
+		bApplyActivationEffect = true;
+	}
+	ActivationInfo.SetActivationInfo(GetWorld()->TimeSeconds, DurationCheck, PeriodCheck, bApplyActivationEffect);
+	if (bApplyActivationEffect)
 	{
 		FHitResult HitIn;
 		if (ActivationEffectHandle.IsValid())
@@ -428,7 +450,7 @@ bool UGAAbilityBase::CheckCooldown()
 bool UGAAbilityBase::CheckExecuting()
 {
 	bool bAbilityActivating = false;
-	bAbilityActivating = AbilityComponent->IsEffectActive(ActivationEffect.Handle);
+	bAbilityActivating = AbilityComponent->IsEffectActive(ActivationEffect.Handle) || AbilityState == EAFAbilityState::Activating;
 	return bAbilityActivating; //temp
 }
 void UGAAbilityBase::BP_ApplyCooldown()
@@ -515,7 +537,7 @@ void UGAAbilityBase::OnRep_AbilityActivationStarted()
 }
 void UGAAbilityBase::OnRep_AbilityActivated()
 {
-	ApplyActivationEffect();
+	//ApplyActivationEffect();
 }
 void UGAAbilityBase::OnRep_AbilityPeriod()
 {

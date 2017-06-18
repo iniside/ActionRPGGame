@@ -18,6 +18,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
 	class UGSAbilitiesComponent* Abilities;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
+		class UARUIComponent* UIComponent;
+
 public:
 	AARPlayerController(const FObjectInitializer& ObjectInitializer);
 	/** AActor Overrides - BEGIN */

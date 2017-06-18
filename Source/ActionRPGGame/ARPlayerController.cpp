@@ -5,6 +5,7 @@
 #include "GSHUD.h"
 #include "Abilities/GSAbilitiesComponent.h"
 #include "GISInventoryBaseComponent.h"
+#include "UI/ARUIComponent.h"
 #include "ARPlayerController.h"
 
 AARPlayerController::AARPlayerController(const FObjectInitializer& ObjectInitializer)
@@ -18,6 +19,8 @@ AARPlayerController::AARPlayerController(const FObjectInitializer& ObjectInitial
 	Abilities = ObjectInitializer.CreateDefaultSubobject<UGSAbilitiesComponent>(this, TEXT("Abilities"));
 	Abilities->SetIsReplicated(true);
 	Abilities->SetNetAddressable();
+
+	UIComponent = ObjectInitializer.CreateDefaultSubobject<UARUIComponent>(this, TEXT("UIComponent"));
 }
 
 void AARPlayerController::BeginPlay()
