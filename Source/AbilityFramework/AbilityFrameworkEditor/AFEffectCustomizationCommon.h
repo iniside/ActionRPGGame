@@ -14,6 +14,6 @@ public:
 	FAFEffectCustomizationCommon();
 	~FAFEffectCustomizationCommon();
 	static void CreateMagnitudeLayout(IDetailLayoutBuilder& DetailLayout,
-		TSharedPtr<IPropertyHandle> InProperty, FName InCategory);
+		TSharedPtr<IPropertyHandle>& InProperty, FName InCategory);
 	static void HideProperty(IDetailLayoutBuilder& DetailLayout, FName InName);
 };

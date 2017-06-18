@@ -104,7 +104,7 @@ public:
 		TArray<FGAAttributeModifier> Modifiers;
 };
 
-UCLASS(Blueprintable, BlueprintType, EditInLineNew)
+UCLASS(Blueprintable, BlueprintType, Abstract)
 class ABILITYFRAMEWORK_API UGAGameEffectSpec : public UObject
 {
 	GENERATED_BODY()
@@ -249,7 +249,12 @@ public:
 public:
 	UGAGameEffectSpec();
 };
-
+UCLASS(Blueprintable, BlueprintType, Abstract)
+class ABILITYFRAMEWORK_API UAFEffectSpec : public UGAGameEffectSpec
+{
+	GENERATED_BODY()
+public:
+};
 USTRUCT(BlueprintType)
 struct ABILITYFRAMEWORK_API FGAEffectSpec
 {
@@ -333,12 +338,15 @@ public:
 
 	TSubclassOf<UGAGameEffectSpec> GetClass() const { return SpecClass.SpecClass; }
 	const TSubclassOf<UGAGameEffectSpec>& GetClassRef() { return SpecClass.SpecClass; }
-	UGAGameEffectSpec* GetSpec() const { return SpecClass.SpecClass->GetDefaultObject<UGAGameEffectSpec>(); }
+	UGAGameEffectSpec* GetSpec() const { return Spec; }
 
 	//intentionally non const.
 	FGAEffectHandle& GetHandleRef() { return Handle; }
 	void SetHandle(const FGAEffectHandle& InHandle) { Handle = InHandle; };
 	void OnEffectRemoved(UObject* InTarget, const FGAEffectHandle& InHandle) {}
+
+	void Initialize();
+	void InitializeIfNotInitialized();
 
 	FObjectKey GetClassKey() const
 	{

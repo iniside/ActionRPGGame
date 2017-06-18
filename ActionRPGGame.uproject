@@ -128,18 +128,6 @@
 			"Enabled": true
 		},
 		{
-			"Name": "OculusInput",
-			"Enabled": false
-		},
-		{
-			"Name": "OculusLibrary",
-			"Enabled": false
-		},
-		{
-			"Name": "OculusRift",
-			"Enabled": false
-		},
-		{
 			"Name": "PerformanceMonitor",
 			"Enabled": true
 		}

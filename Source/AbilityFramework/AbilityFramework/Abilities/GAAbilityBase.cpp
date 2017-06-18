@@ -56,20 +56,9 @@ void UGAAbilityBase::TickAbility(float DeltaSeconds, ELevelTick TickType, FGAAbi
 void UGAAbilityBase::InitAbility()
 {
 	//still want to initialize, as Spec is used in multiple places.
-	if (!ActivationEffect.IsInitialized())
-	{
-		ActivationEffect.ApplicationRequirement = ActivationEffect.GetSpec()->ApplicationRequirement.GetDefaultObject();
-		ActivationEffect.Application = ActivationEffect.GetSpec()->Application.GetDefaultObject();
-		ActivationEffect.Execution = ActivationEffect.GetSpec()->ExecutionType.GetDefaultObject();
-		ActivationEffect.Spec = ActivationEffect.GetSpec();
-	}
-	if (!CooldownEffect.IsInitialized())
-	{
-		CooldownEffect.ApplicationRequirement = CooldownEffect.GetSpec()->ApplicationRequirement.GetDefaultObject();
-		CooldownEffect.Application = CooldownEffect.GetSpec()->Application.GetDefaultObject();
-		CooldownEffect.Execution = CooldownEffect.GetSpec()->ExecutionType.GetDefaultObject();
-		CooldownEffect.Spec = CooldownEffect.GetSpec();
-	}
+	ActivationEffect.InitializeIfNotInitialized();
+	CooldownEffect.InitializeIfNotInitialized();
+	DefaultContext = UGABlueprintLibrary::MakeContext(this, POwner, this, FHitResult(ForceInit));
 	if (AbilityComponent)
 	{
 		World = AbilityComponent->GetWorld();
@@ -251,9 +240,8 @@ bool UGAAbilityBase::ApplyActivationEffect(bool bApplyActivationEffect)
 	FHitResult Hit(ForceInit);
 	
 	UGAGameEffectSpec* Spec = ActivationEffect.GetClass().GetDefaultObject();
-	FGAEffectContext ctx = UGABlueprintLibrary::MakeContext(this, POwner, this, Hit);
-	float DurationCheck = Spec->Duration.GetFloatValue(ctx);
-	float PeriodCheck = Spec->Period.GetFloatValue(ctx);
+	float DurationCheck = Spec->Duration.GetFloatValue(DefaultContext);
+	float PeriodCheck = Spec->Period.GetFloatValue(DefaultContext);
 	if (DurationCheck > 0 || PeriodCheck > 0)
 	{
 		bApplyActivationEffect = true;
@@ -289,8 +277,8 @@ bool UGAAbilityBase::ApplyActivationEffect(bool bApplyActivationEffect)
 bool UGAAbilityBase::CanUseAbility()
 {
 	bool CanUse = true;
-	bool bIsOnCooldown = CheckCooldown();
-	bool bIsActivating = CheckExecuting();
+	bool bIsOnCooldown = IsOnCooldown();
+	bool bIsActivating = IsActivating();
 	//if (!AbilityComponent->ExecutingAbility)
 	//	UE_LOG(AbilityFramework, Log, TEXT("CanUseAbility AbilityComponent->ExecutingAbility is true"));
 
@@ -305,7 +293,7 @@ bool UGAAbilityBase::CanReleaseAbility()
 	{
 		bCanUse = true;
 	}*/
-	if (CheckCooldown())
+	if (IsOnCooldown())
 	{
 		bCanUse = false;
 		UE_LOG(AbilityFramework, Log, TEXT("CanReleaseAbility can't release ability is on cooldown"));
@@ -441,13 +429,13 @@ bool UGAAbilityBase::BP_ApplyAbilityAttributeCost()
 {
 	return ApplyAbilityAttributeCost();
 }
-bool UGAAbilityBase::CheckCooldown()
+bool UGAAbilityBase::IsOnCooldown()
 {
 	bool bOnCooldown = false;
 	bOnCooldown = AbilityComponent->IsEffectActive(CooldownEffectHandle);
 	return bOnCooldown; //temp
 }
-bool UGAAbilityBase::CheckExecuting()
+bool UGAAbilityBase::IsActivating()
 {
 	bool bAbilityActivating = false;
 	bAbilityActivating = AbilityComponent->IsEffectActive(ActivationEffect.Handle) || AbilityState == EAFAbilityState::Activating;
@@ -470,9 +458,11 @@ float UGAAbilityBase::GetCurrentActivationTime()
 float UGAAbilityBase::CalculateAnimationSpeed(UAnimMontage* MontageIn)
 {
 	float ActivationTime = MontageIn->GetPlayLength();
-	if (ActivationEffect.Handle.IsValid())
+	UGAGameEffectSpec* Spec = ActivationEffect.GetClass().GetDefaultObject();
+	float DurationCheck = Spec->Duration.GetFloatValue(DefaultContext);
+	if (DurationCheck > 0)
 	{
-		//ActivationTime = Attributes->GetFinalAttributeValue(ActivationTimeAttribute);// ActivationEffectHandle.GetEffectPtr()->GetActivationTime();
+		ActivationTime = DurationCheck;
 	}
 	float Duration = MontageIn->GetPlayLength();
 	

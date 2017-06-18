@@ -26,7 +26,7 @@ void FGAEffectDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 	DetailLayout.GetObjectsBeingCustomized(Objects);
 
 	ApplicationTypeHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Application), UGAGameEffectSpec::StaticClass());
-	FSimpleDelegate UpdateEffectTypeyDelegate = FSimpleDelegate::CreateSP(this, &FGAEffectDetails::OnDurationPolicyChange);
+	UpdateEffectTypeyDelegate = FSimpleDelegate::CreateSP(this, &FGAEffectDetails::OnDurationPolicyChange);
 	ApplicationTypeHandle->SetOnPropertyValueChanged(UpdateEffectTypeyDelegate);
 
 	DurationHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Duration), UGAGameEffectSpec::StaticClass());
@@ -42,12 +42,12 @@ void FGAEffectDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 
 	for (TWeakObjectPtr<UObject> obj : Objects)
 	{
-		if (UGAGameEffectSpec* Spec = Cast<UGAGameEffectSpec>(obj.Get()))
+		if (UAFEffectSpec* Spec = Cast<UAFEffectSpec>(obj.Get()))
 		{
-			if (!Spec->IsA(UAFAbilityActivationSpec::StaticClass())
+			/*if (!Spec->IsA(UAFAbilityActivationSpec::StaticClass())
 				&& !Spec->IsA(UAFAbilityPeriodSpec::StaticClass())
 				&& !Spec->IsA(UAFAbilityCooldownSpec::StaticClass())
-				)
+				)*/
 			{
 				bIsDuration = Spec->Application.GetDefaultObject()->ShowDuration();
 				bIsPeriodic = Spec->Application.GetDefaultObject()->ShowPeriod();

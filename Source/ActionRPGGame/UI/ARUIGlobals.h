@@ -70,6 +70,13 @@ public:
 	UPROPERTY(EditAnywhere)
 		FSlateColor Color;
 	UPROPERTY(EditAnywhere)
+		FProgressBarStyle BarStyle;
+	UPROPERTY(EditAnywhere)
+		FSlateColor BarColor;
+	UPROPERTY(EditAnywhere)
+		FVector2D BarBorder;
+
+	UPROPERTY(EditAnywhere)
 		float HeightMultiplier;
 	
 	FARTargetInfoConfig()

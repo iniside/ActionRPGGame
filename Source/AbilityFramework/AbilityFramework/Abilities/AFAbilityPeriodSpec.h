@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Blueprintable, BlueprintType, Abstract)
 class ABILITYFRAMEWORK_API UAFAbilityPeriodSpec : public UGAGameEffectSpec
 {
 	GENERATED_BODY()

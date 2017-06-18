@@ -23,7 +23,7 @@ void FAFAbilityActivationSpecDetails::CustomizeDetails(IDetailLayoutBuilder& Det
 	DetailLayout.GetObjectsBeingCustomized(Objects);
 
 	ApplicationTypeHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Application), UGAGameEffectSpec::StaticClass());
-	FSimpleDelegate UpdateEffectTypeyDelegate = FSimpleDelegate::CreateSP(this, &FAFAbilityActivationSpecDetails::OnDurationPolicyChange);
+	UpdateEffectTypeyDelegate = FSimpleDelegate::CreateSP(this, &FAFAbilityActivationSpecDetails::OnDurationPolicyChange);
 	ApplicationTypeHandle->SetOnPropertyValueChanged(UpdateEffectTypeyDelegate);
 
 	for (TWeakObjectPtr<UObject> obj : Objects)

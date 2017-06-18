@@ -190,7 +190,7 @@ void UGAAbilitiesComponent::PostExecuteEffect()
 void UGAAbilitiesComponent::ExpireEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty)
 {
 	//call effect internal delegate:
-	//HandleIn.GetEffectPtr()->OnExpired();
+	HandleIn.GetEffectPtr()->OnExpired();
 	//InternalRemoveEffect(HandleIn);
 	//OnEffectExpired.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
 	GameEffectContainer.RemoveEffectByHandle(HandleIn, InProperty);

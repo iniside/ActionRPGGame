@@ -414,11 +414,15 @@ TSharedRef<SWidget> FGAEffectClassStructWidget::GenerateClassPicker()
 	public:
 		/** All children of these classes will be included unless filtered out by another setting. */
 		TSet< const UClass* > AllowedChildrenOfClasses;
-
+		bool bAllowAbstract;
 		FGameplayAbilityBlueprintParentFilter() {}
 
 		virtual bool IsClassAllowed(const FClassViewerInitializationOptions& InInitOptions, const UClass* InClass, TSharedRef< FClassViewerFilterFuncs > InFilterFuncs) override
 		{
+			if (!bAllowAbstract)
+			{
+				return !InClass->HasAnyClassFlags(CLASS_Abstract) && InFilterFuncs->IfInChildOfClassesSet(AllowedChildrenOfClasses, InClass) != EFilterReturn::Failed;
+			}
 			// If it appears on the allowed child-of classes list (or there is nothing on that list)
 			return InFilterFuncs->IfInChildOfClassesSet(AllowedChildrenOfClasses, InClass) != EFilterReturn::Failed;
 		}
@@ -459,11 +463,12 @@ TSharedRef<SWidget> FGAEffectClassStructWidget::GenerateClassPicker()
 	Options.ClassFilter = ClassFilter;
 	//ClassFilter->ClassPropertyMetaClass = MetaClass;
 	//ClassFilter->InterfaceThatMustBeImplemented = nullptr;// UInterface::StaticClass();
-	//ClassFilter->bAllowAbstract = false;
-	Options.bIsBlueprintBaseOnly = false;
+	ClassFilter->bAllowAbstract = false;
+	Options.bIsBlueprintBaseOnly = true;
 	Options.bIsPlaceableOnly = false;
 	Options.DisplayMode = EClassViewerDisplayMode::TreeView;// : EClassViewerDisplayMode::ListView;
 	Options.bAllowViewOptions = true;
+	Options.bShowDisplayNames = true;
 
 	FOnClassPicked OnPicked(FOnClassPicked::CreateRaw(this, &FGAEffectClassStructWidget::OnClassPicked));
 
@@ -686,6 +691,14 @@ FReply FGAEffectClassStructWidget::OnEditButtonClicked()
 			{
 				DetailView->RegisterInstancedCustomPropertyLayout(UGAGameEffectSpec::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FGAEffectDetails::MakeInstance));
 			}
+		}
+		if(!Class)
+		{
+			return FReply::Unhandled();
+		}
+		if (!Class->ClassDefaultObject)
+		{
+			return FReply::Unhandled();
 		}
 		//DetailView->RegisterInstancedCustomPropertyLayout(UGAGameEffectSpec::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FGAEffectDetails::MakeInstance));
 		InObjects.Add(Class->ClassDefaultObject);

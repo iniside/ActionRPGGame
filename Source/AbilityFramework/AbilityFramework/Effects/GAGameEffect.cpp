@@ -16,6 +16,21 @@
 
 DEFINE_STAT(STAT_GatherModifiers);
 
+void FGAEffectProperty::Initialize()
+{
+	Spec = SpecClass.SpecClass->GetDefaultObject<UGAGameEffectSpec>();
+	ApplicationRequirement = GetSpec()->ApplicationRequirement.GetDefaultObject();
+	Application = GetSpec()->Application.GetDefaultObject();
+	Execution = GetSpec()->ExecutionType.GetDefaultObject();
+}
+void FGAEffectProperty::InitializeIfNotInitialized()
+{
+	if (!IsInitialized())
+	{
+		Initialize();
+	}
+}
+
 void FAFEffectRepInfo::OnApplied()
 {
 

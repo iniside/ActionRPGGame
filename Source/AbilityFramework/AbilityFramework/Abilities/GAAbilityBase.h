@@ -180,6 +180,8 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "AbilityFramework|Abilities")
 		UCameraComponent* OwnerCamera;
 
+	FGAEffectContext DefaultContext;
+
 	/*
 		Tags applied to instigator of this ability, for duration of cooldown.
 		Duration of this effect equals cooldown of ability.
@@ -464,8 +466,8 @@ public: //protected ?
 	bool ApplyActivationEffect(bool bApplyActivationEffect);
 	bool ApplyAttributeCost();
 	bool ApplyAbilityAttributeCost();
-	bool CheckCooldown();
-	bool CheckExecuting();
+	bool IsOnCooldown();
+	bool IsActivating();
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Apply Cooldown"), Category = "AbilityFramework|Abilities")
 		void BP_ApplyCooldown();

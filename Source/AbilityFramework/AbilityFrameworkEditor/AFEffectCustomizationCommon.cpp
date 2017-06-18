@@ -14,7 +14,7 @@ FAFEffectCustomizationCommon::~FAFEffectCustomizationCommon()
 {
 }
 void FAFEffectCustomizationCommon::CreateMagnitudeLayout(IDetailLayoutBuilder& DetailLayout,
-	TSharedPtr<IPropertyHandle> InProperty, FName InCategory)
+	TSharedPtr<IPropertyHandle>& InProperty, FName InCategory)
 {
 	
 	IDetailCategoryBuilder& DurationCategory = DetailLayout.EditCategory(InCategory);

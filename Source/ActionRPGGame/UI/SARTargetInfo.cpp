@@ -40,7 +40,9 @@ void SARTargetInfo::Construct(const FArguments& InArgs)
 				.MaxHeight(12)
 				[
 					SAssignNew(HealthBar, SProgressBar)
-					.BorderPadding(FVector2D(0,0))
+					.BorderPadding(Config.BarBorder)
+					.Style(&Config.BarStyle)
+					.FillColorAndOpacity(Config.BarColor)
 					.BarFillType(EProgressBarFillType::LeftToRight)
 					.Percent(PercentDelegate)
 				]
