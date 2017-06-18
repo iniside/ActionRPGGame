@@ -578,6 +578,12 @@ public:
 	//};
 };
 
+USTRUCT()
+struct FAFAttributeChangedData
+{
+	GENERATED_BODY()
+};
+
 /* Final calculcated mod from effect, which can be modified by Calculation object. */
 USTRUCT()
 struct FGAEffectMod
@@ -675,19 +681,6 @@ struct FGAEffectMod
 		AttributeTags(AttributeTagsIn)
 	{
 	};
-};
-
-USTRUCT(BlueprintType)
-struct FAFAttributeChangedData
-{
-	GENERATED_BODY()
-public:
-	FGAEffectMod Mod;
-	UPROPERTY()
-		TWeakObjectPtr<UObject> Target;
-	//HitLocation of applicable;
-	FVector Location;
-	float NewValue;
 };
 
 /*

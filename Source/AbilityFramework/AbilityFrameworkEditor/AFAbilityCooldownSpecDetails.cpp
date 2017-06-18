@@ -17,6 +17,8 @@ TSharedRef<IDetailCustomization> FAFAbilityCooldownSpecDetails::MakeInstance()
 
 void FAFAbilityCooldownSpecDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 {
+	MyDetailLayout = &DetailLayout;
+
 	TArray<TWeakObjectPtr<UObject>> Objects;
 	DetailLayout.GetObjectsBeingCustomized(Objects);
 
@@ -28,11 +30,10 @@ void FAFAbilityCooldownSpecDetails::CustomizeDetails(IDetailLayoutBuilder& Detai
 	{
 		if (UAFAbilityCooldownSpec* Spec = Cast<UAFAbilityCooldownSpec>(obj.Get()))
 		{
-			MyDetailLayout = MakeShareable(&DetailLayout);
 			bIsDuration = Spec->Application.GetDefaultObject()->ShowDuration();
 			bIsPeriodic = Spec->Application.GetDefaultObject()->ShowPeriod();
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "ApplicationRequirement");
-			//FAFEffectCustomizationCommon::HideProperty(DetailLayout, "Application");
+			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "Application");
 
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "EffectAggregation");
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "MaxStackedDuration");
@@ -70,6 +71,5 @@ void FAFAbilityCooldownSpecDetails::CustomizeDetails(IDetailLayoutBuilder& Detai
 }
 void FAFAbilityCooldownSpecDetails::OnDurationPolicyChange()
 {
-	if(MyDetailLayout.IsValid())
-		MyDetailLayout->ForceRefreshDetails();
+	MyDetailLayout->ForceRefreshDetails();
 }

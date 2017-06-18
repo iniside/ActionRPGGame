@@ -76,7 +76,7 @@ float AARAICharacter::GetAttributeValue(FGAAttribute AttributeIn) const
 void AARAICharacter::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn
 	, FGAEffectProperty& InProperty)
 {
-	Attributes->ModifyAttribute(ModIn, HandleIn, InProperty);
+	GetAttributes()->ModifyAttribute(ModIn, HandleIn, InProperty);
 }
 FAFAttributeBase* AARAICharacter::GetAttribute(FGAAttribute AttributeIn)
 {

@@ -10,6 +10,8 @@ class FAFAbilityActivationSpecDetails : public IDetailCustomization
 {
 
 protected:
+	bool bIsDuration;
+	bool bIsPeriodic;
 	TSharedPtr<IPropertyHandle> ApplicationTypeHandle;
 public:
 	/** Makes a new instance of this detail layout class for a specific detail view requesting it */
@@ -17,10 +19,10 @@ public:
 
 private:
 	TSharedPtr<IPropertyHandle> MyProperty;
-	//TSharedPtr<IPropertyHandle> DurationProperty;
-	//TSharedPtr<IPropertyHandle> PeriodProperty;
+	TSharedPtr<IPropertyHandle> DurationProperty;
+	TSharedPtr<IPropertyHandle> PeriodProperty;
 	TSharedPtr<IPropertyHandle> DurationCalcTypeProp;
-	TSharedPtr<IDetailLayoutBuilder> MyDetailLayout;
+	IDetailLayoutBuilder* MyDetailLayout;
 	/** IDetailCustomization interface */
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailLayout) override;
 

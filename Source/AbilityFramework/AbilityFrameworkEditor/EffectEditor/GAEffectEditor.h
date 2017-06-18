@@ -28,7 +28,7 @@ public:
 public:
 	FGAEffectEditor();
 
-	/*virtual ~FGAEffectEditor();*/
+	virtual ~FGAEffectEditor();
 
 public:
 	// IToolkit interface

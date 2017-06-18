@@ -55,10 +55,6 @@ void UGAAbilityBase::TickAbility(float DeltaSeconds, ELevelTick TickType, FGAAbi
 
 void UGAAbilityBase::InitAbility()
 {
-	//still want to initialize, as Spec is used in multiple places.
-	ActivationEffect.InitializeIfNotInitialized();
-	CooldownEffect.InitializeIfNotInitialized();
-
 	if (AbilityComponent)
 	{
 		World = AbilityComponent->GetWorld();
@@ -114,18 +110,17 @@ void UGAAbilityBase::OnNativeInputReleased(FGameplayTag ActionName)
 	}
 }
 
-void UGAAbilityBase::StartActivation(bool bApplyActivationEffect)
+void UGAAbilityBase::StartActivation()
 {
 	if (!CanUseAbility())
 	{
 		return;
 	}
 	//AbilityComponent->ExecutingAbility = this;
-	AbilityState = EAFAbilityState::Activating;
-	NativeOnBeginAbilityActivation(bApplyActivationEffect);
+	NativeOnBeginAbilityActivation();
 }
 
-void UGAAbilityBase::NativeOnBeginAbilityActivation(bool bApplyActivationEffect)
+void UGAAbilityBase::NativeOnBeginAbilityActivation()
 {
 	UE_LOG(AbilityFramework, Log, TEXT("Begin Executing Ability: %s"), *GetName());
 
@@ -134,7 +129,7 @@ void UGAAbilityBase::NativeOnBeginAbilityActivation(bool bApplyActivationEffect)
 		OnConfirmCastingEndedDelegate.Broadcast();
 	}
 	//ActivationInfo.SetActivationInfo();
-	ApplyActivationEffect(bApplyActivationEffect);
+	ApplyActivationEffect();
 	OnActivate();
 	OnActivateBeginDelegate.Broadcast();
 	AbilityComponent->AppliedTags.AddTagContainer(ActivationAddedTags);
@@ -180,7 +175,6 @@ void UGAAbilityBase::FinishAbility()
 	UE_LOG(AbilityFramework, Log, TEXT("FinishExecution in ability %s"), *GetName());
 	OnFinished();
 	NativeFinishAbility();
-	AbilityState = EAFAbilityState::Waiting;
 	AbilityComponent->AppliedTags.RemoveTagContainer(ActivationAddedTags);
 }
 void UGAAbilityBase::NativeFinishAbility()
@@ -233,7 +227,7 @@ bool UGAAbilityBase::ApplyCooldownEffect()
 
 	return false;
 }
-bool UGAAbilityBase::ApplyActivationEffect(bool bApplyActivationEffect)
+bool UGAAbilityBase::ApplyActivationEffect()
 {
 	if (!ActivationEffect.GetSpec())
 		return false;
@@ -244,11 +238,6 @@ bool UGAAbilityBase::ApplyActivationEffect(bool bApplyActivationEffect)
 	float DurationCheck = Spec->Duration.GetFloatValue(ctx);
 	float PeriodCheck = Spec->Period.GetFloatValue(ctx);
 	if (DurationCheck > 0 || PeriodCheck > 0)
-	{
-		bApplyActivationEffect = true;
-	}
-	ActivationInfo.SetActivationInfo(GetWorld()->TimeSeconds, DurationCheck, PeriodCheck, bApplyActivationEffect);
-	if (bApplyActivationEffect)
 	{
 		FHitResult HitIn;
 		if (ActivationEffectHandle.IsValid())
@@ -278,29 +267,12 @@ bool UGAAbilityBase::ApplyActivationEffect(bool bApplyActivationEffect)
 bool UGAAbilityBase::CanUseAbility()
 {
 	bool CanUse = true;
-	bool bIsOnCooldown = IsOnCooldown();
-	bool bIsActivating = IsActivating();
+	bool bIsOnCooldown = CheckCooldown();
+	bool bIsActivating = CheckExecuting();
 	//if (!AbilityComponent->ExecutingAbility)
 	//	UE_LOG(AbilityFramework, Log, TEXT("CanUseAbility AbilityComponent->ExecutingAbility is true"));
 
 	CanUse = !bIsOnCooldown && !bIsActivating;
-	if (CanUse)
-	{
-		bool bDenyTags = AbilityComponent->HasAny(AbilityDenyTags);
-		bool bAllowedTags = false;
-		if (bDenyTags)
-		{
-			bAllowedTags = AbilityComponent->HasAny(AbilityAllowedTags);
-			if (bAllowedTags)
-			{
-				CanUse = true;
-			}
-			else
-			{
-				CanUse = !bDenyTags;
-			}
-		}
-	}
 	return CanUse;
 }
 
@@ -311,7 +283,7 @@ bool UGAAbilityBase::CanReleaseAbility()
 	{
 		bCanUse = true;
 	}*/
-	if (IsOnCooldown())
+	if (CheckCooldown())
 	{
 		bCanUse = false;
 		UE_LOG(AbilityFramework, Log, TEXT("CanReleaseAbility can't release ability is on cooldown"));
@@ -447,19 +419,17 @@ bool UGAAbilityBase::BP_ApplyAbilityAttributeCost()
 {
 	return ApplyAbilityAttributeCost();
 }
-bool UGAAbilityBase::IsOnCooldown()
+bool UGAAbilityBase::CheckCooldown()
 {
 	bool bOnCooldown = false;
 	bOnCooldown = AbilityComponent->IsEffectActive(CooldownEffectHandle);
-	return bOnCooldown;
+	return bOnCooldown; //temp
 }
-bool UGAAbilityBase::IsActivating()
+bool UGAAbilityBase::CheckExecuting()
 {
 	bool bAbilityActivating = false;
-	bool bIsEffectActive = AbilityComponent->IsEffectActive(ActivationEffect.Handle);
-	bool bActiveState = AbilityState == EAFAbilityState::Activating;
-	bAbilityActivating = bIsEffectActive || bActiveState;
-	return bAbilityActivating;
+	bAbilityActivating = AbilityComponent->IsEffectActive(ActivationEffect.Handle);
+	return bAbilityActivating; //temp
 }
 void UGAAbilityBase::BP_ApplyCooldown()
 {
@@ -478,10 +448,9 @@ float UGAAbilityBase::GetCurrentActivationTime()
 float UGAAbilityBase::CalculateAnimationSpeed(UAnimMontage* MontageIn)
 {
 	float ActivationTime = MontageIn->GetPlayLength();
-	if (ActivationEffect.IsInitialized())
+	if (ActivationEffect.Handle.IsValid())
 	{
-		FGAEffectContext ctx = UGABlueprintLibrary::MakeContext(this, POwner, this, FHitResult(ForceInit));
-		ActivationTime = ActivationEffect.GetSpec()->Duration.GetFloatValue(ctx);
+		//ActivationTime = Attributes->GetFinalAttributeValue(ActivationTimeAttribute);// ActivationEffectHandle.GetEffectPtr()->GetActivationTime();
 	}
 	float Duration = MontageIn->GetPlayLength();
 	
@@ -546,7 +515,7 @@ void UGAAbilityBase::OnRep_AbilityActivationStarted()
 }
 void UGAAbilityBase::OnRep_AbilityActivated()
 {
-	//ApplyActivationEffect();
+	ApplyActivationEffect();
 }
 void UGAAbilityBase::OnRep_AbilityPeriod()
 {

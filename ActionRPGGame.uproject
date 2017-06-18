@@ -103,9 +103,7 @@
 				"AIModule",
 				"Engine",
 				"AbilityFramework",
-				"CoreUObject",
-				"Slate",
-				"SlateCore"
+				"CoreUObject"
 			]
 		},
 		{

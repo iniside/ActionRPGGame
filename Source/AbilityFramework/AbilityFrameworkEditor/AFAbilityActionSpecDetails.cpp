@@ -10,8 +10,6 @@
 #include "AFAbilityActionSpecDetails.h"
 #include "Effects/AFEffectCustomApplication.h"
 #include "AFEffectCustomizationCommon.h"
-#include "IPropertyUtilities.h"
-
 TSharedRef<IDetailCustomization> FAFAbilityActivationSpecDetails::MakeInstance()
 {
 	return MakeShareable(new FAFAbilityActivationSpecDetails);
@@ -19,13 +17,11 @@ TSharedRef<IDetailCustomization> FAFAbilityActivationSpecDetails::MakeInstance()
 
 void FAFAbilityActivationSpecDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 {
+	MyDetailLayout = &DetailLayout;
+
 	TArray<TWeakObjectPtr<UObject>> Objects;
 	DetailLayout.GetObjectsBeingCustomized(Objects);
-	if (Objects.Num() != 1)
-	{
-		// I don't know what to do here or what could be expected. Just return to disable all templating functionality
-		return;
-	}
+
 	ApplicationTypeHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Application), UGAGameEffectSpec::StaticClass());
 	FSimpleDelegate UpdateEffectTypeyDelegate = FSimpleDelegate::CreateSP(this, &FAFAbilityActivationSpecDetails::OnDurationPolicyChange);
 	ApplicationTypeHandle->SetOnPropertyValueChanged(UpdateEffectTypeyDelegate);
@@ -34,10 +30,10 @@ void FAFAbilityActivationSpecDetails::CustomizeDetails(IDetailLayoutBuilder& Det
 	{
 		if (UAFAbilityActivationSpec* Spec = Cast<UAFAbilityActivationSpec>(obj.Get()))
 		{
-			MyDetailLayout = MakeShareable(&DetailLayout);
-
+			bIsDuration = Spec->Application.GetDefaultObject()->ShowDuration();
+			bIsPeriodic = Spec->Application.GetDefaultObject()->ShowPeriod();
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "ApplicationRequirement");
-			//FAFEffectCustomizationCommon::HideProperty(DetailLayout, "Application");
+			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "Application");
 
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "EffectAggregation");
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "MaxStackedDuration");
@@ -62,8 +58,8 @@ void FAFAbilityActivationSpecDetails::CustomizeDetails(IDetailLayoutBuilder& Det
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "RequiredTags");
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "ExecutionRequiredTags");
 
-			TSharedPtr<IPropertyHandle> DurationProperty = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Duration), UGAGameEffectSpec::StaticClass());
-			TSharedPtr<IPropertyHandle> PeriodProperty = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Period), UGAGameEffectSpec::StaticClass());
+			DurationProperty = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Duration), UGAGameEffectSpec::StaticClass());
+			PeriodProperty = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UGAGameEffectSpec, Period), UGAGameEffectSpec::StaticClass());
 
 			DetailLayout.HideProperty(DurationProperty);
 			DetailLayout.HideProperty(PeriodProperty);
@@ -75,10 +71,5 @@ void FAFAbilityActivationSpecDetails::CustomizeDetails(IDetailLayoutBuilder& Det
 }
 void FAFAbilityActivationSpecDetails::OnDurationPolicyChange()
 {
-	if (MyDetailLayout.IsValid())
-	{
-		MyDetailLayout->ForceRefreshDetails();
-		//const TSharedRef< class IPropertyUtilities >& util = MyDetailLayout->GetPropertyUtilities();
-		//util.Get().RequestRefresh();
-	}
+	MyDetailLayout->ForceRefreshDetails();
 }

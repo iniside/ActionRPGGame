@@ -15,44 +15,40 @@
 #include "GAGameEffect.h"
 
 DEFINE_STAT(STAT_GatherModifiers);
-void FGAEffectProperty::Initialize()
+
+void FGAEffectRepInfo::OnApplied()
 {
-	Spec = GetClass()->GetDefaultObject<UGAGameEffectSpec>();
-	ApplicationRequirement = GetSpec()->ApplicationRequirement.GetDefaultObject();
-	Application = GetSpec()->Application.GetDefaultObject();
-	Execution = GetSpec()->ExecutionType.GetDefaultObject();
-}
-void FGAEffectProperty::InitializeIfNotInitialized()
-{
-	if (!IsInitialized())
+	/*UGAEffectCue* NewCue = NewObject<UGAEffectCue>(EffectCueClass);
+	if (NewCue)
 	{
-		Initialize();
-	}
+		if (Context.TargetComp.IsValid())
+		{
+			NewCue->Owner = Context.Target.Get();
+			NewCue->Context = Context;
+			OnAppliedDelegate.CreateUObject(NewCue, &UGAEffectCue::OnEffectApplied);
+			Context.TargetComp->GameEffectContainer.EffectCues.Add(Handle, NewCue);
+			OnAppliedDelegate.ExecuteIfBound();
+		}
+	}*/
 }
-void FAFEffectRepInfo::OnApplied()
+void FGAEffectRepInfo::OnPeriod()
 {
 
 }
-void FAFEffectRepInfo::OnPeriod()
-{
-
-}
-void FAFEffectRepInfo::OnRemoved()
+void FGAEffectRepInfo::OnRemoved()
 {
 
 }
 
-void FAFEffectRepInfo::PreReplicatedRemove(const struct FGAEffectContainer& InArraySerializer)
+void FGAEffectRepInfo::PreReplicatedRemove(const struct FGAEffectContainer& InArraySerializer)
 {
-	InArraySerializer.EffectInfos.Remove(Handle);
-	InArraySerializer.OwningComponent->OnEffectRepInfoRemoved.Broadcast(this);
+
 }
-void FAFEffectRepInfo::PostReplicatedAdd(const struct FGAEffectContainer& InArraySerializer)
+void FGAEffectRepInfo::PostReplicatedAdd(const struct FGAEffectContainer& InArraySerializer)
 {
-	InArraySerializer.EffectInfos.Add(Handle, this);
-	InArraySerializer.OwningComponent->OnEffectRepInfoApplied.Broadcast(this);
+		OnApplied();
 }
-void FAFEffectRepInfo::PostReplicatedChange(const struct FGAEffectContainer& InArraySerializer)
+void FGAEffectRepInfo::PostReplicatedChange(const struct FGAEffectContainer& InArraySerializer)
 {
 
 }
@@ -301,7 +297,7 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 				if (InProperty.Application->ApplyEffect(InProperty.Handle,
 					EffectIn, InProperty, this))
 				{
-					InProperty.Application->ExecuteEffect(InProperty.Handle, InProperty, Modifier);
+					InProperty.Application->ExecuteEffect(Handle, InProperty, Modifier);
 					//	UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::EffectApplied %s"), *HandleIn.GetEffectSpec()->GetName() );
 				}
 			}

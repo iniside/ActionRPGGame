@@ -37,14 +37,10 @@
 #include "AFAbilityActionSpecDetails.h"
 #include "AFAbilityPeriodSpecDetails.h"
 #include "AFAbilityCooldownSpecDetails.h"
-#include "DetailCustomization/AFAbilityInfiniteDurationSpecDetails.h"
-#include "DetailCustomization/AFAbilityInfinitePeriodSpecDetails.h"
-
 #include "Abilities/AFAbilityActivationSpec.h"
 #include "Abilities/AFAbilityPeriodSpec.h"
 #include "Abilities/AFAbilityCooldownSpec.h"
-#include "Abilities/AFAbilityInfinitePeriodicSpec.h"
-#include "Abilities/AFAbilityInfiniteDurationSpec.h"
+
 class SEffectCreateDialog : public SCompoundWidget
 {
 public:
@@ -676,7 +672,6 @@ FReply FGAEffectClassStructWidget::OnEditButtonClicked()
 			EditedBlueprint = Blueprint;
 			if (Blueprint->ParentClass && Blueprint->ParentClass->IsChildOf(UAFAbilityActivationSpec::StaticClass()))
 			{
-				DetailView->UnregisterInstancedCustomPropertyLayout(UAFAbilityActivationSpec::StaticClass());
 				DetailView->RegisterInstancedCustomPropertyLayout(UAFAbilityActivationSpec::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityActivationSpecDetails::MakeInstance));
 			}
 			else if (Blueprint->ParentClass && Blueprint->ParentClass->IsChildOf(UAFAbilityPeriodSpec::StaticClass()))
@@ -686,14 +681,6 @@ FReply FGAEffectClassStructWidget::OnEditButtonClicked()
 			else if (Blueprint->ParentClass && Blueprint->ParentClass->IsChildOf(UAFAbilityCooldownSpec::StaticClass()))
 			{
 				DetailView->RegisterInstancedCustomPropertyLayout(UAFAbilityCooldownSpec::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityCooldownSpecDetails::MakeInstance));
-			}
-			else if (Blueprint->ParentClass && Blueprint->ParentClass->IsChildOf(UAFAbilityInfiniteDurationSpec::StaticClass()))
-			{
-				DetailView->RegisterInstancedCustomPropertyLayout(UAFAbilityInfiniteDurationSpec::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityInfiniteDurationSpecDetails::MakeInstance));
-			}
-			else if (Blueprint->ParentClass && Blueprint->ParentClass->IsChildOf(UAFAbilityInfinitePeriodicSpec::StaticClass()))
-			{
-				DetailView->RegisterInstancedCustomPropertyLayout(UAFAbilityInfinitePeriodicSpec::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityInfinitePeriodSpecDetails::MakeInstance));
 			}
 			else if (Blueprint->ParentClass && Blueprint->ParentClass->IsChildOf(UGAGameEffectSpec::StaticClass()))
 			{
@@ -786,7 +773,7 @@ FReply FGAEffectClassStructWidget::OnSaveButtonClicked()
 		PackagesToSave.Add(EditedBlueprint->GetOutermost());
 
 		FEditorFileUtils::PromptForCheckoutAndSave(PackagesToSave, true, /*bPromptToSave=*/ false);
-		//EditedBlueprint = nullptr;
+		EditedBlueprint = nullptr;
 	}
 	return FReply::Unhandled();
 }

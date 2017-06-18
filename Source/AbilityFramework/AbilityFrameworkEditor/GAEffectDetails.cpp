@@ -13,8 +13,6 @@
 #include "Abilities/AFAbilityActivationSpec.h"
 #include "Abilities/AFAbilityPeriodSpec.h"
 #include "Abilities/AFAbilityCooldownSpec.h"
-#include "Abilities/AFAbilityInfiniteDurationSpec.h"
-#include "Abilities/AFAbilityInfinitePeriodicSpec.h"
 TSharedRef<IDetailCustomization> FGAEffectDetails::MakeInstance()
 {
 	return MakeShareable(new FGAEffectDetails);
@@ -22,6 +20,8 @@ TSharedRef<IDetailCustomization> FGAEffectDetails::MakeInstance()
 
 void FGAEffectDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 {
+	MyDetailLayout = &DetailLayout;
+
 	TArray<TWeakObjectPtr<UObject>> Objects;
 	DetailLayout.GetObjectsBeingCustomized(Objects);
 
@@ -47,11 +47,8 @@ void FGAEffectDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 			if (!Spec->IsA(UAFAbilityActivationSpec::StaticClass())
 				&& !Spec->IsA(UAFAbilityPeriodSpec::StaticClass())
 				&& !Spec->IsA(UAFAbilityCooldownSpec::StaticClass())
-					&& !Spec->IsA(UAFAbilityInfinitePeriodicSpec::StaticClass())
-					&& !Spec->IsA(UAFAbilityInfiniteDurationSpec::StaticClass())
 				)
 			{
-				MyDetailLayout = MakeShareable(&DetailLayout);
 				bIsDuration = Spec->Application.GetDefaultObject()->ShowDuration();
 				bIsPeriodic = Spec->Application.GetDefaultObject()->ShowPeriod();
 
@@ -110,6 +107,5 @@ void FGAEffectDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 }
 void FGAEffectDetails::OnDurationPolicyChange()
 {
-	if(MyDetailLayout.IsValid())
-		MyDetailLayout->ForceRefreshDetails();
+	MyDetailLayout->ForceRefreshDetails();
 }
