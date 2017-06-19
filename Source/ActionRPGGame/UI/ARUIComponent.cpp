@@ -34,7 +34,7 @@ void UARUIComponent::BeginPlay()
 		ARCharacter = Cast<AARCharacter>(PC->GetCharacter());
 		if (ARCharacter)
 		{
-			ARCharacter->GetAbilityComp()->OnAttributeModifed.AddDynamic(this, &UARUIComponent::OnAttributeChanged);
+			ARCharacter->GetAbilityComp()->OnTargetAttributeModifed.AddDynamic(this, &UARUIComponent::OnAttributeChanged);
 		}
 		SAssignNew(MainWidget, SARMainWidget);
 		SAssignNew(FloatingText, SARFTContainer).

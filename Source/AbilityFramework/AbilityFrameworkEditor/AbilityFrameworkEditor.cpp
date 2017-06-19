@@ -14,13 +14,11 @@
 #include "AFAbilityPeriodSpecDetails.h"
 #include "AFAbilityCooldownSpecDetails.h"
 
-#include "AssetToolsModule.h"
-#include "IAssetTypeActions.h"
 #include "EffectEditor/AssetTypeActions_GAEffectBlueprint.h"
 #include "AbilityEditor/AssetTypeActions_GAAbilityBlueprint.h"
 #include "EffectCueEditor/AssetTypeActions_GAEffectCueBlueprint.h"
-#include "Effects/GAEffectCueSequence.h"
-#include "EffectCueEditor/GAEffectCueEditor.h"
+
+
 #include "BlueprintEditorModule.h"
 #include "BlueprintEditorTabs.h"
 #include "LayoutExtender.h"
@@ -32,112 +30,81 @@
 #include "Modules/ModuleManager.h"
 #include "Widgets/Docking/SDockTab.h"
 
-#include "IAbilityFrameworkEditor.h"
 
-class FEffectCueSequenceEditorTabBinding
-	: public TSharedFromThis<FEffectCueSequenceEditorTabBinding>
+
+
+TSet<UClass*> FAbilityFrameworkEditor::EffectClasses = TSet<UClass*>();
+
+void FAbilityFrameworkEditor::RegisterAssetTypeAction(IAssetTools& AssetTools, TSharedRef<IAssetTypeActions> Action)
 {
-public:
-
-	FEffectCueSequenceEditorTabBinding()
-	{
-		
-	}
-
-
-	~FEffectCueSequenceEditorTabBinding()
-	{
-		/*FBlueprintEditorModule* BlueprintEditorModule = FModuleManager::GetModulePtr<FBlueprintEditorModule>("Kismet");
-		if (BlueprintEditorModule)
-		{
-			BlueprintEditorModule->OnRegisterTabsForEditor().Remove(BlueprintEditorTabSpawnerHandle);
-			BlueprintEditorModule->OnRegisterLayoutExtensions().Remove(BlueprintEditorLayoutExtensionHandle);
-		}*/
-	}
-
-private:
-
-	/** Delegate binding handle for FBlueprintEditorModule::OnRegisterTabsForEditor */
-	FDelegateHandle BlueprintEditorTabSpawnerHandle, BlueprintEditorLayoutExtensionHandle;
-
-	FDelegateHandle LevelEditorTabSpawnerHandle, LevelEditorLayoutExtensionHandle;
-};
-class FAbilityFrameworkEditor : public IAbilityFrameworkEditor
+	AssetTools.RegisterAssetTypeActions(Action);
+	CreatedAssetTypeActions.Add(Action);
+}
+void FAbilityFrameworkEditor::OnInitializeSequence(UGAEffectCueSequence* Sequence)
 {
-	TArray< TSharedPtr<IAssetTypeActions> > CreatedAssetTypeActions;
-	TSharedPtr<FEffectCueSequenceEditorTabBinding> BlueprintEditorTabBinding;
-	FDelegateHandle OnInitializeSequenceHandle;
-	void RegisterAssetTypeAction(IAssetTools& AssetTools, TSharedRef<IAssetTypeActions> Action)
+	auto* ProjectSettings = GetDefault<UMovieSceneToolsProjectSettings>();
+	AGAEffectCue* Cue = Cast<AGAEffectCue>(Sequence->GetOuter());
+	if (Cue)
 	{
-		AssetTools.RegisterAssetTypeActions(Action);
-		CreatedAssetTypeActions.Add(Action);
+		Sequence->GetMovieScene()->SetPlaybackRange(Cue->StartTime, Cue->EndTime);
 	}
-	static void OnInitializeSequence(UGAEffectCueSequence* Sequence)
+	else
 	{
-		auto* ProjectSettings = GetDefault<UMovieSceneToolsProjectSettings>();
-		AGAEffectCue* Cue = Cast<AGAEffectCue>(Sequence->GetOuter());
-		if (Cue)
-		{
-			Sequence->GetMovieScene()->SetPlaybackRange(Cue->StartTime, Cue->EndTime);
-		}
-		else
-		{
-			Sequence->GetMovieScene()->SetPlaybackRange(ProjectSettings->DefaultStartTime, ProjectSettings->DefaultStartTime + ProjectSettings->DefaultDuration);
-		}
+		Sequence->GetMovieScene()->SetPlaybackRange(ProjectSettings->DefaultStartTime, ProjectSettings->DefaultStartTime + ProjectSettings->DefaultDuration);
 	}
+}
 	/** IModuleInterface implementation */
-	virtual void StartupModule() override
-	{
-		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-		PropertyModule.RegisterCustomPropertyTypeLayout("GAAttribute", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGAAttributeDetailCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("GAEffectProperty", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGAEffectPropertyStructCustomization::MakeInstance));
+void FAbilityFrameworkEditor::StartupModule()
+{
+	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	PropertyModule.RegisterCustomPropertyTypeLayout("GAAttribute", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGAAttributeDetailCustomization::MakeInstance));
+	PropertyModule.RegisterCustomPropertyTypeLayout("GAEffectProperty", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGAEffectPropertyStructCustomization::MakeInstance));
 
-		TSharedPtr<FGAAttributePanelGraphPinFactory> GAAttributePanelGraphPinFactory = MakeShareable(new FGAAttributePanelGraphPinFactory());
-		FEdGraphUtilities::RegisterVisualPinFactory(GAAttributePanelGraphPinFactory);
+	TSharedPtr<FGAAttributePanelGraphPinFactory> GAAttributePanelGraphPinFactory = MakeShareable(new FGAAttributePanelGraphPinFactory());
+	FEdGraphUtilities::RegisterVisualPinFactory(GAAttributePanelGraphPinFactory);
 
-		PropertyModule.RegisterCustomClassLayout("AFEffectSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FGAEffectDetails::MakeInstance));
-		PropertyModule.RegisterCustomClassLayout("AFAbilityActivationSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityActivationSpecDetails::MakeInstance));
-		PropertyModule.RegisterCustomClassLayout("AFAbilityPeriodSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityPeriodSpecDetails::MakeInstance));
-		PropertyModule.RegisterCustomClassLayout("AFAbilityCooldownSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityCooldownSpecDetails::MakeInstance));
+	PropertyModule.RegisterCustomClassLayout("AFEffectSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FGAEffectDetails::MakeInstance));
+	PropertyModule.RegisterCustomClassLayout("AFAbilityActivationSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityActivationSpecDetails::MakeInstance));
+	PropertyModule.RegisterCustomClassLayout("AFAbilityPeriodSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityPeriodSpecDetails::MakeInstance));
+	PropertyModule.RegisterCustomClassLayout("AFAbilityCooldownSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityCooldownSpecDetails::MakeInstance));
 		
 
-		IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
-		TSharedRef<IAssetTypeActions> GABAction = MakeShareable(new FAssetTypeActions_GAEffectBlueprint());
-		RegisterAssetTypeAction(AssetTools, GABAction);
-		TSharedRef<IAssetTypeActions> GAAbilityAction = MakeShareable(new FAssetTypeActions_GAAbilityBlueprint());
-		RegisterAssetTypeAction(AssetTools, GAAbilityAction);
-		TSharedRef<IAssetTypeActions> GAEffectCueAction = MakeShareable(new FAssetTypeActions_GAEffectCueBlueprint());
-		RegisterAssetTypeAction(AssetTools, GAEffectCueAction);
+	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
+	TSharedRef<IAssetTypeActions> GABAction = MakeShareable(new FAssetTypeActions_GAEffectBlueprint());
+	RegisterAssetTypeAction(AssetTools, GABAction);
+	TSharedRef<IAssetTypeActions> GAAbilityAction = MakeShareable(new FAssetTypeActions_GAAbilityBlueprint());
+	RegisterAssetTypeAction(AssetTools, GAAbilityAction);
+	TSharedRef<IAssetTypeActions> GAEffectCueAction = MakeShareable(new FAssetTypeActions_GAEffectCueBlueprint());
+	RegisterAssetTypeAction(AssetTools, GAEffectCueAction);
 
-		//BlueprintEditorTabBinding = MakeShared<FEffectCueSequenceEditorTabBinding>();
-		OnInitializeSequenceHandle = UGAEffectCueSequence::OnInitializeSequence().AddStatic(FAbilityFrameworkEditor::OnInitializeSequence);
-	}
-	virtual void ShutdownModule() override
+	//BlueprintEditorTabBinding = MakeShared<FEffectCueSequenceEditorTabBinding>();
+	OnInitializeSequenceHandle = UGAEffectCueSequence::OnInitializeSequence().AddStatic(FAbilityFrameworkEditor::OnInitializeSequence);
+}
+void FAbilityFrameworkEditor::ShutdownModule()
+{
+	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	//PropertyModule.UnregisterCustomClassLayout("GAGameEffectSpec");
+	PropertyModule.UnregisterCustomClassLayout("AFAbilityActivationSpec");
+	//PropertyModule.UnregisterCustomClassLayout("AFAbilityPeriodSpec");
+	//PropertyModule.UnregisterCustomClassLayout("AFAbilityCooldownSpec");
+
+	PropertyModule.UnregisterCustomPropertyTypeLayout("GAAttribute");
+	PropertyModule.UnregisterCustomPropertyTypeLayout("GAEffectProperty");
+
+	UGAEffectCueSequence::OnInitializeSequence().Remove(OnInitializeSequenceHandle);
+	BlueprintEditorTabBinding = nullptr;
+	if (FModuleManager::Get().IsModuleLoaded("AssetTools"))
 	{
-		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-		//PropertyModule.UnregisterCustomClassLayout("GAGameEffectSpec");
-		PropertyModule.UnregisterCustomClassLayout("AFAbilityActivationSpec");
-		//PropertyModule.UnregisterCustomClassLayout("AFAbilityPeriodSpec");
-		//PropertyModule.UnregisterCustomClassLayout("AFAbilityCooldownSpec");
-
-		PropertyModule.UnregisterCustomPropertyTypeLayout("GAAttribute");
-		PropertyModule.UnregisterCustomPropertyTypeLayout("GAEffectProperty");
-
-		UGAEffectCueSequence::OnInitializeSequence().Remove(OnInitializeSequenceHandle);
-		BlueprintEditorTabBinding = nullptr;
-		if (FModuleManager::Get().IsModuleLoaded("AssetTools"))
+		IAssetTools& AssetToolsModule = FModuleManager::GetModuleChecked<FAssetToolsModule>("AssetTools").Get();
+		for (auto& AssetTypeAction : CreatedAssetTypeActions)
 		{
-			IAssetTools& AssetToolsModule = FModuleManager::GetModuleChecked<FAssetToolsModule>("AssetTools").Get();
-			for (auto& AssetTypeAction : CreatedAssetTypeActions)
+			if (AssetTypeAction.IsValid())
 			{
-				if (AssetTypeAction.IsValid())
-				{
-					AssetToolsModule.UnregisterAssetTypeActions(AssetTypeAction.ToSharedRef());
-				}
+				AssetToolsModule.UnregisterAssetTypeActions(AssetTypeAction.ToSharedRef());
 			}
 		}
 	}
-};
+}
 
 IMPLEMENT_GAME_MODULE(FAbilityFrameworkEditor, AbilityFrameworkEditor);
 

@@ -31,6 +31,10 @@
 #include "Effects/GAEffectBlueprint.h"
 #include "GAEffectGraph.h"
 #include "GAEffectGraphSchema.h"
+#include "Abilities/AFAbilityActivationSpec.h"
+#include "Abilities/AFAbilityCooldownSpec.h"
+#include "Abilities/AFAbilityPeriodSpec.h"
+#include "Abilities/AFAbilityInfiniteDurationSpec.h"
 
 #include "ClassViewerFilter.h"
 
@@ -173,7 +177,12 @@ private:
 		TSharedPtr<FEffectBlueprintParentFilter> Filter = MakeShareable(new FEffectBlueprintParentFilter);
 
 		// All child child classes of UGameplayAbility are valid.
-		Filter->AllowedChildrenOfClasses.Add(UGAGameEffectSpec::StaticClass());
+		Filter->AllowedChildrenOfClasses.Add(UAFEffectSpec::StaticClass());
+		Filter->AllowedChildrenOfClasses.Add(UAFAbilityActivationSpec::StaticClass());
+		Filter->AllowedChildrenOfClasses.Add(UAFAbilityCooldownSpec::StaticClass());
+		Filter->AllowedChildrenOfClasses.Add(UAFAbilityPeriodSpec::StaticClass());
+		Filter->AllowedChildrenOfClasses.Add(UAFAbilityInfiniteDurationSpec::StaticClass());
+
 		Options.ClassFilter = Filter;
 
 		ParentClassContainer->ClearChildren();

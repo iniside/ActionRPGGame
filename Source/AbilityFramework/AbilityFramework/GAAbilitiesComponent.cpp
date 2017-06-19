@@ -61,13 +61,18 @@ void UGAAbilitiesComponent::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffect
 	//OnAttributePreModifed.Broadcast(ModIn, 0);
 	float NewValue = DefaultAttributes->ModifyAttribute(ModIn, HandleIn, InProperty);
 	FAFAttributeChangedData Data;
+	FGAEffectContext& Context = HandleIn.GetContextRef();
 	Data.Mod = ModIn;
-	Data.Target = HandleIn.GetContext().Target;
-	Data.Location = HandleIn.GetContext().HitResult.Location;
+	Data.Target = Context.Target;
+	Data.Location = Context.HitResult.Location;
 	OnAttributeModifed.Broadcast(Data);
-	HandleIn.GetContext().InstigatorComp->OnAttributeModifed.Broadcast(Data);
+	NotifyInstigatorTargetAttributeChanged(Data, Context);
 };
-
+void UGAAbilitiesComponent::NotifyInstigatorTargetAttributeChanged(const FAFAttributeChangedData& InData,
+	const FGAEffectContext& InContext)
+{
+	InContext.InstigatorComp->OnTargetAttributeModifed.Broadcast(InData);
+}
 void UGAAbilitiesComponent::GetAttributeStructTest(FGAAttribute Name)
 {
 	DefaultAttributes->GetAttribute(Name);
@@ -124,11 +129,16 @@ FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 	, FGAEffectProperty& InProperty, FGAEffectContext& InContext
 	, const FAFFunctionModifier& Modifier)
 {
-	//FGAEffectCueParams CueParams;
-	//CueParams.HitResult = EffectIn.Context.HitResult;
+	//broadcast cues first ?
+	//Probabaly because effect might not always apply. Or relegate cue
+	//application to object which was hit ?
+	FGAEffectCueParams CueParams;
+	CueParams.HitResult = InContext.HitResult;
+	CueParams.CueTags = InProperty.GetSpec()->Cues.CueTags;
+	MulticastApplyEffectCue(CueParams);
 	//execute cue from effect regardless if we have target object or not.
 	return InContext.TargetComp->ApplyEffectToSelf(EffectIn, InProperty, InContext, Modifier);
-	//MulticastApplyEffectCue(HandleIn, CueParams);
+	
 
 //	if (EffectIn.IsValid() && EffectIn.Context.TargetComp.IsValid())
 //	{
@@ -225,10 +235,10 @@ FGAEffectUIData UGAAbilitiesComponent::GetEffectUIDataByIndex(int32 IndexIn)
 	return data;
 }
 
-void UGAAbilitiesComponent::MulticastApplyEffectCue_Implementation(FGAEffectHandle EffectHandle, FGAEffectCueParams CueParams)
+void UGAAbilitiesComponent::MulticastApplyEffectCue_Implementation( FGAEffectCueParams CueParams)
 {
 	float test = 0;
-	ActiveCues.AddCue(EffectHandle, CueParams);
+	//ActiveCues.AddCue(EffectHandle, CueParams);
 }
 
 void UGAAbilitiesComponent::MulticastExecuteEffectCue_Implementation(FGAEffectHandle EffectHandle)

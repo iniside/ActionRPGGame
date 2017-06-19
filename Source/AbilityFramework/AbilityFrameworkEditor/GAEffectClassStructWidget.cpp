@@ -553,7 +553,7 @@ FReply FGAEffectClassStructWidget::MakeNewBlueprint()
 	}
 	else
 	{
-		MetaClass.Add(UGAGameEffectSpec::StaticClass());
+		MetaClass.Add(UAFEffectSpec::StaticClass());
 	}
 	TSharedRef<SEffectCreateDialog> Dialog = SNew(SEffectCreateDialog).MetaClass(MetaClass);
 	Dialog->ConfigureProperties(this);

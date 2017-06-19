@@ -104,6 +104,20 @@ public:
 		TArray<FGAAttributeModifier> Modifiers;
 };
 
+USTRUCT(BlueprintType)
+struct ABILITYFRAMEWORK_API FAFCueContainer
+{
+	GENERATED_BODY()
+public:
+	/* Cues to apply */
+	UPROPERTY(EditAnywhere)
+		FGameplayTagContainer CueTags;
+};
+
+/*
+	Base effect class. You can derive your own specialized classes from it
+	with preset customizations and values. You should never directly inherit blueprints from it.
+*/
 UCLASS(Blueprintable, BlueprintType, Abstract)
 class ABILITYFRAMEWORK_API UGAGameEffectSpec : public UObject
 {
@@ -165,6 +179,10 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Modifiers")
 		TSubclassOf<class UGAEffectExtension> Extension;
+
+	/* Cues to apply by this effect. */
+	UPROPERTY(EditAnywhere, Category = "Cues")
+		FAFCueContainer Cues;
 	/* 
 		Effects applied when this effect is applied. 
 		These effects will be applied with the same context and the same target as
@@ -249,6 +267,9 @@ public:
 public:
 	UGAGameEffectSpec();
 };
+/*
+	Base effect class to extend from when creating effect blueprints.
+*/
 UCLASS(Blueprintable, BlueprintType, Abstract)
 class ABILITYFRAMEWORK_API UAFEffectSpec : public UGAGameEffectSpec
 {

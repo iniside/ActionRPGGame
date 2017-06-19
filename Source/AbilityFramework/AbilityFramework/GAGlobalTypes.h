@@ -805,7 +805,8 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "GameplayCue")
 		float Duration;
-
+	UPROPERTY(BlueprintReadOnly)
+		FGameplayTagContainer CueTags;
 	FGAEffectCueParams()
 	{};
 	FGAEffectCueParams(const FHitResult& HitIn, AActor* InstigatorIn, AActor* EffectCauserIn)
