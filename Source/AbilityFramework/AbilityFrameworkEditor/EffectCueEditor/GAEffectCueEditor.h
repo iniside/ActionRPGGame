@@ -22,7 +22,7 @@ struct FEffectCueSequenceEditorSummoner
 	FEffectCueSequenceEditorSummoner(TSharedPtr<FBlueprintEditor> BlueprintEditor);
 
 	virtual TSharedRef<SWidget> CreateTabBody(const FWorkflowTabSpawnInfo& Info) const override;
-
+	/*virtual TSharedRef<SDockTab> SpawnTab(const FWorkflowTabSpawnInfo& Info) const override;*/
 protected:
 	TWeakPtr<FBlueprintEditor> WeakBlueprintEditor;
 };

@@ -18,6 +18,9 @@
 #include "MessageEndpoint.h"
 #include "MessageEndpointBuilder.h"
 #include "Effects/GAEffectExtension.h"
+#include "Effects/GAEffectCue.h"
+#include "AFCueSet.h"
+#include "AFCueManager.h"
 #include "GAAbilitiesComponent.h"
 
 
@@ -118,7 +121,7 @@ FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToSelf(FGAEffect* EffectIn
 	}
 
 	//OnEffectApplyToSelf.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
-	FGAEffectHandle Handle = GameEffectContainer.ApplyEffect(EffectIn, InProperty, Modifier);
+	FGAEffectHandle Handle = GameEffectContainer.ApplyEffect(EffectIn, InProperty, InContext, Modifier);
 	GameEffectContainer.MarkArrayDirty();
 	return Handle;
 	//FGAEffectCueParams CueParams;
@@ -133,12 +136,16 @@ FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 	//Probabaly because effect might not always apply. Or relegate cue
 	//application to object which was hit ?
 	FGAEffectCueParams CueParams;
+	CueParams.Instigator = InContext.Instigator;
+	CueParams.Causer = InContext.Causer;
 	CueParams.HitResult = InContext.HitResult;
 	CueParams.CueTags = InProperty.GetSpec()->Cues.CueTags;
 	MulticastApplyEffectCue(CueParams);
 	//execute cue from effect regardless if we have target object or not.
-	return InContext.TargetComp->ApplyEffectToSelf(EffectIn, InProperty, InContext, Modifier);
+	if(InContext.TargetComp.IsValid())
+		return InContext.TargetComp->ApplyEffectToSelf(EffectIn, InProperty, InContext, Modifier);
 	
+	return FGAEffectHandle();
 
 //	if (EffectIn.IsValid() && EffectIn.Context.TargetComp.IsValid())
 //	{
@@ -153,7 +160,7 @@ void UGAAbilitiesComponent::OnAttributeModified(const FGAEffectMod& InMod,
 
 }
 void UGAAbilitiesComponent::ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty
-	,FAFFunctionModifier Modifier)
+	,FAFFunctionModifier Modifier, FGAEffectContext InContex)
 {
 	/*
 	this patth will give effects chance to do any replicated events, like applying cues.
@@ -184,7 +191,10 @@ void UGAAbilitiesComponent::ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectPro
 	OnEffectExecuted.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
 	UE_LOG(GameAttributesEffects, Log, TEXT("UGAAbilitiesComponent:: Effect %s executed"), *HandleIn.GetEffectSpec()->GetName());
 	FGAEffect& Effect = HandleIn.GetEffectRef();
-	FGAEffectMod Mod = Effect.GetAttributeModifier();
+	FGAEffectMod Mod = FAFStatics::GetAttributeModifier(InProperty.GetAttributeModifier()
+		, InProperty.GetSpec()
+		, InContex
+		, HandleIn);
 
 	//execute period regardless if this periodic effect ? Or maybe change name OnEffectExecuted ?
 	
@@ -237,8 +247,24 @@ FGAEffectUIData UGAAbilitiesComponent::GetEffectUIDataByIndex(int32 IndexIn)
 
 void UGAAbilitiesComponent::MulticastApplyEffectCue_Implementation( FGAEffectCueParams CueParams)
 {
-	float test = 0;
-	//ActiveCues.AddCue(EffectHandle, CueParams);
+
+	UAFCueManager::Get()->HandleCue(CueParams.CueTags, CueParams);
+//	if (!TestCueSet)
+	//	return;
+	//for (const FGameplayTag& Tag : CueParams.CueTags)
+	//{
+	//	TSubclassOf<AGAEffectCue> CueClass = TestCueSet->Cues.FindRef(Tag);
+	//	if (!CueClass)
+	//		continue;
+
+	//	FActorSpawnParameters SpawnParams;
+	//	FVector Location = CueParams.HitResult.Location;
+	//	FRotator Rotation = FRotator::ZeroRotator;
+	//	AGAEffectCue* actor = GetWorld()->SpawnActor<AGAEffectCue>(CueClass, Location, Rotation, SpawnParams);
+
+	//	actor->NativeBeginCue(CueParams.Instigator.Get(), CueParams.HitResult.Actor.Get(),
+	//		CueParams.EffectCauser.Get(), CueParams.HitResult);
+	//}
 }
 
 void UGAAbilitiesComponent::MulticastExecuteEffectCue_Implementation(FGAEffectHandle EffectHandle)

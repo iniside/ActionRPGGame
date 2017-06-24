@@ -16,6 +16,7 @@ class ABILITYFRAMEWORK_API UAFAttributeDurationInfinite : public UAFEffectCustom
 public:
 	virtual bool ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
 		FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer,
+		const FGAEffectContext& InContext,
 		const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 	
 	virtual bool ShowPeriod() override

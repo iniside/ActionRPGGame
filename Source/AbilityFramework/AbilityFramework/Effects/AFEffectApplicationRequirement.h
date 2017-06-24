@@ -17,7 +17,9 @@ class ABILITYFRAMEWORK_API UAFEffectApplicationRequirement : public UObject
 	
 public:
 	virtual bool CanApply(FGAEffect* EffectIn, FGAEffectProperty& InProperty,
-		struct FGAEffectContainer* InContainer)
+		struct FGAEffectContainer* InContainer,
+		const FGAEffectContext& InContext,
+		const FGAEffectHandle& InHandle)
 	{
 		return true;
 	}

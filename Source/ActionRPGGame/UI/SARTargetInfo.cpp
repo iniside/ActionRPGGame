@@ -23,12 +23,12 @@ void SARTargetInfo::Construct(const FArguments& InArgs)
 		[
 			SNew(SHorizontalBox)
 			+SHorizontalBox::Slot()
-			.MaxWidth(192)
+			.MaxWidth(Config.MaxWidth)
 			[
 				SNew(SVerticalBox)
 				+SVerticalBox::Slot()
 				.HAlign(EHorizontalAlignment::HAlign_Center)
-				.MaxHeight(24)
+				.MaxHeight(Config.MaxTextHeight)
 				[
 					SAssignNew(TextBlk, STextBlock)
 					.Text(TextDelegate)
@@ -37,7 +37,7 @@ void SARTargetInfo::Construct(const FArguments& InArgs)
 				]
 				+SVerticalBox::Slot()
 				.HAlign(EHorizontalAlignment::HAlign_Fill)
-				.MaxHeight(12)
+				.MaxHeight(Config.MaxBarHeight)
 				[
 					SAssignNew(HealthBar, SProgressBar)
 					.BorderPadding(Config.BarBorder)
@@ -61,15 +61,31 @@ void SARTargetInfo::Tick(const FGeometry& AllottedGeometry,
 		const FARTargetInfoConfig& Config = UIComp->TargetInfoConfig;
 		FVector WorldPos = Target->GetActorLocation();
 		FVector OutPosition;
-		UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPositionWithDistance(PC.Get(), WorldPos, OutPosition);
+
+		FBox BB = Target->GetComponentsBoundingBox();
+		FVector Center = BB.GetCenter();
+		FVector Extent = BB.GetExtent() * Config.HeightMultiplier;
+		FVector2D Center2D;// = FVector2D(Canvas->Project(FVector(Center.X, Center.Y, Center.Z + Extent.Z)));
+		float ActorExtent = 40;
+		UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPositionWithDistance(PC.Get(), 
+			FVector(Center.X, Center.Y, Center.Z + Extent.Z), OutPosition);
 		FWidgetTransform Transform;
-		FVector2D Size = ComputeDesiredSize(1) * 0.5f;// TextBlk->ComputeDesiredSize(1) * 0.5f;
-		Size.X = 96;
+		FVector2D Size = ComputeDesiredSize(1) * 0.25f;// TextBlk->ComputeDesiredSize(1) * 0.5f;
+		
+		TPair<float, float> distSize = GetObjectScreenRadius(Target.Get());
+		float NormalizedVal = FMath::GetMappedRangeValueClamped(FVector2D(3500, 0), FVector2D(0.35, 1), OutPosition.Z);
+		
+		Size.X = Config.MaxWidth * NormalizedVal * 0.5f ;
 		FVector2D WidgetPos(OutPosition.X, OutPosition.Y);
 		
-		float HalfHeight = GetObjectScreenRadius(Target.Get());
-		WidgetPos.Y -= (HalfHeight*Config.HeightMultiplier);
+		//float NormalizedScale = FMath::GetMappedRangeValueClamped(FVector2D(0, 200), FVector2D(0.35, 1), distSize.Value);
+		//WidgetPos.Y -= WidgetPos.Y*distSize.Value;
+		//WidgetPos.Y = (distSize.Value*Config.HeightMultiplier);
+
 		Transform.Translation = WidgetPos - Size;
+		Transform.Scale = FVector2D(1, 1);
+		//Transform.Scale.Y *= NormalizedVal;
+		//Transform.Scale.X *= NormalizedVal*0.8f;
 		SetRenderTransform(Transform.ToSlateRenderTransform());
 	}
 }
@@ -122,7 +138,7 @@ TOptional<float> SARTargetInfo::GetPercentage() const
 static const auto CVarScreenPercentage = IConsoleManager::Get().FindTConsoleVariableDataFloat(TEXT("r.SCreenPercentage"));
 #endif WITH_EDITOR
 
-float SARTargetInfo::GetObjectScreenRadius(AActor* InActor)
+TPair<float, float> SARTargetInfo::GetObjectScreenRadius(AActor* InActor)
 {
 	float ScreenRadius;
 	int32 Width, Height;
@@ -152,7 +168,9 @@ float SARTargetInfo::GetObjectScreenRadius(AActor* InActor)
 
 	/* Get Projected Screen Radius */
 	ScreenRadius = FMath::Atan(BoundingRadius / DistanceToObject);
+	//ScreenRadius *= FMath::DegreesToRadians(CamFOV) * SRad;
 	ScreenRadius *= SRad / FMath::DegreesToRadians(CamFOV);
+	TPair<float, float> retVal(DistanceToObject, ScreenRadius);
 
-	return ScreenRadius;
+	return retVal;
 }

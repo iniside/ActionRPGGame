@@ -159,6 +159,10 @@ class ABILITYFRAMEWORK_API UGAAbilitiesComponent : public UGameplayTasksComponen
 		/* Attributes handling */
 public:
 	friend struct FAFMessageTick;
+	//Only for base testing and prototyping cue application.
+	//will be removed when Cue Manager will be more functional.
+	UPROPERTY(EditAnywhere)
+		class UAFCueSet* TestCueSet;
 	UPROPERTY(EditAnywhere, Category = "Test")
 		FGameplayTag TagTest;
 	/*
@@ -301,7 +305,7 @@ public:
 
 	/* Have to to copy handle around, because timer delegates do not support references. */
 	void ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty
-		,FAFFunctionModifier Modifier);
+		,FAFFunctionModifier Modifier, FGAEffectContext InContext);
 	virtual void PostExecuteEffect();
 	/* ExpireEffect is used to remove existing effect naturally when their time expires. */
 	void ExpireEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty);

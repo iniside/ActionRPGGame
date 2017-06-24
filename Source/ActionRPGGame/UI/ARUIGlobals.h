@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SlateMaterialBrush.h"
 #include "ARUIGlobals.generated.h"
 USTRUCT(BlueprintType)
 struct FARFTConfig
@@ -75,10 +76,19 @@ public:
 		FSlateColor BarColor;
 	UPROPERTY(EditAnywhere)
 		FVector2D BarBorder;
+	UPROPERTY(EditAnywhere)
+		float MaxWidth;
+	UPROPERTY(EditAnywhere)
+		float MaxTextHeight;
+	UPROPERTY(EditAnywhere)
+		float MaxBarHeight;
 
 	UPROPERTY(EditAnywhere)
 		float HeightMultiplier;
-	
+
+	UPROPERTY(EditAnywhere)
+		FSlateBrush Material;
+
 	FARTargetInfoConfig()
 		:HeightMultiplier(1)
 	{};

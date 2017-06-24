@@ -7,7 +7,9 @@
 
 
 bool UAFEffectAlreadyApplied::CanApply(FGAEffect* EffectIn, FGAEffectProperty& InProperty,
-	struct FGAEffectContainer* InContainer)
+	struct FGAEffectContainer* InContainer,
+	const FGAEffectContext& InContext,
+	const FGAEffectHandle& InHandle)
 {
 	if (InContainer->ContainsEffectOfClass(InProperty))
 	{

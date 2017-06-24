@@ -22,13 +22,28 @@ public:
 
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void BeginCue();
-	void NativeBeginCue();
+		void BeginCue(AActor* InstigatorOut, AActor* TargetOut, UObject* Causer,
+			const FHitResult& HitInfo);
 
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnPeriod();
 
-	//DECLARE_EVENT_OneParam(UUMGSequencePlayer, FOnSequenceFinishedPlaying, UUMGSequencePlayer&);
-	//FOnSequenceFinishedPlaying& OnSequenceFinishedPlaying() { return OnSequenceFinishedPlayingEvent; }
-	
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnExpired();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnRemoved();
+
+	void NativeBeginCue(AActor* InstigatorOut, AActor* TargetOut, UObject* Causer,
+		const FHitResult& HitInfo);
+
+	void NativeOnPeriod();
+
+	UPROPERTY()
+		float Duration;
+	UPROPERTY()
+		float Period;
+
 	void SetAnimation(class UGAEffectCueSequence* InSequence);
 	UPROPERTY()
 		double StartTime;
@@ -41,4 +56,6 @@ public:
 		UActorSequencePlayer* SequencePlayer;
 	UPROPERTY(EditAnywhere, Category = "Playback", meta = (ShowOnlyInnerProperties))
 		FMovieSceneSequencePlaybackSettings PlaybackSettings;
+
+	FTimerHandle PeriodTimer;
 };

@@ -36,5 +36,5 @@ public:
 protected:
 	FText GetText() const;
 	TOptional<float> GetPercentage() const;
-	float GetObjectScreenRadius(AActor* InActor);
+	TPair<float, float> GetObjectScreenRadius(AActor* InActor);
 };

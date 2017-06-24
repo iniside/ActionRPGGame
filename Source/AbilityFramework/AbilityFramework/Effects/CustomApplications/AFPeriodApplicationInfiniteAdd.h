@@ -16,10 +16,12 @@ class ABILITYFRAMEWORK_API UAFPeriodApplicationInfiniteAdd : public UAFEffectCus
 public:
 	virtual bool ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
 		FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer,
+		const FGAEffectContext& InContext,
 		const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
 	virtual void ExecuteEffect(const FGAEffectHandle& InHandle,
 		FGAEffectProperty& InProperty,
+		const FGAEffectContext& InContext,
 		const FAFFunctionModifier& Modifier = FAFFunctionModifier())
 	{};
 

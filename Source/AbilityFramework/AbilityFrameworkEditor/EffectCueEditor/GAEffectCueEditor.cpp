@@ -21,6 +21,9 @@
 #include "SDockTab.h"
 #include "BlueprintEditorTabs.h"
 #include "LayoutExtender.h"
+#include "BlueprintEditorModes.h"
+#include "BlueprintEditorTabs.h"
+
 #define LOCTEXT_NAMESPACE "FGAEffectCueEditor"
 
 FEffectCueSequenceEditorSummoner::FEffectCueSequenceEditorSummoner(TSharedPtr<FBlueprintEditor> BlueprintEditor)
@@ -29,13 +32,25 @@ FEffectCueSequenceEditorSummoner::FEffectCueSequenceEditorSummoner(TSharedPtr<FB
 {
 	bIsSingleton = true;
 
-	TabLabel = LOCTEXT("SequencerTabName", "Sequencer");
+	TabLabel = LOCTEXT("SequencerTabName", "Cue Sequencer");
 }
 
 TSharedRef<SWidget> FEffectCueSequenceEditorSummoner::CreateTabBody(const FWorkflowTabSpawnInfo& Info) const
 {
 	return SNew(SBox);
 }
+//TSharedRef<SDockTab> FEffectCueSequenceEditorSummoner::SpawnTab(const FWorkflowTabSpawnInfo& Info) const
+//{
+//	TSharedRef<SDockTab> Tab = FWorkflowTabFactory::SpawnTab(Info);
+//
+//	TSharedPtr<FBlueprintEditor> BlueprintEditorPtr = StaticCastSharedPtr<FBlueprintEditor>(HostingApp.Pin());
+//	BlueprintEditorPtr->GetInspector()->SetOwnerTab(Tab);
+//
+//	BlueprintEditorPtr->GetInspector()->GetPropertyView()->SetHostTabManager(Info.TabManager);
+//
+//	return Tab;
+//}
+
 /////////////////////////////////////////////////////
 // FGameplayAbilitiesEditor
 
@@ -49,7 +64,7 @@ FGAEffectCueEditor::FGAEffectCueEditor()
 
 void FGAEffectCueEditor::RegisterBlueprintEditorLayout(FLayoutExtender& Extender)
 {
-	Extender.ExtendLayout(FBlueprintEditorTabs::CompilerResultsID, ELayoutExtensionPosition::Before, FTabManager::FTab(FName("EmbeddedEffectCueSequenceID"), ETabState::OpenedTab));
+	Extender.ExtendLayout(FBlueprintEditorTabs::CompilerResultsID, ELayoutExtensionPosition::Before, FTabManager::FTab(FName("EmbeddedEffectCueSequenceID"), ETabState::ClosedTab));
 }
 
 void FGAEffectCueEditor::RegisterBlueprintEditorTab(FWorkflowAllowedTabSet& TabFactories, FName InModeName, TSharedPtr<FBlueprintEditor> BlueprintEditor)
@@ -98,6 +113,7 @@ void FGAEffectCueEditor::SetSequencer(UGAEffectCueSequence* NewSequence)
 	FSequencerInitParams SequencerInitParams;
 	{
 		TWeakObjectPtr<UGAEffectCueSequence> LocalWeakSequence = NewSequence;
+		SequencerInitParams.RootSequence = NewSequence;
 		auto GetPlaybackContext =
 			[LocalWeakSequence]() -> UObject*
 		{
@@ -112,7 +128,7 @@ void FGAEffectCueEditor::SetSequencer(UGAEffectCueSequence* NewSequence)
 			return nullptr;
 		};
 
-		SequencerInitParams.RootSequence = NewSequence;
+		
 		SequencerInitParams.EventContexts = TAttribute<TArray<UObject*>>::Create(TAttribute<TArray<UObject*>>::FGetter::CreateLambda(
 			[GetPlaybackContext] {
 			TArray<UObject*> Contexts;
@@ -132,6 +148,11 @@ void FGAEffectCueEditor::SetSequencer(UGAEffectCueSequence* NewSequence)
 	}
 
 	Sequencer = FModuleManager::LoadModuleChecked<ISequencerModule>("Sequencer").CreateSequencer(SequencerInitParams);
+	//FLevelEditorSequencerIntegrationOptions Options;
+	//Options.bRequiresLevelEvents = true;
+	//Options.bRequiresActorEvents = false;
+	//Options.bCanRecord = false;
+
 	Sequencer->SetViewRange(TRange<float>(0, 5));
 }
 void FGAEffectCueEditor::OnSequenceChanged()
@@ -195,7 +216,10 @@ void FGAEffectCueEditor::InitEffectCueEditor(const EToolkitMode::Type Mode, cons
 	bool test2 = Prop->ContainsInstancedObjectProperty();
 
 	SetSequencer(EditedCue->Sequence);
+	//TabManager.Pin()->InvokeTab(FName("EmbeddedEffectCueSequenceID"))->SetContent(Sequencer->GetSequencerWidget());
+	
 	TabManager.Pin()->InvokeTab(FName("EmbeddedEffectCueSequenceID"))->SetContent(Sequencer->GetSequencerWidget());
+	//TabLayout = GetDefaltEditorLayout(InBlueprintEditor);
 	for (auto Blueprint : InBlueprints)
 	{
 		EnsureAbilityBlueprintIsUpToDate(Blueprint);

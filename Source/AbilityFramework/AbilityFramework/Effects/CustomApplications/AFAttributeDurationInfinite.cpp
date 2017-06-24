@@ -8,6 +8,7 @@
 
 bool UAFAttributeDurationInfinite::ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
 	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer,
+	const FGAEffectContext& InContext,
 	const FAFFunctionModifier& Modifier)
 {
 	InContainer->AddEffect(InHandle, true);

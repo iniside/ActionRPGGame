@@ -784,6 +784,19 @@ public:
 
 
 USTRUCT(BlueprintType)
+struct ABILITYFRAMEWORK_API FAFContextHandle
+{
+	GENERATED_BODY()
+protected:
+	TSharedPtr<FGAEffectContext> Data;
+public:
+	FAFContextHandle()
+	{
+
+	}
+};
+
+USTRUCT(BlueprintType)
 struct ABILITYFRAMEWORK_API FGAEffectCueParams
 {
 	GENERATED_USTRUCT_BODY()
@@ -797,22 +810,25 @@ public:
 
 	/** The physical actor that actually did the damage, can be a weapon or projectile */
 	UPROPERTY(BlueprintReadWrite, Category = "Gameplay Cue")
-		TWeakObjectPtr<AActor> EffectCauser;
+		TWeakObjectPtr<UObject> Causer;
+	/* Which ability spawned (if applicable)  */
+	UPROPERTY(BlueprintReadWrite, Category = "Gameplay Cue")
+		TWeakObjectPtr<class UGAAbilityBase> Ability;
 
 	/* Tick interval for periodic effects */
 	UPROPERTY(BlueprintReadOnly, Category = "GameplayCue")
 		float Period;
-
 	UPROPERTY(BlueprintReadOnly, Category = "GameplayCue")
 		float Duration;
+
 	UPROPERTY(BlueprintReadOnly)
 		FGameplayTagContainer CueTags;
 	FGAEffectCueParams()
 	{};
-	FGAEffectCueParams(const FHitResult& HitIn, AActor* InstigatorIn, AActor* EffectCauserIn)
-		: HitResult(HitIn),
+	FGAEffectCueParams(const FHitResult& InHitResult, AActor* InstigatorIn, UObject* CauserIn)
+		: HitResult(InHitResult),
 		Instigator(InstigatorIn),
-		EffectCauser(EffectCauserIn)
+		Causer(CauserIn)
 	{};
 	//bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
 };

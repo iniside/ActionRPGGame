@@ -40,7 +40,6 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 	class UObject* Target, class APawn* Instigator,
 	UObject* Causer, const FHitResult& HitIn, const FAFFunctionModifier& Modifier )
 {
-	
 	InEffect.InitializeIfNotInitialized();
 
 	if (!InEffect.IsInitialized())
@@ -49,10 +48,10 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 		return FGAEffectHandle();
 	}
 	FGAEffectContext Context = MakeContext(Target, Instigator, Causer, HitIn);
-	if (!Context.IsValid())
+	/*if (!Context.IsValid())
 	{
 		return FGAEffectHandle();
-	}
+	}*/
 	UGAAbilitiesComponent* Target2 = Context.TargetComp.Get();
 	if (!Target2->HaveEffectRquiredTags(InEffect.GetSpec()->RequiredTags))
 	{

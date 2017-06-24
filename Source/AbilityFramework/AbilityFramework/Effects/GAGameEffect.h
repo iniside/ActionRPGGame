@@ -369,6 +369,11 @@ public:
 	void Initialize();
 	void InitializeIfNotInitialized();
 
+	FGAAttributeModifier& GetAttributeModifier()
+	{
+		return Spec->AtributeModifier;
+	}
+
 	FObjectKey GetClassKey() const
 	{
 		return FObjectKey(GetClass());
@@ -407,6 +412,18 @@ public:
 	{
 		SpecClass = Other->GetClass();
 	}
+};
+
+
+struct FAFStatics
+{
+	static float GetFloatFromAttributeMagnitude(const FGAMagnitude& AttributeIn
+		, const FGAEffectContext& InContext
+		, const FGAEffectHandle& InHandle);
+	static FGAEffectMod GetAttributeModifier(FGAAttributeModifier& ModInfoIn
+		, class UGAGameEffectSpec* InSpec,
+		const FGAEffectContext& InContext,
+		const FGAEffectHandle& InHandle);
 };
 
 /*
@@ -456,7 +473,6 @@ public:
 	float LastTickTime;
 public:
 	void SetContext(const FGAEffectContext& ContextIn);
-	FGAEffectMod GetAttributeModifier();
 
 	class UGAAbilitiesComponent* GetInstigatorComp() { return Context.InstigatorComp.Get(); }
 	class UGAAbilitiesComponent* GetTargetComp() { return Context.TargetComp.Get(); }
@@ -494,9 +510,6 @@ public:
 		const FGAEffectContext& ContextIn);
 
 	~FGAEffect();
-
-private:
-	FGAEffectMod GetMod(FGAAttributeModifier& ModInfoIn, class UGAGameEffectSpec* InSpec);
 };
 
 /*
@@ -691,6 +704,7 @@ public:
 public:
 	//FGAEffectContainer();
 	FGAEffectHandle ApplyEffect(FGAEffect* EffectIn, FGAEffectProperty& InProperty
+		, const FGAEffectContext& InContext
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 	/* Removesgiven number of effects of the same type. If Num == 0 Removes all effects */
 	void RemoveEffect(const FGAEffectProperty& HandleIn, int32 Num = 1);

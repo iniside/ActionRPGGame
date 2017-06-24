@@ -109,6 +109,74 @@ FGAEffect::FGAEffect(class UGAGameEffectSpec* GameEffectIn,
 	}
 	IsActive = false;
 }
+
+float FAFStatics::GetFloatFromAttributeMagnitude(const FGAMagnitude& AttributeIn
+	, const FGAEffectContext& InContext
+	, const FGAEffectHandle& InHandle)
+{
+	switch (AttributeIn.CalculationType)
+	{
+	case EGAMagnitudeCalculation::Direct:
+	{
+		return AttributeIn.DirectModifier.GetValue();
+	}
+	case EGAMagnitudeCalculation::AttributeBased:
+	{
+		return AttributeIn.AttributeBased.GetValue(InContext);
+	}
+	case EGAMagnitudeCalculation::CurveBased:
+	{
+		return AttributeIn.CurveBased.GetValue(InContext);
+	}
+	case EGAMagnitudeCalculation::CustomCalculation:
+	{
+		return AttributeIn.Custom.GetValue(InHandle);
+	}
+	default:
+		break;
+	}
+
+	return 0;
+}
+FGAEffectMod FAFStatics::GetAttributeModifier(FGAAttributeModifier& ModInfoIn
+	, class UGAGameEffectSpec* InSpec
+	, const FGAEffectContext& InContext
+	, const FGAEffectHandle& InHandle)
+{
+	FGAEffectMod ModOut;
+	if (InSpec)
+	{
+		switch (ModInfoIn.Magnitude.CalculationType)
+		{
+		case EGAMagnitudeCalculation::Direct:
+		{
+			return FGAEffectMod(ModInfoIn.Attribute,
+				ModInfoIn.Magnitude.DirectModifier.GetValue(), ModInfoIn.AttributeMod, InHandle, InSpec->AttributeTags);
+		}
+		case EGAMagnitudeCalculation::AttributeBased:
+		{
+			return FGAEffectMod(ModInfoIn.Attribute,
+				ModInfoIn.Magnitude.AttributeBased.GetValue(InContext), ModInfoIn.AttributeMod, InHandle, InSpec->AttributeTags);
+
+		}
+		case EGAMagnitudeCalculation::CurveBased:
+		{
+			return FGAEffectMod(ModInfoIn.Attribute,
+				ModInfoIn.Magnitude.CurveBased.GetValue(InContext), ModInfoIn.AttributeMod, InHandle, InSpec->AttributeTags);
+
+		}
+		case EGAMagnitudeCalculation::CustomCalculation:
+		{
+			return FGAEffectMod(ModInfoIn.Attribute,
+				ModInfoIn.Magnitude.Custom.GetValue(InHandle), ModInfoIn.AttributeMod, InHandle, InSpec->AttributeTags);
+
+		}
+		default:
+			break;
+		}
+	}
+	return ModOut;
+}
 FGAEffect::~FGAEffect()
 {
 	if (Extension.IsValid())
@@ -122,10 +190,6 @@ void FGAEffect::SetContext(const FGAEffectContext& ContextIn)
 	Context = ContextIn;
 }
 
-FGAEffectMod FGAEffect::GetAttributeModifier()
-{
-	return GetMod(GameEffect->AtributeModifier, GameEffect);
-}
 void FGAEffect::OnApplied()
 {
 	IsActive = true;
@@ -222,44 +286,6 @@ float FGAEffect::GetCurrentTickTime()
 	return CurrentTime - LastTickTime;
 }
 
-FGAEffectMod FGAEffect::GetMod(FGAAttributeModifier& ModInfoIn
-	, class UGAGameEffectSpec* InSpec)
-{
-	FGAEffectMod ModOut;
-	if (GameEffect)
-	{
-			switch (ModInfoIn.Magnitude.CalculationType)
-			{
-			case EGAMagnitudeCalculation::Direct:
-			{
-				return FGAEffectMod (ModInfoIn.Attribute, 
-					ModInfoIn.Magnitude.DirectModifier.GetValue(), ModInfoIn.AttributeMod, Handle, InSpec->AttributeTags);
-			}
-			case EGAMagnitudeCalculation::AttributeBased:
-			{
-				return FGAEffectMod (ModInfoIn.Attribute, 
-					ModInfoIn.Magnitude.AttributeBased.GetValue(Context), ModInfoIn.AttributeMod, Handle, InSpec->AttributeTags);
-
-			}
-			case EGAMagnitudeCalculation::CurveBased:
-			{
-				return FGAEffectMod (ModInfoIn.Attribute, 
-					ModInfoIn.Magnitude.CurveBased.GetValue(Context), ModInfoIn.AttributeMod, Handle, InSpec->AttributeTags);
-
-			}
-			case EGAMagnitudeCalculation::CustomCalculation:
-			{
-				return FGAEffectMod (ModInfoIn.Attribute, 
-					ModInfoIn.Magnitude.Custom.GetValue(Handle), ModInfoIn.AttributeMod, Handle, InSpec->AttributeTags);
-
-			}
-			default:
-				break;
-			}
-	}
-	return ModOut;
-}
-
 void FGameCueContainer::AddCue(FGAEffectHandle EffectHandle, FGAEffectCueParams CueParams)
 {
 	/*if (!EffectCue)
@@ -277,33 +303,27 @@ void FGameCueContainer::AddCue(FGAEffectHandle EffectHandle, FGAEffectCueParams 
 }
 
 FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectProperty& InProperty
+	, const FGAEffectContext& InContext
 	, const FAFFunctionModifier& Modifier)
 {
 	FGAEffectHandle Handle;
-	if (InProperty.ApplicationRequirement->CanApply(EffectIn, InProperty, this))
+	bool bHasDuration = InProperty.Duration > 0;
+	bool bHasPeriod = InProperty.Period > 0;
+
+	if (bHasDuration || bHasPeriod)
 	{
-		bool bHasDuration = InProperty.Duration > 0;
-		bool bHasPeriod = InProperty.Period > 0;
-		
-		if (bHasDuration || bHasPeriod)
-		{
-			Handle = FGAEffectHandle::GenerateHandle(EffectIn);
-			EffectIn->Handle = Handle;
-			if (InProperty.Application->ApplyEffect(Handle,
-				EffectIn, InProperty, this))
-			{
-				InProperty.Application->ExecuteEffect(Handle, InProperty, Modifier);
-				//	UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::EffectApplied %s"), *HandleIn.GetEffectSpec()->GetName() );
-			}
-		}
-		else
+		Handle = FGAEffectHandle::GenerateHandle(EffectIn);
+	}
+	if (InProperty.ApplicationRequirement->CanApply(EffectIn, InProperty, this, InContext, Handle))
+	{
+		if(!bHasDuration && !bHasPeriod)
 		{
 			if (InProperty.Handle.IsValid())
 			{
 				if (InProperty.Application->ApplyEffect(InProperty.Handle,
-					EffectIn, InProperty, this))
+					EffectIn, InProperty, this, InContext))
 				{
-					InProperty.Application->ExecuteEffect(InProperty.Handle, InProperty, Modifier);
+					InProperty.Application->ExecuteEffect(InProperty.Handle, InProperty, InContext, Modifier);
 					//	UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::EffectApplied %s"), *HandleIn.GetEffectSpec()->GetName() );
 				}
 			}
@@ -313,11 +333,21 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 				EffectIn->Handle = Handle;
 				InProperty.Handle = Handle;
 				if (InProperty.Application->ApplyEffect(Handle,
-					EffectIn, InProperty, this))
+					EffectIn, InProperty, this, InContext))
 				{
-					InProperty.Application->ExecuteEffect(Handle, InProperty, Modifier);
+					InProperty.Application->ExecuteEffect(Handle, InProperty, InContext, Modifier);
 					//	UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::EffectApplied %s"), *HandleIn.GetEffectSpec()->GetName() );
 				}
+			}
+		}
+		else
+		{
+			EffectIn->Handle = Handle;
+			if (InProperty.Application->ApplyEffect(Handle,
+				EffectIn, InProperty, this, InContext))
+			{
+				InProperty.Application->ExecuteEffect(Handle, InProperty, InContext, Modifier);
+				//	UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::EffectApplied %s"), *HandleIn.GetEffectSpec()->GetName() );
 			}
 		}
 		

@@ -17,6 +17,7 @@ class ABILITYFRAMEWORK_API UAFPeriodicApplInfiniteOverride : public UAFEffectCus
 	
 		virtual void ExecuteEffect(const FGAEffectHandle& InHandle,
 			FGAEffectProperty& InProperty,
+			const FGAEffectContext& InContext,
 			const FAFFunctionModifier& Modifier = FAFFunctionModifier())
 	{};
 	

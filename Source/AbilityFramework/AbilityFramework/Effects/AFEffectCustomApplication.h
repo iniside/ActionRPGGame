@@ -18,10 +18,11 @@ class ABILITYFRAMEWORK_API UAFEffectCustomApplication : public UObject
 public:
 	virtual bool ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
 		FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer,
-		const FAFFunctionModifier& Modifier = FAFFunctionModifier());
+		const FGAEffectContext& InContext, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 	
 	virtual void ExecuteEffect(const FGAEffectHandle& InHandle,
 		FGAEffectProperty& InProperty, 
+		const FGAEffectContext& InContext,
 		const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
 	virtual bool ShowPeriod()

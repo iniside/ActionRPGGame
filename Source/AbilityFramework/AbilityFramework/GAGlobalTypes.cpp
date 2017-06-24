@@ -98,7 +98,7 @@ FGameplayTagContainer& FGAEffectHandle::GetOwnedTags() const
 }
 FGAEffectMod FGAEffectHandle::GetAttributeModifier() const
 {
-	return EffectPtr->GetAttributeModifier();
+	return FGAEffectMod();// EffectPtr->GetAttributeModifier();
 }
 
 FGAAttribute FGAEffectHandle::GetAttribute() const

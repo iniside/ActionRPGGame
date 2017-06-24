@@ -32,8 +32,14 @@ void AGAEffectCue::SetAnimation(class UGAEffectCueSequence* InSequence)
 void AGAEffectCue::BeginPlay()
 {
 	SequencePlayer->Initialize(Sequence, PlaybackSettings);
+	if (Period > 0)
+	{
+		FTimerDelegate del = FTimerDelegate::CreateUObject(this, &AGAEffectCue::NativeOnPeriod);
+		FTimerManager& Timer = GetWorld()->GetTimerManager();
+		Timer.SetTimer(PeriodTimer, del, Period, true);
+	}
 	Super::BeginPlay();
-	NativeBeginCue();
+	//NativeBeginCue();
 }
 
 // Called every frame
@@ -45,8 +51,14 @@ void AGAEffectCue::Tick( float DeltaTime )
 		SequencePlayer->Update(DeltaTime);
 	}
 }
-void AGAEffectCue::NativeBeginCue()
+void AGAEffectCue::NativeBeginCue(AActor* InstigatorOut, AActor* TargetOut, UObject* Causer,
+	const FHitResult& HitInfo)
 {
-	BeginCue();
+	BeginCue(InstigatorOut, TargetOut, Causer, HitInfo);
 	SequencePlayer->Play();
+}
+
+void AGAEffectCue::NativeOnPeriod()
+{
+	OnPeriod();
 }
