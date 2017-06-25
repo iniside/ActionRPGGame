@@ -19,16 +19,16 @@ public class ActionRPGGameTarget : TargetRules
         ExtraModuleNames.Add("GameSystem");
         ExtraModuleNames.Add("GameWidgets");
         ExtraModuleNames.Add("ActionRPGGame");
-        if (UEBuildConfiguration.bBuildEditor)
-        {
-            ExtraModuleNames.Add("GameTraceEditor");
-            ExtraModuleNames.Add("GameInventorySystemEditor");
-            ExtraModuleNames.Add("AbilityFrameworkEditor");
-            ExtraModuleNames.Add("GameWidgetsEditor");
-            ExtraModuleNames.Add("GameSystemEditor");
-            ExtraModuleNames.Add("ActionRPGGameEditor");
-            ExtraModuleNames.Add("TimeOfDayEditor");
-        }
+        //if (UEBuildConfiguration.bBuildEditor)
+        //{
+        //    ExtraModuleNames.Add("GameTraceEditor");
+        //    ExtraModuleNames.Add("GameInventorySystemEditor");
+        //    ExtraModuleNames.Add("AbilityFrameworkEditor");
+        //    ExtraModuleNames.Add("GameWidgetsEditor");
+        //    ExtraModuleNames.Add("GameSystemEditor");
+        //    ExtraModuleNames.Add("ActionRPGGameEditor");
+        //    ExtraModuleNames.Add("TimeOfDayEditor");
+        //}
 
         Type = TargetType.Game;
 	}

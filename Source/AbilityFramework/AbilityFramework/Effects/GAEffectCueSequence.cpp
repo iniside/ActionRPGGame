@@ -49,6 +49,7 @@ void UGAEffectCueSequence::PostInitProperties()
 
 	Super::PostInitProperties();
 }
+#if WITH_EDITOR
 UGAEffectCueSequence* UGAEffectCueSequence::GetNullAnimation()
 {
 	static UGAEffectCueSequence* NullAnimation = nullptr;
@@ -63,7 +64,7 @@ UGAEffectCueSequence* UGAEffectCueSequence::GetNullAnimation()
 
 	return NullAnimation;
 }
-
+#endif //WITH_EDITOR
 float UGAEffectCueSequence::GetStartTime() const
 {
 	return MovieScene->GetPlaybackRange().GetLowerBoundValue();

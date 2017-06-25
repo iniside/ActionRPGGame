@@ -115,26 +115,31 @@
 		}
 	],
 	"Plugins": [
-		{
-			"Name": "CodeView",
-			"Enabled": true
-		},
-		{
-			"Name": "MessagingDebugger",
-			"Enabled": true
-		},
-		{
-			"Name": "ControlRig",
-			"Enabled": true
-		},
-		{
-			"Name": "PerformanceMonitor",
-			"Enabled": true
-		},
-		{
-			"Name": "ActorSequenceEditor",
-			"Enabled": true
-		}
+    {
+      "Name": "CodeView",
+      "Enabled": true,
+      "Type": "Editor"
+    },
+    {
+      "Name": "MessagingDebugger",
+      "Enabled": true,
+      "Type": "Editor"
+    },
+    {
+      "Name": "ControlRig",
+      "Enabled": true,
+      "Type": "Editor"
+    },
+    {
+      "Name": "PerformanceMonitor",
+      "Enabled": true,
+      "Type": "Editor"
+    },
+    {
+      "Name": "ActorSequenceEditor",
+      "Enabled": true,
+      "Type": "Editor"
+    }
 	],
 	"TargetPlatforms": [
 		"WindowsNoEditor"

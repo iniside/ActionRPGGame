@@ -25,7 +25,6 @@ private:
 
 #if WITH_EDITORONLY_DATA
 private:
-	UPROPERTY()
 		bool bHasBeenInitialized;
 #endif
 public:

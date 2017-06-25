@@ -35,7 +35,6 @@ protected:
 	void LoadCueSet();
 #if WITH_EDITOR
 	//handle clearing up cache when PIE mode is ending.
-	UFUNCTION()
 	void HandleOnPIEEnd(bool InVal);
 #endif //WITH_EDITOR
 public:
