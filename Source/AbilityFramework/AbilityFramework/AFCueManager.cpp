@@ -9,7 +9,7 @@
 #endif
 
 UAFCueManager* UAFCueManager::ManagerInstance = nullptr;
-UWorld* UAFCueManager::CurrentWorld = nullptr;
+//UWorld* UAFCueManager::CurrentWorld = nullptr;
 
 UAFCueManager* UAFCueManager::Get()
 {
@@ -80,11 +80,50 @@ void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags, const FGAEffect
 		TSubclassOf<AGAEffectCue> CueClass = CueSet->Cues.FindRef(Tag);
 		if (!CueClass)
 			continue;
+		
+		ENetRole mode = CueParams.Instigator->GetRemoteRole();
+		FString role;
+		switch (mode)
+		{
+		case ROLE_None:
+			role = "ROLE_None";
+			break;
+		case ROLE_SimulatedProxy:
+			role = "ROLE_SimulatedProxy";
+			break;
+		case ROLE_AutonomousProxy:
+			role = "ROLE_AutonomousProxy";
+			break;
+		case ROLE_Authority:
+			role = "ROLE_Authority";
+			break;
+		case ROLE_MAX:
+			role = "ROLE_MAX";
+			break;
+		default:
+			break;
+		}
+
+		FString prefix = "";
+		if (mode == ENetMode::NM_Client)
+		{
+			prefix = FString::Printf(TEXT("Client %d: "), GPlayInEditorID - 1);
+		}
+
+		UE_LOG(AbilityFramework, Log, TEXT("%s : CueManager HandleCue: %s, Instigator: %s, Location: %s, World: %s, Role: %s"),
+			*prefix,
+			*Tag.ToString(),
+			CueParams.Instigator.IsValid() ? *CueParams.Instigator->GetName() : TEXT("Invalid Instigator"),
+			*CueParams.HitResult.Location.ToString(),
+			*CurrentWorld->GetName(),
+			*role
+		);
 
 		FActorSpawnParameters SpawnParams;
 		FVector Location = CueParams.HitResult.Location;
 		FRotator Rotation = FRotator::ZeroRotator;
-		TUniquePtr<TQueue<AGAEffectCue*>>& Cues = InstancedCues.FindOrAdd(Tag);
+		AGAEffectCue* actor = nullptr;
+		/*	TUniquePtr<TQueue<AGAEffectCue*>>& Cues = InstancedCues.FindOrAdd(Tag);
 		if (!Cues.IsValid())
 		{
 			Cues = MakeUnique<TQueue<AGAEffectCue*>>();
@@ -94,7 +133,7 @@ void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags, const FGAEffect
 		{
 			UseCues = MakeUnique<TQueue<AGAEffectCue*>>();
 		}
-		AGAEffectCue* actor;
+		
 		if (Cues->IsEmpty())
 		{
 			actor = CurrentWorld->SpawnActor<AGAEffectCue>(CueClass, Location, Rotation, SpawnParams);
@@ -104,10 +143,13 @@ void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags, const FGAEffect
 		{
 			Cues->Dequeue(actor);
 			UseCues->Enqueue(actor);
-		}
+		}*/
+		
+		actor = CurrentWorld->SpawnActor<AGAEffectCue>(CueClass, Location, Rotation, SpawnParams);
 		actor->NativeBeginCue(CueParams.Instigator.Get(), CueParams.HitResult.Actor.Get(),
 			CueParams.Causer.Get(), CueParams.HitResult);
-		UseCues->Dequeue(actor);
-		Cues->Enqueue(actor);
+
+		/*UseCues->Dequeue(actor);
+		Cues->Enqueue(actor);*/
 	}
 }

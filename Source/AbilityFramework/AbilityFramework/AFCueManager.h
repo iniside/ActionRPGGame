@@ -19,7 +19,7 @@ class ABILITYFRAMEWORK_API UAFCueManager : public UObject
 protected:
 	//UPROPERTY()
 		static UAFCueManager* ManagerInstance;
-		static UWorld* CurrentWorld;
+		UWorld* CurrentWorld;
 	UPROPERTY(config, EditAnywhere, Category = "Cue Set")
 		TAssetPtr<class UAFCueSet> DefaultCueSet;
 
@@ -30,7 +30,7 @@ protected:
 	TMap<FGameplayTag, TUniquePtr<TQueue<AGAEffectCue*>>> InstancedCues;
 	//stores used cues.
 	TMap<FGameplayTag, TUniquePtr<TQueue<AGAEffectCue*>>> UsedCues;
-
+public:
 	void Initialize();
 	void LoadCueSet();
 #if WITH_EDITOR

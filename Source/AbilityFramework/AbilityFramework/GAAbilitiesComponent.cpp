@@ -3,6 +3,7 @@
 #include "AbilityFramework.h"
 
 #include "Abilities/GAAbilityBase.h"
+#include "IAbilityFramework.h"
 
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
@@ -135,12 +136,38 @@ FGAEffectHandle UGAAbilitiesComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 	//broadcast cues first ?
 	//Probabaly because effect might not always apply. Or relegate cue
 	//application to object which was hit ?
-	FGAEffectCueParams CueParams;
-	CueParams.Instigator = InContext.Instigator;
-	CueParams.Causer = InContext.Causer;
-	CueParams.HitResult = InContext.HitResult;
-	CueParams.CueTags = InProperty.GetSpec()->Cues.CueTags;
-	MulticastApplyEffectCue(CueParams);
+
+	
+	ENetRole role = GetOwnerRole();
+	ENetMode mode = GetOwner()->GetNetMode();
+	FString prefix = "";
+	if (mode == ENetMode::NM_Client)
+	{
+		prefix = FString::Printf(TEXT("Client %d: "), GPlayInEditorID - 1);
+	}
+	else if (mode == ENetMode::NM_DedicatedServer)
+	{
+		prefix = FString::Printf(TEXT("DedicatedServer: "));
+	}
+	UE_LOG(AbilityFramework, Log, TEXT("%s : ApplyEffectToTarget Owner: %s, Instigator: %s"),
+		*prefix,
+		*GetOwner()->GetName(),
+		*InContext.Instigator->GetName()
+	);
+	if (InProperty.GetSpec()->Cues.CueTags.Num() > 0)
+	{
+		FGAEffectCueParams CueParams;
+		CueParams.Instigator = InContext.Instigator;
+		CueParams.Causer = InContext.Causer;
+		CueParams.HitResult = InContext.HitResult;
+		CueParams.CueTags = InProperty.GetSpec()->Cues.CueTags;
+		if (mode == ENetMode::NM_Standalone
+			|| role >= ENetRole::ROLE_Authority)
+		{
+			MulticastApplyEffectCue(CueParams);
+		}
+
+	}
 	//execute cue from effect regardless if we have target object or not.
 	if(InContext.TargetComp.IsValid())
 		return InContext.TargetComp->ApplyEffectToSelf(EffectIn, InProperty, InContext, Modifier);
@@ -247,24 +274,41 @@ FGAEffectUIData UGAAbilitiesComponent::GetEffectUIDataByIndex(int32 IndexIn)
 
 void UGAAbilitiesComponent::MulticastApplyEffectCue_Implementation( FGAEffectCueParams CueParams)
 {
+	ENetRole role = GetOwnerRole();
+	ENetMode mode = GetOwner()->GetNetMode();
+	if(mode == ENetMode::NM_Standalone
+		|| role != ENetRole::ROLE_Authority)
+	{
+		FString prefix = "";
+		if (mode == ENetMode::NM_Client)
+		{
+			prefix = FString::Printf(TEXT("Client %d: "), GPlayInEditorID - 1);
+		}
+		UE_LOG(AbilityFramework, Log, TEXT("%s : MulticastApplyEffectCue Owner: %s, Instigator: %s" ),
+			*prefix, 
+			*GetOwner()->GetName(),
+			*CueParams.Instigator->GetName()
+		);
 
-	UAFCueManager::Get()->HandleCue(CueParams.CueTags, CueParams);
-//	if (!TestCueSet)
-	//	return;
-	//for (const FGameplayTag& Tag : CueParams.CueTags)
-	//{
-	//	TSubclassOf<AGAEffectCue> CueClass = TestCueSet->Cues.FindRef(Tag);
-	//	if (!CueClass)
-	//		continue;
+		//for (const FGameplayTag& Tag : CueParams.CueTags)
+		//{
+		//	TSubclassOf<AGAEffectCue> CueClass = TestCueSet->Cues.FindRef(Tag);
+		//	if (!CueClass)
+		//		continue;
 
-	//	FActorSpawnParameters SpawnParams;
-	//	FVector Location = CueParams.HitResult.Location;
-	//	FRotator Rotation = FRotator::ZeroRotator;
-	//	AGAEffectCue* actor = GetWorld()->SpawnActor<AGAEffectCue>(CueClass, Location, Rotation, SpawnParams);
+		//	FActorSpawnParameters SpawnParams;
+		//	FVector Location = CueParams.HitResult.Location;
+		//	FRotator Rotation = FRotator::ZeroRotator;
+		//	AGAEffectCue* actor = nullptr;
+		//	
+		//	actor = GetWorld()->SpawnActor<AGAEffectCue>(CueClass, Location, Rotation, SpawnParams);
+		//	actor->NativeBeginCue(CueParams.Instigator.Get(), CueParams.HitResult.Actor.Get(),
+		//		CueParams.Causer.Get(), CueParams.HitResult);
 
-	//	actor->NativeBeginCue(CueParams.Instigator.Get(), CueParams.HitResult.Actor.Get(),
-	//		CueParams.EffectCauser.Get(), CueParams.HitResult);
-	//}
+		//}
+
+		UAFCueManager::Get()->HandleCue(CueParams.CueTags, CueParams);
+	}
 }
 
 void UGAAbilitiesComponent::MulticastExecuteEffectCue_Implementation(FGAEffectHandle EffectHandle)
@@ -560,6 +604,8 @@ void UGAAbilitiesComponent::NativeInputPressed(FGameplayTag AbilityTag, FGamepla
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
+		ServerNativeInputPressed(AbilityTag, ActionName);
+		UE_LOG(AbilityFramework, Log, TEXT("Client UGAAbilitiesComponent::NativeInputPressed: %s"), *AbilityTag.GetTagName().ToString());
 		//naive needs better qynchornization to what going on where.
 		if (UGAAbilityBase* Ability = AbilityContainer.GetAbility(AbilityTag))
 		{
@@ -568,13 +614,17 @@ void UGAAbilitiesComponent::NativeInputPressed(FGameplayTag AbilityTag, FGamepla
 				AbilityContainer.HandleInputPressed(AbilityTag, ActionName);
 			}
 		}
-		ServerNativeInputPressed(AbilityTag, ActionName);
-		
 	}
 	else
 	{
-		UE_LOG(AbilityFramework, Log, TEXT("UGAAbilitiesComponent::NativeInputPressed: %s"), *AbilityTag.GetTagName().ToString());
-		AbilityContainer.HandleInputPressed(AbilityTag, ActionName);
+		UE_LOG(AbilityFramework, Log, TEXT("Server UGAAbilitiesComponent::NativeInputPressed: %s"), *AbilityTag.GetTagName().ToString());
+		if (UGAAbilityBase* Ability = AbilityContainer.GetAbility(AbilityTag))
+		{
+			if (Ability->AbilityComponent == this)
+			{
+				AbilityContainer.HandleInputPressed(AbilityTag, ActionName);
+			}
+		}
 	}
 }
 
@@ -626,12 +676,24 @@ void UGAAbilitiesComponent::BP_AddAbility(TSubclassOf<class UGAAbilityBase> Abil
 	FGameplayTag ActionName, bool bAutoBind)
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
 		return;
-	//AddAbilityToActiveList(AbilityClass);
+	}
+	else
+	{
+		NativeAddAbility(AbilityClass, ActionName, bAutoBind);
+	}
+	
+}
+
+void UGAAbilitiesComponent::NativeAddAbility(TSubclassOf<class UGAAbilityBase> AbilityClass, 
+	FGameplayTag ActionName, bool bAutoBind)
+{
 	InstanceAbility(AbilityClass, ActionName);
-	if(bAutoBind)
+	if (bAutoBind)
 		ClientOnAbilityAdded(AbilityClass->GetDefaultObject<UGAAbilityBase>()->AbilityTag, ActionName);
 }
+
 void UGAAbilitiesComponent::ClientOnAbilityAdded_Implementation(FGameplayTag AbilityTag, FGameplayTag ActionTag)
 {
 	UInputComponent* InputComponent = GetOwner()->FindComponentByClass<UInputComponent>();

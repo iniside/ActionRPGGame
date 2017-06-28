@@ -26,7 +26,7 @@ bool UGAAbilityTask_SpawnActor::BeginSpawningActor(UObject* WorldContextObject, 
 {
 	//if (Ability.IsValid() && Ability.Get()->GetCurrentActorInfo()->IsNetAuthority())
 	//{
-		UWorld* const World = GEngine->GetWorldFromContextObject(WorldContextObject);
+		UWorld* const World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
 		if (World)
 		{
 			SpawnedActor = World->SpawnActorDeferred<AActor>(InClass, FTransform::Identity, NULL, NULL, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);

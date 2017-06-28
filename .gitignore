@@ -264,3 +264,5 @@ Saved/
 *.config
 .vs/ActionRPGGame/v15/Solution.VC.db-wal
 CodeBackup/States/GASAbilityStateCooldown.h
+*.bin
+*.pak

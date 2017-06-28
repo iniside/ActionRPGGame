@@ -35,7 +35,7 @@ void UGAAbilityTask_WaitTargetData::Activate()
 
 bool UGAAbilityTask_WaitTargetData::BeginSpawningActor(UObject* WorldContextObject, TSubclassOf<class AGATargetingActor> Class, AGATargetingActor*& SpawnedActor)
 {
-	UWorld* const World = GEngine->GetWorldFromContextObject(WorldContextObject);
+	UWorld* const World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
 	if (World)
 	{
 		SpawnedActor = World->SpawnActorDeferred<AGATargetingActor>(Class, FTransform::Identity, NULL, NULL, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);

@@ -185,7 +185,7 @@ void AARCharacter::Tick(float DeltaTime)
 		//UE_LOG(LogTemp, Warning, TEXT("Character.Tick Stopping Distanc: %f / Position: X: %f Y: %f Z: %f Friction: %f FrictionFactor: %f BrakingFriction: %f GetGravityZ: %f, Velocity: %f, CurretAccelerration: %f"), Distanc, StopLocation.X, StopLocation.Y, StopLocation.Z, Friction, FrictionFactor, GetCharacterMovement()->BrakingFriction, GetWorld()->GetGravityZ(), GetCharacterMovement()->Velocity.SizeSquared(), GetCharacterMovement()->GetCurrentAcceleration().SizeSquared());
 		if (!bSphereDrawn2)
 		{
-			UKismetSystemLibrary::DrawDebugSphere(this, StopLocation, 10, 16, FColor::Magenta, 15, 2);
+			//UKismetSystemLibrary::DrawDebugSphere(this, StopLocation, 10, 16, FColor::Magenta, 15, 2);
 			bSphereDrawn2 = true;
 		}
 	}
@@ -268,7 +268,7 @@ void AARCharacter::Tick(float DeltaTime)
 		{
 			if (test)
 			{
-				UKismetSystemLibrary::DrawDebugSphere(this, StopLocation, 10, 16, FColor::Red, 15, 2);
+				//UKismetSystemLibrary::DrawDebugSphere(this, StopLocation, 10, 16, FColor::Red, 15, 2);
 				bSphereDrawn = true;
 			}
 		}

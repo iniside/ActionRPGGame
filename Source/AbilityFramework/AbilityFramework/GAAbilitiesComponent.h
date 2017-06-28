@@ -335,6 +335,7 @@ public:
 	*/
 	UFUNCTION(NetMulticast, Unreliable)
 		void MulticastApplyEffectCue(FGAEffectCueParams CueParams);
+	virtual void MulticastApplyEffectCue_Implementation(FGAEffectCueParams CueParams);
 
 	UFUNCTION(NetMulticast, Unreliable)
 		void MulticastExecuteEffectCue(FGAEffectHandle EffectHandle);
@@ -516,6 +517,7 @@ private:
 		FGASMontageRepData RepMontage;
 	UFUNCTION()
 		void OnRep_PlayMontage();
+
 public:
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework")
 		void PlayMontage(UAnimMontage* MontageIn, FName SectionName, float Speed = 1);
@@ -551,7 +553,11 @@ public:
 	virtual bool ServerNativeInputReleased_Validate(FGameplayTag AbilityTag, FGameplayTag ActionName);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Add Ability"), Category = "AbilityFramework|Abilities")
-		void BP_AddAbility(TSubclassOf<class UGAAbilityBase> AbilityClass, FGameplayTag ActionName, bool bAutoBind = true);
+		void BP_AddAbility(TSubclassOf<class UGAAbilityBase> AbilityClass, 
+			FGameplayTag ActionName, bool bAutoBind = true);
+
+	void NativeAddAbility(TSubclassOf<class UGAAbilityBase> AbilityClass, 
+		FGameplayTag ActionName, bool bAutoBind = true);
 
 	/* Callback from server, after ability has been added. */
 	UFUNCTION(Client, Reliable)
