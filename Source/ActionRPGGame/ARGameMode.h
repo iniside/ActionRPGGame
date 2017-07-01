@@ -1,17 +1,18 @@
-// Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
+
 #pragma once
-#include "GameFramework/GameMode.h"
+
+#include "CoreMinimal.h"
+#include "GameFramework/GameModeBase.h"
 #include "ARGameMode.generated.h"
 
 UCLASS(minimalapi)
-class AARGameMode : public AGameMode
+class AARGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 
 public:
-	AARGameMode(const FObjectInitializer& ObjectInitializer);
-
-	void BeginPlay() override;
+	AARGameMode();
 };
 
 

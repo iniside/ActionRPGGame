@@ -1,17 +1,9 @@
-// Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 
-#include "ActionRPGGame.h"
-#include "GameplayTagsModule.h"
 #include "ARGameMode.h"
 #include "ARCharacter.h"
+#include "UObject/ConstructorHelpers.h"
 
-AARGameMode::AARGameMode(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+AARGameMode::AARGameMode()
 {
-
-}
-
-void AARGameMode::BeginPlay()
-{
-	Super::BeginPlay();
 }

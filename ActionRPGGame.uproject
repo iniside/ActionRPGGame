@@ -1,145 +1,41 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{D967A8F5-478E-1055-EA3A-30B34263A163}",
+	"EngineAssociation": "{A035B080-4493-F253-AA70-EF8A66B855F8}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
 		{
-			"Name": "GameInterfaces",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
-		},
-		{
-			"Name": "TimeOfDay",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"Engine"
-			]
-		},
-		{
-			"Name": "TimeOfDayEditor",
-			"Type": "Editor",
-			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"Engine"
-			]
-		},
-		{
-			"Name": "GameTrace",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"CoreUObject",
-				"Engine"
-			]
-		},
-		{
-			"Name": "AbilityFramework",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"CoreUObject",
-				"Engine",
-				"GameplayTasks"
-			]
-		},
-		{
-			"Name": "AbilityFrameworkEditor",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
-		},
-		{
-			"Name": "GameWeapons",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"AbilityFramework"
-			]
-		},
-		{
-			"Name": "GameWeaponsEditor",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
-		},
-		{
-			"Name": "GameInventorySystem",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
-		},
-		{
-			"Name": "GameInventorySystemEditor",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
-		},
-		{
-			"Name": "GameWidgets",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
-		},
-		{
-			"Name": "GameWidgetsEditor",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
-		},
-		{
-			"Name": "GameSystem",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"Engine"
-			]
-		},
-		{
-			"Name": "GameSystemEditor",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
-		},
-		{
 			"Name": "ActionRPGGame",
 			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"AIModule",
-				"Engine",
-				"AbilityFramework",
-				"CoreUObject",
-				"Slate",
-				"SlateCore"
-			]
-		},
-		{
-			"Name": "ActionRPGGameEditor",
-			"Type": "Editor",
 			"LoadingPhase": "Default"
 		}
 	],
 	"Plugins": [
-    {
-      "Name": "CodeView",
-      "Enabled": true,
-      "Type": "Editor"
-    },
-    {
-      "Name": "MessagingDebugger",
-      "Enabled": true,
-      "Type": "Editor"
-    },
-    {
-      "Name": "ControlRig",
-      "Enabled": true,
-      "Type": "Editor"
-    },
-    {
-      "Name": "PerformanceMonitor",
-      "Enabled": true,
-      "Type": "Editor"
-    },
-    {
-      "Name": "ActorSequenceEditor",
-      "Enabled": true,
-      "Type": "Editor"
-    }
+		{
+			"Name": "CodeView",
+			"Enabled": true,
+			"Type": "Editor"
+		},
+		{
+			"Name": "MessagingDebugger",
+			"Enabled": true,
+			"Type": "Editor"
+		},
+		{
+			"Name": "ControlRig",
+			"Enabled": true,
+			"Type": "Editor"
+		},
+		{
+			"Name": "PerformanceMonitor",
+			"Enabled": true,
+			"Type": "Editor"
+		},
+		{
+			"Name": "ActorSequenceEditor",
+			"Enabled": true,
+			"Type": "Editor"
+		}
 	],
 	"TargetPlatforms": [
 		"WindowsNoEditor"

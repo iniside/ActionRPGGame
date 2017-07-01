@@ -1,2 +1,0 @@
-Module, will glue togather all previous Game* modules. You might opt to not use it and do everything in your game module.
-Either way, it's sample reference.
