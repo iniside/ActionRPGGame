@@ -26,19 +26,7 @@
 
 #define LOCTEXT_NAMESPACE "FGAEffectCueEditor"
 
-FEffectCueSequenceEditorSummoner::FEffectCueSequenceEditorSummoner(TSharedPtr<FBlueprintEditor> BlueprintEditor)
-	: FWorkflowTabFactory("EmbeddedEffectCueSequenceID", BlueprintEditor)
-	, WeakBlueprintEditor(BlueprintEditor)
-{
-	bIsSingleton = true;
 
-	TabLabel = LOCTEXT("SequencerTabName", "Cue Sequencer");
-}
-
-TSharedRef<SWidget> FEffectCueSequenceEditorSummoner::CreateTabBody(const FWorkflowTabSpawnInfo& Info) const
-{
-	return SNew(SBox);
-}
 //TSharedRef<SDockTab> FEffectCueSequenceEditorSummoner::SpawnTab(const FWorkflowTabSpawnInfo& Info) const
 //{
 //	TSharedRef<SDockTab> Tab = FWorkflowTabFactory::SpawnTab(Info);
@@ -64,97 +52,19 @@ FGAEffectCueEditor::FGAEffectCueEditor()
 
 void FGAEffectCueEditor::RegisterBlueprintEditorLayout(FLayoutExtender& Extender)
 {
-	Extender.ExtendLayout(FBlueprintEditorTabs::CompilerResultsID, ELayoutExtensionPosition::Before, FTabManager::FTab(FName("EmbeddedEffectCueSequenceID"), ETabState::ClosedTab));
+	//Extender.ExtendLayout(FBlueprintEditorTabs::CompilerResultsID, ELayoutExtensionPosition::Before, FTabManager::FTab(FName("EmbeddedEffectCueSequenceID"), ETabState::ClosedTab));
 }
 
 void FGAEffectCueEditor::RegisterBlueprintEditorTab(FWorkflowAllowedTabSet& TabFactories, FName InModeName, TSharedPtr<FBlueprintEditor> BlueprintEditor)
 {
-	TabFactories.RegisterFactory(MakeShared<FEffectCueSequenceEditorSummoner>(BlueprintEditor));
+	//TabFactories.RegisterFactory(MakeShared<FEffectCueSequenceEditorSummoner>(BlueprintEditor));
 }
 TArray<UObject*> FGAEffectCueEditor::GetAnimationEventContexts() const
 {
 	TArray<UObject*> EventContexts; 
 	return EventContexts;
 }
-void FGAEffectCueEditor::SetSequencer(UGAEffectCueSequence* NewSequence)
-{
-	if (UGAEffectCueSequence* OldSequence = EditedSequence.Get())
-	{
-		if (OnSequenceChangedHandle.IsValid())
-		{
-			OldSequence->OnSignatureChanged().Remove(OnSequenceChangedHandle);
-		}
-	}
 
-	EditedSequence = NewSequence;
-
-	if (NewSequence)
-	{
-		OnSequenceChangedHandle = NewSequence->OnSignatureChanged().AddSP(this, &FGAEffectCueEditor::OnSequenceChanged);
-	}
-
-	// If we already have a sequencer open, just assign the sequence
-	if (Sequencer.IsValid() && NewSequence)
-	{
-		if (Sequencer->GetRootMovieSceneSequence() != NewSequence)
-		{
-			Sequencer->ResetToNewRootSequence(*NewSequence);
-		}
-		return;
-	}
-
-	// If we're setting the sequence to none, destroy sequencer
-	if (!NewSequence)
-	{
-		return;
-	}
-
-	// We need to initialize a new sequencer instance
-	FSequencerInitParams SequencerInitParams;
-	{
-		TWeakObjectPtr<UGAEffectCueSequence> LocalWeakSequence = NewSequence;
-		SequencerInitParams.RootSequence = NewSequence;
-		auto GetPlaybackContext =
-			[LocalWeakSequence]() -> UObject*
-		{
-			UGAEffectCueSequence* LocalActorSequence = LocalWeakSequence.Get();
-			if (LocalActorSequence)
-			{
-				if (AGAEffectCue* Actor = LocalActorSequence->GetTypedOuter<AGAEffectCue>())
-				{
-					return Actor;
-				}
-			}
-			return nullptr;
-		};
-
-		
-		SequencerInitParams.EventContexts = TAttribute<TArray<UObject*>>::Create(TAttribute<TArray<UObject*>>::FGetter::CreateLambda(
-			[GetPlaybackContext] {
-			TArray<UObject*> Contexts;
-			if (auto* Context = GetPlaybackContext())
-			{
-				Contexts.Add(Context);
-			}
-			return Contexts;
-		}
-		));
-		SequencerInitParams.PlaybackContext = TAttribute<UObject*>::Create(TAttribute<UObject*>::FGetter::CreateLambda(GetPlaybackContext));
-
-		SequencerInitParams.ViewParams.bReadOnly = false; // !WeakBlueprintEditor.IsValid() && !NewSequence->IsEditable();
-		SequencerInitParams.bEditWithinLevelEditor = false;
-		SequencerInitParams.ViewParams.UniqueName = "EffectCueSequenceEditor";
-		//SequencerInitParams.ViewParams.OnReceivedFocus.BindRaw(this, &SActorSequenceEditorWidgetImpl::OnSequencerReceivedFocus);
-	}
-
-	Sequencer = FModuleManager::LoadModuleChecked<ISequencerModule>("Sequencer").CreateSequencer(SequencerInitParams);
-	//FLevelEditorSequencerIntegrationOptions Options;
-	//Options.bRequiresLevelEvents = true;
-	//Options.bRequiresActorEvents = false;
-	//Options.bCanRecord = false;
-
-	Sequencer->SetViewRange(TRange<float>(0, 5));
-}
 void FGAEffectCueEditor::OnSequenceChanged()
 {
 	UBlueprint* Blueprint = GetBlueprintObj();
@@ -180,12 +90,6 @@ FGAEffectCueEditor::~FGAEffectCueEditor()
 	BlueprintEditorTabSpawnerHandle.Reset();
 	BlueprintEditorLayoutExtensionHandle.Reset();
 	TabManager.Pin()->UnregisterTabSpawner(FName("EmbeddedEffectCueSequenceID"));
-	if (Sequencer.IsValid())
-	{
-		Sequencer->OnMovieSceneDataChanged().RemoveAll(this);
-		Sequencer->Close();
-		Sequencer.Reset();
-	}
 	// NOTE: Any tabs that we still have hanging out when destroyed will be cleaned up by FBaseToolkit's destructor
 }
 
@@ -210,16 +114,7 @@ void FGAEffectCueEditor::InitEffectCueEditor(const EToolkitMode::Type Mode, cons
 	UBlueprint* BP = InBlueprints[0];
 	EditedCue = BP->GeneratedClass->GetDefaultObject<AGAEffectCue>();
 	CueClass = BP->GeneratedClass;
-	UObjectPropertyBase* Prop = FindField<UObjectPropertyBase>(CueClass, TEXT("Sequence"));
-	//Cast<UGAEffectCueSequence>(
-	UObject* Anim = Prop->GetObjectPropertyValue_InContainer(CueClass);
-	bool test2 = Prop->ContainsInstancedObjectProperty();
 
-	SetSequencer(EditedCue->Sequence);
-	//TabManager.Pin()->InvokeTab(FName("EmbeddedEffectCueSequenceID"))->SetContent(Sequencer->GetSequencerWidget());
-	
-	TabManager.Pin()->InvokeTab(FName("EmbeddedEffectCueSequenceID"))->SetContent(Sequencer->GetSequencerWidget());
-	//TabLayout = GetDefaltEditorLayout(InBlueprintEditor);
 	for (auto Blueprint : InBlueprints)
 	{
 		EnsureAbilityBlueprintIsUpToDate(Blueprint);

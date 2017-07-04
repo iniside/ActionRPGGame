@@ -27,10 +27,7 @@ public:
 		FGASOnReceiveTargetData OnConfirmed;
 	UPROPERTY(BlueprintAssignable)
 		FGASOnReceiveTargetData OnReceiveTargetData;
-
-	UPROPERTY()
-	class UGASAbilityTargetingObject* TargetObj;
-
+	
 	EGASConfirmType ConfirmType;
 
 	float Range;

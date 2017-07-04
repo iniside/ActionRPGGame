@@ -474,8 +474,8 @@ public:
 public:
 	void SetContext(const FGAEffectContext& ContextIn);
 
-	class UGAAbilitiesComponent* GetInstigatorComp() { return Context.InstigatorComp.Get(); }
-	class UGAAbilitiesComponent* GetTargetComp() { return Context.TargetComp.Get(); }
+	class UAFAbilityComponent* GetInstigatorComp() { return Context.InstigatorComp.Get(); }
+	class UAFAbilityComponent* GetTargetComp() { return Context.TargetComp.Get(); }
 	inline void AddOwnedTags(const FGameplayTagContainer& TagsIn) { OwnedTags.AppendTags(TagsIn); }
 	inline void AddApplyTags(const FGameplayTagContainer& TagsIn) { ApplyTags.AppendTags(TagsIn); }
 	void OnApplied();
@@ -646,7 +646,7 @@ struct ABILITYFRAMEWORK_API FGameCueContainer
 {
 	GENERATED_USTRUCT_BODY()
 
-	TWeakObjectPtr<UGAAbilitiesComponent> OwningComp;
+	TWeakObjectPtr<UAFAbilityComponent> OwningComp;
 public:
 	void AddCue(FGAEffectHandle EffectHandle, FGAEffectCueParams CueParams);
 };
@@ -700,7 +700,7 @@ public:
 	TArray<class UGAEffectExtension*> TargetInstancedEffects;
 
 	UPROPERTY(NotReplicated)
-		class UGAAbilitiesComponent* OwningComponent;
+		class UAFAbilityComponent* OwningComponent;
 public:
 	//FGAEffectContainer();
 	FGAEffectHandle ApplyEffect(FGAEffect* EffectIn, FGAEffectProperty& InProperty

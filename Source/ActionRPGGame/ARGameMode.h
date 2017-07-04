@@ -4,15 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "ActionRPGGameGameMode.generated.h"
+#include "ARGameMode.generated.h"
 
 UCLASS(minimalapi)
-class AActionRPGGameGameMode : public AGameModeBase
+class AARGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 
 public:
-	AActionRPGGameGameMode();
+	AARGameMode();
 };
 
 

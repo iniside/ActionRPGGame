@@ -134,5 +134,5 @@ public:
 		FVector InstigatorLocation;
 
 	UPROPERTY()
-		TWeakObjectPtr<class UGAAbilitiesComponent> Causer;
+		TWeakObjectPtr<class UAFAbilityComponent> Causer;
 };

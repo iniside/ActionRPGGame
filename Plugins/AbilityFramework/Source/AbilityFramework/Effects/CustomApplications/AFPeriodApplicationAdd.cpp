@@ -2,7 +2,7 @@
 
 #include "AbilityFramework.h"
 #include "../GAGameEffect.h"
-#include "../../GAAbilitiesComponent.h"
+#include "../../AFAbilityComponent.h"
 #include "AFPeriodApplicationAdd.h"
 
 
@@ -13,13 +13,13 @@ bool UAFPeriodApplicationAdd::ApplyEffect(const FGAEffectHandle& InHandle, struc
 {
 	FTimerManager& DurationTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
 
-	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExpireEffect, InHandle, InProperty);
+	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UAFAbilityComponent::ExpireEffect, InHandle, InProperty, InContext);
 	DurationTimer.SetTimer(InHandle.GetEffectPtr()->DurationTimerHandle, delDuration,
 		InProperty.Duration, false);
 
 	FTimerManager& PeriodTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
 
-	FTimerDelegate PeriodDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UGAAbilitiesComponent::ExecuteEffect, InHandle, InProperty, Modifier, InContext);
+	FTimerDelegate PeriodDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UAFAbilityComponent::ExecuteEffect, InHandle, InProperty, Modifier, InContext);
 	PeriodTimer.SetTimer(InHandle.GetEffectPtr()->PeriodTimerHandle, PeriodDuration,
 		InProperty.Period, true);
 

@@ -5,7 +5,7 @@
 #include "GameplayTask.h"
 #include "../GAEffectExtension.h"
 #include "../../GAGlobalTypes.h"
-#include "../../GAAbilitiesComponent.h"
+#include "../../AFAbilityComponent.h"
 #include "AFEffectTask.generated.h"
 
 /**
@@ -19,7 +19,7 @@ public:
 	UPROPERTY()
 		class UGAEffectExtension* Effect;
 	UPROPERTY()
-		class UGAAbilitiesComponent* AbilityComponent;
+		class UAFAbilityComponent* AbilityComponent;
 public:
 	template <class T>
 	static T* NewEffectTask(UObject* WorldContextObject, FName InTaskName = FName(), FName InstanceName = FName())

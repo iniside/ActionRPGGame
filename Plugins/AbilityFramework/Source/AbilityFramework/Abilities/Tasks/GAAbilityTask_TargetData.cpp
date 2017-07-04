@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "../../AbilityFramework.h"
-#include "../../Targeting/GASAbilityTargetingObject.h"
 #include "../GAAbilityBase.h"
 #include "GAAbilityTask_TargetData.h"
 
@@ -55,14 +54,6 @@ void UGAAbilityTask_TargetData::Activate()
 			}
 			break;
 		}
-	}
-	if (TargetObj)
-	{
-		UE_LOG(AbilityFramework, Log, TEXT("TArget object spawned"));
-	}
-	else
-	{
-		UE_LOG(AbilityFramework, Log, TEXT("TArget object is null."));
 	}
 }
 

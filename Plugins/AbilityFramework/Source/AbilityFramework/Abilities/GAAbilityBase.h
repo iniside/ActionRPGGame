@@ -5,7 +5,7 @@
 #include "GameplayTask.h"
 #include "GameplayTaskOwnerInterface.h"
 #include "../Attributes/GAAttributesBase.h"
-#include "IGAAbilities.h"
+#include "AFAbilityInterface.h"
 #include "AFAbilityActivationSpec.h"
 #include "GAAbilityBase.generated.h"
 
@@ -114,7 +114,7 @@ enum EAFAbilityState
 };
 
 UCLASS(BlueprintType, Blueprintable)
-class ABILITYFRAMEWORK_API UGAAbilityBase : public UObject, public IGameplayTaskOwnerInterface, public IIGAAbilities
+class ABILITYFRAMEWORK_API UGAAbilityBase : public UObject, public IGameplayTaskOwnerInterface, public IAFAbilityInterface
 {
 	GENERATED_BODY()
 public:
@@ -165,7 +165,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "AbilityFramework|Abilities")
 		class AAIController* AICOwner;
 	UPROPERTY(BlueprintReadOnly, Category = "AbilityFramework|Abilities")
-		class UGAAbilitiesComponent* AbilityComponent;
+		class UAFAbilityComponent* AbilityComponent;
 
 	/* 
 		Physical reprsentation of ability in game world. It might be sword, gun, or character.
@@ -173,7 +173,7 @@ public:
 
 		It will need some common interfaces for getting data out.
 	*/
-	UPROPERTY(BlueprintReadOnly, Category = "AbilityFramework|Abilities")
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "AbilityFramework|Abilities")
 		class AActor* AvatarActor;
 
 	UPROPERTY(BlueprintReadOnly, Category = "AbilityFramework|Abilities")
@@ -199,7 +199,7 @@ public:
 
 		Add Periodic Effect ? (For abilities with period).
 	*/
-	UPROPERTY(EditAnywhere, meta = (AllowedClass = "AFAbilityActivationSpec,AFAbilityPeriodSpec"), Category = "Config")
+	UPROPERTY(EditAnywhere, meta = (AllowedClass = "AFAbilityActivationSpec,AFAbilityPeriodSpec,AFAbilityInfiniteDurationSpec,AFAbilityPeriodicInfiniteSpec"), Category = "Config")
 		FGAEffectProperty ActivationEffect;
 	FGAEffectHandle ActivationEffectHandle;
 	/*
@@ -213,16 +213,6 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, Category = "Config")
 		FGAEffectProperty AbilityAttributeCost;
-	/*
-		Probably need that
-		as well as separate spawned actor, which takes care on it's own for
-		abilities effect (like lighting strike from heaves into certain hit point);
-	*/
-	/* What/Where ability hits landed. Replicated back to client ? */
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing=OnRep_AbilityHits)
-		FGASAbilityHitArray AbilityHits;
-	UFUNCTION()
-		void OnRep_AbilityHits();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Tags")
 		FGameplayTag AbilityTag;
@@ -254,37 +244,8 @@ public: //because I'm to lazy to write all those friend states..
 	UFUNCTION()
 		void OnActivationEffectPeriod(const FGAEffectHandle& InHandle);
 
-	UFUNCTION()
-		void OnRep_CooldownStarted();
-	UFUNCTION()
-		void OnRep_CooldownExpired();
-	UFUNCTION()
-		void OnRep_AbilityActivationStarted();
-	UFUNCTION()
-		void OnRep_AbilityActivated();
-	UFUNCTION()
-		void OnRep_AbilityPeriod();
-	/* 
-		Do any needed client side initialization here. 
-		Note that anything created trough this function will exist ONLY on client, this function
-		was called.
-	*/
-	UFUNCTION()
-		virtual void OnRep_InitAbility();
-
 	/* Replication counters for above events. */
-	UPROPERTY(ReplicatedUsing = OnRep_CooldownStarted)
-		uint8 CooldownStartedCounter;
-	UPROPERTY(ReplicatedUsing = OnRep_CooldownExpired)
-		uint8 CooldownEffectExpiredCounter;
-	UPROPERTY(ReplicatedUsing = OnRep_AbilityActivationStarted)
-		uint8 AbilityActivationStartedCounter;
-	UPROPERTY(ReplicatedUsing = OnRep_AbilityActivated)
-		FGAActiationInfo ActivationInfo;
-	UPROPERTY(ReplicatedUsing = OnRep_AbilityPeriod)
-		uint8 AbilityPeriodCounter;
-	UPROPERTY(ReplicatedUsing = OnRep_InitAbility)
-		uint8 InitAbilityCounter;
+
 
 	UPROPERTY(BlueprintAssignable)
 		FGASGenericAbilityDelegate OnInputPressedDelegate;
@@ -442,9 +403,9 @@ public:
 	virtual void OnGameplayTaskDeactivated(UGameplayTask& Task) override;
 	/** GameplayTaskOwnerInterface - end */
 	
-	/** IIGAAbilities Begin */
+	/** IAFAbilityInterface Begin */
 	virtual class UGAAttributesBase* GetAttributes() override;
-	virtual class UGAAbilitiesComponent* GetAbilityComp() override;
+	virtual class UAFAbilityComponent* GetAbilityComp() override;
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities|Attributes")
 	virtual float GetAttributeValue(FGAAttribute AttributeIn) const override;
 	virtual float NativeGetAttributeValue(const FGAAttribute AttributeIn) const override;
@@ -456,7 +417,7 @@ public:
 		FGAEffectProperty& InProperty, FGAEffectContext& InContext) override;
 	virtual void RemoveTagContainer(const FGameplayTagContainer& TagsIn) override;
 
-	/* IIGAAbilities End **/
+	/* IAFAbilityInterface End **/
 	UFUNCTION(BlueprintPure, Category = "AbilityFramework|Abilities|Attributes")
 		virtual float GetAttributeVal(FGAAttribute AttributeIn) const;
 

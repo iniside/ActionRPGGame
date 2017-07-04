@@ -16,20 +16,9 @@ class UGAEffectCueSequence;
 /**
  * Gameplay abilities asset editor (extends Blueprint editor)
  */
-struct FEffectCueSequenceEditorSummoner
-	: public FWorkflowTabFactory
-{
-	FEffectCueSequenceEditorSummoner(TSharedPtr<FBlueprintEditor> BlueprintEditor);
 
-	virtual TSharedRef<SWidget> CreateTabBody(const FWorkflowTabSpawnInfo& Info) const override;
-	/*virtual TSharedRef<SDockTab> SpawnTab(const FWorkflowTabSpawnInfo& Info) const override;*/
-protected:
-	TWeakPtr<FBlueprintEditor> WeakBlueprintEditor;
-};
 class FGAEffectCueEditor : public FBlueprintEditor
 {
-	TSharedPtr<ISequencer> Sequencer;
-	void SetSequencer(UGAEffectCueSequence* NewSequence);
 	TWeakPtr<FTabManager> TabManager;
 	FDelegateHandle OnSequenceChangedHandle;
 

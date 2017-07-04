@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "AbilityFramework.h"
-#include "IGAAbilities.h"
-#include "GAAbilitiesComponent.h"
+#include "AFAbilityInterface.h"
+#include "AFAbilityComponent.h"
 #include "AFAbilityNotifyState.h"
 
 
@@ -10,7 +10,7 @@
 
 void UAFAbilityNotifyState::NotifyBegin(class USkeletalMeshComponent * MeshComp, class UAnimSequenceBase * Animation, float TotalDuration)
 {
-	IIGAAbilities* IAbilities = Cast<IIGAAbilities>(MeshComp->GetOwner());
+	IAFAbilityInterface* IAbilities = Cast<IAFAbilityInterface>(MeshComp->GetOwner());
 	if (IAbilities)
 	{
 		CachedAbilitiesComp = IAbilities->GetAbilityComp();

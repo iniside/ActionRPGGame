@@ -19,10 +19,10 @@
             "Type": "Runtime",
             "LoadingPhase": "Default"
         },
-        {
-            "Name": "AbilityFrameworkEditor",
-            "Type": "Editor",
-            "LoadingPhase": "Default"
-        }
+      {
+        "Name": "AbilityFrameworkEditor",
+        "Type": "Editor",
+        "LoadingPhase": "PostEngineInit"
+      }
     ]
 }

@@ -11,7 +11,10 @@ namespace UnrealBuildTool.Rules
                     "AbilityFramework",
                     "AbilityFramework/Abilities",
                     "AbilityFramework/Attributes",
-                    "AbilityFramework/Effects"
+                    "AbilityFramework/Effects",
+                    "AbilityFramework/Effects/ApplicationRequirement",
+                    "AbilityFramework/Effects/CustomApplications",
+                    "AbilityFramework/Public"
 					// ... add public include paths required here ...
 				}
 				);

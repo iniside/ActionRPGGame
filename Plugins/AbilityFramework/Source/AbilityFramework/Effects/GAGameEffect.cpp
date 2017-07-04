@@ -2,11 +2,11 @@
 
 #include "../AbilityFramework.h"
 #include "GameplayTagContainer.h"
-#include "../GAAbilitiesComponent.h"
+#include "../AFAbilityComponent.h"
 #include "../Attributes/GAAttributesBase.h"
-#include "../IGAAbilities.h"
+#include "../AFAbilityInterface.h"
 
-#include "../GAAbilitiesComponent.h"
+#include "../AFAbilityComponent.h"
 #include "GAEffectExecution.h"
 #include "GAEffectExtension.h"
 #include "../GAGlobalTypes.h"
@@ -18,10 +18,13 @@ DEFINE_STAT(STAT_GatherModifiers);
 
 void FGAEffectProperty::Initialize()
 {
-	Spec = SpecClass.SpecClass->GetDefaultObject<UGAGameEffectSpec>();
-	ApplicationRequirement = GetSpec()->ApplicationRequirement.GetDefaultObject();
-	Application = GetSpec()->Application.GetDefaultObject();
-	Execution = GetSpec()->ExecutionType.GetDefaultObject();
+	if (SpecClass.SpecClass)
+	{
+		Spec = SpecClass.SpecClass->GetDefaultObject<UGAGameEffectSpec>();
+		ApplicationRequirement = GetSpec()->ApplicationRequirement.GetDefaultObject();
+		Application = GetSpec()->Application.GetDefaultObject();
+		Execution = GetSpec()->ExecutionType.GetDefaultObject();
+	}
 }
 void FGAEffectProperty::InitializeIfNotInitialized()
 {
@@ -403,7 +406,7 @@ TSet<FGAEffectHandle> FGAEffectContainer::GetHandlesByClass(const FGAEffectPrope
 	{
 	case EGAEffectAggregation::AggregateByInstigator:
 	{
-		UGAAbilitiesComponent* Instigator = InContext.InstigatorComp.Get();
+		UAFAbilityComponent* Instigator = InContext.InstigatorComp.Get();
 		TMap<UClass*, TSet<FGAEffectHandle>>* EffectByClassMap = InstigatorEffectByClass.Find(Instigator);
 		//TSet<FGAEffectHandle>* EffectByClass;
 		if (EffectByClassMap)
@@ -415,7 +418,7 @@ TSet<FGAEffectHandle> FGAEffectContainer::GetHandlesByClass(const FGAEffectPrope
 	}
 	case EGAEffectAggregation::AggregateByTarget:
 	{
-		UGAAbilitiesComponent* Target = InContext.TargetComp.Get();
+		UAFAbilityComponent* Target = InContext.TargetComp.Get();
 		TSet<FGAEffectHandle>* TargetEffect = TargetEffectByClass.Find(EffectClass);
 		if (TargetEffect)
 		{
@@ -450,12 +453,12 @@ void FGAEffectContainer::AddEffectByClass(const FGAEffectHandle& HandleIn)
 	EGAEffectAggregation Aggregation = Spec->EffectAggregation;
 	UClass* EffectClass = Spec->GetClass();
 	TSet<FGAEffectHandle> Handles;
-	UGAAbilitiesComponent* Target = HandleIn.GetContextRef().TargetComp.Get();
+	UAFAbilityComponent* Target = HandleIn.GetContextRef().TargetComp.Get();
 	switch (Aggregation)
 	{
 	case EGAEffectAggregation::AggregateByInstigator:
 	{
-		UGAAbilitiesComponent* Instigator = HandleIn.GetContextRef().InstigatorComp.Get();
+		UAFAbilityComponent* Instigator = HandleIn.GetContextRef().InstigatorComp.Get();
 
 		
 		TMap<UClass*, TSet<FGAEffectHandle>>& EffectByClassMap = InstigatorEffectByClass.FindOrAdd(Instigator);
@@ -484,7 +487,7 @@ void FGAEffectContainer::AddEffectByClass(const FGAEffectHandle& HandleIn)
 void FGAEffectContainer::RemoveFromAttribute(const FGAEffectHandle& HandleIn)
 {
 	TSet<FGAEffectHandle>* AttributeEffect = EffectByAttribute.Find(HandleIn.GetAttribute());
-	IIGAAbilities* Target = HandleIn.GetContextRef().TargetInterface;
+	IAFAbilityInterface* Target = HandleIn.GetContextRef().TargetInterface;
 	if (AttributeEffect)
 	{
 		AttributeEffect->Remove(HandleIn);
@@ -517,11 +520,11 @@ void FGAEffectContainer::RemoveEffectProtected(const FGAEffectHandle& HandleIn
 void FGAEffectContainer::RemoveInstigatorEffect(const FGAEffectHandle& HandleIn
 	, const FGAEffectProperty& InProperty)
 {
-	UGAAbilitiesComponent* Instigator = HandleIn.GetContextRef().InstigatorComp.Get();
+	UAFAbilityComponent* Instigator = HandleIn.GetContextRef().InstigatorComp.Get();
 	UClass* EffectClass = HandleIn.GetEffectSpec()->GetClass();
 	TMap<UClass*, TSet<FGAEffectHandle>>* InstigatorEffect = InstigatorEffectByClass.Find(Instigator);
 	TSet<FGAEffectHandle>* HandlesToRemove = InstigatorEffect->Find(EffectClass);
-	IIGAAbilities* Target = HandleIn.GetContextRef().TargetInterface;
+	IAFAbilityInterface* Target = HandleIn.GetContextRef().TargetInterface;
 	TSharedPtr<FGAEffect> Effect = HandleIn.GetEffectPtr();
 	if (HandlesToRemove)
 	{
@@ -576,7 +579,7 @@ void FGAEffectContainer::RemoveTargetEffect(const FGAEffectHandle& HandleIn
 {
 	UClass* EffectClass = HandleIn.GetEffectSpec()->GetClass();
 	TSet<FGAEffectHandle>* Handles = TargetEffectByClass.Find(EffectClass);
-	IIGAAbilities* Target = HandleIn.GetContextRef().TargetInterface;
+	IAFAbilityInterface* Target = HandleIn.GetContextRef().TargetInterface;
 	
 	TSharedPtr<FGAEffect> Effect = HandleIn.GetEffectPtr();
 

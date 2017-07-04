@@ -1,11 +1,11 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
 #include "../AbilityFramework.h"
-#include "../GAAbilitiesComponent.h"
+#include "../AFAbilityComponent.h"
 
 
 #include "GABlueprintLibrary.h"
-#include "../IGAAbilities.h"
+#include "../AFAbilityInterface.h"
 #include "GAEffectExtension.h"
 
 UGABlueprintLibrary::UGABlueprintLibrary(const FObjectInitializer& ObjectInitializer)
@@ -47,12 +47,12 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 		UE_LOG(GameAttributesEffects, Error, TEXT("Invalid Effect Spec"));
 		return FGAEffectHandle();
 	}
-	FGAEffectContext Context = MakeContext(Target, Instigator, Causer, HitIn);
+	FGAEffectContext Context = MakeContext(Target, Instigator, nullptr, Causer, HitIn);
 	/*if (!Context.IsValid())
 	{
 		return FGAEffectHandle();
 	}*/
-	UGAAbilitiesComponent* Target2 = Context.TargetComp.Get();
+	UAFAbilityComponent* Target2 = Context.TargetComp.Get();
 	if (!Target2->HaveEffectRquiredTags(InEffect.GetSpec()->RequiredTags))
 	{
 		return FGAEffectHandle();
@@ -122,7 +122,7 @@ FGAEffectHandle UGABlueprintLibrary::MakeEffect(UGAGameEffectSpec* SpecIn,
 		return FGAEffectHandle();
 	}
 
-	FGAEffectContext Context = MakeContext(Target, Instigator, Causer, HitIn);
+	FGAEffectContext Context = MakeContext(Target, Instigator, nullptr, Causer, HitIn);
 	if (!Context.IsValid())
 	{
 		//if the handle is valid (valid pointer to effect and id)
@@ -154,17 +154,18 @@ FGAEffectHandle UGABlueprintLibrary::MakeEffect(UGAGameEffectSpec* SpecIn,
 	return HandleIn;
 }
 
-FGAEffectContext UGABlueprintLibrary::MakeContext(class UObject* Target, class APawn* Instigator, UObject* Causer, const FHitResult& HitIn)
+FGAEffectContext UGABlueprintLibrary::MakeContext(class UObject* Target, class APawn* Instigator, 
+	AActor* InAvatar, UObject* Causer, const FHitResult& HitIn)
 {
-	IIGAAbilities* targetAttr = Cast<IIGAAbilities>(Target);
-	IIGAAbilities* instiAttr = Cast<IIGAAbilities>(Instigator);
+	IAFAbilityInterface* targetAttr = Cast<IAFAbilityInterface>(Target);
+	IAFAbilityInterface* instiAttr = Cast<IAFAbilityInterface>(Instigator);
 	if (!targetAttr && !instiAttr)
 	{
-		UE_LOG(GameAttributesEffects, Error, TEXT("Target and Instigator does not implement IIGAAbilities interface"));
+		UE_LOG(GameAttributesEffects, Error, TEXT("Target and Instigator does not implement IAFAbilityInterface interface"));
 		return FGAEffectContext();
 	}
-	UGAAbilitiesComponent* targetComp = nullptr;
-	UGAAbilitiesComponent* instiComp = nullptr;
+	UAFAbilityComponent* targetComp = nullptr;
+	UAFAbilityComponent* instiComp = nullptr;
 	if (targetAttr)
 	{
 		targetComp = targetAttr->GetAbilityComp();
@@ -179,7 +180,8 @@ FGAEffectContext UGABlueprintLibrary::MakeContext(class UObject* Target, class A
 		targetAttr ? targetAttr->GetAttributes() : nullptr,
 		instiAttr ? instiAttr->GetAttributes() : nullptr,
 		location, Target, Causer,
-		Instigator, targetComp, instiComp);
+		Instigator, targetComp, instiComp,
+		InAvatar);
 	Context.HitResult = HitIn;
 	return Context;
 }
@@ -198,23 +200,23 @@ FGAEffectContext& UGABlueprintLibrary::GetContext(const FGAEffectHandle& InHandl
 	return InHandle.GetContextRef();
 }
 
-UGAAbilitiesComponent* UGABlueprintLibrary::GetTargetComponent(const FGAEffectHandle& InHandle)
+UAFAbilityComponent* UGABlueprintLibrary::GetTargetComponent(const FGAEffectHandle& InHandle)
 {
 	return InHandle.GetContextRef().InstigatorComp.Get();
 }
 
-UGAAbilitiesComponent* UGABlueprintLibrary::GetInstigatorComponent(const FGAEffectHandle& InHandle)
+UAFAbilityComponent* UGABlueprintLibrary::GetInstigatorComponent(const FGAEffectHandle& InHandle)
 {
 	return InHandle.GetContextRef().TargetComp.Get();
 }
 
 void UGABlueprintLibrary::BroadcastEffectEvent(UObject* Target, FGameplayTag EventTag)
 {
-	IIGAAbilities* targetAttr = Cast<IIGAAbilities>(Target);
+	IAFAbilityInterface* targetAttr = Cast<IAFAbilityInterface>(Target);
 	if (!targetAttr)
 		return;
 
-	UGAAbilitiesComponent* TargetComp = targetAttr->GetAbilityComp();
+	UAFAbilityComponent* TargetComp = targetAttr->GetAbilityComp();
 	if (!TargetComp)
 		return;
 

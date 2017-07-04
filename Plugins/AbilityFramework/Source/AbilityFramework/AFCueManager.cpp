@@ -56,22 +56,35 @@ void UAFCueManager::HandleOnPIEEnd(bool InVal)
 	}
 	for (auto It = UsedCues.CreateIterator(); It; ++It)
 	{
-		if (It->Value.IsValid())
+		if (It->Value.Num() <= 0)
 		{
-			while (!It->Value->IsEmpty())
+			UsedCues.Remove(It->Key);
+		}
+		for (auto QIt = It->Value.CreateIterator(); QIt; ++QIt)
+		{
+			if (QIt->Value.IsValid())
 			{
-				AGAEffectCue* ToDestroy = nullptr;
-				It->Value->Dequeue(ToDestroy);
-				if (ToDestroy)
+				while (!QIt->Value->IsEmpty())
 				{
-					ToDestroy->Destroy();
+					AGAEffectCue* ToDestroy = nullptr;
+					QIt->Value->Dequeue(ToDestroy);
+					if (ToDestroy)
+					{
+						ToDestroy->Destroy();
+					}
 				}
 			}
+			if (It->Value.Num() <= 0)
+			{
+				UsedCues.Remove(It->Key);
+			}
 		}
+		
 	}
 }
 #endif //WITH_EDITOR
-void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags, const FGAEffectCueParams& CueParams)
+void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags, 
+	const FGAEffectCueParams& CueParams)
 {
 	if (!CurrentWorld)
 		CurrentWorld = CueParams.Instigator->GetWorld();
@@ -123,33 +136,74 @@ void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags, const FGAEffect
 		FVector Location = CueParams.HitResult.Location;
 		FRotator Rotation = FRotator::ZeroRotator;
 		AGAEffectCue* actor = nullptr;
-		/*	TUniquePtr<TQueue<AGAEffectCue*>>& Cues = InstancedCues.FindOrAdd(Tag);
+		TUniquePtr<TQueue<AGAEffectCue*>>& Cues = InstancedCues.FindOrAdd(Tag);
 		if (!Cues.IsValid())
 		{
 			Cues = MakeUnique<TQueue<AGAEffectCue*>>();
 		}
-		TUniquePtr<TQueue<AGAEffectCue*>>& UseCues = UsedCues.FindOrAdd(Tag);
-		if (!UseCues.IsValid())
+		FObjectKey InstigatorKey(CueParams.Instigator.Get());
+		TMap<FGameplayTag, TUniquePtr<TQueue<AGAEffectCue*>>>& UsedCuesMap = UsedCues.FindOrAdd(InstigatorKey);
+		TUniquePtr<TQueue<AGAEffectCue*>>& UseCuesQueue = UsedCuesMap.FindOrAdd(Tag);
+
+		if (!UseCuesQueue.IsValid())
 		{
-			UseCues = MakeUnique<TQueue<AGAEffectCue*>>();
+			UseCuesQueue = MakeUnique<TQueue<AGAEffectCue*>>();
 		}
 		
 		if (Cues->IsEmpty())
 		{
 			actor = CurrentWorld->SpawnActor<AGAEffectCue>(CueClass, Location, Rotation, SpawnParams);
 			Cues->Enqueue(actor);
+			Cues->Dequeue(actor);
+			UseCuesQueue->Enqueue(actor);
 		}
 		else
 		{
 			Cues->Dequeue(actor);
-			UseCues->Enqueue(actor);
-		}*/
+			UseCuesQueue->Enqueue(actor);
+		}
 		
-		actor = CurrentWorld->SpawnActor<AGAEffectCue>(CueClass, Location, Rotation, SpawnParams);
+		//actor = CurrentWorld->SpawnActor<AGAEffectCue>(CueClass, Location, Rotation, SpawnParams);
 		actor->NativeBeginCue(CueParams.Instigator.Get(), CueParams.HitResult.Actor.Get(),
-			CueParams.Causer.Get(), CueParams.HitResult);
+			CueParams.Causer.Get(), CueParams.HitResult, CueParams);
 
 		/*UseCues->Dequeue(actor);
 		Cues->Enqueue(actor);*/
+	}
+}
+void UAFCueManager::HandleRemoveCue(const FGameplayTagContainer& Tags,
+	const FGAEffectCueParams& CueParams)
+{
+	if (!CurrentWorld)
+		CurrentWorld = CueParams.Instigator->GetWorld();
+	for (const FGameplayTag& Tag : CueParams.CueTags)
+	{
+		TSubclassOf<AGAEffectCue> CueClass = CueSet->Cues.FindRef(Tag);
+		if (!CueClass)
+			continue;
+
+		AGAEffectCue* actor = nullptr;
+		TUniquePtr<TQueue<AGAEffectCue*>>& Cues = InstancedCues.FindOrAdd(Tag);
+		if (!Cues.IsValid())
+		{
+			Cues = MakeUnique<TQueue<AGAEffectCue*>>();
+		}
+		FObjectKey InstigatorKey(CueParams.Instigator.Get());
+		TMap<FGameplayTag, TUniquePtr<TQueue<AGAEffectCue*>>>& UsedCuesMap = UsedCues.FindOrAdd(InstigatorKey);
+		TUniquePtr<TQueue<AGAEffectCue*>>& UseCuesQueue = UsedCuesMap.FindOrAdd(Tag);
+
+		if (!UseCuesQueue.IsValid())
+		{
+			UseCuesQueue = MakeUnique<TQueue<AGAEffectCue*>>();
+		}
+
+		UseCuesQueue->Dequeue(actor);
+		
+
+		if (actor)
+		{
+			Cues->Enqueue(actor);
+			actor->NativeOnRemoved();
+		}
 	}
 }

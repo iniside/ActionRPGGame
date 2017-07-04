@@ -7,7 +7,28 @@ public class ActionRPGGame : ModuleRules
 	public ActionRPGGame(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+        PublicIncludePaths.AddRange(
+        new string[] {
+                "AbilityFramework",
+                "AbilityFramework/Abilities",
+                "AbilityFramework/Attributes",
+                "AbilityFramework/Effects",
+                "AbilityFramework/Public"
+            // ... add public include paths required here ...
+            }
+        );
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay" });
+            PrivateIncludePaths.AddRange(
+            new string[] {
+                    "AbilityFramework",
+                    "AbilityFramework/Abilities",
+                    "AbilityFramework/Attributes",
+                    "AbilityFramework/Effects",
+                    "AbilityFramework/Private",
+                // ... add other private include paths required here ...
+                }
+            );
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore",
+            "GameplayTags", "AbilityFramework" });
 	}
 }

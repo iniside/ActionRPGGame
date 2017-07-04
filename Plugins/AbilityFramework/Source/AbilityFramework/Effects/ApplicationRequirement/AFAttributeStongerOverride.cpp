@@ -2,7 +2,7 @@
 
 #include "AbilityFramework.h"
 #include "../../Attributes/GAAttributeBase.h"
-#include "../../IGAAbilities.h"
+#include "../../AFAbilityInterface.h"
 #include "AFAttributeStongerOverride.h"
 
 

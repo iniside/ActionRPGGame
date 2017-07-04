@@ -1,6 +1,6 @@
 #pragma once
 #include "../AbilityFramework.h"
-#include "../GAAbilitiesComponent.h"
+#include "../AFAbilityComponent.h"
 #include "GAEffectCueGlobals.h"
 
 void FGACueContainer::AddCue(const FGAEffectHandle& HandleIn, const FGAEffectCueParams& CueParamsIn)

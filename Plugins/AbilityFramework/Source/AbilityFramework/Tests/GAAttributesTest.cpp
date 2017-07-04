@@ -6,7 +6,7 @@
 
 
 
-void UGAAttributesTest::InitializeAttributes(UGAAbilitiesComponent* InOwningAttributeComp)
+void UGAAttributesTest::InitializeAttributes(UAFAbilityComponent* InOwningAttributeComp)
 {
 
 	Super::InitializeAttributes(InOwningAttributeComp);

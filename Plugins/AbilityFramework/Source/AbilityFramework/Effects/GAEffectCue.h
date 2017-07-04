@@ -4,6 +4,7 @@
 
 #include "GameFramework/Actor.h"
 #include "MovieSceneSequencePlayer.h"
+#include "GAGlobalTypes.h"
 #include "GAEffectCue.generated.h"
 class UActorSequencePlayer;
 UCLASS()
@@ -26,7 +27,7 @@ public:
 			const FHitResult& HitInfo);
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void OnPeriod();
+		void OnExecuted();
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnExpired();
@@ -35,10 +36,10 @@ public:
 		void OnRemoved();
 
 	void NativeBeginCue(AActor* InstigatorOut, AActor* TargetOut, UObject* Causer,
-		const FHitResult& HitInfo);
+		const FHitResult& HitInfo, const FGAEffectCueParams& CueParams);
 
-	void NativeOnPeriod();
-
+	void NativeOnExecuted();
+	void NativeOnRemoved();
 	UPROPERTY()
 		float Duration;
 	UPROPERTY()
@@ -50,10 +51,11 @@ public:
 	UPROPERTY()
 		double EndTime;
 	/** Animation being played */
-	UPROPERTY(Instanced)
-		class UGAEffectCueSequence* Sequence;
-	UPROPERTY(Instanced)
+	UPROPERTY(EditAnywhere, Instanced, Export, Category = Animation)
+		UGAEffectCueSequence* Sequence;
+	UPROPERTY(transient, BlueprintReadOnly, Category = Animation)
 		UActorSequencePlayer* SequencePlayer;
+
 	UPROPERTY(EditAnywhere, Category = "Playback", meta = (ShowOnlyInnerProperties))
 		FMovieSceneSequencePlaybackSettings PlaybackSettings;
 

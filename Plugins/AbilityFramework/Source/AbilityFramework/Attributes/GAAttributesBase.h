@@ -47,7 +47,7 @@ public:
 	UGAAttributesBase(const FObjectInitializer& ObjectInitializer);
 	~UGAAttributesBase();
 
-	virtual void InitializeAttributes(UGAAbilitiesComponent* InOwningAttributeComp);
+	virtual void InitializeAttributes(UAFAbilityComponent* InOwningAttributeComp);
 	void InitializeAttributesFromTable();
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Initialize Attributes"))
 		bool BP_InitializeAttributes();
@@ -62,7 +62,7 @@ public:
 		that it must be fully functional from within blueprint.
 	*/
 	UPROPERTY(Replicated)
-	class UGAAbilitiesComponent* OwningAttributeComp;
+	class UAFAbilityComponent* OwningAttributeComp;
 protected:
 	UProperty* FindProperty(const FGAAttribute& AttributeIn);
 

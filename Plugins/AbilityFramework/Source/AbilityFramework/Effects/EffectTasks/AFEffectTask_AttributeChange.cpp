@@ -25,7 +25,7 @@ UAFEffectTask_AttributeChange* UAFEffectTask_AttributeChange::ListenAttributeCha
 
 void UAFEffectTask_AttributeChange::Activate()
 {
-	UGAAbilitiesComponent* ASC = GetTargetASC();
+	UAFAbilityComponent* ASC = GetTargetASC();
 	if (ASC)
 	{
 		MyHandle = ASC->AttributeChanged.FindOrAdd(Attribute).AddUObject(this, &UAFEffectTask_AttributeChange::AttributeChangedCallback);
@@ -50,7 +50,7 @@ void UAFEffectTask_AttributeChange::SetExternalTarget(AActor* Actor)
 {
 	if (Actor)
 	{
-		if (IIGAAbilities* interface = Cast<IIGAAbilities>(Actor))
+		if (IAFAbilityInterface* interface = Cast<IAFAbilityInterface>(Actor))
 		{
 			UseExternalTarget = true;
 			OptionalExternalTarget = interface->GetAbilityComp();
@@ -59,7 +59,7 @@ void UAFEffectTask_AttributeChange::SetExternalTarget(AActor* Actor)
 	}
 }
 
-UGAAbilitiesComponent* UAFEffectTask_AttributeChange::GetTargetASC()
+UAFAbilityComponent* UAFEffectTask_AttributeChange::GetTargetASC()
 {
 	if (UseExternalTarget)
 	{
@@ -71,7 +71,7 @@ UGAAbilitiesComponent* UAFEffectTask_AttributeChange::GetTargetASC()
 
 void UAFEffectTask_AttributeChange::OnDestroy(bool AbilityEnding)
 {
-	UGAAbilitiesComponent* ASC = GetTargetASC();
+	UAFAbilityComponent* ASC = GetTargetASC();
 	if (ASC && MyHandle.IsValid())
 	{
 		ASC->AttributeChanged.FindOrAdd(Attribute).Remove(MyHandle);

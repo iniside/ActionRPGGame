@@ -2,7 +2,7 @@
 
 #include "../AbilityFramework.h"
 #include "GameplayTagContainer.h"
-#include "../GAAbilitiesComponent.h"
+#include "../AFAbilityComponent.h"
 #include "../Attributes/GAAttributesBase.h"
 #include "GASpellExecutionTest.h"
 

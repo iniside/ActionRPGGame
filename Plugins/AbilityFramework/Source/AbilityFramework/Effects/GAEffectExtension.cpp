@@ -1,7 +1,7 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
 #include "../AbilityFramework.h"
-#include "../GAAbilitiesComponent.h"
+#include "../AFAbilityComponent.h"
 #include "GAEffectExtension.h"
 
 UGAEffectExtension::UGAEffectExtension(const FObjectInitializer& ObjectInitializer)

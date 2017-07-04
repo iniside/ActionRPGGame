@@ -3,16 +3,16 @@
 #pragma once
 
 #include "GameFramework/Character.h"
-#include "../IGAAbilities.h"
+#include "../AFAbilityInterface.h"
 #include "GACharacterAttributeTest.generated.h"
 
 UCLASS()
-class ABILITYFRAMEWORK_API AGACharacterAttributeTest : public ACharacter, public IIGAAbilities
+class ABILITYFRAMEWORK_API AGACharacterAttributeTest : public ACharacter, public IAFAbilityInterface
 {
 	GENERATED_BODY()
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes")
-	class UGAAbilitiesComponent* Attributes;
+	class UAFAbilityComponent* Attributes;
 public:
 	// Sets default values for this character's properties
 	AGACharacterAttributeTest();
@@ -28,7 +28,7 @@ public:
 
 	
 	virtual class UGAAttributesBase* GetAttributes() override;
-	virtual class UGAAbilitiesComponent* GetAbilityComp() override;
+	virtual class UAFAbilityComponent* GetAbilityComp() override;
 	virtual float GetAttributeValue(FGAAttribute AttributeIn) const override { return 0; };
 	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);// override { DefaultAttributes->ModifyAttribute(ModIn, HandleIn); };
 	

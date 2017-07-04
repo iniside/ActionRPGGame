@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "../../AbilityFramework.h"
-#include "../../GAAbilitiesComponent.h"
+#include "../../AFAbilityComponent.h"
 #include "GAAbilityTask_PlayMontage.h"
 
 UGAAbilityTask_PlayMontage* UGAAbilityTask_PlayMontage::AbilityPlayMontage(UObject* WorldContextObject,

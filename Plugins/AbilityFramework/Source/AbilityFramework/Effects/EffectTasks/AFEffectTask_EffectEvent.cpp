@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "AbilityFramework.h"
-#include "../../IGAAbilities.h"
+#include "../../AFAbilityInterface.h"
 #include "AFEffectTask_EffectEvent.h"
 
 
@@ -25,7 +25,7 @@ UAFEffectTask_EffectEvent* UAFEffectTask_EffectEvent::ListenEffectEvent(UObject*
 
 void UAFEffectTask_EffectEvent::Activate()
 {
-	UGAAbilitiesComponent* ASC = GetTargetASC();
+	UAFAbilityComponent* ASC = GetTargetASC();
 	if (ASC)
 	{
 		MyHandle = ASC->EffectEvents.FindOrAdd(Tag).AddUObject(this, &UAFEffectTask_EffectEvent::GameplayEventCallback);
@@ -51,7 +51,7 @@ void UAFEffectTask_EffectEvent::SetExternalTarget(AActor* Actor)
 	if (Actor)
 	{
 		
-		if (IIGAAbilities* interface = Cast<IIGAAbilities>(Actor))
+		if (IAFAbilityInterface* interface = Cast<IAFAbilityInterface>(Actor))
 		{
 			UseExternalTarget = true;
 			OptionalExternalTarget = interface->GetAbilityComp();
@@ -60,7 +60,7 @@ void UAFEffectTask_EffectEvent::SetExternalTarget(AActor* Actor)
 	}
 }
 
-UGAAbilitiesComponent* UAFEffectTask_EffectEvent::GetTargetASC()
+UAFAbilityComponent* UAFEffectTask_EffectEvent::GetTargetASC()
 {
 	if (UseExternalTarget)
 	{
@@ -72,7 +72,7 @@ UGAAbilitiesComponent* UAFEffectTask_EffectEvent::GetTargetASC()
 
 void UAFEffectTask_EffectEvent::OnDestroy(bool AbilityEnding)
 {
-	UGAAbilitiesComponent* ASC = GetTargetASC();
+	UAFAbilityComponent* ASC = GetTargetASC();
 	if (ASC && MyHandle.IsValid())
 	{
 		ASC->EffectEvents.FindOrAdd(Tag).Remove(MyHandle);

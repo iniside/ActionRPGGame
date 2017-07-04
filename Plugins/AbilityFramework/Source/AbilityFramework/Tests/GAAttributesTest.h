@@ -45,5 +45,5 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Attributes")
 		FAFAttributeBase MagicResistance;
 public:
-	virtual void InitializeAttributes(UGAAbilitiesComponent* InOwningAttributeComp) override;
+	virtual void InitializeAttributes(UAFAbilityComponent* InOwningAttributeComp) override;
 };

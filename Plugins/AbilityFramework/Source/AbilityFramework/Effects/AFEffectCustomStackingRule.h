@@ -16,7 +16,7 @@ class ABILITYFRAMEWORK_API UAFEffectCustomStackingRule : public UObject
 	GENERATED_BODY()
 	
 public:
-	virtual bool CanStack(class UGAAbilitiesComponent* InComp, struct FGAEffectContainer* InContainer,
+	virtual bool CanStack(class UAFAbilityComponent* InComp, struct FGAEffectContainer* InContainer,
 		const FGAEffectHandle& InHandle);
 	
 };

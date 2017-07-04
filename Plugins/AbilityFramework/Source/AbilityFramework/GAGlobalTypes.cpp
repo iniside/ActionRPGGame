@@ -3,16 +3,17 @@
 #include "Effects/GAGameEffect.h"
 #include "GAGlobalTypes.h"
 #include "GameplayTagContainer.h"
-#include "GAAbilitiesComponent.h"
+#include "AFAbilityComponent.h"
 #include "Attributes/GAAttributeBase.h"
 #include "Effects/GAEffectExecution.h"
-#include "IGAAbilities.h"
+#include "AFAbilityInterface.h"
 #include "Effects/GACustomCalculation.h"
 FGAEffectContext::FGAEffectContext(TWeakObjectPtr<class UGAAttributesBase> TargetAttributesIn, TWeakObjectPtr<class UGAAttributesBase> InstigatorAttributesIn,
 	const FVector& TargetHitLocationIn, TWeakObjectPtr<UObject> TargetIn,
 	TWeakObjectPtr<UObject> CauserIn, TWeakObjectPtr<APawn> InstigatorIn,
-	TWeakObjectPtr<class UGAAbilitiesComponent> TargetCompIn,
-	TWeakObjectPtr<class UGAAbilitiesComponent> InstigatorCompIn)
+	TWeakObjectPtr<class UAFAbilityComponent> TargetCompIn,
+	TWeakObjectPtr<class UAFAbilityComponent> InstigatorCompIn,
+	TWeakObjectPtr<class AActor> InAvatar)
 	: TargetAttributes(TargetAttributesIn),
 	InstigatorAttributes(InstigatorAttributesIn),
 	TargetHitLocation(TargetHitLocationIn),
@@ -20,11 +21,12 @@ FGAEffectContext::FGAEffectContext(TWeakObjectPtr<class UGAAttributesBase> Targe
 	Causer(CauserIn),
 	Instigator(InstigatorIn),
 	TargetComp(TargetCompIn),
-	InstigatorComp(InstigatorCompIn)
+	InstigatorComp(InstigatorCompIn),
+	Avatar(InAvatar)
 {
-	TargetInterface = Cast<IIGAAbilities>(TargetIn.Get());
-	InstigatorInterface = Cast<IIGAAbilities>(Instigator.Get());
-	IIGAAbilities* CauserInterface = Cast<IIGAAbilities>(Causer.Get());
+	TargetInterface = Cast<IAFAbilityInterface>(TargetIn.Get());
+	InstigatorInterface = Cast<IAFAbilityInterface>(Instigator.Get());
+	IAFAbilityInterface* CauserInterface = Cast<IAFAbilityInterface>(Causer.Get());
 }
 FGAEffectHandle::FGAEffectHandle(uint32 HandleIn, FGAEffect* EffectIn)
 	: Handle(HandleIn),
@@ -164,7 +166,7 @@ class UGAAttributesBase* FGAEffectContext::GetInstigatorAttributes()
 }
 class UGAAttributesBase* FGAEffectContext::GetCauserAttributes()
 {
-	IIGAAbilities* AttrInt = Cast<IIGAAbilities>(Causer.Get());
+	IAFAbilityInterface* AttrInt = Cast<IAFAbilityInterface>(Causer.Get());
 	if (AttrInt)
 	{
 		return AttrInt->GetAttributes();
@@ -187,7 +189,7 @@ class UGAAttributesBase* FGAEffectContext::GetInstigatorAttributes() const
 }
 class UGAAttributesBase* FGAEffectContext::GetCauserAttributes() const
 {
-	IIGAAbilities* AttrInt = Cast<IIGAAbilities>(Causer.Get());
+	IAFAbilityInterface* AttrInt = Cast<IAFAbilityInterface>(Causer.Get());
 	if (AttrInt)
 	{
 		return AttrInt->GetAttributes();

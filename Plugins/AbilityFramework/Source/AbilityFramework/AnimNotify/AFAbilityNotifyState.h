@@ -21,7 +21,7 @@ protected:
 	UPROPERTY(EditAnywhere)
 		FName Name;
 	UPROPERTY()
-	class UGAAbilitiesComponent* CachedAbilitiesComp;
+	class UAFAbilityComponent* CachedAbilitiesComp;
 public:
 	virtual void NotifyBegin(class USkeletalMeshComponent * MeshComp, class UAnimSequenceBase * Animation, float TotalDuration) override;
 	virtual void NotifyTick(class USkeletalMeshComponent * MeshComp, class UAnimSequenceBase * Animation, float FrameDeltaTime) override;

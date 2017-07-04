@@ -1,7 +1,6 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 
-#include "ActionRPGGameCharacter.h"
-#include "HeadMountedDisplayFunctionLibrary.h"
+#include "ARCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
@@ -10,9 +9,9 @@
 #include "GameFramework/SpringArmComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
-// AActionRPGGameCharacter
+// AARCharacter
 
-AActionRPGGameCharacter::AActionRPGGameCharacter()
+AARCharacter::AARCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -43,6 +42,8 @@ AActionRPGGameCharacter::AActionRPGGameCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	Abilities = CreateDefaultSubobject<UAFAbilityComponent>(TEXT("Abilities"));
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -50,61 +51,40 @@ AActionRPGGameCharacter::AActionRPGGameCharacter()
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-void AActionRPGGameCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
+void AARCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// Set up gameplay key bindings
 	check(PlayerInputComponent);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &AActionRPGGameCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &AActionRPGGameCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("MoveForward", this, &AARCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &AARCharacter::MoveRight);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
 	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("TurnRate", this, &AActionRPGGameCharacter::TurnAtRate);
+	PlayerInputComponent->BindAxis("TurnRate", this, &AARCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
-	PlayerInputComponent->BindAxis("LookUpRate", this, &AActionRPGGameCharacter::LookUpAtRate);
+	PlayerInputComponent->BindAxis("LookUpRate", this, &AARCharacter::LookUpAtRate);
 
-	// handle touch devices
-	PlayerInputComponent->BindTouch(IE_Pressed, this, &AActionRPGGameCharacter::TouchStarted);
-	PlayerInputComponent->BindTouch(IE_Released, this, &AActionRPGGameCharacter::TouchStopped);
 
-	// VR headset functionality
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AActionRPGGameCharacter::OnResetVR);
 }
 
-
-void AActionRPGGameCharacter::OnResetVR()
-{
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-}
-
-void AActionRPGGameCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
-{
-		Jump();
-}
-
-void AActionRPGGameCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
-{
-		StopJumping();
-}
-
-void AActionRPGGameCharacter::TurnAtRate(float Rate)
+void AARCharacter::TurnAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
-void AActionRPGGameCharacter::LookUpAtRate(float Rate)
+void AARCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
-void AActionRPGGameCharacter::MoveForward(float Value)
+void AARCharacter::MoveForward(float Value)
 {
 	if ((Controller != NULL) && (Value != 0.0f))
 	{
@@ -118,7 +98,7 @@ void AActionRPGGameCharacter::MoveForward(float Value)
 	}
 }
 
-void AActionRPGGameCharacter::MoveRight(float Value)
+void AARCharacter::MoveRight(float Value)
 {
 	if ( (Controller != NULL) && (Value != 0.0f) )
 	{
@@ -132,3 +112,52 @@ void AActionRPGGameCharacter::MoveRight(float Value)
 		AddMovementInput(Direction, Value);
 	}
 }
+/* IAFAbilityInterface- BEGIN */
+
+class UGAAttributesBase* AARCharacter::GetAttributes()
+{
+	return GetAbilityComp()->DefaultAttributes;
+}
+
+class UAFAbilityComponent* AARCharacter::GetAbilityComp() 
+{ 
+	return Abilities;
+};
+
+float AARCharacter::GetAttributeValue(FGAAttribute AttributeIn) const
+{
+	return Abilities->GetAttributeValue(AttributeIn);
+}
+
+void AARCharacter::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn,
+	struct FGAEffectProperty& InProperty)
+{
+	Abilities->ModifyAttribute(ModIn, HandleIn, InProperty);
+}
+
+FAFAttributeBase* AARCharacter::GetAttribute(FGAAttribute AttributeIn) 
+{ 
+	return Abilities->GetAttribute(AttributeIn);
+};
+
+void AARCharacter::RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod)
+{
+	Abilities->RemoveBonus(AttributeIn, HandleIn, InMod);
+}
+
+float AARCharacter::NativeGetAttributeValue(const FGAAttribute AttributeIn) const
+{
+	return Abilities->NativeGetAttributeValue(AttributeIn);
+}
+
+FGAEffectHandle AARCharacter::ApplyEffectToTarget(FGAEffect* EffectIn,
+	FGAEffectProperty& InProperty, FGAEffectContext& InContext)
+{
+	return Abilities->ApplyEffectToTarget(EffectIn, InProperty, InContext);
+}
+
+void AARCharacter::RemoveTagContainer(const FGameplayTagContainer& TagsIn)
+{
+	Abilities->RemoveTagContainer(TagsIn);
+}
+/* IAFAbilityInterface- END */

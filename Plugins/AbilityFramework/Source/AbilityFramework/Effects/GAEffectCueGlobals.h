@@ -9,7 +9,7 @@ struct FGACueContainer
 {
 	GENERATED_USTRUCT_BODY()
 public:
-	TWeakObjectPtr<class UGAAbilitiesComponent> OwningComponent;
+	TWeakObjectPtr<class UAFAbilityComponent> OwningComponent;
 
 	void AddCue(const FGAEffectHandle& HandleIn, const FGAEffectCueParams& CueParamsIn);
 	

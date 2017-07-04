@@ -10,34 +10,37 @@
 #include "UnrealEd.h"
 #include "AssetToolsModule.h"
 #include "IAssetTypeActions.h"
+
+#include "BlueprintEditorModule.h"
+#include "BlueprintEditorTabs.h"
+#include "LayoutExtender.h"
+#include "LevelEditor.h"
+#include "MovieSceneToolsProjectSettings.h"
+#include "PropertyEditorModule.h"
+#include "Styling/SlateStyle.h"
+#include "WorkflowTabManager.h"
+#include "Modules/ModuleManager.h"
+#include "Widgets/Docking/SDockTab.h"
+
+#include "ISettingsModule.h"
+
 #include "IAbilityFrameworkEditor.h"
-class FEffectCueSequenceEditorTabBinding
-	: public TSharedFromThis<FEffectCueSequenceEditorTabBinding>
+class FEffectCueequenceEditorTabBinding
+	: public TSharedFromThis<FEffectCueequenceEditorTabBinding>
 {
 public:
 
-	FEffectCueSequenceEditorTabBinding()
-	{
+	FEffectCueequenceEditorTabBinding();
 
-	}
+	void RegisterBlueprintEditorLayout(FLayoutExtender& Extender);
 
-
-	~FEffectCueSequenceEditorTabBinding()
-	{
-		/*FBlueprintEditorModule* BlueprintEditorModule = FModuleManager::GetModulePtr<FBlueprintEditorModule>("Kismet");
-		if (BlueprintEditorModule)
-		{
-		BlueprintEditorModule->OnRegisterTabsForEditor().Remove(BlueprintEditorTabSpawnerHandle);
-		BlueprintEditorModule->OnRegisterLayoutExtensions().Remove(BlueprintEditorLayoutExtensionHandle);
-		}*/
-	}
+	void RegisterBlueprintEditorTab(FWorkflowAllowedTabSet& TabFactories, FName InModeName, TSharedPtr<FBlueprintEditor> BlueprintEditor);
+	~FEffectCueequenceEditorTabBinding();
 
 private:
 
 	/** Delegate binding handle for FBlueprintEditorModule::OnRegisterTabsForEditor */
 	FDelegateHandle BlueprintEditorTabSpawnerHandle, BlueprintEditorLayoutExtensionHandle;
-
-	FDelegateHandle LevelEditorTabSpawnerHandle, LevelEditorLayoutExtensionHandle;
 };
 //add static list of registered custom derived effcts. Will be used to specify, from which classes
 //new effect blueprints can be created, and which classes are allowed to pick (if not specified 
@@ -45,9 +48,8 @@ private:
 class FAbilityFrameworkEditor : public IAbilityFrameworkEditor
 {
 	TArray< TSharedPtr<IAssetTypeActions> > CreatedAssetTypeActions;
-	TSharedPtr<FEffectCueSequenceEditorTabBinding> BlueprintEditorTabBinding;
+	TSharedPtr<FEffectCueequenceEditorTabBinding> BlueprintEditorTabBinding;
 	FDelegateHandle OnInitializeSequenceHandle;
-
 	static TSet<UClass*> EffectClasses;
 
 	void RegisterAssetTypeAction(IAssetTools& AssetTools, TSharedRef<IAssetTypeActions> Action);

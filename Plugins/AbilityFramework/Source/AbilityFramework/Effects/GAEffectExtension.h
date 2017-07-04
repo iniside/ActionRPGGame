@@ -26,7 +26,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Context")
 		FGAEffectContext Context;
 	UPROPERTY()
-		class UGAAbilitiesComponent* OwningComponent;
+		class UAFAbilityComponent* OwningComponent;
 	UPROPERTY()
 		class AActor* Avatar;
 

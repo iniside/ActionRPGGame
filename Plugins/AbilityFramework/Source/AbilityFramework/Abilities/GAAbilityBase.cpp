@@ -6,13 +6,11 @@
 #include "../Effects/GAGameEffect.h"
 #include "../GAGlobalTypes.h"
 #include "../Effects/GAEffectGlobalTypes.h"
-#include "../GAAbilitiesComponent.h"
+#include "../AFAbilityComponent.h"
 
-#include "../AbilityCues/GACueActor.h"
 #include "GameplayTagContainer.h"
 #include "Net/UnrealNetwork.h"
 #include "Animation/AnimMontage.h"
-#include "../AbilityCues/GAAbilityCue.h"
 #include "../Effects/GABlueprintLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -58,19 +56,12 @@ void UGAAbilityBase::InitAbility()
 	//still want to initialize, as Spec is used in multiple places.
 	ActivationEffect.InitializeIfNotInitialized();
 	CooldownEffect.InitializeIfNotInitialized();
-	DefaultContext = UGABlueprintLibrary::MakeContext(this, POwner, this, FHitResult(ForceInit));
+	DefaultContext = UGABlueprintLibrary::MakeContext(this, POwner, AvatarActor, this, FHitResult(ForceInit));
 	if (AbilityComponent)
 	{
 		World = AbilityComponent->GetWorld();
 	}
-	if (POwner && POwner->GetNetMode() != ENetMode::NM_Standalone)
-	{
-		InitAbilityCounter++;
-	}
-	else
-	{
-		OnRep_InitAbility();
-	}
+
 	if (!AbilityComponent)
 	{
 		AbilityComponent = GetAbilityComp();
@@ -92,10 +83,7 @@ void UGAAbilityBase::InitAbility()
 	TickFunction.RegisterTickFunction(AbilityComponent->GetWorld()->GetCurrentLevel());
 	TickFunction.SetTickFunctionEnable(true);
 }
-void UGAAbilityBase::OnRep_InitAbility()
-{
 
-}
 void UGAAbilityBase::OnNativeInputPressed(FGameplayTag ActionName)
 {
 	{
@@ -144,10 +132,10 @@ void UGAAbilityBase::NativeOnBeginAbilityActivation(bool bApplyActivationEffect)
 void UGAAbilityBase::OnCooldownEffectExpired()
 {
 	UE_LOG(AbilityFramework, Log, TEXT("Cooldown expired In Ability: %s"), *GetName());
-	CooldownEffectExpiredCounter++;
+
 	if (CooldownEffectHandle.IsValid())
 	{
-		CooldownEffectHandle.GetContextRef().InstigatorComp->RemoveEffect(CooldownEffect);
+		CooldownEffectHandle.GetContextRef().InstigatorComp->RemoveEffect(CooldownEffect, DefaultContext);
 	}
 }
 /* Functions for activation effect delegates */
@@ -172,7 +160,7 @@ void UGAAbilityBase::NativeOnAbilityActivationCancel()
 void UGAAbilityBase::OnActivationEffectPeriod(const FGAEffectHandle& InHandle)
 {
 	UE_LOG(AbilityFramework, Log, TEXT("Ability Activation Effect Period In Ability: %s"), *GetName());
-	AbilityPeriodCounter++;
+
 	OnPeriod();
 }
 void UGAAbilityBase::FinishAbility()
@@ -191,7 +179,7 @@ void UGAAbilityBase::NativeFinishAbility()
 	OnConfirmDelegate.RemoveAll(this);
 	//if (ActivationEffect.Handle.IsValid())
 	{
-		AbilityComponent->RemoveEffect(ActivationEffect);
+		AbilityComponent->RemoveEffect(ActivationEffect, DefaultContext);
 	}
 	//remove effect.
 }
@@ -202,10 +190,10 @@ void UGAAbilityBase::CancelActivation()
 }
 void UGAAbilityBase::NativeCancelActivation()
 {
-	UGAAbilitiesComponent* AttrComp = ActivationEffect.Handle.GetContext().InstigatorComp.Get();
+	UAFAbilityComponent* AttrComp = ActivationEffect.Handle.GetContext().InstigatorComp.Get();
 	if (AbilityComponent)
 	{
-		AbilityComponent->RemoveEffect(ActivationEffect);
+		AbilityComponent->RemoveEffect(ActivationEffect, DefaultContext);
 	}
 }
 
@@ -246,7 +234,7 @@ bool UGAAbilityBase::ApplyActivationEffect(bool bApplyActivationEffect)
 	{
 		bApplyActivationEffect = true;
 	}
-	ActivationInfo.SetActivationInfo(GetWorld()->TimeSeconds, DurationCheck, PeriodCheck, bApplyActivationEffect);
+	
 	if (bApplyActivationEffect)
 	{
 		FHitResult HitIn;
@@ -382,9 +370,9 @@ class UGAAttributesBase* UGAAbilityBase::GetAttributes()
 {
 	return Attributes;
 }
-UGAAbilitiesComponent* UGAAbilityBase::GetAbilityComp()
+UAFAbilityComponent* UGAAbilityBase::GetAbilityComp()
 {
-	IIGAAbilities* OwnerAttributes = Cast<IIGAAbilities>(POwner);
+	IAFAbilityInterface* OwnerAttributes = Cast<IAFAbilityInterface>(POwner);
 	if (OwnerAttributes)
 	{
 		return OwnerAttributes->GetAbilityComp();
@@ -494,48 +482,15 @@ void UGAAbilityBase::PlayMontage(UAnimMontage* MontageIn, FName SectionName, flo
 void UGAAbilityBase::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	//possibly can be infered apon replication.
 	DOREPLIFETIME(UGAAbilityBase, POwner);
 	DOREPLIFETIME(UGAAbilityBase, Character);
 	DOREPLIFETIME(UGAAbilityBase, PCOwner);
 	DOREPLIFETIME(UGAAbilityBase, AICOwner);
 	//probabaly should be SKIP_Owner, and I'm not really sure if Multicast wouldn't be better.
-	DOREPLIFETIME(UGAAbilityBase, CooldownStartedCounter);
-	DOREPLIFETIME(UGAAbilityBase, CooldownEffectExpiredCounter);
-	DOREPLIFETIME_CONDITION(UGAAbilityBase, ActivationInfo, COND_SkipOwner);
-	//DOREPLIFETIME(UGAAbilityBase, ActivationInfo);
-	DOREPLIFETIME(UGAAbilityBase, AbilityActivationStartedCounter);
-	DOREPLIFETIME(UGAAbilityBase, AbilityPeriodCounter);
-	DOREPLIFETIME(UGAAbilityBase, InitAbilityCounter);
-	DOREPLIFETIME(UGAAbilityBase, AbilityHits);
-	//DOREPLIFETIME(UGAAbilitiesComponent, RepMontage);
-}
-/*
-	Do some yet undertemined client stuff.
-	Call events ?
-*/
-void UGAAbilityBase::OnRep_CooldownStarted()
-{
 
-}
-void UGAAbilityBase::OnRep_CooldownExpired()
-{
-
-}
-void UGAAbilityBase::OnRep_AbilityActivationStarted()
-{
-
-}
-void UGAAbilityBase::OnRep_AbilityActivated()
-{
-	//ApplyActivationEffect();
-}
-void UGAAbilityBase::OnRep_AbilityPeriod()
-{
-
-}
-void UGAAbilityBase::OnRep_AbilityHits()
-{
-
+	DOREPLIFETIME(UGAAbilityBase, AvatarActor)
+	//DOREPLIFETIME(UAFAbilityComponent, RepMontage);
 }
 
 void UGAAbilityBase::ExecuteAbilityInputPressedFromTag(FGameplayTag AbilityTagIn, FGameplayTag ActionName)

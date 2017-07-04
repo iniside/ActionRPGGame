@@ -1,7 +1,7 @@
 #pragma once
 #include "GameplayTask.h"
 #include "../GAAbilityBase.h"
-#include "../../GAAbilitiesComponent.h"
+#include "../../AFAbilityComponent.h"
 
 //#include "Messaging.h"
 #include "MessageEndpoint.h"
@@ -28,7 +28,7 @@ public:
 	/* Ability owning this task */
 	TWeakObjectPtr<UGAAbilityBase> Ability;
 	/* Ability owning this task */
-	TWeakObjectPtr<UGAAbilitiesComponent> AbilityComponent;
+	TWeakObjectPtr<UAFAbilityComponent> AbilityComponent;
 public:
 	//virtual UWorld* GetWorld() const override;
 

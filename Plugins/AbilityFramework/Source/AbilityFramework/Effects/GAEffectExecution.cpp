@@ -3,7 +3,7 @@
 #include "../AbilityFramework.h"
 #include "../GAGlobalTypes.h"
 #include "../Attributes/GAAttributeBase.h"
-#include "../GAAbilitiesComponent.h"
+#include "../AFAbilityComponent.h"
 #include "GAEffectExecution.h"
 
 UGAEffectExecution::UGAEffectExecution(const FObjectInitializer& ObjectInitializer)

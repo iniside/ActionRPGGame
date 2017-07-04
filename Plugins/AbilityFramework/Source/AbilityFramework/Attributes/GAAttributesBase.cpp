@@ -2,7 +2,7 @@
 
 #include "../AbilityFramework.h"
 #include "../GAGlobalTypes.h"
-#include "../GAAbilitiesComponent.h"
+#include "../AFAbilityComponent.h"
 #include "GAAttributesBase.h"
 
 UGAAttributesBase::UGAAttributesBase(const FObjectInitializer& ObjectInitializer)
@@ -18,7 +18,7 @@ UGAAttributesBase::~UGAAttributesBase()
 	CachedFloatPropety = nullptr;
 }
 
-void UGAAttributesBase::InitializeAttributes(UGAAbilitiesComponent* InOwningAttributeComp)
+void UGAAttributesBase::InitializeAttributes(UAFAbilityComponent* InOwningAttributeComp)
 {
 	OwningAttributeComp = InOwningAttributeComp;
 	for (TFieldIterator<UStructProperty> StrIt(GetClass(), EFieldIteratorFlags::IncludeSuper); StrIt; ++StrIt)

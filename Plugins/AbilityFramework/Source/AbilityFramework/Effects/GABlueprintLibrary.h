@@ -58,17 +58,18 @@ public:
 		UObject* Causer, const FHitResult& HitIn);
 
 
-	static FGAEffectContext MakeContext(class UObject* Target, class APawn* Instigator, UObject* Causer, const FHitResult& HitIn);
+	static FGAEffectContext MakeContext(class UObject* Target, class APawn* Instigator, AActor* InAvatar, 
+		UObject* Causer, const FHitResult& HitIn);
 	static void AddTagsToEffect(FGAEffect* EffectIn);
 
 	UFUNCTION(BlueprintPure, Category = "AbilityFramework|Effects")
 	static FGAEffectContext& GetContext(const FGAEffectHandle& InHandle);
 
 	UFUNCTION(BlueprintPure, Category = "AbilityFramework|Effects")
-	static UGAAbilitiesComponent* GetTargetComponent(const FGAEffectHandle& InHandle);
+	static UAFAbilityComponent* GetTargetComponent(const FGAEffectHandle& InHandle);
 
 	UFUNCTION(BlueprintPure, Category = "AbilityFramework|Effects")
-	static UGAAbilitiesComponent* GetInstigatorComponent(const FGAEffectHandle& InHandle);
+	static UAFAbilityComponent* GetInstigatorComponent(const FGAEffectHandle& InHandle);
 
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Effects")
 		static void BroadcastEffectEvent(UObject* Target, FGameplayTag EventTag);

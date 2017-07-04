@@ -1,13 +1,28 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{A035B080-4493-F253-AA70-EF8A66B855F8}",
+	"EngineAssociation": "{C19309FF-49B1-44A8-E307-2B81122303E8}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
 		{
 			"Name": "ActionRPGGame",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"AbilityFramework",
+				"Engine",
+				"AIModule"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "AbilityFramework",
+			"Enabled": true
+		},
+		{
+			"Name": "ActorSequenceEditor",
+			"Enabled": true
 		}
 	]
 }

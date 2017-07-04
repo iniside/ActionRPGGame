@@ -6,7 +6,7 @@
 #include "../GAGlobalTypes.h"
 #include "../Attributes/GAAttributeBase.h"
 #include "../Effects/GAGameEffect.h"
-#include "../GAAbilitiesComponent.h"
+#include "../AFAbilityComponent.h"
 #include "../Attributes/GAAttributesBase.h"
 #include "../Effects/GAEffectExecution.h"
 #include "../Effects/GABlueprintLibrary.h"
@@ -92,16 +92,16 @@ class GameEffectsTestSuite
 	FAutomationTestBase* Test;
 
 	AGACharacterAttributeTest* SourceActor;
-	UGAAbilitiesComponent* SourceComponent;
+	UAFAbilityComponent* SourceComponent;
 
 	AGACharacterAttributeTest* DestActor;
-	UGAAbilitiesComponent* DestComponent;
+	UAFAbilityComponent* DestComponent;
 
 	AGACharacterAttributeTest* TargetOne;
-	UGAAbilitiesComponent* TargetCompOne;
+	UAFAbilityComponent* TargetCompOne;
 
 	AGACharacterAttributeTest* TargetTwo;
-	UGAAbilitiesComponent* TargetCompTwo;
+	UAFAbilityComponent* TargetCompTwo;
 
 public:
 	GameEffectsTestSuite(UWorld* WorldIn, FAutomationTestBase* TestIn)
@@ -1075,7 +1075,8 @@ public:
 		TickWorld(PeriodSecs * 0.1f);
 		float FinishedVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
 		TestEqual("Source Stamina Finished: ", FinishedVal, 150.0f);
-		DestComponent->RemoveEffect(Effect);
+		FGAEffectContext Context = UGABlueprintLibrary::MakeContext(DestActor, SourceActor, DestActor, SourceActor, FHitResult(ForceInit));
+		DestComponent->RemoveEffect(Effect, Context);
 		float PostRemovedVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
 		TestEqual("Source Stamina Finished: ", PostRemovedVal, 100.0f);
 	}

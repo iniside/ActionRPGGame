@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "AbilityFramework.h"
-#include "../GAAbilitiesComponent.h"
+#include "../AFAbilityComponent.h"
 #include "GACharacterAttributeTest.h"
 
 
@@ -10,7 +10,7 @@ AGACharacterAttributeTest::AGACharacterAttributeTest()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	Attributes = CreateDefaultSubobject<UGAAbilitiesComponent>(TEXT("Attributes"));
+	Attributes = CreateDefaultSubobject<UAFAbilityComponent>(TEXT("Attributes"));
 }
 
 // Called when the game starts or when spawned
@@ -38,7 +38,7 @@ class UGAAttributesBase* AGACharacterAttributeTest::GetAttributes()
 {
 	return Attributes->DefaultAttributes;
 }
-class UGAAbilitiesComponent* AGACharacterAttributeTest::GetAbilityComp()
+class UAFAbilityComponent* AGACharacterAttributeTest::GetAbilityComp()
 {
 	return Attributes;
 }

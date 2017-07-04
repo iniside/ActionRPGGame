@@ -261,19 +261,22 @@ public:
 	*/
 	UPROPERTY(BlueprintReadOnly, Category = "Spec")
 		TWeakObjectPtr<APawn> Instigator;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Spec")
+		TWeakObjectPtr<AActor> Avatar;
 	/**
 	*	Attribute component of Target.
 	*/
 	UPROPERTY(BlueprintReadOnly, Category = "Spec")
-		TWeakObjectPtr<class UGAAbilitiesComponent> TargetComp;
+		TWeakObjectPtr<class UAFAbilityComponent> TargetComp;
 	/**
 	*	Attribute component of Intigator
 	*/
 	UPROPERTY(BlueprintReadOnly, Category = "Spec")
-		TWeakObjectPtr<class UGAAbilitiesComponent> InstigatorComp;
+		TWeakObjectPtr<class UAFAbilityComponent> InstigatorComp;
 
-	class IIGAAbilities* TargetInterface;
-	class IIGAAbilities* InstigatorInterface;
+	class IAFAbilityInterface* TargetInterface;
+	class IAFAbilityInterface* InstigatorInterface;
 	template<class T>
 	inline T* GetTarget()
 	{
@@ -332,8 +335,9 @@ public:
 	FGAEffectContext(TWeakObjectPtr<class UGAAttributesBase> TargetAttributesIn, TWeakObjectPtr<class UGAAttributesBase> InstigatorAttributesIn,
 		const FVector& TargetHitLocationIn, TWeakObjectPtr<UObject> TargetIn,
 		TWeakObjectPtr<UObject> CauserIn, TWeakObjectPtr<APawn> InstigatorIn,
-		TWeakObjectPtr<class UGAAbilitiesComponent> TargetCompIn,
-		TWeakObjectPtr<class UGAAbilitiesComponent> InstigatorCompIn);
+		TWeakObjectPtr<class UAFAbilityComponent> TargetCompIn,
+		TWeakObjectPtr<class UAFAbilityComponent> InstigatorCompIn,
+		TWeakObjectPtr<class AActor> InAvatar);
 
 	~FGAEffectContext();
 };

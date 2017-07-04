@@ -1,9 +1,9 @@
 #pragma once
 #include "../AbilityFramework.h"
-#include "../GAAbilitiesComponent.h"
+#include "../AFAbilityComponent.h"
 #include "../Attributes/GAAttributeBase.h"
 #include "GAEffectExecution.h"
-#include "../IGAAbilities.h"
+#include "AFAbilityInterface.h"
 #include "GAGameEffect.h"
 #include "GACustomCalculation.h"
 
@@ -19,7 +19,7 @@ float FGAAttributeBasedModifier::GetValue(const FGAEffectContext& Context)
 	{
 	case EGAAttributeSource::Instigator:
 	{
-		IIGAAbilities* AttrInt = Cast<IIGAAbilities>(Context.Instigator.Get());
+		IAFAbilityInterface* AttrInt = Cast<IAFAbilityInterface>(Context.Instigator.Get());
 		UGAAttributesBase* Attributes = AttrInt->GetAttributes();
 		attr = Attributes->GetAttribute(Attribute);
 		//attr = Context.InstigatorComp->GetAttribute(Attribute);
@@ -27,14 +27,14 @@ float FGAAttributeBasedModifier::GetValue(const FGAEffectContext& Context)
 	}
 	case EGAAttributeSource::Target:
 	{
-		IIGAAbilities* AttrInt = Cast<IIGAAbilities>(Context.Target.Get());
+		IAFAbilityInterface* AttrInt = Cast<IAFAbilityInterface>(Context.Target.Get());
 		UGAAttributesBase* Attributes = AttrInt->GetAttributes();// nullptr;
 		attr = Attributes->GetAttribute(Attribute);//Context.TargetComp->GetAttribute(Attribute);
 		break;
 	}
 	case EGAAttributeSource::Causer:
 	{
-		IIGAAbilities* AttrInt = Cast<IIGAAbilities>(Context.Causer.Get());
+		IAFAbilityInterface* AttrInt = Cast<IAFAbilityInterface>(Context.Causer.Get());
 		UGAAttributesBase* Attributes = AttrInt->GetAttributes();// nullptr;
 		attr = Attributes->GetAttribute(Attribute);//Context.TargetComp->GetAttribute(Attribute);
 		break;
@@ -57,7 +57,7 @@ float FGAAttributeBasedModifier::GetValue(const FGAEffectContext& Context) const
 	{
 	case EGAAttributeSource::Instigator:
 	{	
-		IIGAAbilities* AttrInt = Cast<IIGAAbilities>(Context.Instigator.Get());
+		IAFAbilityInterface* AttrInt = Cast<IAFAbilityInterface>(Context.Instigator.Get());
 		UGAAttributesBase* Attributes = AttrInt->GetAttributes();
 		attr = Attributes->GetAttribute(Attribute);
 		//attr = Context.InstigatorComp->GetAttribute(Attribute);
@@ -65,14 +65,14 @@ float FGAAttributeBasedModifier::GetValue(const FGAEffectContext& Context) const
 	}
 	case EGAAttributeSource::Target:
 	{
-		IIGAAbilities* AttrInt = Cast<IIGAAbilities>(Context.Target.Get());
+		IAFAbilityInterface* AttrInt = Cast<IAFAbilityInterface>(Context.Target.Get());
 		UGAAttributesBase* Attributes = AttrInt->GetAttributes();
 		attr = Attributes->GetAttribute(Attribute);
 		break;
 	}
 	case EGAAttributeSource::Causer:
 	{
-		IIGAAbilities* AttrInt = Cast<IIGAAbilities>(Context.Causer.Get());
+		IAFAbilityInterface* AttrInt = Cast<IAFAbilityInterface>(Context.Causer.Get());
 		UGAAttributesBase* Attributes = AttrInt->GetAttributes();// nullptr;
 		attr = Attributes->GetAttribute(Attribute);
 		break;

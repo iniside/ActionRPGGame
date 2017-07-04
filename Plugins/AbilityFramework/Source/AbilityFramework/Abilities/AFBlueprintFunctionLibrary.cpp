@@ -4,20 +4,20 @@
 
 #include "GAAbilityBase.h"
 #include "../Effects/GAEffectField.h"
-#include "../IGAAbilities.h"
-#include "../GAAbilitiesComponent.h"
+#include "../AFAbilityInterface.h"
+#include "../AFAbilityComponent.h"
 #include "AFBlueprintFunctionLibrary.h"
 
 void UAFBlueprintFunctionLibrary::TriggerAbilityPressedByTag(UObject* Target,
 	const FGameplayTag& AbilityTag, FGameplayTag ActionTag)
 {
-	IIGAAbilities* Interface = Cast<IIGAAbilities>(Target);
+	IAFAbilityInterface* Interface = Cast<IAFAbilityInterface>(Target);
 	if (!Interface)
 	{
 		UE_LOG(AbilityFramework, Log, TEXT("TriggerAbilityPressedByTag: Invalid Target"));
 		return;
 	}
-	UGAAbilitiesComponent* Comp = Interface->GetAbilityComp();
+	UAFAbilityComponent* Comp = Interface->GetAbilityComp();
 	if (!Comp)
 	{
 		UE_LOG(AbilityFramework, Log, TEXT("TriggerAbilityPressedByTag: Target %s InvalidComponent"), *Target->GetName());
@@ -29,13 +29,13 @@ void UAFBlueprintFunctionLibrary::TriggerAbilityPressedByTag(UObject* Target,
 void UAFBlueprintFunctionLibrary::TriggerAbilityReleasedByTag(UObject* Target,
 	const FGameplayTag& AbilityTag, FGameplayTag ActionTag)
 {
-	IIGAAbilities* Interface = Cast<IIGAAbilities>(Target);
+	IAFAbilityInterface* Interface = Cast<IAFAbilityInterface>(Target);
 	if (!Interface)
 	{
 		UE_LOG(AbilityFramework, Log, TEXT("TriggerAbilityReleasedByTag: Invalid Target"));
 		return;
 	}
-	UGAAbilitiesComponent* Comp = Interface->GetAbilityComp();
+	UAFAbilityComponent* Comp = Interface->GetAbilityComp();
 	if (!Comp)
 	{
 		UE_LOG(AbilityFramework, Log, TEXT("TriggerAbilityReleasedByTag: Target %s InvalidComponent"), *Target->GetName());

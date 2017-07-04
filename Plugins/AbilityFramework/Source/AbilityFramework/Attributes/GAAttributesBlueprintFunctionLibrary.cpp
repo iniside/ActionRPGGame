@@ -2,9 +2,9 @@
 
 #include "../AbilityFramework.h"
 
-#include "../IGAAbilities.h"
+#include "../AFAbilityInterface.h"
 #include "GAAttributesBase.h"
-#include "../GAAbilitiesComponent.h"
+#include "../AFAbilityComponent.h"
 
 #include "GAAttributesBlueprintFunctionLibrary.h"
 
@@ -26,7 +26,7 @@ FName UGAAttributesBlueprintFunctionLibrary::GetAttribute(FGAAttribute Attribute
 }
 float UGAAttributesBlueprintFunctionLibrary::GetFinalAttributeValue(AActor* Target, FGAAttribute Name)
 {
-	IIGAAbilities* attributeInt = Cast<IIGAAbilities>(Target);
+	IAFAbilityInterface* attributeInt = Cast<IAFAbilityInterface>(Target);
 	if (!attributeInt)
 		return 0;
 	if (!attributeInt->GetAttributes())
@@ -36,14 +36,14 @@ float UGAAttributesBlueprintFunctionLibrary::GetFinalAttributeValue(AActor* Targ
 }
 float UGAAttributesBlueprintFunctionLibrary::GetCurrentAttributeValue(AActor* Target, FGAAttribute Name)
 {
-	IIGAAbilities* attributeInt = Cast<IIGAAbilities>(Target);
+	IAFAbilityInterface* attributeInt = Cast<IAFAbilityInterface>(Target);
 	if (!attributeInt)
 		return 0;
 	return attributeInt->GetAttributes()->GetCurrentAttributeValue(Name);
 }
 float UGAAttributesBlueprintFunctionLibrary::GetAttributeFloat(AActor* Target, FGAAttribute AttributeIn)
 {
-	IIGAAbilities* attributeInt = Cast<IIGAAbilities>(Target);
+	IAFAbilityInterface* attributeInt = Cast<IAFAbilityInterface>(Target);
 	if (!attributeInt)
 		return 0;
 

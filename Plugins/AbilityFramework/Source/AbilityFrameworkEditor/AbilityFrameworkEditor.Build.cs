@@ -11,8 +11,9 @@ namespace UnrealBuildTool.Rules
             PublicIncludePaths.AddRange(
 				new string[] {
                     "AbilityFramework",
-                    "AbilityFramework/Public",
-                 //   "GameAttributesEditor",
+                    "AbilityFramework/Abilities",
+                    "AbilityFramework/Attributes",
+                    "AbilityFramework/Effects",
                     "AbilityFramework/Public"
 					// ... add public include paths required here ...
 				}
@@ -24,7 +25,12 @@ namespace UnrealBuildTool.Rules
                      Path.Combine(EngineDir, @"Source/Editor/GraphEditor/Private"),
                      Path.Combine(EngineDir, @"Source/Editor/Kismet/Private"),
                      Path.Combine(EngineDir, @"Source/Editor/PropertyEditor/Private"),
-                     Path.Combine(EngineDir, @"Source/Developer/AssetTools/Private")
+                     Path.Combine(EngineDir, @"Source/Developer/AssetTools/Private"),
+                     "AbilityFramework",
+                     "AbilityFramework/Abilities",
+                     "AbilityFramework/Attributes",
+                     "AbilityFramework/Effects",
+                     "AbilityFramework/Public"
 					// ... add other private include paths required here ...
 				}
 				);

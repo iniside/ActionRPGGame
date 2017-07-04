@@ -3,7 +3,7 @@
 #pragma once
 #include "Engine/NetSerialization.h"
 #include "GameplayTags.h"
-#include "GAAbilitiesComponent.h"
+#include "AFAbilityComponent.h"
 #include "GAHelperTemplates.generated.h"
 
 USTRUCT(BlueprintType)
@@ -34,8 +34,8 @@ public:
 	template <class T>
 	T* GetAttributeSet(const FGAEffectContext& ContextIn)
 	{
-		UGAAbilitiesComponent* TargetComp = ContextIn.TargetComp.Get();
-		UGAAbilitiesComponent* InstigatorComp = ContextIn.InstigatorComp.Get();
+		UAFAbilityComponent* TargetComp = ContextIn.TargetComp.Get();
+		UAFAbilityComponent* InstigatorComp = ContextIn.InstigatorComp.Get();
 		T* AttributeSet = nullptr;
 		switch (Source.Source)
 		{

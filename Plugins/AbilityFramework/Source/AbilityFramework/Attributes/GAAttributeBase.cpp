@@ -2,9 +2,9 @@
 
 #include "../AbilityFramework.h"
 #include "GameplayTagContainer.h"
-#include "../GAAbilitiesComponent.h"
+#include "../AFAbilityComponent.h"
 #include "GAAttributesBase.h"
-#include "../IGAAbilities.h"
+#include "../AFAbilityInterface.h"
 
 #include "GAAttributeBase.h"
 DEFINE_STAT(STAT_CalculateBonus);

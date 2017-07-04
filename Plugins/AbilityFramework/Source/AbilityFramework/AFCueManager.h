@@ -26,10 +26,12 @@ protected:
 	UPROPERTY()
 		UAFCueSet* CueSet;
 	
+	//store per instigator ? Causer ? or global pool ?
 	//stores unused instanced cues.
 	TMap<FGameplayTag, TUniquePtr<TQueue<AGAEffectCue*>>> InstancedCues;
+	//store per instigator ? Causer ?
 	//stores used cues.
-	TMap<FGameplayTag, TUniquePtr<TQueue<AGAEffectCue*>>> UsedCues;
+	TMap<FObjectKey, TMap<FGameplayTag, TUniquePtr<TQueue<AGAEffectCue*>>>> UsedCues;
 public:
 	void Initialize();
 	void LoadCueSet();
@@ -39,5 +41,8 @@ public:
 #endif //WITH_EDITOR
 public:
 	static UAFCueManager* Get();
-	void HandleCue(const FGameplayTagContainer& Tags, const FGAEffectCueParams& CueParams);
+	void HandleCue(const FGameplayTagContainer& Tags,
+		const FGAEffectCueParams& CueParams);
+	void HandleRemoveCue(const FGameplayTagContainer& Tags,
+		const FGAEffectCueParams& CueParams);
 };

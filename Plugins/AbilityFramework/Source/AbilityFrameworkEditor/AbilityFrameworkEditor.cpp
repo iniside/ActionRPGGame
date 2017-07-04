@@ -13,28 +13,47 @@
 #include "AFAbilityActionSpecDetails.h"
 #include "AFAbilityPeriodSpecDetails.h"
 #include "AFAbilityCooldownSpecDetails.h"
+#include "AFAbilityInfiniteDurationSpecDetails.h"
+#include "AFAbilityInfinitePeriodSpecDetails.h"
 
 #include "EffectEditor/AssetTypeActions_GAEffectBlueprint.h"
 #include "AbilityEditor/AssetTypeActions_GAAbilityBlueprint.h"
 #include "EffectCueEditor/AssetTypeActions_GAEffectCueBlueprint.h"
+#include "EffectCueEditor/AFEffectCueDetails.h"
 
 
-#include "BlueprintEditorModule.h"
-#include "BlueprintEditorTabs.h"
-#include "LayoutExtender.h"
-#include "LevelEditor.h"
-#include "MovieSceneToolsProjectSettings.h"
-#include "PropertyEditorModule.h"
-#include "Styling/SlateStyle.h"
-#include "WorkflowTabManager.h"
-#include "Modules/ModuleManager.h"
-#include "Widgets/Docking/SDockTab.h"
-
-#include "ISettingsModule.h"
 
 #include "AFCueManager.h"
 
 TSet<UClass*> FAbilityFrameworkEditor::EffectClasses = TSet<UClass*>();
+/** Shared class type that ensures safe binding to RegisterBlueprintEditorTab through an SP binding without interfering with module ownership semantics */
+FEffectCueequenceEditorTabBinding::FEffectCueequenceEditorTabBinding()
+{
+	FBlueprintEditorModule& BlueprintEditorModule = FModuleManager::LoadModuleChecked<FBlueprintEditorModule>("Kismet");
+	BlueprintEditorTabSpawnerHandle = BlueprintEditorModule.OnRegisterTabsForEditor().AddRaw(this, &FEffectCueequenceEditorTabBinding::RegisterBlueprintEditorTab);
+	BlueprintEditorLayoutExtensionHandle = BlueprintEditorModule.OnRegisterLayoutExtensions().AddRaw(this, &FEffectCueequenceEditorTabBinding::RegisterBlueprintEditorLayout);
+}
+
+void FEffectCueequenceEditorTabBinding::RegisterBlueprintEditorLayout(FLayoutExtender& Extender)
+{
+	Extender.ExtendLayout(FBlueprintEditorTabs::CompilerResultsID, ELayoutExtensionPosition::Before, FTabManager::FTab(FName("EmbeddedEffectCueSequenceID"), ETabState::ClosedTab));
+}
+
+void FEffectCueequenceEditorTabBinding::RegisterBlueprintEditorTab(FWorkflowAllowedTabSet& TabFactories, FName InModeName, TSharedPtr<FBlueprintEditor> BlueprintEditor)
+{
+	TabFactories.RegisterFactory(MakeShared<FEffectCueSequenceEditorSummoner>(BlueprintEditor));
+}
+
+FEffectCueequenceEditorTabBinding::~FEffectCueequenceEditorTabBinding()
+{
+	FBlueprintEditorModule* BlueprintEditorModule = FModuleManager::GetModulePtr<FBlueprintEditorModule>("Kismet");
+	if (BlueprintEditorModule)
+	{
+		BlueprintEditorModule->OnRegisterTabsForEditor().Remove(BlueprintEditorTabSpawnerHandle);
+		BlueprintEditorModule->OnRegisterLayoutExtensions().Remove(BlueprintEditorLayoutExtensionHandle);
+	}
+}
+
 
 void FAbilityFrameworkEditor::RegisterAssetTypeAction(IAssetTools& AssetTools, TSharedRef<IAssetTypeActions> Action)
 {
@@ -57,6 +76,8 @@ void FAbilityFrameworkEditor::OnInitializeSequence(UGAEffectCueSequence* Sequenc
 	/** IModuleInterface implementation */
 void FAbilityFrameworkEditor::StartupModule()
 {
+	BlueprintEditorTabBinding = MakeShared<FEffectCueequenceEditorTabBinding>();
+
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	PropertyModule.RegisterCustomPropertyTypeLayout("GAAttribute", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGAAttributeDetailCustomization::MakeInstance));
 	PropertyModule.RegisterCustomPropertyTypeLayout("GAEffectProperty", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGAEffectPropertyStructCustomization::MakeInstance));
@@ -68,7 +89,10 @@ void FAbilityFrameworkEditor::StartupModule()
 	PropertyModule.RegisterCustomClassLayout("AFAbilityActivationSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityActivationSpecDetails::MakeInstance));
 	PropertyModule.RegisterCustomClassLayout("AFAbilityPeriodSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityPeriodSpecDetails::MakeInstance));
 	PropertyModule.RegisterCustomClassLayout("AFAbilityCooldownSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityCooldownSpecDetails::MakeInstance));
-		
+	PropertyModule.RegisterCustomClassLayout("AFAbilityPeriodicInfiniteSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityInfinitePeriodSpecDetails::MakeInstance));
+	PropertyModule.RegisterCustomClassLayout("AFAbilityInfiniteDurationSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityInfiniteDurationSpecDetails::MakeInstance));
+
+	PropertyModule.RegisterCustomClassLayout("GAEffectCue", FOnGetDetailCustomizationInstance::CreateStatic(&FAFEffectCueDetails::MakeInstance));
 
 	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
 	TSharedRef<IAssetTypeActions> GABAction = MakeShareable(new FAssetTypeActions_GAEffectBlueprint());
@@ -92,11 +116,14 @@ void FAbilityFrameworkEditor::StartupModule()
 }
 void FAbilityFrameworkEditor::ShutdownModule()
 {
+	BlueprintEditorTabBinding = nullptr;
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	//PropertyModule.UnregisterCustomClassLayout("GAGameEffectSpec");
+	PropertyModule.UnregisterCustomClassLayout("AFEffectSpec");
 	PropertyModule.UnregisterCustomClassLayout("AFAbilityActivationSpec");
-	//PropertyModule.UnregisterCustomClassLayout("AFAbilityPeriodSpec");
-	//PropertyModule.UnregisterCustomClassLayout("AFAbilityCooldownSpec");
+	PropertyModule.UnregisterCustomClassLayout("AFAbilityPeriodSpec");
+	PropertyModule.UnregisterCustomClassLayout("AFAbilityCooldownSpec");
+	PropertyModule.UnregisterCustomClassLayout("AFAbilityPeriodicInfiniteSpec");
+	PropertyModule.UnregisterCustomClassLayout("AFAbilityInfiniteDurationSpec");
 
 	PropertyModule.UnregisterCustomPropertyTypeLayout("GAAttribute");
 	PropertyModule.UnregisterCustomPropertyTypeLayout("GAEffectProperty");

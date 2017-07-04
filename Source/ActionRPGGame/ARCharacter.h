@@ -4,10 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "ActionRPGGameCharacter.generated.h"
+#include "GameplayTags.h"
+#include "AFAbilityComponent.h"
+#include "AFAbilityInterface.h"
+#include "ARCharacter.generated.h"
 
 UCLASS(config=Game)
-class AActionRPGGameCharacter : public ACharacter
+class AARCharacter : public ACharacter, public IAFAbilityInterface
 {
 	GENERATED_BODY()
 
@@ -18,8 +21,11 @@ class AActionRPGGameCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class UAFAbilityComponent* Abilities;
 public:
-	AActionRPGGameCharacter();
+	AARCharacter();
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -30,9 +36,6 @@ public:
 	float BaseLookUpRate;
 
 protected:
-
-	/** Resets HMD orientation in VR. */
-	void OnResetVR();
 
 	/** Called for forwards/backward input */
 	void MoveForward(float Value);
@@ -52,12 +55,6 @@ protected:
 	 */
 	void LookUpAtRate(float Rate);
 
-	/** Handler for when a touch input begins. */
-	void TouchStarted(ETouchIndex::Type FingerIndex, FVector Location);
-
-	/** Handler for when a touch input stops. */
-	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
-
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -68,5 +65,28 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	/* IAFAbilityInterface- BEGIN */
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
+		virtual class UGAAttributesBase* GetAttributes() override;
+
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
+		virtual class UAFAbilityComponent* GetAbilityComp() override;
+
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
+		virtual float GetAttributeValue(FGAAttribute AttributeIn) const override;
+
+	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn,
+		struct FGAEffectProperty& InProperty) override;
+	virtual FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn) override;
+	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) override;
+
+	virtual float NativeGetAttributeValue(const FGAAttribute AttributeIn) const override;
+
+	virtual FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn,
+		FGAEffectProperty& InProperty, FGAEffectContext& InContext) override;
+	virtual void RemoveTagContainer(const FGameplayTagContainer& TagsIn) override;
+
+	/* IAFAbilityInterface- END */
 };
 

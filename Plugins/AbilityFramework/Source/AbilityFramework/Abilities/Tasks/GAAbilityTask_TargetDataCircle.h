@@ -19,23 +19,20 @@ public:
 	UPROPERTY(BlueprintAssignable)
 		FGASOnReceiveTargetData OnReceiveTargetDataCircle;
 
-	UPROPERTY()
-	class UGASAbilityTargetingObject* TargetObj2;
-
 	EGASConfirmType ConfirmType;
 
 public:
 	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
 		static UGAAbilityTask_TargetDataCircle* TargetCircleDataTask(UObject* WorldContextObject,
-			FName InTaskName, TSubclassOf<class UGASAbilityTargetingObject> Class, EGASConfirmType ConfirmTypeIn);
+			FName InTaskName, EGASConfirmType ConfirmTypeIn);
 
 	virtual void Activate() override;
 
-	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
-		bool BeginSpawningActor(UObject* WorldContextObject, TSubclassOf<class UGASAbilityTargetingObject> Class, class UGASAbilityTargetingObject*& SpawnedActor);
+	//UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
+	//	bool BeginSpawningActor(UObject* WorldContextObject, class UGASAbilityTargetingObject*& SpawnedActor);
 
-	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
-		void FinishSpawningActor(UObject* WorldContextObject, class UGASAbilityTargetingObject* SpawnedActor);
+	//UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
+	//	void FinishSpawningActor(UObject* WorldContextObject, class UGASAbilityTargetingObject* SpawnedActor);
 	//
 
 	UFUNCTION()
