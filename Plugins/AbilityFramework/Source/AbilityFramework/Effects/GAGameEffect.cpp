@@ -326,6 +326,7 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 				if (InProperty.Application->ApplyEffect(InProperty.Handle,
 					EffectIn, InProperty, this, InContext))
 				{
+					Handle = InProperty.Handle;
 					InProperty.Application->ExecuteEffect(InProperty.Handle, InProperty, InContext, Modifier);
 					//	UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::EffectApplied %s"), *HandleIn.GetEffectSpec()->GetName() );
 				}
