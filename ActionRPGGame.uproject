@@ -11,7 +11,8 @@
 			"AdditionalDependencies": [
 				"AbilityFramework",
 				"Engine",
-				"AIModule"
+				"AIModule",
+				"UMG"
 			]
 		}
 	],

@@ -166,7 +166,7 @@ void UGAAbilityBase::OnActivationEffectPeriod(const FGAEffectHandle& InHandle)
 void UGAAbilityBase::FinishAbility()
 {
 	UE_LOG(AbilityFramework, Log, TEXT("FinishExecution in ability %s"), *GetName());
-	OnFinished();
+	OnAbilityFinished();
 	NativeFinishAbility();
 	AbilityState = EAFAbilityState::Waiting;
 	AbilityComponent->AppliedTags.RemoveTagContainer(ActivationAddedTags);
@@ -218,6 +218,9 @@ bool UGAAbilityBase::ApplyCooldownEffect()
 	{
 		return false;
 	}
+	FAFFunctionModifier Modifier;
+	CooldownEffectHandle = UGABlueprintLibrary::ApplyGameEffectToObject(CooldownEffect,
+		this, POwner, this, Modifier);
 
 	return false;
 }
@@ -287,49 +290,6 @@ bool UGAAbilityBase::CanReleaseAbility()
 		UE_LOG(AbilityFramework, Log, TEXT("CanReleaseAbility can't release ability is on cooldown"));
 	}
 	return bCanUse;
-}
-float UGAAbilityBase::GetCurrentActivationTime() const
-{
-	if (ActivationEffect.Handle.IsValid())
-	{
-		return ActivationEffect.Handle.GetEffectPtr()->GetCurrentActivationTime();
-	}
-	return 0;
-}
-float UGAAbilityBase::BP_GetCurrentActivationTime() const
-{
-	return GetCurrentActivationTime();
-}
-float UGAAbilityBase::GetCurrentCooldownTime() const
-{
-	return 0;
-}
-
-float UGAAbilityBase::GetPeriodTime() const
-{
-	//if(Activation)
-	return 0;
-}
-float UGAAbilityBase::BP_GetPeriodTime() const
-{
-	return GetPeriodTime();
-}
-
-float UGAAbilityBase::GetCooldownTime() const
-{
-	return GetWorld()->GetTimeSeconds() - LastCooldownTime;
-}
-float UGAAbilityBase::BP_GetCooldownTime() const
-{
-	return GetCooldownTime();
-}
-float UGAAbilityBase::GetActivationTime() const
-{
-	return GetWorld()->GetTimeSeconds() - LastActivationTime;
-}
-float UGAAbilityBase::BP_GetActivationTime() const
-{
-	return GetActivationTime();
 }
 
 void UGAAbilityBase::OnGameplayTaskInitialized(UGameplayTask& Task)
@@ -421,6 +381,10 @@ bool UGAAbilityBase::IsOnCooldown()
 {
 	bool bOnCooldown = false;
 	bOnCooldown = AbilityComponent->IsEffectActive(CooldownEffectHandle);
+	if (bOnCooldown)
+	{
+		OnNotifyOnCooldown.Broadcast();
+	}
 	return bOnCooldown; //temp
 }
 bool UGAAbilityBase::IsActivating()
@@ -564,3 +528,86 @@ bool UGAAbilityBase::LineTraceSingleByChannelCorrected(FName SocketName, float R
 	return false;
 }
 /* Tracing Helpers End */
+
+//Helpers
+float UGAAbilityBase::GetActivationRemainingTime() const
+{
+	return AbilityComponent->GameEffectContainer.GetRemainingTime(ActivationEffectHandle);
+}
+float UGAAbilityBase::GetActivationRemainingTimeNormalized() const
+{
+	return AbilityComponent->GameEffectContainer.GetRemainingTimeNormalized(ActivationEffectHandle);
+}
+float UGAAbilityBase::GetActivationCurrentTime() const
+{
+	return AbilityComponent->GameEffectContainer.GetCurrentTime(ActivationEffectHandle);
+}
+float UGAAbilityBase::GetActivationCurrentTimeNormalized() const
+{
+	return AbilityComponent->GameEffectContainer.GetCurrentTimeNormalized(ActivationEffectHandle);
+}
+float UGAAbilityBase::GetActivationEndTime() const
+{
+	return AbilityComponent->GameEffectContainer.GetEndTime(ActivationEffectHandle);
+}
+
+float UGAAbilityBase::BP_GetActivationRemainingTime()
+{
+	return GetActivationRemainingTime();
+}
+float UGAAbilityBase::BP_GetActivationRemainingTimeNormalized()
+{
+	return GetActivationRemainingTimeNormalized();
+}
+float UGAAbilityBase::BP_GetActivationCurrentTime()
+{
+	return GetActivationCurrentTime();
+}
+float UGAAbilityBase::BP_GetActivationCurrentTimeNormalized()
+{
+	return GetActivationCurrentTimeNormalized();
+}
+float UGAAbilityBase::BP_GetActivationEndTime()
+{
+	return GetActivationEndTime();
+}
+float UGAAbilityBase::GetCooldownRemainingTime() const
+{
+	return AbilityComponent->GameEffectContainer.GetRemainingTime(CooldownEffectHandle);
+}
+float UGAAbilityBase::GetCooldownRemainingTimeNormalized() const
+{
+	return AbilityComponent->GameEffectContainer.GetRemainingTimeNormalized(CooldownEffectHandle);
+}
+float UGAAbilityBase::GetCooldownCurrentTime() const
+{
+	return AbilityComponent->GameEffectContainer.GetCurrentTime(CooldownEffectHandle);
+}
+float UGAAbilityBase::GetCooldownCurrentTimeNormalized() const
+{
+	return AbilityComponent->GameEffectContainer.GetCurrentTimeNormalized(CooldownEffectHandle);
+}
+float UGAAbilityBase::GetCooldownEndTime() const
+{
+	return AbilityComponent->GameEffectContainer.GetEndTime(CooldownEffectHandle);
+}
+float UGAAbilityBase::BP_GetCooldownRemainingTime()
+{
+	return GetCooldownRemainingTime();
+}
+float UGAAbilityBase::BP_GetCooldownRemainingTimeNormalized()
+{
+	return GetCooldownRemainingTimeNormalized();
+}
+float UGAAbilityBase::BP_GetCooldownCurrentTime()
+{
+	return GetCooldownCurrentTime();
+}
+float UGAAbilityBase::BP_GetCooldownCurrentTimeNormalized()
+{
+	return GetCooldownCurrentTimeNormalized();
+}
+float UGAAbilityBase::BP_GetCooldownEndTime()
+{
+	return GetCooldownEndTime();
+}

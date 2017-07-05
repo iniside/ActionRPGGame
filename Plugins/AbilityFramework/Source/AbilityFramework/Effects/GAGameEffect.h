@@ -613,7 +613,32 @@ public:
 	void PostReplicatedAdd(const struct FGAEffectContainer& InArraySerializer);
 	void PostReplicatedChange(const struct FGAEffectContainer& InArraySerializer);
 
-
+	float GetRemainingTime(float InWorldTime) const
+	{
+		return Duration - (InWorldTime - AppliedTime);
+	}
+	float GetRemainingTimeNormalized(float InWorldTime) const
+	{
+		float Time = Duration - (InWorldTime - AppliedTime);
+		//1,0 ?
+		float Normalized = FMath::GetMappedRangeValueClamped(FVector2D(Duration, 0), FVector2D(1, 0), Time);
+		return Normalized;
+	}
+	/* Get Current effect ime clamped to max duration */
+	float GetCurrentTime(float InWorldTime) const
+	{
+		return FMath::Clamp<float>(InWorldTime - AppliedTime, 0, Duration);
+	}
+	float GetCurrentTimeNormalized(float InWorldTime) const
+	{
+		float Time = FMath::Clamp<float>(InWorldTime - AppliedTime, 0, Duration);
+		float Normalized = FMath::GetMappedRangeValueClamped(FVector2D(0, Duration), FVector2D(0, 1), Time);
+		return Normalized;
+	}
+	float GetEndTime() const
+	{
+		return AppliedTime + Duration;
+	}
 	FAFEffectRepInfo()
 	{};
 
@@ -662,6 +687,7 @@ public:
 	//IDK might be actually easier to map Handles to active effects on clients
 	//as Handle should be synced between client and server.
 	//that's why handle should only be created on server (and by that, effects).
+	//change to SharedPtr ?
 	mutable TMap<FGAEffectHandle, FAFEffectRepInfo*> EffectInfos;
 
 
@@ -706,12 +732,12 @@ public:
 	FGAEffectHandle ApplyEffect(FGAEffect* EffectIn, FGAEffectProperty& InProperty
 		, const FGAEffectContext& InContext
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
+	void ApplyReplicationInfo(const FGAEffectHandle& InHandle, const FGAEffectProperty& InProperty);
 	/* Removesgiven number of effects of the same type. If Num == 0 Removes all effects */
 	void RemoveEffect(const FGAEffectProperty& HandleIn, int32 Num = 1);
 	/* Removesgiven number of effects of the same type. If Num == 0 Removes all effects */
 	void RemoveEffectByHandle(const FGAEffectHandle& InHandle, const FGAEffectProperty& InProperty);
-	/* Remove given number of effects of the same type */
-	void ApplyReplicationInfo(const FGAEffectHandle& HandleIn);
+
 	inline int32 GetEffectsNum() const { return ActiveEffectHandles.Num(); };
 
 	EGAEffectAggregation GetEffectAggregation(const FGAEffectHandle& HandleIn) const;
@@ -741,6 +767,44 @@ public:
 	}
 	UWorld* GetWorld() const;
 	
+	///Helpers
+	float GetRemainingTime(const FGAEffectHandle& InHandle) const
+	{
+		FAFEffectRepInfo* Info = EffectInfos.FindRef(InHandle);
+		if (!Info)
+			return 0;
+		//lets assume value is always valid...
+		return Info->GetRemainingTime(GetWorld()->GetTimeSeconds());
+	}
+	float GetRemainingTimeNormalized(const FGAEffectHandle& InHandle) const
+	{
+		FAFEffectRepInfo* Info = EffectInfos.FindRef(InHandle);
+		if (!Info)
+			return 0;
+		return Info->GetRemainingTimeNormalized(GetWorld()->GetTimeSeconds());
+	}
+	/* Get Current effect ime clamped to max duration */
+	float GetCurrentTime(const FGAEffectHandle& InHandle) const
+	{
+		FAFEffectRepInfo* Info = EffectInfos.FindRef(InHandle);
+		if (!Info)
+			return 0;
+		return Info->GetCurrentTime(GetWorld()->GetTimeSeconds());
+	}
+	float GetCurrentTimeNormalized(const FGAEffectHandle& InHandle) const
+	{
+		FAFEffectRepInfo* Info = EffectInfos.FindRef(InHandle);
+		if (!Info)
+			return 0;
+		return Info->GetCurrentTimeNormalized(GetWorld()->GetTimeSeconds());
+	}
+	float GetEndTime(const FGAEffectHandle& InHandle) const
+	{
+		FAFEffectRepInfo* Info = EffectInfos.FindRef(InHandle);
+		if (!Info)
+			return 0;
+		return Info->GetEndTime();
+	}
 };
 template<>
 struct TStructOpsTypeTraits< FGAEffectContainer > : public TStructOpsTypeTraitsBase2<FGAEffectContainer>

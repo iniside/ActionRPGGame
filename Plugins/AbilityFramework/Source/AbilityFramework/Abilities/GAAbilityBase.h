@@ -255,6 +255,9 @@ public: //because I'm to lazy to write all those friend states..
 		FGASGenericAbilityDelegate OnActivateBeginDelegate;
 	UPROPERTY(BlueprintAssignable)
 		FGASGenericAbilityDelegate OnActivationFinishedDelegate;
+
+	UPROPERTY(BlueprintAssignable)
+		FGASGenericAbilityDelegate OnNotifyOnCooldown;
 protected:
 	EAFAbilityState AbilityState;
 
@@ -290,8 +293,7 @@ public:
 	void NativeOnAbilityConfirmed();
 
 	/*
-		Called when ability get message to activate.
-		For player it usually means on button press.
+		Called when StartActivation is triggered.
 	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnActivate();
@@ -303,12 +305,6 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnActivationFinished();
 
-	/*
-		Called when ability deactivates.
-		For player it usually means in input release.
-	*/
-	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
-		void OnDeactivate();
 	/*
 		In blueprint, call this function to trigger event of the same name,
 		after ability is ready to be executed (like after targeting is done, input is confirmed,
@@ -336,7 +332,7 @@ public:
 
 	/* Event called when ability finishes it's execution. Called AFTER OnAbilityExecuted. */
 	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
-		void OnFinished();
+		void OnAbilityFinished();
 
 	UFUNCTION()
 		void OnCooldownEffectExpired();
@@ -363,23 +359,6 @@ public:
 
 	bool CanUseAbility();
 	bool CanReleaseAbility();
-	
-	float GetCurrentActivationTime() const;
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Get Current Activation Time"), Category = "AbilityFramework|Abilities")
-		float BP_GetCurrentActivationTime() const;
-	float GetCurrentCooldownTime() const;
-
-	float GetPeriodTime() const;
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Get Period Time"), Category = "AbilityFramework|Abilities")
-		float BP_GetPeriodTime() const;
-
-	float GetCooldownTime() const;
-	UFUNCTION(BlueprintPure, meta=(DisplayName = "Get Cooldown Time"), Category = "AbilityFramework|Abilities")
-		float BP_GetCooldownTime() const;
-
-	float GetActivationTime() const;
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Get Activation Time"), Category = "AbilityFramework|Abilities")
-		float BP_GetActivationTime() const;
 
 	/** GameplayTaskOwnerInterface - Begin */
 	virtual UGameplayTasksComponent* GetGameplayTasksComponent(const UGameplayTask& Task) const override;
@@ -488,4 +467,41 @@ public: //protected ?
 		bool LineTraceSingleByChannelCorrected(FName SocketName, float Range, ETraceTypeQuery TraceChannel, bool bTraceComplex, FHitResult& OutHit,
 			EDrawDebugTrace::Type DrawDebugType, bool bIgnoreSelf, FLinearColor TraceColor, FLinearColor TraceHitColor, float DrawTime);
 	/* Tracing Helpers End */
+
+
+	//Helpers
+	float GetActivationRemainingTime() const;
+	float GetActivationRemainingTimeNormalized() const;
+	float GetActivationCurrentTime() const;
+	float GetActivationCurrentTimeNormalized() const;
+	float GetActivationEndTime() const;
+
+	UFUNCTION(BlueprintPure, DisplayName = "GetActivationRemainingTime", Category = "AbilityFramework|Abilities|Helpers")
+		float BP_GetActivationRemainingTime();
+	UFUNCTION(BlueprintPure, DisplayName = "GetActivationRemainingTimeNormalized", Category = "AbilityFramework|Abilities|Helpers")
+		float BP_GetActivationRemainingTimeNormalized();
+	UFUNCTION(BlueprintPure, DisplayName = "GetActivationCurrentTime", Category = "AbilityFramework|Abilities|Helpers")
+		float BP_GetActivationCurrentTime();
+	UFUNCTION(BlueprintPure, DisplayName = "GetActivationCurrentTimeNormalized", Category = "AbilityFramework|Abilities|Helpers")
+		float BP_GetActivationCurrentTimeNormalized();
+	UFUNCTION(BlueprintPure, DisplayName = "GetActivationEndTime", Category = "AbilityFramework|Abilities|Helpers")
+		float BP_GetActivationEndTime();
+
+
+	float GetCooldownRemainingTime() const;
+	float GetCooldownRemainingTimeNormalized() const;
+	float GetCooldownCurrentTime() const;
+	float GetCooldownCurrentTimeNormalized() const;
+	float GetCooldownEndTime() const;
+
+	UFUNCTION(BlueprintPure, DisplayName = "GetCooldownRemainingTime", Category = "AbilityFramework|Abilities|Helpers")
+		float  BP_GetCooldownRemainingTime();
+	UFUNCTION(BlueprintPure, DisplayName = "GetCooldownRemainingTimeNormalized", Category = "AbilityFramework|Abilities|Helpers")
+		float  BP_GetCooldownRemainingTimeNormalized();
+	UFUNCTION(BlueprintPure, DisplayName = "GetCooldownCurrentTime", Category = "AbilityFramework|Abilities|Helpers")
+		float  BP_GetCooldownCurrentTime();
+	UFUNCTION(BlueprintPure, DisplayName = "GetCooldownCurrentTimeNormalized", Category = "AbilityFramework|Abilities|Helpers")
+		float  BP_GetCooldownCurrentTimeNormalized();
+	UFUNCTION(BlueprintPure, DisplayName = "GetCooldownEndTime", Category = "AbilityFramework|Abilities|Helpers")
+		float  BP_GetCooldownEndTime();
 };
