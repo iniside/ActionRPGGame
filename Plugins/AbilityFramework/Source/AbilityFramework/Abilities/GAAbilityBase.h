@@ -202,6 +202,7 @@ public:
 	UPROPERTY(EditAnywhere, meta = (AllowedClass = "AFAbilityActivationSpec,AFAbilityPeriodSpec,AFAbilityInfiniteDurationSpec,AFAbilityPeriodicInfiniteSpec"), Category = "Config")
 		FGAEffectProperty ActivationEffect;
 	FGAEffectHandle ActivationEffectHandle;
+
 	/*
 		These attributes will be reduced by specified amount when ability is activated.
 		Attribute cost from Ability Owner attributes
@@ -213,6 +214,10 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, Category = "Config")
 		FGAEffectProperty AbilityAttributeCost;
+	FGAEffectHandle AbilityAttributeCostHandle;
+
+	UPROPERTY(AssetRegistrySearchable)
+		FName AbilityTagSearch;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Tags")
 		FGameplayTag AbilityTag;
@@ -263,6 +268,16 @@ protected:
 
 public:
 	UGAAbilityBase(const FObjectInitializer& ObjectInitializer);
+
+	virtual void PostInitProperties() override;
+
+	virtual void Serialize(FArchive& Ar) override;
+
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif // WITH_EDITOR
+
+	void UpdateAssetRegistryInfo();
 
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
 		void PlayMontage(UAnimMontage* MontageIn, FName SectionName, float Speed = 1);
@@ -333,6 +348,11 @@ public:
 	/* Event called when ability finishes it's execution. Called AFTER OnAbilityExecuted. */
 	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnAbilityFinished();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
+		void OnCooldownStart();
+	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
+		void OnCooldownEnd(const FGAEffectHandle& InHandle);
 
 	UFUNCTION()
 		void OnCooldownEffectExpired();
@@ -405,6 +425,7 @@ public: //protected ?
 	bool ApplyActivationEffect(bool bApplyActivationEffect);
 	bool ApplyAttributeCost();
 	bool ApplyAbilityAttributeCost();
+	bool CheckAbilityAttributeCost();
 	bool IsOnCooldown();
 	bool IsActivating();
 
@@ -416,6 +437,9 @@ public: //protected ?
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Apply Ability Attribute Cost"), Category = "AbilityFramework|Abilities")
 		bool BP_ApplyAbilityAttributeCost();
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Check Ability Attribute Cost"), Category = "AbilityFramework|Abilities")
+		bool BP_CheckAbilityAttributeCost();
 
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
 		float GetCurrentActivationTime();

@@ -24,7 +24,7 @@ void UAFBlueprintFunctionLibrary::TriggerAbilityPressedByTag(UObject* Target,
 		return;
 	}
 
-	Comp->NativeInputPressed(AbilityTag, ActionTag);
+	Comp->NativeInputPressed(ActionTag);
 }
 void UAFBlueprintFunctionLibrary::TriggerAbilityReleasedByTag(UObject* Target,
 	const FGameplayTag& AbilityTag, FGameplayTag ActionTag)
@@ -42,5 +42,5 @@ void UAFBlueprintFunctionLibrary::TriggerAbilityReleasedByTag(UObject* Target,
 		return;
 	}
 
-	Comp->NativeInputReleased(AbilityTag, ActionTag);
+	Comp->NativeInputReleased(ActionTag);
 }

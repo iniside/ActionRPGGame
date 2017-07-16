@@ -65,6 +65,7 @@ void UGAAttributesBase::InitializeAttributesFromTable()
 				attr->SetBaseValue(row->BaseValue);
 				attr->SetMaxValue(row->MaxValue);
 				attr->SetMinValue(row->MinValue);
+				attr->SetCurrentValue(row->CurrentValue);
 				attr->InitializeAttribute();
 			}
 			//TickableAttributes.Add(attr);
@@ -157,21 +158,11 @@ float UGAAttributesBase::GetCurrentAttributeValue(const FGAAttribute& Name)
 }
 float UGAAttributesBase::GetFloatValue(const FGAAttribute& AttributeIn)
 {
-	if ((AttributeIn.AttributeName == LastAttributeName))
-	{
-		if (CachedFloatPropety)
-		{
-			const void* ValuePtr = CachedFloatPropety->ContainerPtrToValuePtr<void>(this);
-			return CachedFloatPropety->GetFloatingPointPropertyValue(ValuePtr);
-		}
-	}
-	//LastAttributeName = AttributeIn.AttributeName;
-	UNumericProperty* NumericProperty = CastChecked<UNumericProperty>(FindProperty(AttributeIn));
-	CachedFloatPropety = NumericProperty;
-	const void* ValuePtr = NumericProperty->ContainerPtrToValuePtr<void>(this);
-	return NumericProperty->GetFloatingPointPropertyValue(ValuePtr);
+	FAFAttributeBase* Attribute = GetAttribute(AttributeIn);
 
-	return 0;
+	if (!Attribute)
+		return 0;
+	return Attribute->GetCurrentValue();
 }
 
 float UGAAttributesBase::SetFloatValue(const FGAAttribute& AttributeIn, float ValueIn)

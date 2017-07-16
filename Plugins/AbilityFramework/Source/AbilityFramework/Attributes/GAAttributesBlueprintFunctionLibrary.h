@@ -1,5 +1,6 @@
 #pragma once
 #include "../GAGlobalTypes.h"
+#include "GAGameEffect.h"
 #include "GAAttributesBlueprintFunctionLibrary.generated.h"
 /*
 	Some static helper functions, to interact with Attribute system.
@@ -31,4 +32,21 @@ public:
 	*/
 	UFUNCTION(BlueprintPure, Category = "AbilityFramework|Attributes")
 		static float GetAttributeFloat(AActor* Target, FGAAttribute AttributeIn);
+	/**
+	 *	Subtracts value specified by From effect
+	 *  and adds it by effect specified by To.
+	 *
+	 *	@param Instigator - Who Insigated effects.
+	 *	@param Causer - Who Caused Effects
+	 *	@param From - effect which will subtract Value
+	 *	@param FromTarget - from whose attributes value will be subtracted
+	 *	@param To - Effect specifing where attribute should be added.
+	 *	@param ToTarget - Target to which attributes will be added.
+	 *
+	 *  @return value of attribute from actor.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
+		static void ExchangeAttributesValues(APawn* Instigator, UObject* Causer,
+			UPARAM(ref) FGAEffectProperty& From, UObject* FromTarget,
+			UPARAM(ref) FGAEffectProperty& To, UObject* ToTarget);
 };

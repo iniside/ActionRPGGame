@@ -13,7 +13,12 @@ public class ActionRPGGame : ModuleRules
                 "AbilityFramework/Abilities",
                 "AbilityFramework/Attributes",
                 "AbilityFramework/Effects",
-                "AbilityFramework/Public"
+                "AbilityFramework/Public",
+                "ActionRPGGame/Abilities",
+                "ActionRPGGame/AI",
+                "ActionRPGGame/Attributes",
+                "ActionRPGGame/UI",
+                "ActionRPGGame/UI/Abilities"
             // ... add public include paths required here ...
             }
         );
@@ -25,10 +30,15 @@ public class ActionRPGGame : ModuleRules
                     "AbilityFramework/Attributes",
                     "AbilityFramework/Effects",
                     "AbilityFramework/Private",
+                    "ActionRPGGame/Abilities",
+                    "ActionRPGGame/AI",
+                    "ActionRPGGame/Attributes",
+                    "ActionRPGGame/UI",
+                    "ActionRPGGame/UI/Abilities"
                 // ... add other private include paths required here ...
                 }
             );
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore",
-            "GameplayTags", "AbilityFramework" });
+            "GameplayTags", "AbilityFramework", "SlateCore" });
 	}
 }

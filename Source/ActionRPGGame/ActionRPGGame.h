@@ -3,3 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+class FActionRPGGameModule : public FDefaultGameModuleImpl
+{
+	virtual void StartupModule() override;
+};

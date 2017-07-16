@@ -12,7 +12,8 @@
 				"AbilityFramework",
 				"Engine",
 				"AIModule",
-				"UMG"
+				"UMG",
+				"CoreUObject"
 			]
 		}
 	],

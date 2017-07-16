@@ -5,7 +5,7 @@
 #include "../AFAbilityInterface.h"
 #include "GAAttributesBase.h"
 #include "../AFAbilityComponent.h"
-
+#include "GABlueprintLibrary.h"
 #include "GAAttributesBlueprintFunctionLibrary.h"
 
 
@@ -48,4 +48,19 @@ float UGAAttributesBlueprintFunctionLibrary::GetAttributeFloat(AActor* Target, F
 		return 0;
 
 	return  attributeInt->GetAttributes()->GetFloatValue(AttributeIn);
+}
+
+void UGAAttributesBlueprintFunctionLibrary::ExchangeAttributesValues(APawn* Instigator, UObject* Causer,
+	UPARAM(ref) FGAEffectProperty& From, UObject* FromTarget,
+	UPARAM(ref) FGAEffectProperty& To, UObject* ToTarget)
+{
+	IAFAbilityInterface* FromInterface = Cast<IAFAbilityInterface>(FromTarget);
+	IAFAbilityInterface* ToInterface = Cast<IAFAbilityInterface>(ToTarget);
+
+	if (!FromInterface || !ToInterface)
+		return;
+
+	FAFFunctionModifier ModF;
+	UGABlueprintLibrary::ApplyGameEffectToObject(From, FromTarget, Instigator, Causer, ModF);
+	UGABlueprintLibrary::ApplyGameEffectToObject(To, ToTarget, Instigator, Causer, ModF);
 }

@@ -77,7 +77,9 @@ public:
 	inline void SetBaseValue(float ValueIn) { BaseValue = ValueIn; }
 	inline void SetMinValue(float ValueIn) { MinValue = ValueIn; }
 	inline void SetMaxValue(float ValueIn) { MaxValue = ValueIn; }
-	
+	//used internally. NEver call it directly.
+	inline void SetCurrentValue(float ValueIn) { CurrentValue = ValueIn; }
+
 	inline float GetFinalValue()
 	{
 		return FMath::Clamp<float>(BaseValue + BonusValue, MinValue, MaxValue);

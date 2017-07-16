@@ -46,6 +46,39 @@ UGAAbilityBase::UGAAbilityBase(const FObjectInitializer& ObjectInitializer)
 
 	TickFunction.SetTickFunctionEnable(true);
 }
+
+void UGAAbilityBase::PostInitProperties()
+{
+	UpdateAssetRegistryInfo();
+	Super::PostInitProperties();
+}
+
+void UGAAbilityBase::Serialize(FArchive& Ar)
+{
+	if (Ar.IsSaving())
+	{
+		UpdateAssetRegistryInfo();
+	}
+
+	Super::Serialize(Ar);
+
+	if (Ar.IsLoading())
+	{
+		UpdateAssetRegistryInfo();
+	}
+}
+
+#if WITH_EDITOR
+void UGAAbilityBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+#endif // WITH_EDITOR
+
+void UGAAbilityBase::UpdateAssetRegistryInfo()
+{
+	AbilityTagSearch = AbilityTag.GetTagName();
+}
 void UGAAbilityBase::TickAbility(float DeltaSeconds, ELevelTick TickType, FGAAbilityTick& ThisTickFunction)
 {
 
@@ -56,6 +89,8 @@ void UGAAbilityBase::InitAbility()
 	//still want to initialize, as Spec is used in multiple places.
 	ActivationEffect.InitializeIfNotInitialized();
 	CooldownEffect.InitializeIfNotInitialized();
+	AttributeCost.InitializeIfNotInitialized();
+	AbilityAttributeCost.InitializeIfNotInitialized();
 	DefaultContext = UGABlueprintLibrary::MakeContext(this, POwner, AvatarActor, this, FHitResult(ForceInit));
 	if (AbilityComponent)
 	{
@@ -73,6 +108,7 @@ void UGAAbilityBase::InitAbility()
 	if (Attributes)
 	{
 		Attributes->InitializeAttributes(GetAbilityComp());
+		Attributes->InitializeAttributesFromTable();
 	}
 	
 	if (!OwnerCamera)
@@ -221,7 +257,9 @@ bool UGAAbilityBase::ApplyCooldownEffect()
 	FAFFunctionModifier Modifier;
 	CooldownEffectHandle = UGABlueprintLibrary::ApplyGameEffectToObject(CooldownEffect,
 		this, POwner, this, Modifier);
+	OnCooldownStart();
 
+	CooldownEffectHandle.GetEffectRef().OnEffectExpired.AddUObject(this, &UGAAbilityBase::OnCooldownEnd);
 	return false;
 }
 bool UGAAbilityBase::ApplyActivationEffect(bool bApplyActivationEffect)
@@ -274,6 +312,7 @@ bool UGAAbilityBase::CanUseAbility()
 	//	UE_LOG(AbilityFramework, Log, TEXT("CanUseAbility AbilityComponent->ExecutingAbility is true"));
 
 	CanUse = !bIsOnCooldown && !bIsActivating;
+	
 	return CanUse;
 }
 
@@ -363,11 +402,22 @@ void UGAAbilityBase::RemoveTagContainer(const FGameplayTagContainer& TagsIn)
 
 bool UGAAbilityBase::ApplyAttributeCost()
 {
-	return false;
+	return true;
 }
 bool UGAAbilityBase::ApplyAbilityAttributeCost()
 {
-	return true;
+	//add checking if attribute goes below zero
+	//maybe let game specific code handle it..
+	FAFFunctionModifier Modifier;
+	
+	if (CheckAbilityAttributeCost())
+	{
+		AbilityAttributeCostHandle = UGABlueprintLibrary::ApplyGameEffectToObject(AbilityAttributeCost,
+			this, POwner, this, Modifier);
+
+		return true;
+	}
+	return false;
 }
 bool UGAAbilityBase::BP_ApplyAttributeCost()
 {
@@ -376,6 +426,20 @@ bool UGAAbilityBase::BP_ApplyAttributeCost()
 bool UGAAbilityBase::BP_ApplyAbilityAttributeCost()
 {
 	return ApplyAbilityAttributeCost();
+}
+bool UGAAbilityBase::BP_CheckAbilityAttributeCost()
+{
+	return CheckAbilityAttributeCost();
+}
+bool UGAAbilityBase::CheckAbilityAttributeCost()
+{
+	float ModValue = AbilityAttributeCost.GetSpec()->AtributeModifier.Magnitude.GetFloatValue(DefaultContext);
+	FGAAttribute Attribute = AbilityAttributeCost.GetSpec()->AtributeModifier.Attribute;
+	float AttributeVal = Attributes->GetFloatValue(Attribute);
+	if (ModValue > AttributeVal)
+		return false;
+
+	return true;
 }
 bool UGAAbilityBase::IsOnCooldown()
 {
@@ -459,11 +523,11 @@ void UGAAbilityBase::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty 
 
 void UGAAbilityBase::ExecuteAbilityInputPressedFromTag(FGameplayTag AbilityTagIn, FGameplayTag ActionName)
 {
-	AbilityComponent->NativeInputPressed(AbilityTag, ActionName);
+	AbilityComponent->NativeInputPressed(ActionName);
 }
 void UGAAbilityBase::ExecuteAbilityInputReleasedFromTag(FGameplayTag AbilityTagIn, FGameplayTag ActionName)
 {
-	AbilityComponent->NativeInputReleased(AbilityTag, ActionName);
+	AbilityComponent->NativeInputReleased(ActionName);
 }
 
 /* Tracing Helpers Start */
@@ -550,7 +614,6 @@ float UGAAbilityBase::GetActivationEndTime() const
 {
 	return AbilityComponent->GameEffectContainer.GetEndTime(ActivationEffectHandle);
 }
-
 float UGAAbilityBase::BP_GetActivationRemainingTime()
 {
 	return GetActivationRemainingTime();
@@ -571,6 +634,8 @@ float UGAAbilityBase::BP_GetActivationEndTime()
 {
 	return GetActivationEndTime();
 }
+
+
 float UGAAbilityBase::GetCooldownRemainingTime() const
 {
 	return AbilityComponent->GameEffectContainer.GetRemainingTime(CooldownEffectHandle);

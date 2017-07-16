@@ -166,42 +166,7 @@ enum class EGAEffectAggregation : uint8
 	*/
 	AggregateByTarget
 };
-UENUM()
-enum class EGAStackingChannel : uint8
-{
-	Channel001,
-	Channel002,
-	Channel003,
-	Channel004,
-	Channel005,
-	Channel006,
-	Channel007,
-	Channel008,
-	Channel009,
-	Channel010,
-	Channel011,
-	Channel012,
-	Channel013,
-	Channel014,
-	Channel015,
-	Channel016,
-	Channel017,
-	Channel018,
-	Channel019,
-	Channel020,
-	Channel021,
-	Channel022,
-	Channel023,
-	Channel024,
-	Channel025,
-	Channel026,
-	Channel027,
-	Channel028,
-	Channel029,
-	Channel030,
-	Channel031,
-	Channel032,
-};
+
 USTRUCT()
 struct FAFEventData
 {
@@ -219,6 +184,8 @@ public:
 		float MinValue;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		float MaxValue;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		float CurrentValue;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		TSubclassOf<class UGAAttributeExtension> Extension;
 };
