@@ -104,12 +104,12 @@ void UARAbilityWidget::Setbility(const FGameplayTag& InAbility)
 	{
 		if (UAssetManager* Manager = UAssetManager::GetIfValid())
 		{
-			PrimaryAssetId = FARGlobals::MakeAbilityAssetId(AssetData);
+			FPrimaryAssetId PrimaryAssetId = FARGlobals::MakeAbilityAssetId(AssetData);
 			FPrimaryAssetTypeInfo Info;
 			if (Manager->GetPrimaryAssetTypeInfo(PrimaryAssetId.PrimaryAssetType, Info))// && !Info.bHasBlueprintClasses)
 			{
 				cls = Manager->GetPrimaryAssetObjectClass<UARAbilityBase>(PrimaryAssetId);
-				FStreamableDelegate del = FStreamableDelegate::CreateUObject(this, &UARAbilityWidget::OnFinishedLoad);
+				FStreamableDelegate del = FStreamableDelegate::CreateUObject(this, &UARAbilityWidget::OnFinishedLoad, PrimaryAssetId);
 				AbilityLoadedHandle = Manager->LoadPrimaryAsset(PrimaryAssetId,
 					TArray<FName>(),
 					del);
@@ -117,7 +117,7 @@ void UARAbilityWidget::Setbility(const FGameplayTag& InAbility)
 		}
 	}
 }
-void UARAbilityWidget::OnFinishedLoad()
+void UARAbilityWidget::OnFinishedLoad(FPrimaryAssetId PrimaryAssetId)
 {
 	UObject* loaded = AbilityLoadedHandle->GetLoadedAsset();
 	TSubclassOf<UARAbilityBase> cls = Cast<UClass>(loaded);

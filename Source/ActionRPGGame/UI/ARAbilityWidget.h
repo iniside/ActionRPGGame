@@ -61,9 +61,8 @@ public:
 
 	TSharedPtr<FStreamableHandle> AbilityLoadedHandle;
 
-	FPrimaryAssetId PrimaryAssetId;
 	UFUNCTION()
-		void OnFinishedLoad();
+		void OnFinishedLoad(FPrimaryAssetId PrimaryAssetId);
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry
 		, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry
