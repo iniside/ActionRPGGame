@@ -110,7 +110,7 @@ void UARAbilityWidget::Setbility(const FGameplayTag& InAbility)
 			{
 				cls = Manager->GetPrimaryAssetObjectClass<UARAbilityBase>(PrimaryAssetId);
 				FStreamableDelegate del = FStreamableDelegate::CreateUObject(this, &UARAbilityWidget::OnFinishedLoad, PrimaryAssetId);
-				AbilityLoadedHandle = Manager->LoadPrimaryAsset(PrimaryAssetId,
+				Manager->LoadPrimaryAsset(PrimaryAssetId,
 					TArray<FName>(),
 					del);
 			}
@@ -119,16 +119,19 @@ void UARAbilityWidget::Setbility(const FGameplayTag& InAbility)
 }
 void UARAbilityWidget::OnFinishedLoad(FPrimaryAssetId PrimaryAssetId)
 {
-	UObject* loaded = AbilityLoadedHandle->GetLoadedAsset();
-	TSubclassOf<UARAbilityBase> cls = Cast<UClass>(loaded);
-	if (cls)
-	{
-		UARAbilityBase* CDO = cls.GetDefaultObject();
-		Icon = CDO->UIData->Icon;
-	}
 	if (UAssetManager* Manager = UAssetManager::GetIfValid())
 	{
-		Manager->UnloadPrimaryAsset(PrimaryAssetId);
+		UObject* loaded = Manager->GetPrimaryAssetObject(PrimaryAssetId);
+		TSubclassOf<UARAbilityBase> cls = Cast<UClass>(loaded);
+		if (cls)
+		{
+			UARAbilityBase* CDO = cls.GetDefaultObject();
+			Icon = CDO->UIData->Icon;
+		}
+
+		{
+			Manager->UnloadPrimaryAsset(PrimaryAssetId);
+		}
 	}
 }
 FReply UARAbilityWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
@@ -162,6 +165,6 @@ bool UARAbilityWidget::NativeOnDrop(const FGeometry& InGeometry
 	UARAbilityWidget* Payload = Cast<UARAbilityWidget>(InOperation->Payload);
 	Setbility(Payload->AbilityTag);
 
-	OwningComponent->NativeEquipAbility(AbilityTagDebug, AbilitySetIndex, AbilityIndex, InputBinding);
+	OwningComponent->NativeEquipAbility(Payload->AbilityTag, AbilitySetIndex, AbilityIndex);
 	return false;
 }

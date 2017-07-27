@@ -59,8 +59,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ActionRPGGame|UI|Abilities")
 		void Setbility(const FGameplayTag& InAbility);
 
-	TSharedPtr<FStreamableHandle> AbilityLoadedHandle;
-
 	UFUNCTION()
 		void OnFinishedLoad(FPrimaryAssetId PrimaryAssetId);
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry

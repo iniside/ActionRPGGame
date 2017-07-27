@@ -13,7 +13,8 @@
 				"Engine",
 				"AIModule",
 				"UMG",
-				"CoreUObject"
+				"CoreUObject",
+				"WorldArchitectEditor"
 			]
 		}
 	],
@@ -24,6 +25,22 @@
 		},
 		{
 			"Name": "ActorSequenceEditor",
+			"Enabled": true
+		},
+		{
+			"Name": "OculusVR",
+			"Enabled": false
+		},
+		{
+			"Name": "SteamVR",
+			"Enabled": false
+		},
+		{
+			"Name": "ImagePlate",
+			"Enabled": true
+		},
+		{
+			"Name": "PerformanceMonitor",
 			"Enabled": true
 		}
 	]

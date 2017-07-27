@@ -32,9 +32,9 @@ void UARUIAbilityManagerComponent::BeginPlay()
 	AbilityTagsSet[0].SetNum(6);
 	AbilityTagsSet[1].SetNum(6);
 
-	InputBindingsSet.SetNum(2);
-	InputBindingsSet[0].SetNum(6);
-	InputBindingsSet[1].SetNum(6);
+	//InputBindingsSet.SetNum(2);
+	//InputBindingsSet[0].SetNum(6);
+	//InputBindingsSet[1].SetNum(6);
 
 	ActiveSet = 0;
 
@@ -117,7 +117,7 @@ void UARUIAbilityManagerComponent::SetInputTag(int32 SetIndex, int32 AbilityInde
 }
 
 void UARUIAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbilityTag, int32 AbilitySet
-	, int32 AbilityIndex, const FGameplayTag& InputBinding)
+	, int32 AbilityIndex)
 {
 	//fake implementation untill I add AssetManager support.
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
@@ -131,14 +131,16 @@ void UARUIAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbil
 	UAFAbilityComponent* AbilityComp = ABInt->GetAbilityComp();
 	if (!AbilityComp)
 		return;
+
 	if (!AbilityComp->OnAbilityAdded.IsAlreadyBound(this, &UARUIAbilityManagerComponent::OnAbilityReady))
 	{
+		FGameplayTag d = GetInputTag(AbilitySet, AbilityIndex);
 		AbilityComp->OnAbilityAdded.AddDynamic(this, &UARUIAbilityManagerComponent::OnAbilityReady);
 	}
 	TSubclassOf<UGAAbilityBase> AbilityClass = AbilityData->Items.FindRef(InAbilityTag).AbilityClass;
-	FARAbilityEquipInfo ABInfo(AbilitySet, AbilityIndex, InputBinding);
+	FARAbilityEquipInfo ABInfo(AbilitySet, AbilityIndex, GetInputTag(AbilitySet, AbilityIndex));
 	AwatingAbilityConfimation.Add(InAbilityTag, ABInfo);
-	AbilityComp->NativeAddAbility(AbilityClass, nullptr, InputBinding, false);
+	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, nullptr, GetInputTag(AbilitySet, AbilityIndex));
 	
 }
 void UARUIAbilityManagerComponent::OnAbilityReady(const FGameplayTag& InAbilityTag)
@@ -176,6 +178,8 @@ void UARUIAbilityManagerComponent::NativeOnAbilityReady(const FGameplayTag& InAb
 
 void UARUIAbilityManagerComponent::SwitchSet()
 {
+	//in reality it should be vlidated on server as well
+	//although this system is independent from ability component.
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
 	if (!MyPC)
 		return;
@@ -191,8 +195,8 @@ void UARUIAbilityManagerComponent::SwitchSet()
 	if (ActiveSet == 0)
 	{
 		const TArray<FGameplayTag>& AbilityTags = AbilityTagsSet[0];
-		const TArray<FGameplayTag>& InputTags = InputBindingsSet[0];
-		const TArray<FGameplayTag>& InputTags2 = InputBindingsSet[1];
+		const FARAbilityInputBinding& InputTags = InputBindingsSet[0];
+		const FARAbilityInputBinding InputTags2 = InputBindingsSet[1];
 		for (int32 Idx = 0; Idx < 6; Idx++)
 		{
 			AbilityComp->SetBlockedInput(InputTags[Idx], true);
@@ -205,8 +209,8 @@ void UARUIAbilityManagerComponent::SwitchSet()
 	else if (ActiveSet == 1)
 	{
 		const TArray<FGameplayTag>& AbilityTags = AbilityTagsSet[1];
-		const TArray<FGameplayTag>& InputTags = InputBindingsSet[1];
-		const TArray<FGameplayTag>& InputTags2 = InputBindingsSet[0];
+		const FARAbilityInputBinding& InputTags = InputBindingsSet[1];
+		const FARAbilityInputBinding& InputTags2 = InputBindingsSet[0];
 		for (int32 Idx = 0; Idx < 6; Idx++)
 		{
 			AbilityComp->SetBlockedInput(InputTags[Idx], true);

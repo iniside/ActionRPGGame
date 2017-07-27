@@ -29,6 +29,24 @@ public:
 		InputBinding(InInputBinding)
 	{};
 };
+USTRUCT(BlueprintType)
+struct FARAbilityInputBinding
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere)
+		TArray<FGameplayTag> InputBinding;
+
+	inline FGameplayTag& operator[](int32 InIndex)
+	{
+		return InputBinding[InIndex];
+	}
+
+	inline const FGameplayTag& operator[](int32 InIndex) const
+	{
+		return InputBinding[InIndex];
+	}
+};
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAROnAbilitySetChanged, int32, AbilitySet);
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ACTIONRPGGAME_API UARUIAbilityManagerComponent : public UActorComponent
@@ -64,7 +82,9 @@ protected:
 	TWeakObjectPtr<class UGAAbilityBase> WeaponFour;
 
 	int32 ActiveSet;
-	TArray<TArray<FGameplayTag>> InputBindingsSet;
+	UPROPERTY(EditAnywhere, Category = "Input Config")
+		TArray<FARAbilityInputBinding> InputBindingsSet;
+	
 	TArray<TArray<FGameplayTag>> AbilityTagsSet;
 	TArray<TArray<TWeakObjectPtr<class UARAbilityBase>>> AbilitySet;
 	TMap<FGameplayTag, FARAbilityEquipInfo> AwatingAbilityConfimation;
@@ -98,7 +118,7 @@ public:
 	void SetInputTag(int32 SetIndex, int32 AbilityIndex, FGameplayTag InAbilityTag);
 
 	void NativeEquipAbility(const FGameplayTag& InAbilityTag, int32 AbilitySet
-		, int32 AbilityIndex, const FGameplayTag& InputBinding);
+		, int32 AbilityIndex);
 	UFUNCTION()
 		void OnAbilityReady(const FGameplayTag& InAbilityTag);
 
