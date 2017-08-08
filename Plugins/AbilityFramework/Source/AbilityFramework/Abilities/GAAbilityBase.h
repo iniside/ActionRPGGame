@@ -247,7 +247,7 @@ public: //because I'm to lazy to write all those friend states..
 		float LastCooldownTime;
 	virtual void TickAbility(float DeltaSeconds, ELevelTick TickType, FGAAbilityTick& ThisTickFunction);
 	UFUNCTION()
-		void OnActivationEffectPeriod(const FGAEffectHandle& InHandle);
+		void OnActivationEffectPeriod(FGAEffectHandle InHandle);
 
 	/* Replication counters for above events. */
 
@@ -357,7 +357,7 @@ public:
 	UFUNCTION()
 		void OnCooldownEffectExpired();
 	UFUNCTION()
-		void NativeOnAbilityActivationFinish(const FGAEffectHandle& InHandle);
+		void NativeOnAbilityActivationFinish(FGAEffectHandle InHandle);
 	UFUNCTION()
 		void NativeOnAbilityActivationCancel();
 
@@ -428,6 +428,9 @@ public: //protected ?
 	bool CheckAbilityAttributeCost();
 	bool IsOnCooldown();
 	bool IsActivating();
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Is On Cooldown"), Category = "AbilityFramework|Abilities")
+		bool BP_IsOnCooldown();
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Apply Cooldown"), Category = "AbilityFramework|Abilities")
 		void BP_ApplyCooldown();

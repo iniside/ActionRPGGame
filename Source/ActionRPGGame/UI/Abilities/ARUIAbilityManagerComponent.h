@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "ARAbilityData.h"
 #include "GameplayTags.h"
 #include "ARAbilityBase.h"
+#include "ARAvailableAbilities.h"
 #include "ARUIAbilityManagerComponent.generated.h"
 
 USTRUCT()
@@ -53,6 +53,8 @@ class ACTIONRPGGAME_API UARUIAbilityManagerComponent : public UActorComponent
 {
 	GENERATED_BODY()
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Config")
+		TSubclassOf<UARAvailableAbilities> Abilities;
 	UPROPERTY(EditAnywhere, Category = "Widget Config")
 		TSubclassOf<class UUserWidget> AbilitySetConfigClass;
 	UPROPERTY(BlueprintReadOnly)
@@ -76,11 +78,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Input Config")
 		TArray<FGameplayTag> AbilityInputs;
 
-	TWeakObjectPtr<class UGAAbilityBase> ActiveWeapon;
-	TWeakObjectPtr<class UGAAbilityBase> WeaponTwo;
-	TWeakObjectPtr<class UGAAbilityBase> WeaponThree;
-	TWeakObjectPtr<class UGAAbilityBase> WeaponFour;
-
 	int32 ActiveSet;
 	UPROPERTY(EditAnywhere, Category = "Input Config")
 		TArray<FARAbilityInputBinding> InputBindingsSet;
@@ -92,8 +89,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Widget Config")
 		TSubclassOf<class UARAbilityWidget> DragVisualClass;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		UARAbilityData* AbilityData;
 	UPROPERTY(BlueprintAssignable)
 		FAROnAbilitySetChanged OnAbilitySetChanged;
 public:	

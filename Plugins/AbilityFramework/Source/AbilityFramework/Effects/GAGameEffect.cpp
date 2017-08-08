@@ -33,29 +33,73 @@ void FGAEffectProperty::InitializeIfNotInitialized()
 		Initialize();
 	}
 }
-
-void FAFEffectRepInfo::OnApplied()
+FAFEffectRepInfo::FAFEffectRepInfo(float AppliedTimeIn, float PeriodTimeIn, float DurationIn, float ReplicationTimeIn,
+	class UAFAbilityComponent* InComponent)
+	: AppliedTime(AppliedTimeIn),
+	PeriodTime(PeriodTimeIn),
+	Duration(DurationIn),
+	ReplicationTime(ReplicationTimeIn),
+	OwningComoponent(InComponent)
 {
 
+};
+void FAFEffectRepInfo::Init()
+{
+	FTimerManager& Timer = OwningComoponent->GetWorld()->GetTimerManager();
+
+	FTimerDelegate delDuration = FTimerDelegate::CreateRaw(this, &FAFEffectRepInfo::OnExpired);
+	Timer.SetTimer(ExpiredHandle, delDuration,
+		Duration, false);
+
+	FTimerDelegate PeriodDuration = FTimerDelegate::CreateRaw(this, &FAFEffectRepInfo::OnPeriod);
+	Timer.SetTimer(PeriodHandle, PeriodDuration,
+		PeriodTime, true);
+}
+void FAFEffectRepInfo::OnExpired()
+{
+	OwningComoponent->ExecuteEffectEvent(OnAppliedEvent);
 }
 void FAFEffectRepInfo::OnPeriod()
 {
-
+	OwningComoponent->ExecuteEffectEvent(OnPeriodEvent);
 }
 void FAFEffectRepInfo::OnRemoved()
 {
-
+	FTimerManager& Timer = OwningComoponent->GetWorld()->GetTimerManager();
+	Timer.ClearTimer(ExpiredHandle);
+	Timer.ClearTimer(PeriodHandle);
+	OwningComoponent->RemoveEffectEvent(OnAppliedEvent);
+	OwningComoponent->RemoveEffectEvent(OnPeriodEvent);
+	OwningComoponent->RemoveEffectEvent(OnRemovedEvent);
 }
 
 void FAFEffectRepInfo::PreReplicatedRemove(const struct FGAEffectContainer& InArraySerializer)
 {
 	InArraySerializer.EffectInfos.Remove(Handle);
-	InArraySerializer.OwningComponent->OnEffectRepInfoRemoved.Broadcast(this);
+	//InArraySerializer.OwningComponent->OnEffectRepInfoRemoved.Broadcast(this);
+
+	OwningComoponent->RemoveEffectEvent(OnAppliedEvent);
+	OwningComoponent->RemoveEffectEvent(OnPeriodEvent);
+	OwningComoponent->RemoveEffectEvent(OnRemovedEvent);
 }
 void FAFEffectRepInfo::PostReplicatedAdd(const struct FGAEffectContainer& InArraySerializer)
 {
+	OwningComoponent = InArraySerializer.OwningComponent;
 	InArraySerializer.EffectInfos.Add(Handle, this);
 	InArraySerializer.OwningComponent->OnEffectRepInfoApplied.Broadcast(this);
+
+	//OwningComoponent->ExecuteEffectEvent(OnAppliedEvent);
+
+	FTimerManager& Timer = OwningComoponent->GetWorld()->GetTimerManager();
+
+	FTimerDelegate delDuration = FTimerDelegate::CreateRaw(this, &FAFEffectRepInfo::OnExpired);
+	Timer.SetTimer(ExpiredHandle, delDuration,
+		Duration, false);
+
+	FTimerDelegate PeriodDuration = FTimerDelegate::CreateRaw(this, &FAFEffectRepInfo::OnPeriod);
+	Timer.SetTimer(PeriodHandle, PeriodDuration,
+		PeriodTime, true);
+
 }
 void FAFEffectRepInfo::PostReplicatedChange(const struct FGAEffectContainer& InArraySerializer)
 {
@@ -313,6 +357,7 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 	bool bHasDuration = InProperty.Duration > 0;
 	bool bHasPeriod = InProperty.Period > 0;
 
+	//we should not generate handle on clients.
 	if (bHasDuration || bHasPeriod)
 	{
 		Handle = FGAEffectHandle::GenerateHandle(EffectIn);
@@ -371,18 +416,45 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 }
 void FGAEffectContainer::ApplyReplicationInfo(const FGAEffectHandle& InHandle, const FGAEffectProperty& InProperty)
 {
-	//if (EffectPtr.IsValid() && EffectSpec && EffectSpec->EffectCue)
+	ENetMode mode = OwningComponent->GetNetMode();
+	ENetRole role = OwningComponent->GetOwnerRole();
+	if (mode == ENetMode::NM_DedicatedServer)
 	{
 		const UWorld* World = OwningComponent->GetWorld();
-		FAFEffectRepInfo RepInfo(World->GetTimeSeconds(), InProperty.Period, InProperty.Duration, 0);
-		RepInfo.Handle = InHandle;
-		MarkItemDirty(RepInfo);
-		ActiveEffectInfos.Add(RepInfo);
+		FAFEffectRepInfo* RepInfo = new FAFEffectRepInfo(World->GetTimeSeconds(), InProperty.Period, InProperty.Duration, 0, OwningComponent);
+		RepInfo->OnAppliedEvent = InProperty.GetSpec()->OnAppliedEvent;
+		RepInfo->OnPeriodEvent = InProperty.GetSpec()->OnPeriodEvent;
+		RepInfo->OnRemovedEvent = InProperty.GetSpec()->OnRemovedEvent;
+		RepInfo->Handle = InHandle;
+		RepInfo->Init();
+		MarkItemDirty(*RepInfo);
+		ActiveEffectInfos.Add(*RepInfo);
 		MarkArrayDirty();
-		ENetMode mode = OwningComponent->GetNetMode();
-		if (mode == ENetMode::NM_Standalone)
+		
+		//predictevily add effect info ?
+		//if (mode == ENetMode::NM_Standalone
+		//	|| role == ENetRole::ROLE_Authority)
 		{
-			EffectInfos.Add(InHandle, new FAFEffectRepInfo(RepInfo));
+			EffectInfos.Add(InHandle, RepInfo);
+		}
+	}
+	else if(mode == ENetMode::NM_Standalone)
+	{
+		
+		const UWorld* World = OwningComponent->GetWorld();
+		FAFEffectRepInfo* RepInfo = new FAFEffectRepInfo(World->GetTimeSeconds(), InProperty.Period, InProperty.Duration, 0, OwningComponent);
+		RepInfo->OnAppliedEvent = InProperty.GetSpec()->OnAppliedEvent;
+		RepInfo->OnPeriodEvent = InProperty.GetSpec()->OnPeriodEvent;
+		RepInfo->OnRemovedEvent = InProperty.GetSpec()->OnRemovedEvent;
+		RepInfo->Handle = InHandle;
+		RepInfo->Init();
+		//MarkItemDirty(RepInfo);
+		ActiveEffectInfos.Add(*RepInfo);
+		//MarkArrayDirty();
+
+		//predictevily add effect info ?
+		{
+			EffectInfos.Add(InHandle, RepInfo);
 		}
 	}
 }
@@ -617,7 +689,7 @@ void FGAEffectContainer::RemoveEffect(const FGAEffectProperty& HandleIn, int32 N
 	UGAGameEffectSpec* Spec = HandleIn.Spec;
 	EGAEffectAggregation Aggregation = Spec->EffectAggregation;
 	TArray<FGAEffectHandle>* handles = EffectByClass.Find(FObjectKey(HandleIn.GetClass()));//GetHandlesByClass(HandleIn, InContext);
-	FAFEffectRepInfo* Out;
+	FAFEffectRepInfo* Out = nullptr;
 	
 
 	if (handles)
@@ -632,7 +704,10 @@ void FGAEffectContainer::RemoveEffect(const FGAEffectProperty& HandleIn, int32 N
 					EffectInfos.RemoveAndCopyValue(OutHandle, Out);
 					if (Out)
 					{
+						MarkItemDirty(*Out);
+						Out->OnRemoved();
 						ActiveEffectInfos.Remove(*Out);
+						MarkArrayDirty();
 						delete Out;
 					}
 					if (!ActiveEffectHandles.Contains(OutHandle))

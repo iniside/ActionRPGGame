@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "GameplayTags.h"
 #include "ARPlayerController.generated.h"
 
 /**
@@ -18,11 +19,28 @@ public:
 		class UARUIComponent* UIComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
 		class UARUIAbilityManagerComponent* UIAbilityManagerComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
+		class UARUIWeaponEquipment* UIWeaponEquipment;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
+		FGameplayTag InputNextWeapon;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
+		FGameplayTag AbilitytNextWeapon;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
+		FGameplayTag InputPreviousWeapon;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
+		FGameplayTag AbilitytPreviousWeapon;
 
 public:
 	AARPlayerController(const FObjectInitializer& ObjectInitializer);
-
+	virtual void SetPawn(APawn* InPawn) override;
 	void SetupInputComponent();
 
 	void InputSwitchAbilitySet();
+
+//	void InputNextWeapon();
+	//void InputPreviousWeapon();
+
+	void OnInputAbilityReady(FGameplayTag InAbilityTag, FGameplayTag InInputTag);
 };

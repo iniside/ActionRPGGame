@@ -1,30 +1,18 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "ARWeaponInfoWidget.h"
+#include "ARWeaponActriveInfoWidget.h"
 #include "ARPlayerController.h"
 #include "ARUIWeaponEquipment.h"
 #include "ARAbilityBase.h"
 #include "ARGunAttributes.h"
-void UARWeaponInfoWidget::NativePreConstruct()
-{
-	if (AARPlayerController* MyPC = Cast<AARPlayerController>(GetOwningPlayer()))
-	{
-		WeaponEquipement = MyPC->UIWeaponEquipment;
-	}
-	Super::NativePreConstruct();
-}
-void UARWeaponInfoWidget::NativeConstruct()
-{
-	if (AARPlayerController* MyPC = Cast<AARPlayerController>(GetOwningPlayer()))
-	{
-		WeaponEquipement = MyPC->UIWeaponEquipment;
-	}
-	Super::NativeConstruct();
-}
 
-float UARWeaponInfoWidget::GetMagazineAmmo()
+
+
+float UARWeaponActriveInfoWidget::GetActiveMagazineAmmo()
 {
-	UARAbilityBase* Ability = WeaponEquipement->Weapons[SlotIndex].Get();
+	if (!WeaponEquipement.IsValid())
+		return 0;
+	UARAbilityBase* Ability = WeaponEquipement->ActiveWeapon.Get();
 	if (!Ability)
 		return 0;
 
@@ -34,9 +22,12 @@ float UARWeaponInfoWidget::GetMagazineAmmo()
 	}
 	return 0;
 }
-float UARWeaponInfoWidget::GetMagazineAmmoNormalized()
+
+float UARWeaponActriveInfoWidget::GetActiveMagazineAmmoNormalized()
 {
-	UARAbilityBase* Ability = WeaponEquipement->Weapons[SlotIndex].Get();
+	if (!WeaponEquipement.IsValid())
+		return 0;
+	UARAbilityBase* Ability = WeaponEquipement->ActiveWeapon.Get();
 	if (!Ability)
 		return 0;
 
@@ -47,4 +38,15 @@ float UARWeaponInfoWidget::GetMagazineAmmoNormalized()
 		return FMath::GetMappedRangeValueClamped(Input, FVector2D(0, 1), CurrentValue);
 	}
 	return 0;
+}
+
+float UARWeaponActriveInfoWidget::GetReloadTimeNormalized()
+{
+	if (!WeaponEquipement.IsValid())
+		return 0;
+	UARAbilityBase* Ability = WeaponEquipement->ActiveWeapon.Get();
+	if (!Ability)
+		return 0;
+
+	return Ability->GetCooldownRemainingTimeNormalized();
 }

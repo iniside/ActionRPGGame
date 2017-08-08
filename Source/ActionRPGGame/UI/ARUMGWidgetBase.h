@@ -13,8 +13,14 @@ UCLASS()
 class ACTIONRPGGAME_API UARUMGWidgetBase : public UUserWidget
 {
 	GENERATED_BODY()
-	
-	
+public:
+	UPROPERTY(BlueprintReadOnly)
+		class UARUIAbilityManagerComponent* OwningComponent;
+	UPROPERTY(BlueprintReadOnly)
+		class UARUIComponent* UIComponent;
+public:
+	virtual void NativePreConstruct() override;
+	virtual void NativeConstruct() override;
 	
 	
 };

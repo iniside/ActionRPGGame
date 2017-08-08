@@ -199,6 +199,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Linked Effects")
 		TArray<TSubclassOf<UGAGameEffectSpec>> OnRemovedEffects;
 
+	UPROPERTY(EditAnywhere, Category = "Event Tags")
+		FGameplayTag OnAppliedEvent;
+	UPROPERTY(EditAnywhere, Category = "Event Tags")
+		FGameplayTag OnPeriodEvent;
+	UPROPERTY(EditAnywhere, Category = "Event Tags")
+		FGameplayTag OnRemovedEvent;
 	/* 
 		Effects applied only when certain criteria are met.
 		Just dumbed here it needs it's own structure that will actually alow to setup those conditions.
@@ -588,6 +594,9 @@ struct ABILITYFRAMEWORK_API FAFEffectRepInfo : public FFastArraySerializerItem
 	GENERATED_USTRUCT_BODY()
 
 public:
+	//tags are generally unique per effect type.
+	UPROPERTY()
+		FGameplayTag EffectTag;
 	//Handle to effect, which is using this info.
 	UPROPERTY()
 		FGAEffectHandle Handle;
@@ -600,12 +609,22 @@ public:
 	UPROPERTY()
 		float ReplicationTime;
 
-	FSimpleDelegate OnAppliedDelegate;
+	UPROPERTY()
+		FGameplayTag OnAppliedEvent;
+	UPROPERTY()
+		FGameplayTag OnPeriodEvent;
+	UPROPERTY()
+		FGameplayTag OnRemovedEvent;
+
+	FTimerHandle ExpiredHandle;
+	FTimerHandle PeriodHandle;
+	class UAFAbilityComponent* OwningComoponent;
 
 	//UPROPERTY()
 	//	FGAEffectContext Context;
 
-	void OnApplied();
+	void Init();
+	void OnExpired();
 	void OnPeriod();
 	void OnRemoved();
 
@@ -647,12 +666,8 @@ public:
 		return Handle == Other.Handle;
 	}
 
-	FAFEffectRepInfo(float AppliedTimeIn, float PeriodTimeIn, float DurationIn, float ReplicationTimeIn)
-		: AppliedTime(AppliedTimeIn),
-		PeriodTime(PeriodTimeIn),
-		Duration(DurationIn),
-		ReplicationTime(ReplicationTimeIn)
-	{};
+	FAFEffectRepInfo(float AppliedTimeIn, float PeriodTimeIn, float DurationIn, float ReplicationTimeIn,
+		class UAFAbilityComponent* InComponent);
 };
 
 USTRUCT()

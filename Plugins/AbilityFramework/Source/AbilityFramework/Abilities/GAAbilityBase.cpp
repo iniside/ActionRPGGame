@@ -175,7 +175,7 @@ void UGAAbilityBase::OnCooldownEffectExpired()
 	}
 }
 /* Functions for activation effect delegates */
-void UGAAbilityBase::NativeOnAbilityActivationFinish(const FGAEffectHandle& InHandle)
+void UGAAbilityBase::NativeOnAbilityActivationFinish(FGAEffectHandle InHandle)
 {
 	UE_LOG(AbilityFramework, Log, TEXT("Ability Activation Effect Expired In Ability: %s"), *GetName());
 	OnActivationFinished();
@@ -193,7 +193,7 @@ void UGAAbilityBase::NativeOnAbilityActivationCancel()
 	OnActivationCancel();
 	//AbilityActivatedCounter++;
 }
-void UGAAbilityBase::OnActivationEffectPeriod(const FGAEffectHandle& InHandle)
+void UGAAbilityBase::OnActivationEffectPeriod(FGAEffectHandle InHandle)
 {
 	UE_LOG(AbilityFramework, Log, TEXT("Ability Activation Effect Period In Ability: %s"), *GetName());
 
@@ -255,11 +255,15 @@ bool UGAAbilityBase::ApplyCooldownEffect()
 		return false;
 	}
 	FAFFunctionModifier Modifier;
+
+	//FSimpleDelegate PeriodDel = FSimpleDelegate::CreateUObject(this, &UGAAbilityBase::OnCooldownEnd, CooldownEffectHandle);
+	//AbilityComponent->AddEffectEvent(CooldownEffect.GetSpec()->OnPeriodEvent, PeriodDel);
+
 	CooldownEffectHandle = UGABlueprintLibrary::ApplyGameEffectToObject(CooldownEffect,
 		this, POwner, this, Modifier);
 	OnCooldownStart();
 
-	CooldownEffectHandle.GetEffectRef().OnEffectExpired.AddUObject(this, &UGAAbilityBase::OnCooldownEnd);
+	//CooldownEffectHandle.GetEffectRef().OnEffectExpired.AddUObject(this, &UGAAbilityBase::OnCooldownEnd);
 	return false;
 }
 bool UGAAbilityBase::ApplyActivationEffect(bool bApplyActivationEffect)
@@ -282,18 +286,23 @@ bool UGAAbilityBase::ApplyActivationEffect(bool bApplyActivationEffect)
 		if (ActivationEffectHandle.IsValid())
 			ActivationEffectHandle.Reset();
 
+		FSimpleDelegate AppliedDel = FSimpleDelegate::CreateUObject(this, &UGAAbilityBase::NativeOnAbilityActivationFinish, ActivationEffectHandle);
+		AbilityComponent->AddEffectEvent(ActivationEffect.GetSpec()->OnAppliedEvent, AppliedDel);
+
 		FAFFunctionModifier Modifier;
 		ActivationEffectHandle = UGABlueprintLibrary::ApplyGameEffectToObject(ActivationEffect,
 			this, POwner, this, Modifier);
 		
 		//if(!ActivationEffectHandle.GetEffectRef().OnEffectExpired.)
-			ActivationEffectHandle.GetEffectRef().OnEffectExpired.AddUObject(this, &UGAAbilityBase::NativeOnAbilityActivationFinish);
+		//	ActivationEffectHandle.GetEffectRef().OnEffectExpired.AddUObject(this, &UGAAbilityBase::NativeOnAbilityActivationFinish);
 
 		
 		if (PeriodCheck > 0)
 		{
+			FSimpleDelegate PeriodDel = FSimpleDelegate::CreateUObject(this, &UGAAbilityBase::OnActivationEffectPeriod, ActivationEffectHandle);
+			AbilityComponent->AddEffectEvent(ActivationEffect.GetSpec()->OnPeriodEvent, PeriodDel);
 			//if (!ActivationEffectHandle.GetEffectRef().OnEffectPeriod.IsBound())
-			ActivationEffectHandle.GetEffectRef().OnEffectPeriod.AddUObject(this, &UGAAbilityBase::OnActivationEffectPeriod);
+		//	ActivationEffectHandle.GetEffectRef().OnEffectPeriod.AddUObject(this, &UGAAbilityBase::OnActivationEffectPeriod);
 		}
 	}
 	else
@@ -313,6 +322,20 @@ bool UGAAbilityBase::CanUseAbility()
 
 	CanUse = !bIsOnCooldown && !bIsActivating;
 	
+	//now Lets check tags
+	if (CanUse)
+	{
+		if (AbilityComponent->HasAll(ActivationRequiredTags))
+		{
+			CanUse = true;
+		}
+		//blocking takes precedence.
+		if (AbilityComponent->HasAny(ActivationBlockedTags))
+		{
+			CanUse = false;
+		}
+	}
+
 	return CanUse;
 }
 
@@ -456,6 +479,10 @@ bool UGAAbilityBase::IsActivating()
 	bool bAbilityActivating = false;
 	bAbilityActivating = AbilityComponent->IsEffectActive(ActivationEffect.Handle) || AbilityState == EAFAbilityState::Activating;
 	return bAbilityActivating; //temp
+}
+bool UGAAbilityBase::BP_IsOnCooldown()
+{
+	return IsOnCooldown();
 }
 void UGAAbilityBase::BP_ApplyCooldown()
 {

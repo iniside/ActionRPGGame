@@ -38,28 +38,32 @@ void UARUIAbilityManagerComponent::BeginPlay()
 
 	ActiveSet = 0;
 
-	
-	if (AbilitySetConfigClass)
+	ENetMode NetMode = GetOwner()->GetNetMode();
+	if (NetMode == ENetMode::NM_Client
+		|| NetMode == ENetMode::NM_Standalone)
 	{
-		AbilitySetConfigWidget = CreateWidget<UUserWidget>(Cast<APlayerController>(GetOwner()), AbilitySetConfigClass);
-		//AbilitySetConfigWidget->InitializeWidget(this);
-		AbilitySetConfigWidget->AddToViewport();
-	}
-	if (AbilityWidgetClass)
-	{
-		AbilityWidget = CreateWidget<UARAbilityInfoWidget>(Cast<APlayerController>(GetOwner()), AbilityWidgetClass);
-		AbilityWidget->InitializeWidget(this);
-	}
-	if (WeaponWidgetClass)
-	{
-		WeaponWidget = CreateWidget<UARWeaponInfoWidget>(Cast<APlayerController>(GetOwner()), WeaponWidgetClass);
-		WeaponWidget->InitializeWidget(this);
-	}
+		if (AbilitySetConfigClass)
+		{
+			AbilitySetConfigWidget = CreateWidget<UUserWidget>(Cast<APlayerController>(GetOwner()), AbilitySetConfigClass);
+			//AbilitySetConfigWidget->InitializeWidget(this);
+			AbilitySetConfigWidget->AddToViewport();
+		}
+		if (AbilityWidgetClass)
+		{
+			AbilityWidget = CreateWidget<UARAbilityInfoWidget>(Cast<APlayerController>(GetOwner()), AbilityWidgetClass);
+			//AbilityWidget->InitializeWidget(this);
+		}
+		if (WeaponWidgetClass)
+		{
+			WeaponWidget = CreateWidget<UARWeaponInfoWidget>(Cast<APlayerController>(GetOwner()), WeaponWidgetClass);
+			//WeaponWidget->InitializeWidget(this);
+		}
 
-	if (WeaponCrosshairWidgetClass)
-	{
-		WeaponCrosshairWidget = CreateWidget<UUserWidget>(Cast<APlayerController>(GetOwner()), WeaponCrosshairWidgetClass);
-		WeaponCrosshairWidget->AddToViewport();
+		if (WeaponCrosshairWidgetClass)
+		{
+			WeaponCrosshairWidget = CreateWidget<UUserWidget>(Cast<APlayerController>(GetOwner()), WeaponCrosshairWidgetClass);
+			WeaponCrosshairWidget->AddToViewport();
+		}
 	}
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
 	if (!MyPC)
@@ -137,7 +141,6 @@ void UARUIAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbil
 		FGameplayTag d = GetInputTag(AbilitySet, AbilityIndex);
 		AbilityComp->OnAbilityAdded.AddDynamic(this, &UARUIAbilityManagerComponent::OnAbilityReady);
 	}
-	TSubclassOf<UGAAbilityBase> AbilityClass = AbilityData->Items.FindRef(InAbilityTag).AbilityClass;
 	FARAbilityEquipInfo ABInfo(AbilitySet, AbilityIndex, GetInputTag(AbilitySet, AbilityIndex));
 	AwatingAbilityConfimation.Add(InAbilityTag, ABInfo);
 	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, nullptr, GetInputTag(AbilitySet, AbilityIndex));

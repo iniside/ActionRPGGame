@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ARAbilityInfoWidget.h"
+#include "ARUMGWidgetBase.h"
 #include "GameplayTags.h"
 #include "AssetRegistryModule.h"
 #include "Engine/AssetManager.h"
@@ -13,23 +13,19 @@
  * 
  */
 UCLASS()
-class ACTIONRPGGAME_API UARAbilityWidget : public UARAbilityInfoWidget
+class ACTIONRPGGAME_API UARAbilityWidget : public UARUMGWidgetBase
 {
 	GENERATED_BODY()
 public:
+
 	UPROPERTY(EditAnywhere, Category = "Config")
 		int32 AbilitySetIndex;
 	UPROPERTY(EditAnywhere, Category = "Config")
 		int32 AbilityIndex;
 	UPROPERTY(EditAnywhere, Category = "Config")
-		FGameplayTag InputBinding;
-
-	UPROPERTY(EditAnywhere, Category = "Config")
 		UTexture2D* Icon;
-
-	//debug
 	UPROPERTY(EditAnywhere, Category = "Config")
-		FGameplayTag AbilityTagDebug;
+		FGameplayTag AbilityTag;
 	
 	UFUNCTION(BlueprintPure, Category = "ActionRPGGame|UI|Abilities")
 		float GetActivationRemainingTime();
@@ -61,10 +57,4 @@ public:
 
 	UFUNCTION()
 		void OnFinishedLoad(FPrimaryAssetId PrimaryAssetId);
-	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry
-		, const FPointerEvent& InMouseEvent) override;
-	virtual void NativeOnDragDetected(const FGeometry& InGeometry
-		, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
-	virtual bool NativeOnDrop(const FGeometry& InGeometry
-		, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 };

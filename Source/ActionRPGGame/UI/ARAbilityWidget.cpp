@@ -98,7 +98,7 @@ UTexture2D* UARAbilityWidget::GetIcon()
 void UARAbilityWidget::Setbility(const FGameplayTag& InAbility)
 {
 	AbilityTag = InAbility;
-	FAssetData AssetData = FARGlobals::GetAbilityAssetByTag(AbilityTag);
+	FAssetData AssetData = FARGlobals::GetAbilityAssetByTag(InAbility);
 	TSubclassOf<UARAbilityBase> cls;// = nullptr;
 	if (AssetData.IsValid())
 	{
@@ -133,38 +133,4 @@ void UARAbilityWidget::OnFinishedLoad(FPrimaryAssetId PrimaryAssetId)
 			Manager->UnloadPrimaryAsset(PrimaryAssetId);
 		}
 	}
-}
-FReply UARAbilityWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
-	, const FPointerEvent& InMouseEvent)
-{
-	return UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton).NativeReply;
-	//return FReply::Unhandled();
-}
-
-void UARAbilityWidget::NativeOnDragDetected(const FGeometry& InGeometry
-	, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
-{
-	UDragDropOperation* DragDropOp = NewObject<UDragDropOperation>(UDragDropOperation::StaticClass());
-	if (DragDropOp)
-	{
-		APlayerController* MyPC = Cast<APlayerController>(OwningComponent->GetOwner());
-		UARAbilityWidget* DragIcon = CreateWidget<UARAbilityWidget>(MyPC, OwningComponent->DragVisualClass);
-		DragIcon->AbilityIndex = AbilityIndex;
-		DragIcon->AbilitySetIndex = AbilitySetIndex;
-		DragIcon->OwningComponent = OwningComponent;
-
-		DragDropOp->Payload = this;
-		DragDropOp->DefaultDragVisual = DragIcon;
-
-		OutOperation = DragDropOp;
-	}
-}
-bool UARAbilityWidget::NativeOnDrop(const FGeometry& InGeometry
-	, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
-{
-	UARAbilityWidget* Payload = Cast<UARAbilityWidget>(InOperation->Payload);
-	Setbility(Payload->AbilityTag);
-
-	OwningComponent->NativeEquipAbility(Payload->AbilityTag, AbilitySetIndex, AbilityIndex);
-	return false;
 }

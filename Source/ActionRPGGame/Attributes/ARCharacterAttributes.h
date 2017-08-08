@@ -30,5 +30,8 @@ public:
 		FAFAttributeBase Ammo;
 	UPROPERTY(EditAnywhere, Category = "Base")
 		FAFAttributeBase MachineGunAmmo;
-	
+	UPROPERTY(EditAnywhere, Category = "Base")
+		FAFAttributeBase ShotgunAmmo;
+	UPROPERTY(EditAnywhere, Category = "Base")
+		FAFAttributeBase ArrowAmmo;
 };

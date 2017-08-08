@@ -42,6 +42,14 @@
 		{
 			"Name": "PerformanceMonitor",
 			"Enabled": true
+		},
+		{
+			"Name": "OnlineSubsystemAmazon",
+			"Enabled": true
+		},
+		{
+			"Name": "OnlineFramework",
+			"Enabled": true
 		}
 	]
 }

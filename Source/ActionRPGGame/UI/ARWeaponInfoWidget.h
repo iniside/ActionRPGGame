@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UI/Abilities/ARAbilityInfoWidget.h"
+#include "ARUMGWidgetBase.h"
 #include "ARGunAttributes.h"
 #include "ARWeaponInfoWidget.generated.h"
 
@@ -11,16 +11,18 @@
  * 
  */
 UCLASS()
-class ACTIONRPGGAME_API UARWeaponInfoWidget : public UARAbilityInfoWidget
+class ACTIONRPGGAME_API UARWeaponInfoWidget : public UARUMGWidgetBase
 {
 	GENERATED_BODY()
 protected:
-	class UARGunAttributes* WeaponAttributes;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		int32 SlotIndex;
+	TWeakObjectPtr<class UARUIWeaponEquipment> WeaponEquipement;
 public:
-	virtual void InitializeWidget(UARUIAbilityManagerComponent* InOwningComponent) override;	
-	virtual void NativeAddAbility(const FGameplayTag& InAbilityTag) override;
-	virtual void NativeOnAbilityReady(const FGameplayTag& InAbilityTag) override;
-	
+
+	virtual void NativePreConstruct() override;
+	virtual void NativeConstruct() override;
+
 	UFUNCTION(BlueprintPure, Category = "ActionRPGGame|UI|Weapon")
 		float GetMagazineAmmo();
 	UFUNCTION(BlueprintPure, Category = "ActionRPGGame|UI|Weapon")
