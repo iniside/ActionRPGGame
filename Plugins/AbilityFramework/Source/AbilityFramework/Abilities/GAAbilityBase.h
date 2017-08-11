@@ -352,7 +352,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnCooldownStart();
 	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
-		void OnCooldownEnd(const FGAEffectHandle& InHandle);
+		void OnCooldownEnd(FGAEffectHandle InHandle);
 
 	UFUNCTION()
 		void OnCooldownEffectExpired();

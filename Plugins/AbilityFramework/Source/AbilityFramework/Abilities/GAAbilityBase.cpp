@@ -256,8 +256,8 @@ bool UGAAbilityBase::ApplyCooldownEffect()
 	}
 	FAFFunctionModifier Modifier;
 
-	//FSimpleDelegate PeriodDel = FSimpleDelegate::CreateUObject(this, &UGAAbilityBase::OnCooldownEnd, CooldownEffectHandle);
-	//AbilityComponent->AddEffectEvent(CooldownEffect.GetSpec()->OnPeriodEvent, PeriodDel);
+	FSimpleDelegate PeriodDel = FSimpleDelegate::CreateUObject(this, &UGAAbilityBase::OnCooldownEnd, CooldownEffectHandle);
+	AbilityComponent->AddEffectEvent(CooldownEffect.GetSpec()->OnExpiredEvent, PeriodDel);
 
 	CooldownEffectHandle = UGABlueprintLibrary::ApplyGameEffectToObject(CooldownEffect,
 		this, POwner, this, Modifier);
@@ -287,7 +287,7 @@ bool UGAAbilityBase::ApplyActivationEffect(bool bApplyActivationEffect)
 			ActivationEffectHandle.Reset();
 
 		FSimpleDelegate AppliedDel = FSimpleDelegate::CreateUObject(this, &UGAAbilityBase::NativeOnAbilityActivationFinish, ActivationEffectHandle);
-		AbilityComponent->AddEffectEvent(ActivationEffect.GetSpec()->OnAppliedEvent, AppliedDel);
+		AbilityComponent->AddEffectEvent(ActivationEffect.GetSpec()->OnExpiredEvent, AppliedDel);
 
 		FAFFunctionModifier Modifier;
 		ActivationEffectHandle = UGABlueprintLibrary::ApplyGameEffectToObject(ActivationEffect,

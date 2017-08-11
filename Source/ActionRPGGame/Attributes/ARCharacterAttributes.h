@@ -26,9 +26,9 @@ public:
 	UPROPERTY(EditAnywhere, Replicated, Category = "Base")
 		FAFAttributeBase Stamina;
 
-	UPROPERTY(EditAnywhere, Category = "Base")
+	UPROPERTY(EditAnywhere, Replicated, Category = "Base")
 		FAFAttributeBase Ammo;
-	UPROPERTY(EditAnywhere, Category = "Base")
+	UPROPERTY(EditAnywhere, Replicated, Category = "Base")
 		FAFAttributeBase MachineGunAmmo;
 	UPROPERTY(EditAnywhere, Category = "Base")
 		FAFAttributeBase ShotgunAmmo;

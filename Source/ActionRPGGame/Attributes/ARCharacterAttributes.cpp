@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "ARCharacterAttributes.h"
 #include "Net/UnrealNetwork.h"
 
@@ -13,5 +11,6 @@ void UARCharacterAttributes::GetLifetimeReplicatedProps(TArray< class FLifetimeP
 	DOREPLIFETIME(UARCharacterAttributes, Armor);
 	DOREPLIFETIME(UARCharacterAttributes, Energy);
 	DOREPLIFETIME(UARCharacterAttributes, Stamina);
-
+	DOREPLIFETIME(UARCharacterAttributes, Ammo);
+	DOREPLIFETIME(UARCharacterAttributes, MachineGunAmmo);
 }

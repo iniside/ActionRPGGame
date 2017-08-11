@@ -200,7 +200,7 @@ public:
 		TArray<TSubclassOf<UGAGameEffectSpec>> OnRemovedEffects;
 
 	UPROPERTY(EditAnywhere, Category = "Event Tags")
-		FGameplayTag OnAppliedEvent;
+		FGameplayTag OnExpiredEvent;
 	UPROPERTY(EditAnywhere, Category = "Event Tags")
 		FGameplayTag OnPeriodEvent;
 	UPROPERTY(EditAnywhere, Category = "Event Tags")
@@ -610,7 +610,7 @@ public:
 		float ReplicationTime;
 
 	UPROPERTY()
-		FGameplayTag OnAppliedEvent;
+		FGameplayTag OnExpiredEvent;
 	UPROPERTY()
 		FGameplayTag OnPeriodEvent;
 	UPROPERTY()

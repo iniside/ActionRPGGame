@@ -57,7 +57,7 @@ void FAFEffectRepInfo::Init()
 }
 void FAFEffectRepInfo::OnExpired()
 {
-	OwningComoponent->ExecuteEffectEvent(OnAppliedEvent);
+	OwningComoponent->ExecuteEffectEvent(OnExpiredEvent);
 }
 void FAFEffectRepInfo::OnPeriod()
 {
@@ -68,7 +68,7 @@ void FAFEffectRepInfo::OnRemoved()
 	FTimerManager& Timer = OwningComoponent->GetWorld()->GetTimerManager();
 	Timer.ClearTimer(ExpiredHandle);
 	Timer.ClearTimer(PeriodHandle);
-	OwningComoponent->RemoveEffectEvent(OnAppliedEvent);
+	OwningComoponent->RemoveEffectEvent(OnExpiredEvent);
 	OwningComoponent->RemoveEffectEvent(OnPeriodEvent);
 	OwningComoponent->RemoveEffectEvent(OnRemovedEvent);
 }
@@ -78,7 +78,7 @@ void FAFEffectRepInfo::PreReplicatedRemove(const struct FGAEffectContainer& InAr
 	InArraySerializer.EffectInfos.Remove(Handle);
 	//InArraySerializer.OwningComponent->OnEffectRepInfoRemoved.Broadcast(this);
 
-	OwningComoponent->RemoveEffectEvent(OnAppliedEvent);
+	OwningComoponent->RemoveEffectEvent(OnExpiredEvent);
 	OwningComoponent->RemoveEffectEvent(OnPeriodEvent);
 	OwningComoponent->RemoveEffectEvent(OnRemovedEvent);
 }
@@ -422,7 +422,7 @@ void FGAEffectContainer::ApplyReplicationInfo(const FGAEffectHandle& InHandle, c
 	{
 		const UWorld* World = OwningComponent->GetWorld();
 		FAFEffectRepInfo* RepInfo = new FAFEffectRepInfo(World->GetTimeSeconds(), InProperty.Period, InProperty.Duration, 0, OwningComponent);
-		RepInfo->OnAppliedEvent = InProperty.GetSpec()->OnAppliedEvent;
+		RepInfo->OnExpiredEvent = InProperty.GetSpec()->OnExpiredEvent;
 		RepInfo->OnPeriodEvent = InProperty.GetSpec()->OnPeriodEvent;
 		RepInfo->OnRemovedEvent = InProperty.GetSpec()->OnRemovedEvent;
 		RepInfo->Handle = InHandle;
@@ -443,7 +443,7 @@ void FGAEffectContainer::ApplyReplicationInfo(const FGAEffectHandle& InHandle, c
 		
 		const UWorld* World = OwningComponent->GetWorld();
 		FAFEffectRepInfo* RepInfo = new FAFEffectRepInfo(World->GetTimeSeconds(), InProperty.Period, InProperty.Duration, 0, OwningComponent);
-		RepInfo->OnAppliedEvent = InProperty.GetSpec()->OnAppliedEvent;
+		RepInfo->OnExpiredEvent = InProperty.GetSpec()->OnExpiredEvent;
 		RepInfo->OnPeriodEvent = InProperty.GetSpec()->OnPeriodEvent;
 		RepInfo->OnRemovedEvent = InProperty.GetSpec()->OnRemovedEvent;
 		RepInfo->Handle = InHandle;
