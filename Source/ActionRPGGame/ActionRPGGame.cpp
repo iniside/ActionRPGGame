@@ -4,6 +4,7 @@
 #include "Modules/ModuleManager.h"
 #include "AssetRegistryModule.h"
 #include "Engine/AssetManager.h"
+#include "Abilities/GAAbilityBase.h"
 void FActionRPGGameModule::StartupModule()
 {
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
@@ -14,6 +15,10 @@ void FActionRPGGameModule::StartupModule()
 	FPackageName::QueryRootContentPaths(ContentPaths);
 	AssetRegistry.ScanPathsSynchronous(ContentPaths);
 
+	if (UAssetManager* Manager = UAssetManager::GetIfValid())
+	{
+		Manager->ScanPathsForPrimaryAssets(FPrimaryAssetType("Ability"), ContentPaths, UGAAbilityBase::StaticClass(), true);
+	}
 };
-IMPLEMENT_PRIMARY_GAME_MODULE(FActionRPGGameModule, ActionRPGGame, "ActionRPGGame" );
+IMPLEMENT_PRIMARY_GAME_MODULE(FActionRPGGameModule, ActionRPGGame, "ActionRPGGame");
  

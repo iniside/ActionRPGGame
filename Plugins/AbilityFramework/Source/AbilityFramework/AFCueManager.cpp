@@ -164,9 +164,11 @@ void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags,
 		}
 		
 		//actor = CurrentWorld->SpawnActor<AGAEffectCue>(CueClass, Location, Rotation, SpawnParams);
-		actor->NativeBeginCue(CueParams.Instigator.Get(), CueParams.HitResult.Actor.Get(),
-			CueParams.Causer.Get(), CueParams.HitResult, CueParams);
-
+		if (actor)
+		{
+			actor->NativeBeginCue(CueParams.Instigator.Get(), CueParams.HitResult.Actor.Get(),
+				CueParams.Causer.Get(), CueParams.HitResult, CueParams);
+		}
 		/*UseCues->Dequeue(actor);
 		Cues->Enqueue(actor);*/
 	}

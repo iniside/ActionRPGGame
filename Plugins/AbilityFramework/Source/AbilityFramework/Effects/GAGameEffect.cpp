@@ -77,7 +77,9 @@ void FAFEffectRepInfo::PreReplicatedRemove(const struct FGAEffectContainer& InAr
 {
 	InArraySerializer.EffectInfos.Remove(Handle);
 	//InArraySerializer.OwningComponent->OnEffectRepInfoRemoved.Broadcast(this);
-
+	FTimerManager& Timer = OwningComoponent->GetWorld()->GetTimerManager();
+	Timer.ClearTimer(ExpiredHandle);
+	Timer.ClearTimer(PeriodHandle);
 	OwningComoponent->RemoveEffectEvent(OnExpiredEvent);
 	OwningComoponent->RemoveEffectEvent(OnPeriodEvent);
 	OwningComoponent->RemoveEffectEvent(OnRemovedEvent);

@@ -7,6 +7,8 @@
 #include "../Attributes/GAAttributesBase.h"
 #include "AFAbilityInterface.h"
 #include "AFAbilityActivationSpec.h"
+#include "AssetBundleData.h"
+#include "SubclassOf.h"
 #include "GAAbilityBase.generated.h"
 
 /*
@@ -272,7 +274,23 @@ public:
 	virtual void PostInitProperties() override;
 
 	virtual void Serialize(FArchive& Ar) override;
+	// UObject interface
+	virtual FPrimaryAssetId GetPrimaryAssetId() const override;
+	virtual void PostLoad() override;
 
+#if WITH_EDITORONLY_DATA
+	/** This scans the class for AssetBundles metadata on asset properties and initializes the AssetBundleData with InitializeAssetBundlesFromMetadata */
+	virtual void UpdateAssetBundleData();
+
+	/** Updates AssetBundleData */
+	virtual void PreSave(const class ITargetPlatform* TargetPlatform) override;
+
+protected:
+	/** Asset Bundle data computed at save time. In cooked builds this is accessible from AssetRegistry */
+	UPROPERTY()
+		FAssetBundleData AssetBundleData;
+#endif
+public:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif // WITH_EDITOR

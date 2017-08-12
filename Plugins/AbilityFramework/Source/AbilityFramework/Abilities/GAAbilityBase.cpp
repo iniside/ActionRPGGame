@@ -67,7 +67,79 @@ void UGAAbilityBase::Serialize(FArchive& Ar)
 		UpdateAssetRegistryInfo();
 	}
 }
+#if WITH_EDITORONLY_DATA
+void UGAAbilityBase::UpdateAssetBundleData()
+{
+	AssetBundleData.Reset();
 
+	// By default parse the metadata
+	if (UAssetManager::IsValid())
+	{
+		UAssetManager::Get().InitializeAssetBundlesFromMetadata(this, AssetBundleData);
+	}
+}
+
+void UGAAbilityBase::PreSave(const class ITargetPlatform* TargetPlatform)
+{
+	Super::PreSave(TargetPlatform);
+
+	UpdateAssetBundleData();
+
+	if (UAssetManager::IsValid())
+	{
+		// Bundles may have changed, refresh
+		UAssetManager::Get().RefreshAssetData(this);
+	}
+}
+#endif
+
+FPrimaryAssetId UGAAbilityBase::GetPrimaryAssetId() const
+{
+	//FName Name = GetFName();
+	//FName clsNam = GetClass()->GetFName();
+	FName dupa1 = FPackageName::GetShortFName(GetOutermost()->GetFName());
+	//FName dupa2 = FPackageName::GetShortFName(GetFName());
+	const UGAAbilityBase* A = this;
+	return FPrimaryAssetId(FPrimaryAssetType("Ability"), dupa1);
+	//if (HasAnyFlags(RF_ClassDefaultObject))
+	{
+		UClass* SearchNativeClass = GetClass();
+
+		while (SearchNativeClass && !SearchNativeClass->HasAnyClassFlags(CLASS_Native | CLASS_Intrinsic))
+		{
+			SearchNativeClass = SearchNativeClass->GetSuperClass();
+		}
+
+		if (SearchNativeClass && SearchNativeClass != GetClass())
+		{
+			// If blueprint, return native class and asset name
+			
+		}
+
+		// Native CDO, return nothing
+		return FPrimaryAssetId();
+	}
+
+	// Data assets use Class and ShortName by default, there's no inheritance so class works fine
+	//return FPrimaryAssetId(GetClass()->GetFName(), GetFName());
+}
+
+void UGAAbilityBase::PostLoad()
+{
+	Super::PostLoad();
+
+#if WITH_EDITORONLY_DATA
+	FAssetBundleData OldData = AssetBundleData;
+
+	UpdateAssetBundleData();
+
+	if (UAssetManager::IsValid() && OldData != AssetBundleData)
+	{
+		// Bundles changed, refresh
+		UAssetManager::Get().RefreshAssetData(this);
+	}
+#endif
+}
 #if WITH_EDITOR
 void UGAAbilityBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {

@@ -39,6 +39,6 @@ public class ActionRPGGame : ModuleRules
                 }
             );
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore",
-            "GameplayTags", "AbilityFramework", "SlateCore" });
+            "GameplayTags", "AbilityFramework", "SlateCore", "AssetRegistry" });
 	}
 }

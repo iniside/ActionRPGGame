@@ -45,7 +45,7 @@ namespace UnrealBuildTool.Rules
                     "AIModule",
                     "MovieScene",
                     "MovieSceneTracks",
-                   
+                    "AssetRegistry"
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);
