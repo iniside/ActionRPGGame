@@ -175,7 +175,7 @@ FGAEffectContext UGABlueprintLibrary::MakeContext(class UObject* Target, class A
 		instiComp = instiAttr->GetAbilityComp();
 	}
 	
-	FVector location = targetComp ? targetComp->GetOwner()->GetActorLocation() : HitIn.ImpactPoint;
+	FVector location = targetComp ? targetComp->GetOwner()->GetActorLocation() : FVector(HitIn.ImpactPoint.X, HitIn.ImpactPoint.Y, HitIn.ImpactPoint.Z);
 	FGAEffectContext Context(
 		targetAttr ? targetAttr->GetAttributes() : nullptr,
 		instiAttr ? instiAttr->GetAttributes() : nullptr,

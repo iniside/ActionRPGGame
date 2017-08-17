@@ -118,10 +118,10 @@ void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags,
 		}
 
 		FString prefix = "";
-		if (mode == ENetMode::NM_Client)
-		{
-			prefix = FString::Printf(TEXT("Client %d: "), GPlayInEditorID - 1);
-		}
+		//if (mode == ENetMode::NM_Client)
+		//{
+		//	prefix = FString::Printf(TEXT("Client %d: "), GPlayInEditorID - 1);
+		//}
 
 		UE_LOG(AbilityFramework, Log, TEXT("%s : CueManager HandleCue: %s, Instigator: %s, Location: %s, World: %s, Role: %s"),
 			*prefix,

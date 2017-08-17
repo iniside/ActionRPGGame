@@ -42,5 +42,9 @@
 			"Name": "OnlineFramework",
 			"Enabled": true
 		}
+	],
+	"TargetPlatforms": [
+		"LinuxNoEditor",
+		"WindowsNoEditor"
 	]
 }

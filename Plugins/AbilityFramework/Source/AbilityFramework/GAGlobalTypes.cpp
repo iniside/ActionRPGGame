@@ -14,15 +14,15 @@ FGAEffectContext::FGAEffectContext(TWeakObjectPtr<class UGAAttributesBase> Targe
 	TWeakObjectPtr<class UAFAbilityComponent> TargetCompIn,
 	TWeakObjectPtr<class UAFAbilityComponent> InstigatorCompIn,
 	TWeakObjectPtr<class AActor> InAvatar)
-	: TargetAttributes(TargetAttributesIn),
+	: TargetHitLocation(TargetHitLocationIn), 
+	TargetAttributes(TargetAttributesIn),
 	InstigatorAttributes(InstigatorAttributesIn),
-	TargetHitLocation(TargetHitLocationIn),
 	Target(TargetIn),
 	Causer(CauserIn),
 	Instigator(InstigatorIn),
+	Avatar(InAvatar),
 	TargetComp(TargetCompIn),
-	InstigatorComp(InstigatorCompIn),
-	Avatar(InAvatar)
+	InstigatorComp(InstigatorCompIn)
 {
 	TargetInterface = Cast<IAFAbilityInterface>(TargetIn.Get());
 	InstigatorInterface = Cast<IAFAbilityInterface>(Instigator.Get());

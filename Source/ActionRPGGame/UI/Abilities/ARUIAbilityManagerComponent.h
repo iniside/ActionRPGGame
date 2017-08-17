@@ -112,7 +112,7 @@ public:
 	FGameplayTag GetInputTag(int32 SetIndex, int32 AbilityIndex);
 	void SetInputTag(int32 SetIndex, int32 AbilityIndex, FGameplayTag InAbilityTag);
 
-	void NativeEquipAbility(const FGameplayTag& InAbilityTag, int32 AbilitySet
+	void NativeEquipAbility(const FGameplayTag& InAbilityTag, int32 InAbilitySet
 		, int32 AbilityIndex);
 	UFUNCTION()
 		void OnAbilityReady(const FGameplayTag& InAbilityTag);

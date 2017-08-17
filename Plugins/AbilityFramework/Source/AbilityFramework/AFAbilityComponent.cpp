@@ -673,14 +673,14 @@ void UAFAbilityComponent::BindAbilityToAction(UInputComponent* InputComponent, F
 	{
 		FInputActionBinding AB(ActionName.GetTagName(), IE_Pressed);
 		AB.ActionDelegate.GetDelegateForManualSet().BindUObject(this, &UAFAbilityComponent::NativeInputPressed, ActionName);
-		&InputComponent->AddActionBinding(AB);
+		InputComponent->AddActionBinding(AB);
 	}
 
 	// Released event
 	{
 		FInputActionBinding AB(ActionName.GetTagName(), IE_Released);
 		AB.ActionDelegate.GetDelegateForManualSet().BindUObject(this, &UAFAbilityComponent::NativeInputReleased, ActionName);
-		&InputComponent->AddActionBinding(AB);
+		InputComponent->AddActionBinding(AB);
 	}
 	SetBlockedInput(ActionName, false);
 }

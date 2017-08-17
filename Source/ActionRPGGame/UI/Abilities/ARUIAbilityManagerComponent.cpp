@@ -120,7 +120,7 @@ void UARUIAbilityManagerComponent::SetInputTag(int32 SetIndex, int32 AbilityInde
 	InputBindingsSet[SetIndex][AbilityIndex] = InAbilityTag;
 }
 
-void UARUIAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbilityTag, int32 AbilitySet
+void UARUIAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbilityTag, int32 InAbilitySet
 	, int32 AbilityIndex)
 {
 	//fake implementation untill I add AssetManager support.
@@ -138,12 +138,12 @@ void UARUIAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbil
 
 	if (!AbilityComp->OnAbilityAdded.IsAlreadyBound(this, &UARUIAbilityManagerComponent::OnAbilityReady))
 	{
-		FGameplayTag d = GetInputTag(AbilitySet, AbilityIndex);
+		FGameplayTag d = GetInputTag(InAbilitySet, AbilityIndex);
 		AbilityComp->OnAbilityAdded.AddDynamic(this, &UARUIAbilityManagerComponent::OnAbilityReady);
 	}
-	FARAbilityEquipInfo ABInfo(AbilitySet, AbilityIndex, GetInputTag(AbilitySet, AbilityIndex));
+	FARAbilityEquipInfo ABInfo(InAbilitySet, AbilityIndex, GetInputTag(InAbilitySet, AbilityIndex));
 	AwatingAbilityConfimation.Add(InAbilityTag, ABInfo);
-	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, nullptr, GetInputTag(AbilitySet, AbilityIndex));
+	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, nullptr, GetInputTag(InAbilitySet, AbilityIndex));
 	
 }
 void UARUIAbilityManagerComponent::OnAbilityReady(const FGameplayTag& InAbilityTag)

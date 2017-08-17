@@ -147,7 +147,7 @@ bool FAFAttributeBase::CheckIfModsMatch(const FGAEffectHandle& InHandle, const F
 {
 	TMap<FGAEffectHandle, FGAEffectMod>& mods = Modifiers[static_cast<int32>(InMod.AttributeMod)];
 	auto It = mods.CreateConstIterator();
-	for (It; It; ++It)
+	for (; It; ++It)
 	{
 		if (It->Key.HasAllAttributeTags(InHandle)) //or maybe the other way around ?
 		{
@@ -162,7 +162,7 @@ bool FAFAttributeBase::CheckIfStronger(const FGAEffectMod& InMod)
 {
 	TMap<FGAEffectHandle, FGAEffectMod>& mods = Modifiers[static_cast<int32>(InMod.AttributeMod)];
 	auto It = mods.CreateConstIterator();
-	for (It; It; ++It)
+	for (; It; ++It)
 	{
 		if (InMod > It->Value)
 		{
