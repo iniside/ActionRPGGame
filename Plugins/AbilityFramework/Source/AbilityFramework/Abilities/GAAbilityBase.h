@@ -272,7 +272,7 @@ public:
 	UGAAbilityBase(const FObjectInitializer& ObjectInitializer);
 
 	virtual void PostInitProperties() override;
-
+	
 	virtual void Serialize(FArchive& Ar) override;
 	// UObject interface
 	virtual FPrimaryAssetId GetPrimaryAssetId() const override;

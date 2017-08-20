@@ -18,7 +18,7 @@ public:
 		FAFAttributeBase BaseDamage;
 	UPROPERTY(EditAnywhere, Category = "Base")
 		FAFAttributeBase CritChance;
-	UPROPERTY(EditAnywhere, Replicated, Category = "Base")
+	UPROPERTY(EditAnywhere, ReplicatedUsing=OnRep_Magazine, Category = "Base")
 		FAFAttributeBase Magazine;
 	UPROPERTY(EditAnywhere, Category = "Base")
 		FAFAttributeBase RateOfFire;
@@ -31,5 +31,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Base")
 		FAFAttributeBase Spread;
 	
-	
+	UFUNCTION()
+		void OnRep_Magazine();
 };

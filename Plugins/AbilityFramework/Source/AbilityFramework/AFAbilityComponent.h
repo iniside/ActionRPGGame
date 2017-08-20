@@ -219,6 +219,9 @@ public:
 	//probabaly replace FGameplayTag with FObjectKey
 	TMap<FGameplayTag, class UGAAttributesBase*> AdditionalAttributes;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Replicated)
+		TArray<class UGAAttributesBase*> RepAttributes;
+
 	UPROPERTY(ReplicatedUsing = OnRep_AttributeChanged)
 		FGAModifiedAttributeData ModifiedAttribute;
 	UFUNCTION()
@@ -290,6 +293,7 @@ public:
 		{
 			return;
 		}
+		RepAttributes.Add(InAttributes);
 		AdditionalAttributes.Add(InOwner, InAttributes);
 	}
 	UFUNCTION(BlueprintCallable, Category = "Test")

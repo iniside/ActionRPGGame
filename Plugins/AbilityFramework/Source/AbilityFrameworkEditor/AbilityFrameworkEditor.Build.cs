@@ -7,7 +7,7 @@ namespace UnrealBuildTool.Rules
 	{
 		public AbilityFrameworkEditor(ReadOnlyTargetRules Target) : base(Target)
         {
-            var EngineDir = Path.GetFullPath(BuildConfiguration.RelativeEnginePath);
+            var EngineDir = Path.GetFullPath(Target.RelativeEnginePath);
             PublicIncludePaths.AddRange(
 				new string[] {
                     "AbilityFramework",

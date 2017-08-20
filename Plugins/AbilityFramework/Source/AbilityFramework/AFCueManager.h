@@ -39,6 +39,8 @@ public:
 	//handle clearing up cache when PIE mode is ending.
 	void HandleOnPIEEnd(bool InVal);
 #endif //WITH_EDITOR
+	void HandlePreLoadMap(const FString& InMapName);
+	void HandlePostLoadMap(UWorld* InWorld);
 public:
 	static UAFCueManager* Get();
 	void HandleCue(const FGameplayTagContainer& Tags,

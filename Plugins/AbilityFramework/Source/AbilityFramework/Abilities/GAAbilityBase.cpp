@@ -172,15 +172,22 @@ void UGAAbilityBase::InitAbility()
 	if (!AbilityComponent)
 	{
 		AbilityComponent = GetAbilityComp();
-		if (AbilityComponent)
-		{
-			AbilityComponent->AddAddtionalAttributes(AbilityTag, Attributes);
-		}
 	}
 	if (Attributes)
 	{
 		Attributes->InitializeAttributes(GetAbilityComp());
 		Attributes->InitializeAttributesFromTable();
+	}
+	
+	ENetRole role = AbilityComponent->GetOwnerRole();
+	ENetMode mode = AbilityComponent->GetOwner()->GetNetMode();
+	if (role == ENetRole::ROLE_Authority ||
+		mode == ENetMode::NM_Standalone)
+	{
+		if (AbilityComponent && Attributes)
+		{
+			AbilityComponent->AddAddtionalAttributes(AbilityTag, Attributes);
+		}
 	}
 	
 	if (!OwnerCamera)

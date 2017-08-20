@@ -2,7 +2,7 @@
 
 #include "ARGunAttributes.h"
 #include "Net/UnrealNetwork.h"
-
+#include "AFAbilityComponent.h"
 
 void UARGunAttributes::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
 {
@@ -10,3 +10,12 @@ void UARGunAttributes::GetLifetimeReplicatedProps(TArray< class FLifetimePropert
 	DOREPLIFETIME(UARGunAttributes, Magazine);
 }
 
+void UARGunAttributes::OnRep_Magazine()
+{
+	float dua = 0;
+	UARGunAttributes* asd = this;
+	if (OwningAttributeComp->GetOwner()->GetNetMode() == ENetMode::NM_Client)
+	{
+		Magazine = this->Magazine;
+	}
+}

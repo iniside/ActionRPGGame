@@ -1,4 +1,11 @@
 #pragma once
+#include "CoreMinimal.h"
+#include "UObject/ObjectMacros.h"
+#include "UObject/Object.h"
+#include "UObject/Class.h"
+#include "Templates/SubclassOf.h"
+#include "UObject/UnrealType.h"
+#include "UObject/CoreNet.h"
 #include "../Effects/GAGameEffect.h"
 #include "../GAGlobalTypes.h"
 #include "GAAttributeBase.h"
@@ -46,7 +53,7 @@ public:
 		UDataTable* AttributeValues;
 	UGAAttributesBase(const FObjectInitializer& ObjectInitializer);
 	~UGAAttributesBase();
-
+	//virtual void PostNetReceive() override;
 	virtual void InitializeAttributes(UAFAbilityComponent* InOwningAttributeComp);
 	void InitializeAttributesFromTable();
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Initialize Attributes"))

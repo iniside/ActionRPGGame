@@ -155,6 +155,9 @@ FGAEffectHandle UAFAbilityComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 		}
 	}
 	
+	//here, we should start attribute change prediction
+	//either change attribute or apply effect which will do so
+
 	FString prefix = "";
 	if (mode == ENetMode::NM_Standalone
 		|| role == ENetRole::ROLE_Authority)
@@ -386,6 +389,7 @@ void UAFAbilityComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProp
 	//possibly replicate it to everyone
 	//to allow prediction for UI.
 	DOREPLIFETIME(UAFAbilityComponent, DefaultAttributes);
+	DOREPLIFETIME(UAFAbilityComponent, RepAttributes);
 	DOREPLIFETIME(UAFAbilityComponent, ModifiedAttribute);
 	DOREPLIFETIME(UAFAbilityComponent, GameEffectContainer);
 
@@ -427,6 +431,16 @@ bool UAFAbilityComponent::ReplicateSubobjects(class UActorChannel *Channel, clas
 		if (Ability.Ability)
 			WroteSomething |= Channel->ReplicateSubobject(const_cast<UGAAbilityBase*>(Ability.Ability), *Bunch, *RepFlags);
 	}
+
+	for (UGAAttributesBase* Attribute : RepAttributes)
+	{
+		//if (Set.InputOverride)
+		//	WroteSomething |= Channel->ReplicateSubobject(const_cast<UGASInputOverride*>(Set.InputOverride), *Bunch, *RepFlags);
+
+		if (Attribute)
+			WroteSomething |= Channel->ReplicateSubobject(const_cast<UGAAttributesBase*>(Attribute), *Bunch, *RepFlags);
+	}
+
 	return WroteSomething;
 }
 void UAFAbilityComponent::GetSubobjectsWithStableNamesForNetworking(TArray<UObject*>& Objs)
@@ -511,7 +525,9 @@ void FGASAbilityItem::PostReplicatedAdd(const struct FGASAbilityContainer& InArr
 			Ability->OwnerCamera = nullptr;
 		}
 		Ability->InitAbility();
-		
+		Ability->Attributes = nullptr;
+		//UGAAttributesBase* attr = InArraySerializer.AbilitiesComp->AdditionalAttributes.FindRef(Ability->AbilityTag);
+		//Ability->Attributes = attr;
 		InArraySerializerC.AbilitiesInputs.Add(Ability->AbilityTag, Ability); //.Add(Ability->AbilityTag, Ability);
 		InArraySerializerC.AbilitiesComp->NotifyOnAbilityAdded(Ability->AbilityTag);
 		InArraySerializerC.AbilitiesComp->NotifyOnAbilityReady(Ability->AbilityTag);

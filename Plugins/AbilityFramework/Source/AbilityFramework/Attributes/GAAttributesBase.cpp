@@ -17,7 +17,10 @@ UGAAttributesBase::~UGAAttributesBase()
 	LastAttributeProp = nullptr; //make sure we clear this pointer.
 	CachedFloatPropety = nullptr;
 }
-
+//void UGAAttributesBase::PostNetReceive()
+//{
+//	Super::PostNetReceive();
+//}
 void UGAAttributesBase::InitializeAttributes(UAFAbilityComponent* InOwningAttributeComp)
 {
 	OwningAttributeComp = InOwningAttributeComp;

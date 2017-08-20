@@ -30,6 +30,8 @@ void UAFCueManager::Initialize()
 #if WITH_EDITOR
 	FEditorDelegates::EndPIE.AddUObject(this, &UAFCueManager::HandleOnPIEEnd);
 #endif //WITH_EDITOR
+	FCoreUObjectDelegates::PreLoadMap.AddUObject(this, &UAFCueManager::HandlePreLoadMap);
+	FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UAFCueManager::HandlePostLoadMap);
 }
 void UAFCueManager::LoadCueSet()
 {
@@ -79,10 +81,67 @@ void UAFCueManager::HandleOnPIEEnd(bool InVal)
 				UsedCues.Remove(It->Key);
 			}
 		}
-		
+
 	}
 }
 #endif //WITH_EDITOR
+void UAFCueManager::HandlePreLoadMap(const FString& InMapName)
+{
+	CurrentWorld = nullptr;
+
+	InstancedCues.Reset();
+	InstancedCues.Compact();
+	UsedCues.Reset();
+	UsedCues.Compact();
+	//for (auto It = InstancedCues.CreateIterator(); It; ++It)
+	//{
+	//	if (It->Value.IsValid())
+	//	{
+	//		while (!It->Value->IsEmpty())
+	//		{
+	//			AGAEffectCue* ToDestroy = nullptr;
+	//			It->Value->Dequeue(ToDestroy);
+	//			if (ToDestroy)
+	//			{
+	//				ToDestroy->Destroy();
+	//			}
+	//		}
+	//	}
+	//}
+	//for (auto It = UsedCues.CreateIterator(); It; ++It)
+	//{
+	//	if (It->Value.Num() <= 0)
+	//	{
+	//		UsedCues.Remove(It->Key);
+	//	}
+	//	for (auto QIt = It->Value.CreateIterator(); QIt; ++QIt)
+	//	{
+	//		if (QIt->Value.IsValid())
+	//		{
+	//			while (!QIt->Value->IsEmpty())
+	//			{
+	//				AGAEffectCue* ToDestroy = nullptr;
+	//				QIt->Value->Dequeue(ToDestroy);
+	//				if (ToDestroy)
+	//				{
+	//					ToDestroy->Destroy();
+	//				}
+	//			}
+	//		}
+	//		if (It->Value.Num() <= 0)
+	//		{
+	//			UsedCues.Remove(It->Key);
+	//		}
+	//	}
+
+	//}
+}
+void UAFCueManager::HandlePostLoadMap(UWorld* InWorld)
+{
+	CurrentWorld = InWorld;
+}
+
+
 void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags, 
 	const FGAEffectCueParams& CueParams)
 {
