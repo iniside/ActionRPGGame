@@ -12,7 +12,7 @@
 
 #include "Effects/GAGameEffect.h"
 #include "GAGlobalTypes.h"
-#include "Messaging.h"
+//#include "Messaging.h"
 #include "GameplayTagAssetInterface.h"
 #include "AFAbilityInterface.h"
 
@@ -143,8 +143,7 @@ public:
 
 	void SetBlockedInput(const FGameplayTag& InInput, bool bBlock);
 	UGAAbilityBase* AddAbility(TSubclassOf<class UGAAbilityBase> AbilityIn, 
-		AActor* InAvatar,
-		FGameplayTag ActionName);
+		AActor* InAvatar);
 	void SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
 	UGAAbilityBase* GetAbility(FGameplayTag TagIn);
 	
@@ -554,15 +553,32 @@ public:
 			OnAbilityReadyMap.Remove(InAbilityTag);
 		}
 	}
+
+	TMap<FGameplayTag, FAFOnAbilityReady> OnAbilityInputReadyMap;
+
+	void AddOnAbilityInputReadyDelegate(const FGameplayTag& InAbilityTag, const FAFOnAbilityReady& InDelegate)
+	{
+		OnAbilityInputReadyMap.Add(InAbilityTag, InDelegate);
+	}
+
+	void NotifyOnAbilityInputReady(const FGameplayTag& InAbilityTag)
+	{
+		if (FAFOnAbilityReady* Ready = OnAbilityInputReadyMap.Find(InAbilityTag))
+		{
+			Ready->ExecuteIfBound();
+			OnAbilityInputReadyMap.Remove(InAbilityTag);
+		}
+	}
+
 	FAFOnAbilityReady OnAbilityReady;
+
 	UPROPERTY(BlueprintAssignable, Category = "AbilityFramework")
 			FAFOnAbilityAdded OnAbilityAdded;
 
 	FAFMontageGenericDelegate OnAbilityNotifyBegin;
 	FAFMontageGenericDelegate OnAbilityNotifyTick;
 	FAFMontageGenericDelegate OnAbilityNotifyEnd;
-	
-	//class IIGIPawn* PawnInterface;
+
 private:
 	
 
@@ -584,22 +600,25 @@ public:
 
 	TMap<FGameplayTag, bool> BlockedInput;
 	//TSharedPtr<FStreamableHandle> AbilityLoadedHandle;
-	void OnFinishedLoad(FGameplayTag InAbilityTag,
-		FGameplayTag InInputName, FPrimaryAssetId InPrimaryAssetId);
+	void OnFinishedLoad(FGameplayTag InAbilityTag, FPrimaryAssetId InPrimaryAssetId);
 	void SetBlockedInput(const FGameplayTag& InInput, bool bBlock);
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Bind Ability To Action"), Category = "AbilityFramework|Abilities")
 		void BP_BindAbilityToAction(FGameplayTag ActionName);
 	void BindAbilityToAction(UInputComponent* InputComponent, FGameplayTag ActionName);
 	
 	//need to be called on both client and server.
-	void SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
+	void SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag, const FAFOnAbilityReady& InputDelegate);
+
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerSetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
 	void ServerSetAbilityToAction_Implementation(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
 	bool ServerSetAbilityToAction_Validate(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set Ability To Action"), Category = "AbilityFramework|Abilities")
-	void BP_SetAbilityToAction(FGameplayTag InAbilityTag, FGameplayTag InInputTag);
 	
+	/* Called when ability action has been binded on server. */
+	UFUNCTION(Client, Reliable)
+		void ClientNotifyAbilityInputReady(FGameplayTag AbilityTag);
+	void ClientNotifyAbilityInputReady_Implementation(FGameplayTag AbilityTag);
+		
 	UFUNCTION(BlueprintCallable, meta=(DisplayName="Input Pressed"), Category = "AbilityFramework|Abilities")
 		void BP_InputPressed(FGameplayTag ActionName);
 
@@ -628,48 +647,30 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Add Ability From Tag"), Category = "AbilityFramework|Abilities")
 		void BP_AddAbilityFromTag(FGameplayTag InAbilityTag,
-			AActor* InAvatar,
-			FGameplayTag InInputName);
+			AActor* InAvatar);
 
 	void NativeAddAbilityFromTag(FGameplayTag InAbilityTag,
-		AActor* InAvatar,
-		FGameplayTag InInputName);
+		AActor* InAvatar);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerNativeAddAbilityFromTag(FGameplayTag InAbilityTag,
-		AActor* InAvatar,
-		FGameplayTag InInputName);
+		AActor* InAvatar);
 
 	void ServerNativeAddAbilityFromTag_Implementation(FGameplayTag InAbilityTag,
-		AActor* InAvatar,
-		FGameplayTag InInputName);
+		AActor* InAvatar);
 
 	bool ServerNativeAddAbilityFromTag_Validate(FGameplayTag InAbilityTag,
-		AActor* InAvatar,
-		FGameplayTag InInputName);
+		AActor* InAvatar);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Add Ability"), Category = "AbilityFramework|Abilities")
-		void BP_AddAbility(TSubclassOf<class UGAAbilityBase> AbilityClass, 
-			AActor* InAvatar,
-			FGameplayTag ActionName, bool bAutoBind = true);
 
 	//TODO: Make it procted
-	void NativeAddAbility(TSubclassOf<class UGAAbilityBase> AbilityClass, AActor* InAvatar,
-		FGameplayTag ActionName, bool bAutoBind = true);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Remove Ability"), Category = "AbilityFramework|Abilities")
 		void BP_RemoveAbility(FGameplayTag TagIn);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Get Ability By Tag"), Category = "AbilityFramework|Abilities")
 		UGAAbilityBase* BP_GetAbilityByTag(FGameplayTag TagIn);
-	/*
-		Should be called on server.
-		Adds new ability to ActiveAbilities;
-	*/
-	void NativeAddAbilitiesFromSet(TSubclassOf<class UGAAbilitySet> AbilitySet);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Add Abilities From Set"), Category = "AbilityFramework|Abilities")
-	void BP_AddAbilitiesFromSet(TSubclassOf<class UGAAbilitySet> AbilitySet);
 
 	bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags) override;
 	void GetSubobjectsWithStableNamesForNetworking(TArray<UObject*>& Objs) override;
@@ -678,8 +679,7 @@ public:
 protected:
 	void InitializeInstancedAbilities();
 	UGAAbilityBase* InstanceAbility(TSubclassOf<class UGAAbilityBase> AbilityClass, 
-		AActor* InAvatar,
-		FGameplayTag ActionName = FGameplayTag());
+		AActor* InAvatar);
 	/*
 		Messagin implementation for applying effects from multiple threads (in case 
 		at some beatyfull day UObject will be able to exist on any thread), and from single thread.

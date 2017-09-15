@@ -6,8 +6,7 @@
 #include "MovieSceneSequence.h"
 #include "MovieScene.h"
 #include "LazyObjectPtr.h"
-///D:\Unreal\UnrealEngine-Master\Engine\Source\Runtime\ActorSequence\Public\ActorSequenceObjectReference.h
-#include "Runtime/ActorSequence/Public/ActorSequenceObjectReference.h"
+#include "ActorSequence.h"
 #include "GAEffectCueSequence.generated.h"
 
 UCLASS(BlueprintType, DefaultToInstanced)
@@ -20,8 +19,8 @@ public:
 		UMovieScene* MovieScene;
 private:
 	/** Collection of object references. */
-	UPROPERTY()
-		FActorSequenceObjectReferenceMap ObjectReferences;
+	//UPROPERTY()
+	//	FActorSequenceObjectReferenceMap ObjectReferences;
 
 #if WITH_EDITORONLY_DATA
 private:

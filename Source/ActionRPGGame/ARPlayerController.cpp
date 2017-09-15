@@ -37,11 +37,11 @@ void AARPlayerController::SetPawn(APawn* InPawn)
 
 		FAFOnAbilityReady del1 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, AbilitytNextWeapon, InputNextWeapon);
 		AbilityComp->AddOnAbilityReadyDelegate(AbilitytNextWeapon, del1);
-		AbilityComp->NativeAddAbilityFromTag(AbilitytNextWeapon, nullptr, /*Input*/ InputNextWeapon);
+		AbilityComp->NativeAddAbilityFromTag(AbilitytNextWeapon, nullptr);
 
 		FAFOnAbilityReady del2 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, AbilitytPreviousWeapon, InputPreviousWeapon);
 		AbilityComp->AddOnAbilityReadyDelegate(AbilitytPreviousWeapon, del2);
-		AbilityComp->NativeAddAbilityFromTag(AbilitytPreviousWeapon, nullptr, /*Input*/ InputPreviousWeapon);
+		AbilityComp->NativeAddAbilityFromTag(AbilitytPreviousWeapon, nullptr);
 	}
 }
 
@@ -79,5 +79,5 @@ void AARPlayerController::OnInputAbilityReady(FGameplayTag InAbilityTag, FGamepl
 
 	UARAbilityBase* Ability = Cast<UARAbilityBase>(AbilityComp->BP_GetAbilityByTag(InAbilityTag));
 	
-	AbilityComp->SetAbilityToAction(InAbilityTag, InInputTag);
+	AbilityComp->SetAbilityToAction(InAbilityTag, InInputTag, FAFOnAbilityReady());
 }

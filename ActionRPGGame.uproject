@@ -17,40 +17,44 @@
 			]
 		}
 	],
-	"Plugins": [
-		{
-			"Name": "AbilityFramework",
-			"Enabled": true
-		},
-		{
-			"Name": "ActorSequenceEditor",
-			"Enabled": true
-		},
-		{
-			"Name": "ImagePlate",
-			"Enabled": true
-		},
-		{
-			"Name": "PerformanceMonitor",
-			"Enabled": true
-		},
-		{
-			"Name": "OnlineSubsystemAmazon",
-			"Enabled": true
-		},
-		{
-			"Name": "OnlineFramework",
-			"Enabled": true
-		},
-		{
-			"Name": "SteamVR",
-			"Enabled": false
-		},
-		{
-			"Name": "OculusVR",
-			"Enabled": false
-		}
-	],
+  "Plugins": [
+    {
+      "Name": "ActorSequence",
+      "Enabled": true
+    },
+    {
+      "Name": "AbilityFramework",
+      "Enabled": true
+    },
+    {
+      "Name": "ActorSequenceEditor",
+      "Enabled": true
+    },
+    {
+      "Name": "ImagePlate",
+      "Enabled": true
+    },
+    {
+      "Name": "PerformanceMonitor",
+      "Enabled": true
+    },
+    {
+      "Name": "OnlineSubsystemAmazon",
+      "Enabled": true
+    },
+    {
+      "Name": "OnlineFramework",
+      "Enabled": true
+    },
+    {
+      "Name": "SteamVR",
+      "Enabled": false
+    },
+    {
+      "Name": "OculusVR",
+      "Enabled": false
+    }
+  ],
 	"TargetPlatforms": [
 		"LinuxNoEditor",
 		"WindowsNoEditor"

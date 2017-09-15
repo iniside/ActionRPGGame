@@ -1,7 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Engine/EngineBaseTypes.h"
-#include "Messaging.h"
+//#include "Messaging.h"
 #include "GALatentFunctionBase.generated.h"
 
 struct FGALatentFunctionTick: public FTickFunction

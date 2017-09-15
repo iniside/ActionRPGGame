@@ -3,7 +3,7 @@
 #include "Effects/GAGameEffect.h"
 #include "Attributes/GAAttributeGlobals.h"
 #include "GAGlobalTypes.h"
-#include "Messaging.h"
+//#include "Messaging.h"
 #include "AFAbilityInterface.generated.h"
 
 

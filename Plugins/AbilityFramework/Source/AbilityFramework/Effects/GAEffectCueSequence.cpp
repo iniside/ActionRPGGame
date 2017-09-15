@@ -12,7 +12,7 @@
 #include "Classes/Engine/SimpleConstructionScript.h"
 #include "Engine/Blueprint.h"
 #include "UObject/Package.h"
-
+#include "ActorSequenceObjectReference.h"
 #include "GAEffectCueSequence.h"
 
 
@@ -40,7 +40,7 @@ void UGAEffectCueSequence::PostInitProperties()
 	if (!bHasBeenInitialized && !HasAnyFlags(RF_ClassDefaultObject) && OwnerCue && !OwnerCue->HasAnyFlags(RF_ClassDefaultObject))
 	{
 		FGuid BindingID = MovieScene->AddPossessable(OwnerCue ? OwnerCue->GetActorLabel() : TEXT("Owner"), OwnerCue ? OwnerCue->GetClass() : AGAEffectCue::StaticClass());
-		ObjectReferences.CreateBinding(BindingID, FActorSequenceObjectReference::CreateForContextActor());
+		//ObjectReferences.CreateBinding(BindingID, FActorSequenceObjectReference::CreateForContextActor());
 
 		OnInitializeSequenceEvent.Broadcast(this);
 		bHasBeenInitialized = true;
@@ -87,7 +87,7 @@ void UGAEffectCueSequence::BindPossessableObject(const FGuid& ObjectId, UObject&
 
 	if (AActor* Actor = Cast<AActor>(&PossessedObject))
 	{
-		ObjectReferences.CreateBinding(ObjectId, FActorSequenceObjectReference::CreateForActor(Actor, ActorContext));
+		//ObjectReferences.CreateBinding(ObjectId, FActorSequenceObjectReference::CreateForActor(Actor, ActorContext));
 	}
 }
 
@@ -107,7 +107,7 @@ void UGAEffectCueSequence::LocateBoundObjects(const FGuid& ObjectId, UObject* Co
 {
 	if (Context)
 	{
-		ObjectReferences.ResolveBinding(ObjectId, CastChecked<AActor>(Context), OutObjects);
+		//ObjectReferences.ResolveBinding(ObjectId, CastChecked<AActor>(Context), OutObjects);
 	}
 }
 
@@ -126,5 +126,5 @@ UObject* UGAEffectCueSequence::GetParentObject(UObject* Object) const
 
 void UGAEffectCueSequence::UnbindPossessableObjects(const FGuid& ObjectId)
 {
-	ObjectReferences.RemoveBinding(ObjectId);
+	//ObjectReferences.RemoveBinding(ObjectId);
 }

@@ -136,21 +136,26 @@ void UARUIAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbil
 	if (!AbilityComp)
 		return;
 
-	if (!AbilityComp->OnAbilityAdded.IsAlreadyBound(this, &UARUIAbilityManagerComponent::OnAbilityReady))
+	/*if (!AbilityComp->OnAbilityAdded.IsAlreadyBound(this, &UARUIAbilityManagerComponent::OnAbilityReady))
 	{
 		FGameplayTag d = GetInputTag(InAbilitySet, AbilityIndex);
-		AbilityComp->OnAbilityAdded.AddDynamic(this, &UARUIAbilityManagerComponent::OnAbilityReady);
-	}
-	FARAbilityEquipInfo ABInfo(InAbilitySet, AbilityIndex, GetInputTag(InAbilitySet, AbilityIndex));
-	AwatingAbilityConfimation.Add(InAbilityTag, ABInfo);
-	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, nullptr, GetInputTag(InAbilitySet, AbilityIndex));
+		AbilityComp->OnAbilityReady.AddDynamic(this, &UARUIAbilityManagerComponent::OnAbilityReady);
+	}*/
+	FGameplayTag IAbilityInput = GetInputTag(InAbilitySet, AbilityIndex);
+	FAFOnAbilityReady ReadyDelegate = FAFOnAbilityReady::CreateUObject(this, &UARUIAbilityManagerComponent::OnAbilityReady, 
+		InAbilityTag, IAbilityInput, InAbilitySet, AbilityIndex);
+	AbilityComp->AddOnAbilityReadyDelegate(InAbilityTag, ReadyDelegate);
+
+	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, nullptr);// , GetInputTag(InAbilitySet, AbilityIndex));
 	
 }
-void UARUIAbilityManagerComponent::OnAbilityReady(const FGameplayTag& InAbilityTag)
+void UARUIAbilityManagerComponent::OnAbilityReady(FGameplayTag InAbilityTag, FGameplayTag InAbilityInput,
+	int32 InAbilitySet, int32 InAbilityIndex)
 {
-	NativeOnAbilityReady(InAbilityTag);
+	NativeOnAbilityReady(InAbilityTag, InAbilityInput, InAbilitySet, InAbilityIndex);
 }
-void UARUIAbilityManagerComponent::NativeOnAbilityReady(const FGameplayTag& InAbilityTag)
+void UARUIAbilityManagerComponent::NativeOnAbilityReady(const FGameplayTag& InAbilityTag, const FGameplayTag InAbilityInput,
+	int32 InAbilitySet, int32 InAbilityIndex)
 {
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
 	if (!MyPC)
@@ -163,20 +168,15 @@ void UARUIAbilityManagerComponent::NativeOnAbilityReady(const FGameplayTag& InAb
 	if (!AbilityComp)
 		return;
 
-	if (AwatingAbilityConfimation.Contains(InAbilityTag))
-	{
-		FARAbilityEquipInfo Value;
-		AwatingAbilityConfimation.RemoveAndCopyValue(InAbilityTag, Value);
-		UARAbilityBase* Ability = Cast<UARAbilityBase>(AbilityComp->BP_GetAbilityByTag(InAbilityTag));
-		
-		SetAbility(Value.AbilitySetIndex, Value.AbilityIndex, Ability);
-		SetAbilityTag(Value.AbilitySetIndex, Value.AbilityIndex, InAbilityTag);
-		SetInputTag(Value.AbilitySetIndex, Value.AbilityIndex, Value.InputBinding);
-		
-		
-		AbilityComp->SetAbilityToAction(InAbilityTag, Value.InputBinding);
-	}
 	
+	UARAbilityBase* Ability = Cast<UARAbilityBase>(AbilityComp->BP_GetAbilityByTag(InAbilityTag));
+		
+	SetAbility(InAbilitySet, InAbilityIndex, Ability);
+	SetAbilityTag(InAbilitySet, InAbilityIndex, InAbilityTag);
+	SetInputTag(InAbilitySet, InAbilityIndex, InAbilityInput);
+		
+		
+	AbilityComp->SetAbilityToAction(InAbilityTag, InAbilityInput, FAFOnAbilityReady());
 }
 
 void UARUIAbilityManagerComponent::SwitchSet()

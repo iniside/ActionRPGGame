@@ -4,7 +4,7 @@
 #include "../Effects/GAEffectGlobalTypes.h"
 
 // Messaging
-#include "Messaging.h"
+//#include "Messaging.h"
 
 #include "GAAttributeBase.generated.h"
 

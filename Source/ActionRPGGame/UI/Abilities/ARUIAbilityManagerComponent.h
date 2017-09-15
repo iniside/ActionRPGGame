@@ -9,26 +9,6 @@
 #include "ARAvailableAbilities.h"
 #include "ARUIAbilityManagerComponent.generated.h"
 
-USTRUCT()
-struct FARAbilityEquipInfo
-{
-	GENERATED_BODY()
-public:
-	int32 AbilitySetIndex;
-	int32 AbilityIndex;
-	FGameplayTag InputBinding;
-
-	FARAbilityEquipInfo()
-	{};
-	FARAbilityEquipInfo(int32 InAbilitySetIndex
-		, int32 InAbilityIndex
-		, FGameplayTag InInputBinding
-	)
-		: AbilitySetIndex(InAbilitySetIndex),
-		AbilityIndex(InAbilityIndex),
-		InputBinding(InInputBinding)
-	{};
-};
 USTRUCT(BlueprintType)
 struct FARAbilityInputBinding
 {
@@ -84,7 +64,6 @@ protected:
 	
 	TArray<TArray<FGameplayTag>> AbilityTagsSet;
 	TArray<TArray<TWeakObjectPtr<class UARAbilityBase>>> AbilitySet;
-	TMap<FGameplayTag, FARAbilityEquipInfo> AwatingAbilityConfimation;
 public:
 	UPROPERTY(EditAnywhere, Category = "Widget Config")
 		TSubclassOf<class UARAbilityWidget> DragVisualClass;
@@ -115,9 +94,11 @@ public:
 	void NativeEquipAbility(const FGameplayTag& InAbilityTag, int32 InAbilitySet
 		, int32 AbilityIndex);
 	UFUNCTION()
-		void OnAbilityReady(const FGameplayTag& InAbilityTag);
+		void OnAbilityReady(FGameplayTag InAbilityTag, FGameplayTag InAbilityInput,
+			int32 InAbilitySet, int32 InAbilityIndex);
 
-	void NativeOnAbilityReady(const FGameplayTag& InAbilityTag);
+	void NativeOnAbilityReady(const FGameplayTag& InAbilityTag, const FGameplayTag InAbilityInput,
+		int32 InAbilitySet, int32 InAbilityIndex);
 
 	void SwitchSet();
 	UFUNCTION()

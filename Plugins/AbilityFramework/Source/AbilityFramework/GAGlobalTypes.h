@@ -2,7 +2,7 @@
 #include "AbilityFramework.h"
 #include "GameplayTagsModule.h"
 #include "GameplayTagContainer.h"
-#include "Messaging.h"
+//#include "Messaging.h"
 #include "GAGlobalTypes.generated.h"
 
 /*

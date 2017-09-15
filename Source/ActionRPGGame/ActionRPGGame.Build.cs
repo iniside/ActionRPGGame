@@ -38,7 +38,18 @@ public class ActionRPGGame : ModuleRules
                 // ... add other private include paths required here ...
                 }
             );
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore",
-            "GameplayTags", "AbilityFramework", "SlateCore", "AssetRegistry" });
+        PublicDependencyModuleNames.AddRange(new string[] {
+            "Core",
+            "CoreUObject",
+            "Engine",
+            "InputCore",
+            "GameplayTags",
+            "AbilityFramework",
+            "SlateCore",
+            "AssetRegistry",
+            "Sockets",
+            "OnlineSubsystemUtils",
+            "ActorSequence"
+        });
 	}
 }

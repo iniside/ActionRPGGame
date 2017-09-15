@@ -60,7 +60,7 @@ void UARUIWeaponEquipment::NativeEquipWeapon(const FGameplayTag& InAbilityTag, i
 
 	FAFOnAbilityReady del = FAFOnAbilityReady::CreateUObject(this, &UARUIWeaponEquipment::OnWeaponReady, InAbilityTag, SlotIndex);
 	AbilityComp->AddOnAbilityReadyDelegate(InAbilityTag, del);
-	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, nullptr, /*Input*/ ShootInput);
+	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, nullptr);// , /*Input*/ ShootInput);
 }
 
 void UARUIWeaponEquipment::OnWeaponReady(FGameplayTag InAbilityTag, int32 SlotIndex)
@@ -82,8 +82,8 @@ void UARUIWeaponEquipment::OnWeaponReady(FGameplayTag InAbilityTag, int32 SlotIn
 		Weapons[SlotIndex] = Ability;
 		ActiveWeapon = Ability;
 		ActiveWeaponIndex = SlotIndex;
-		AbilityComp->SetAbilityToAction(InAbilityTag, ShootInput);
-		AbilityComp->SetAbilityToAction(InAbilityTag, ReloadInput);
+		AbilityComp->SetAbilityToAction(InAbilityTag, ShootInput, FAFOnAbilityReady());
+		AbilityComp->SetAbilityToAction(InAbilityTag, ReloadInput, FAFOnAbilityReady());
 	}
 	else
 	{

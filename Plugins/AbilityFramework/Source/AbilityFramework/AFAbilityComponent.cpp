@@ -529,7 +529,6 @@ void FGASAbilityItem::PostReplicatedAdd(const struct FGASAbilityContainer& InArr
 		//UGAAttributesBase* attr = InArraySerializer.AbilitiesComp->AdditionalAttributes.FindRef(Ability->AbilityTag);
 		//Ability->Attributes = attr;
 		InArraySerializerC.AbilitiesInputs.Add(Ability->AbilityTag, Ability); //.Add(Ability->AbilityTag, Ability);
-		InArraySerializerC.AbilitiesComp->NotifyOnAbilityAdded(Ability->AbilityTag);
 		InArraySerializerC.AbilitiesComp->NotifyOnAbilityReady(Ability->AbilityTag);
 	}
 }
@@ -549,8 +548,7 @@ void FGASAbilityContainer::SetBlockedInput(const FGameplayTag& InInput, bool bBl
 	}
 }
 UGAAbilityBase* FGASAbilityContainer::AddAbility(TSubclassOf<class UGAAbilityBase> AbilityIn,
-	AActor* InAvatar,
-	FGameplayTag ActionName)
+	AActor* InAvatar)
 {
 	if (AbilityIn && AbilitiesComp.IsValid())
 	{
@@ -563,8 +561,6 @@ UGAAbilityBase* FGASAbilityContainer::AddAbility(TSubclassOf<class UGAAbilityBas
 			ability->PCOwner = Cast<APlayerController>(POwner->Controller);
 			ability->OwnerCamera = nullptr;
 			ability->AvatarActor = InAvatar;
-
-			//ability->AIOwner = PawnInterface->GetGameController();
 		}
 		ability->InitAbility();
 		FGameplayTag Tag = ability->AbilityTag;
@@ -573,12 +569,10 @@ UGAAbilityBase* FGASAbilityContainer::AddAbility(TSubclassOf<class UGAAbilityBas
 		FGASAbilityItem AbilityItem;
 		AbilityItem.Ability = ability;
 		AbilitiesItems.Add(AbilityItem);
-		//FGameplayTag& AbilityTag = ActionToAbility.FindOrAdd(ActionName);
-		//AbilityTag = Tag;
+
 		if (AbilitiesComp->GetNetMode() == ENetMode::NM_Standalone
 			|| AbilitiesComp->GetOwnerRole() == ENetRole::ROLE_Authority)
 		{
-			AbilitiesComp->NotifyOnAbilityAdded(ability->AbilityTag);
 			AbilitiesComp->NotifyOnAbilityReady(ability->AbilityTag);
 		}
 	/*	if (ActionName.IsValid())
@@ -661,10 +655,6 @@ void UAFAbilityComponent::InitializeComponent()
 	ActiveCues.OwningComp = this;
 	//ActiveCues.OwningComponent = this;
 	AppliedTags.AddTagContainer(DefaultTags);
-	//TestRunnable = new FAsyncUObjectRunnable(this);
-	//TEstAsyncUObject = NewObject<UAsyncUObject>(this, UAsyncUObject::StaticClass(), TEXT("AwesomeObject"), RF_StrongRefOnFrame | RF_Standalone);
-	//TEstAsyncUObject->AddToRoot();
-	//RouterThread = FRunnableThread::Create(TEstAsyncUObject, TEXT("AsyncUObject.Test"), 128 * 1024, TPri_Normal, FPlatformAffinity::GetPoolThreadMask());
 	InitializeInstancedAbilities();
 }
 void UAFAbilityComponent::UninitializeComponent()
@@ -700,11 +690,9 @@ void UAFAbilityComponent::BindAbilityToAction(UInputComponent* InputComponent, F
 	}
 	SetBlockedInput(ActionName, false);
 }
-void UAFAbilityComponent::BP_SetAbilityToAction(FGameplayTag InAbilityTag, FGameplayTag InInputTag)
-{
-	SetAbilityToAction(InAbilityTag, InInputTag);
-}
-void UAFAbilityComponent::SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
+
+void UAFAbilityComponent::SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag, 
+	const FAFOnAbilityReady& InputDelegate)
 {
 	AbilityContainer.SetAbilityToAction(InAbilityTag, InInputTag);
 	ENetRole role = GetOwnerRole();
@@ -712,6 +700,10 @@ void UAFAbilityComponent::SetAbilityToAction(const FGameplayTag& InAbilityTag, c
 	if (GetOwner()->GetNetMode() == ENetMode::NM_Client
 		&& role == ENetRole::ROLE_AutonomousProxy)
 	{
+		if (InputDelegate.IsBound())
+		{
+			AddOnAbilityInputReadyDelegate(InAbilityTag, InputDelegate);
+		}
 		ServerSetAbilityToAction(InAbilityTag, InInputTag);
 	}
 }
@@ -719,13 +711,19 @@ void UAFAbilityComponent::ServerSetAbilityToAction_Implementation(const FGamepla
 {
 	if (GetOwner()->GetNetMode() == ENetMode::NM_DedicatedServer)
 	{
-		SetAbilityToAction(InAbilityTag, InInputTag);
+		SetAbilityToAction(InAbilityTag, InInputTag, FAFOnAbilityReady());
 	}
 }
 bool UAFAbilityComponent::ServerSetAbilityToAction_Validate(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
 {
 	return true;
 }
+
+void UAFAbilityComponent::ClientNotifyAbilityInputReady_Implementation(FGameplayTag AbilityTag)
+{
+	NotifyOnAbilityInputReady(AbilityTag);
+}
+
 void UAFAbilityComponent::BP_InputPressed(FGameplayTag ActionName)
 {
 	NativeInputPressed(ActionName);
@@ -802,18 +800,16 @@ bool UAFAbilityComponent::ServerNativeInputReleased_Validate(FGameplayTag Action
 	return true;
 }
 void UAFAbilityComponent::BP_AddAbilityFromTag(FGameplayTag InAbilityTag,
-	AActor* InAvatar,
-	FGameplayTag InInputName)
+	AActor* InAvatar)
 {
-	NativeAddAbilityFromTag(InAbilityTag, InAvatar, InInputName);
+	NativeAddAbilityFromTag(InAbilityTag, InAvatar);
 }
 void UAFAbilityComponent::NativeAddAbilityFromTag(FGameplayTag InAbilityTag,
-	AActor* InAvatar,
-	FGameplayTag InInputName)
+	AActor* InAvatar)
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
-		ServerNativeAddAbilityFromTag(InAbilityTag, InAvatar, InInputName);
+		ServerNativeAddAbilityFromTag(InAbilityTag, InAvatar);
 	}
 	else
 	{
@@ -830,7 +826,7 @@ void UAFAbilityComponent::NativeAddAbilityFromTag(FGameplayTag InAbilityTag,
 			FPrimaryAssetTypeInfo Info;
 			if (Manager->GetPrimaryAssetTypeInfo(PrimaryAssetId.PrimaryAssetType, Info))
 			{
-				FStreamableDelegate del = FStreamableDelegate::CreateUObject(this, &UAFAbilityComponent::OnFinishedLoad, InAbilityTag, InInputName, PrimaryAssetId);
+				FStreamableDelegate del = FStreamableDelegate::CreateUObject(this, &UAFAbilityComponent::OnFinishedLoad, InAbilityTag, PrimaryAssetId);
 
 				Manager->LoadPrimaryAsset(PrimaryAssetId,
 					TArray<FName>(),
@@ -842,20 +838,18 @@ void UAFAbilityComponent::NativeAddAbilityFromTag(FGameplayTag InAbilityTag,
 }
 
 void UAFAbilityComponent::ServerNativeAddAbilityFromTag_Implementation(FGameplayTag InAbilityTag,
-	AActor* InAvatar,
-	FGameplayTag InInputName)
+	AActor* InAvatar)
 {
-	NativeAddAbilityFromTag(InAbilityTag, InAvatar, InInputName);
+	NativeAddAbilityFromTag(InAbilityTag, InAvatar);
 }
 
 bool UAFAbilityComponent::ServerNativeAddAbilityFromTag_Validate(FGameplayTag InAbilityTag,
-	AActor* InAvatar,
-	FGameplayTag InInputName)
+	AActor* InAvatar)
 {
 	return true;
 }
 void UAFAbilityComponent::OnFinishedLoad(FGameplayTag InAbilityTag,
-	FGameplayTag InInputName, FPrimaryAssetId InPrimaryAssetId)
+	FPrimaryAssetId InPrimaryAssetId)
 {
 	if (UAssetManager* Manager = UAssetManager::GetIfValid())
 	{
@@ -863,32 +857,13 @@ void UAFAbilityComponent::OnFinishedLoad(FGameplayTag InAbilityTag,
 		TSubclassOf<UGAAbilityBase> cls = Cast<UClass>(loaded);
 		if (cls)
 		{
-			NativeAddAbility(cls, nullptr, InInputName);
+			InstanceAbility(cls, nullptr);
 		}
 
 		{
 			Manager->UnloadPrimaryAsset(InPrimaryAssetId);
 		}
 	}
-}
-void UAFAbilityComponent::BP_AddAbility(TSubclassOf<class UGAAbilityBase> AbilityClass,
-	AActor* InAvatar,
-	FGameplayTag ActionName, bool bAutoBind)
-{
-	if (GetOwnerRole() < ENetRole::ROLE_Authority)
-	{
-		return;
-	}
-	else
-	{
-		NativeAddAbility(AbilityClass, InAvatar, ActionName, bAutoBind);
-	}
-}
-void UAFAbilityComponent::NativeAddAbility(TSubclassOf<class UGAAbilityBase> AbilityClass,
-	AActor* InAvatar,
-	FGameplayTag ActionName, bool bAutoBind)
-{
-	InstanceAbility(AbilityClass, InAvatar, ActionName);
 }
 
 void UAFAbilityComponent::BP_RemoveAbility(FGameplayTag TagIn)
@@ -900,36 +875,15 @@ UGAAbilityBase* UAFAbilityComponent::BP_GetAbilityByTag(FGameplayTag TagIn)
 	return AbilityContainer.GetAbility(TagIn);
 }
 UGAAbilityBase* UAFAbilityComponent::InstanceAbility(TSubclassOf<class UGAAbilityBase> AbilityClass,
-	AActor* InAvatar,
-	FGameplayTag ActionName)
+	AActor* InAvatar)
 {
 	if (AbilityClass)
 	{
-		UGAAbilityBase* ability = AbilityContainer.AddAbility(AbilityClass, InAvatar, ActionName);
+		UGAAbilityBase* ability = AbilityContainer.AddAbility(AbilityClass, InAvatar);
 		AbilityContainer.MarkArrayDirty();
 		return ability;
 	}
 	return nullptr;
-}
-
-void UAFAbilityComponent::NativeAddAbilitiesFromSet(TSubclassOf<class UGAAbilitySet> AbilitySet)
-{
-	//do not let add abilities on non authority.
-	if (GetOwnerRole() < ENetRole::ROLE_Authority)
-		return;
-
-	UGAAbilitySet* Set = AbilitySet.GetDefaultObject();
-	int32 Index = 0;
-	for (const FGASAbilitySetItem& Item : Set->AbilitySet.Abilities)
-	{
-		InstanceAbility(Item.AbilityClass, nullptr, Item.Binding);
-		Index++;
-	}
-}
-
-void UAFAbilityComponent::BP_AddAbilitiesFromSet(TSubclassOf<class UGAAbilitySet> AbilitySet)
-{
-	NativeAddAbilitiesFromSet(AbilitySet);
 }
 
 void UAFAbilityComponent::OnRep_InstancedAbilities()

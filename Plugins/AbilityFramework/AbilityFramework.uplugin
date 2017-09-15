@@ -1,28 +1,34 @@
 {
-	"FileVersion": 3,
-	"Version": 1,
-	"VersionName": "1.0",
-	"FriendlyName": "AbilityFramework",
-	"Description": "",
-	"Category": "Gameplay",
-	"CreatedBy": "",
-	"CreatedByURL": "",
-	"DocsURL": "",
-	"MarketplaceURL": "",
-	"SupportURL": "",
-	"CanContainContent": true,
-	"IsBetaVersion": true,
-	"Installed": false,
-    "Modules": [
-        {
-            "Name": "AbilityFramework",
-            "Type": "Runtime",
-            "LoadingPhase": "Default"
-        },
-      {
-        "Name": "AbilityFrameworkEditor",
-        "Type": "Editor",
-        "LoadingPhase": "PostEngineInit"
-      }
-    ]
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "1.0",
+  "FriendlyName": "AbilityFramework",
+  "Description": "",
+  "Category": "Gameplay",
+  "CreatedBy": "",
+  "CreatedByURL": "",
+  "DocsURL": "",
+  "MarketplaceURL": "",
+  "SupportURL": "",
+  "CanContainContent": true,
+  "IsBetaVersion": true,
+  "Installed": false,
+  "Modules": [
+    {
+      "Name": "AbilityFramework",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    },
+    {
+      "Name": "AbilityFrameworkEditor",
+      "Type": "Editor",
+      "LoadingPhase": "PostEngineInit"
+    }
+  ],
+  "Plugins": [
+    {
+      "Name": "ActorSequence",
+      "Enabled": true
+    }
+  ]
 }
