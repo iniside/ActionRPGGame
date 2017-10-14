@@ -1,5 +1,6 @@
 #pragma once
 #include "GAGlobals.h"
+#include "../GAGlobalTypes.h"
 #include "../Effects/GAGameEffect.h"
 #include "GameplayTasksComponent.h"
 #include "GameplayTask.h"
@@ -122,6 +123,11 @@ class ABILITYFRAMEWORK_API UGAAbilityBase : public UObject, public IGameplayTask
 public:
 	FGAAbilityTick TickFunction;
 
+	/*
+		Since each ability is instanced per owner, and cannot be activated multiple times (ie, to run in background),
+		we can assume that PredictionHandle will always be unique per activation.
+	*/
+	FAFPredictionHandle PredictionHandle;
 	/* By default all abilities are considered to be replicated. */
 	UPROPERTY(EditAnywhere, Category = "Replication")
 		bool bReplicate;
@@ -243,10 +249,6 @@ public:
 		FGameplayTagContainer ActivationBlockedTags;
 
 public: //because I'm to lazy to write all those friend states..
-	UPROPERTY()
-		float LastActivationTime;
-	UPROPERTY()
-		float LastCooldownTime;
 	virtual void TickAbility(float DeltaSeconds, ELevelTick TickType, FGAAbilityTick& ThisTickFunction);
 	UFUNCTION()
 		void OnActivationEffectPeriod(FGAEffectHandle InHandle);
@@ -265,6 +267,10 @@ public: //because I'm to lazy to write all those friend states..
 
 	UPROPERTY(BlueprintAssignable)
 		FGASGenericAbilityDelegate OnNotifyOnCooldown;
+
+	/* Stub, I think replicating montage directly from ability will be better, as abilities are replicated regardless. */
+	UPROPERTY()
+		UAnimMontage* RepMontage;
 protected:
 	EAFAbilityState AbilityState;
 
@@ -301,12 +307,15 @@ public:
 		void PlayMontage(UAnimMontage* MontageIn, FName SectionName, float Speed = 1);
 
 	virtual void InitAbility();
+
+	//called on both server and client after InitAbility();
+	virtual void OnAbilityInited();
 	/*
 		Called when ability received input.
 		One ability can receive multiple input calls, how those will be handled 
 		is up to ability.
 	*/
-	void OnNativeInputPressed(FGameplayTag ActionName);
+	void OnNativeInputPressed(FGameplayTag ActionName, const FAFPredictionHandle& InPredictionHandle);
 	/*
 		Called when ability receive input press. Does not start ability execution automatically, so it
 		is safe to make any pre execution preparations of ability here.
@@ -398,6 +407,9 @@ public:
 	bool CanUseAbility();
 	bool CanReleaseAbility();
 
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Can Use Ability"), Category = "AbilityFramework|Abilities")
+		bool BP_CanUseAbility();
+
 	/** GameplayTaskOwnerInterface - Begin */
 	virtual UGameplayTasksComponent* GetGameplayTasksComponent(const UGameplayTask& Task) const override;
 	/** this gets called both when task starts and when task gets resumed. Check Task.GetStatus() if you want to differenciate */
@@ -433,13 +445,17 @@ public:
 	virtual FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn,
 		FGAEffectProperty& InProperty, FGAEffectContext& InContext) override;
 	virtual void RemoveTagContainer(const FGameplayTagContainer& TagsIn) override;
-
+	virtual FAFPredictionHandle GetPredictionHandle() override;
 	/* IAFAbilityInterface End **/
 	UFUNCTION(BlueprintPure, Category = "AbilityFramework|Abilities|Attributes")
 		virtual float GetAttributeVal(FGAAttribute AttributeIn) const;
 
 public: //protected ?
 	bool ApplyCooldownEffect();
+	UFUNCTION(Client, Reliable)
+		void ClientSetCooldownHandle(FGAEffectHandle InCooldownHandle);
+	void ClientSetCooldownHandle_Implementation(FGAEffectHandle InCooldownHandle);
+
 	bool ApplyActivationEffect(bool bApplyActivationEffect);
 	bool ApplyAttributeCost();
 	bool ApplyAbilityAttributeCost();
@@ -476,6 +492,10 @@ public: //protected ?
 		return bReplicate;
 	}
 	void SetNetAddressable();
+
+public:
+	int32 GetFunctionCallspace(UFunction* Function, void* Parameters, FFrame* Stack) override;
+	virtual bool CallRemoteFunction(UFunction* Function, void* Parameters, FOutParmRec* OutParms, FFrame* Stack) override;
 
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
 		void ExecuteAbilityInputPressedFromTag(FGameplayTag AbilityTagIn, FGameplayTag ActionName);

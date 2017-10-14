@@ -5,6 +5,8 @@
 //#include "Messaging.h"
 #include "GAGlobalTypes.generated.h"
 
+void AddLogDebugInfo(FString Text, UWorld* World);
+
 /*
 	Explanation of tags from Fred K, on forums:
 	https://forums.unrealengine.com/showthread.php?57988-GameplayAbilities-questions&p=220315#post220315
@@ -82,22 +84,6 @@ enum class EGAEffectType : uint8
 	Infinite = 2,
 };
 
-/* How applied effects should stack on Attribute */
-UENUM()
-enum class EGAAttributeStacking : uint8
-{
-	Add,
-	Intensity,
-	Override,
-	Stronger
-};
-UENUM()
-enum class EAFAttributeStacking : uint8
-{
-	Add,
-	Override,
-	StrongerOverride
-};
 /*
 
 	StrongetOverride - Does not check for effect type/tags. It will just check if modified
@@ -406,6 +392,45 @@ public:
 //		WithCopy = true,
 //	};
 //};
+
+
+USTRUCT()
+struct FAFPredictionHandle
+{
+	GENERATED_BODY()
+public:
+	//ID of current handle.
+	UPROPERTY()
+		uint32 Handle;
+	UPROPERTY()
+		FGAEffectHandle EffectHandle;
+
+	uint64 Timestamp;
+
+	static FAFPredictionHandle GenerateClientHandle(UAFAbilityComponent* InComponent);
+	/*
+		Was prediction successful ?
+		If true nothing happens on client (might interpolate to result from server).
+		If false, server will override client predicted results.
+	*/
+	UPROPERTY()
+		bool bPredictionValid;
+
+
+	bool IsValid() const
+	{
+		return true;
+	}
+
+	const bool operator==(const FAFPredictionHandle& Other) const
+	{
+		return Handle == Other.Handle;
+	}
+	friend uint32 GetTypeHash(const FAFPredictionHandle& InHandle)
+	{
+		return InHandle.Handle;
+	}
+};
 
 DECLARE_MULTICAST_DELEGATE(FGAGenericDelegate);
 

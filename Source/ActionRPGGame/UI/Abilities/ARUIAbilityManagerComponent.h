@@ -100,6 +100,12 @@ public:
 	void NativeOnAbilityReady(const FGameplayTag& InAbilityTag, const FGameplayTag InAbilityInput,
 		int32 InAbilitySet, int32 InAbilityIndex);
 
+	//only used in Client-Server mode. Abilities are additionaly binded on server
+	//so we need to wait for server response to make sure that ability is bound on server.
+	UFUNCTION()
+		void OnAbilityInputReady(FGameplayTag InAbilityTag, FGameplayTag InAbilityInput,
+			int32 InAbilitySet, int32 InAbilityIndex);
+
 	void SwitchSet();
 	UFUNCTION()
 	void FinishedLoadinFiles();

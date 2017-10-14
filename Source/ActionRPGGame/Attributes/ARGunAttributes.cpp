@@ -10,12 +10,8 @@ void UARGunAttributes::GetLifetimeReplicatedProps(TArray< class FLifetimePropert
 	DOREPLIFETIME(UARGunAttributes, Magazine);
 }
 
-void UARGunAttributes::OnRep_Magazine()
+void UARGunAttributes::OnRep_Magazine(FAFAttributeBase OldVal)
 {
 	float dua = 0;
 	UARGunAttributes* asd = this;
-	if (OwningAttributeComp->GetOwner()->GetNetMode() == ENetMode::NM_Client)
-	{
-		Magazine = this->Magazine;
-	}
 }

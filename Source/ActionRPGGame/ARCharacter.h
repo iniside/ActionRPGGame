@@ -24,6 +24,10 @@ class AARCharacter : public ACharacter, public IAFAbilityInterface
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UAFAbilityComponent* Abilities;
+
+	
+	UPROPERTY(EditAnywhere, Category = "Default Abilities")
+		TArray<FGameplayTag> AbilitiesToGive;
 public:
 	AARCharacter();
 

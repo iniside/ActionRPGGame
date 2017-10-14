@@ -16,7 +16,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 
 #include "GAAbilityBase.h"
-
+FAFPredictionHandle UGAAbilityBase::GetPredictionHandle() { return PredictionHandle; }
 void FGAAbilityTick::ExecuteTick(float DeltaTime, ELevelTick TickType, ENamedThreads::Type CurrentThread, const FGraphEventRef& MyCompletionGraphEvent)
 {
 	if (Target && !Target->IsPendingKillOrUnreachable())
@@ -186,7 +186,9 @@ void UGAAbilityBase::InitAbility()
 	{
 		if (AbilityComponent && Attributes)
 		{
-			AbilityComponent->AddAddtionalAttributes(AbilityTag, Attributes);
+			UGAAttributesBase* NewAttributes = AbilityComponent->AddAddtionalAttributes(AbilityTag, Attributes);;
+			Attributes = nullptr;
+			Attributes = NewAttributes;
 		}
 	}
 	
@@ -197,12 +199,17 @@ void UGAAbilityBase::InitAbility()
 	TickFunction.Target = this;
 	TickFunction.RegisterTickFunction(AbilityComponent->GetWorld()->GetCurrentLevel());
 	TickFunction.SetTickFunctionEnable(true);
+	OnAbilityInited();
 }
+void UGAAbilityBase::OnAbilityInited()
+{
 
-void UGAAbilityBase::OnNativeInputPressed(FGameplayTag ActionName)
+}
+void UGAAbilityBase::OnNativeInputPressed(FGameplayTag ActionName, const FAFPredictionHandle& InPredictionHandle)
 {
 	{
 		UE_LOG(AbilityFramework, Log, TEXT("OnNativeInputPressed in ability %s"), *GetName());
+		PredictionHandle = InPredictionHandle;
 		OnInputPressed(ActionName);
 		OnInputPressedDelegate.Broadcast();
 	}
@@ -221,6 +228,7 @@ void UGAAbilityBase::StartActivation(bool bApplyActivationEffect)
 {
 	if (!CanUseAbility())
 	{
+		UE_LOG(AbilityFramework, Log, TEXT("Cannot use Ability: %s"), *GetName());
 		return;
 	}
 	//AbilityComponent->ExecutingAbility = this;
@@ -340,10 +348,21 @@ bool UGAAbilityBase::ApplyCooldownEffect()
 
 	CooldownEffectHandle = UGABlueprintLibrary::ApplyGameEffectToObject(CooldownEffect,
 		this, POwner, this, Modifier);
+	ENetMode nm = AbilityComponent->GetOwner()->GetNetMode();
+	ENetRole role = AbilityComponent->GetOwnerRole();
+
+	if (role >= ENetRole::ROLE_Authority)
+	{
+		ClientSetCooldownHandle(CooldownEffectHandle);
+	}
 	OnCooldownStart();
 
 	//CooldownEffectHandle.GetEffectRef().OnEffectExpired.AddUObject(this, &UGAAbilityBase::OnCooldownEnd);
 	return false;
+}
+void UGAAbilityBase::ClientSetCooldownHandle_Implementation(FGAEffectHandle InCooldownHandle)
+{
+	//CooldownEffectHandle = InCooldownHandle;
 }
 bool UGAAbilityBase::ApplyActivationEffect(bool bApplyActivationEffect)
 {
@@ -400,7 +419,7 @@ bool UGAAbilityBase::CanUseAbility()
 	//	UE_LOG(AbilityFramework, Log, TEXT("CanUseAbility AbilityComponent->ExecutingAbility is true"));
 
 	CanUse = !bIsOnCooldown && !bIsActivating;
-	
+	UE_LOG(AbilityFramework, Log, TEXT("CanUseAbility Ability, Cooldown: %s, Activating: %s \n"), bIsOnCooldown ? TEXT("true") : TEXT("false"), bIsActivating ? TEXT("true") : TEXT("false") );
 	//now Lets check tags
 	if (CanUse)
 	{
@@ -417,7 +436,10 @@ bool UGAAbilityBase::CanUseAbility()
 
 	return CanUse;
 }
-
+bool UGAAbilityBase::BP_CanUseAbility()
+{
+	return CanUseAbility();
+}
 bool UGAAbilityBase::CanReleaseAbility()
 {
 	bool bCanUse = true;
@@ -556,7 +578,11 @@ bool UGAAbilityBase::IsOnCooldown()
 bool UGAAbilityBase::IsActivating()
 {
 	bool bAbilityActivating = false;
-	bAbilityActivating = AbilityComponent->IsEffectActive(ActivationEffect.Handle) || AbilityState == EAFAbilityState::Activating;
+	bool bHaveEffect = AbilityComponent->IsEffectActive(ActivationEffect.Handle);
+	bool bInActivatingState = AbilityState == EAFAbilityState::Activating;
+	UE_LOG(AbilityFramework, Log, TEXT("IsActivating Ability, Effect: %s, State: %s \n"), bHaveEffect ? TEXT("true") : TEXT("false"), bInActivatingState ? TEXT("true") : TEXT("false"));
+	bAbilityActivating = bHaveEffect || bInActivatingState;
+	
 	return bAbilityActivating; //temp
 }
 bool UGAAbilityBase::BP_IsOnCooldown()
@@ -616,7 +642,8 @@ void UGAAbilityBase::PlayMontage(UAnimMontage* MontageIn, FName SectionName, flo
 void UGAAbilityBase::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	//possibly can be infered apon replication.
+	//possibly can be infered upon replication.
+	//does other players need info about this ?
 	DOREPLIFETIME(UGAAbilityBase, POwner);
 	DOREPLIFETIME(UGAAbilityBase, Character);
 	DOREPLIFETIME(UGAAbilityBase, PCOwner);
@@ -624,7 +651,30 @@ void UGAAbilityBase::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty 
 	//probabaly should be SKIP_Owner, and I'm not really sure if Multicast wouldn't be better.
 
 	DOREPLIFETIME(UGAAbilityBase, AvatarActor)
-	//DOREPLIFETIME(UAFAbilityComponent, RepMontage);
+}
+int32 UGAAbilityBase::GetFunctionCallspace(UFunction* Function, void* Parameters, FFrame* Stack)
+{
+	if (HasAnyFlags(RF_ClassDefaultObject))
+	{
+		return FunctionCallspace::Local;
+	}
+	check(POwner != NULL);
+	return POwner->GetFunctionCallspace(Function, Parameters, Stack);
+}
+bool UGAAbilityBase::CallRemoteFunction(UFunction* Function, void* Parameters, FOutParmRec* OutParms, FFrame* Stack)
+{
+	check(!HasAnyFlags(RF_ClassDefaultObject));
+	check(POwner != NULL);
+
+	
+	UNetDriver* NetDriver = POwner->GetNetDriver();
+	if (NetDriver)
+	{
+		NetDriver->ProcessRemoteFunction(POwner, Function, Parameters, OutParms, Stack, this);
+		return true;
+	}
+
+	return false;
 }
 
 void UGAAbilityBase::ExecuteAbilityInputPressedFromTag(FGameplayTag AbilityTagIn, FGameplayTag ActionName)

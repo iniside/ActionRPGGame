@@ -8,27 +8,6 @@
 DECLARE_STATS_GROUP(TEXT("GameEffect"), STATGROUP_GameEffect, STATCAT_Advanced);
 DECLARE_CYCLE_STAT_EXTERN(TEXT("GatherModifiers"), STAT_GatherModifiers, STATGROUP_GameEffect, );
 
-/*
-	Modifier type for simple attribute operatinos.
-	It's only additive or subtractive due to possible race conditions with multiplicative/divide 
-	mods.
-*/
-UENUM()
-enum class EGASimpleAttributeOperation : uint8
-{
-	Additive,
-	Subtractive,
-	Invalid
-};
-
-UENUM()
-enum class EGAMakeSpecResult : uint8
-{
-	NewHandle,
-	OldHandle,
-	Invalid
-};
-
 USTRUCT(BlueprintType)
 struct ABILITYFRAMEWORK_API FGAMagnitude
 {
@@ -282,14 +261,6 @@ class ABILITYFRAMEWORK_API UAFEffectSpec : public UGAGameEffectSpec
 	GENERATED_BODY()
 public:
 };
-USTRUCT(BlueprintType)
-struct ABILITYFRAMEWORK_API FGAEffectSpec
-{
-	GENERATED_USTRUCT_BODY()
-public:
-	UPROPERTY(EditAnywhere, Instanced, Category = "Effect")
-		UGAGameEffectSpec* Spec;
-};
 
 USTRUCT(BlueprintType)
 struct ABILITYFRAMEWORK_API FGAEffectClass
@@ -341,11 +312,14 @@ public:
 		class UGAEffectExecution* Execution;
 	UPROPERTY()
 		class UGAGameEffectSpec* Spec;
+	UPROPERTY()
+		FAFPredictionHandle PredictionHandle;
 
 	UPROPERTY()
 		float Duration;
 	UPROPERTY()
 		float Period;
+
 	/* 
 		Handle to effect created from SpecClass 
 		This handle is only created and kept for instant effects,
@@ -353,8 +327,10 @@ public:
 		as potentially there can be quite a lot of allocations.
 	*/
 	FGAEffectHandle Handle;
-	//target of handle, handle to effect.
-	//only used for duration effcts, and cleared after effect is removed.
+	/*
+		Holds handle to duration/infinite effects. Since there can be multiple effects active on multiple targets.
+
+	*/
 	TMap<UObject*, FGAEffectHandle> Handles;
 	FGAEffectProperty()
 		: ApplicationRequirement(nullptr),
@@ -374,6 +350,11 @@ public:
 
 	void Initialize();
 	void InitializeIfNotInitialized();
+
+	void SetPredictionHandle(const FAFPredictionHandle& InHandle)
+	{
+		PredictionHandle = InHandle;
+	}
 
 	FGAAttributeModifier& GetAttributeModifier()
 	{
@@ -463,6 +444,7 @@ public:
 	FGameplayTagContainer RequiredTags;
 
 	FGAEffectHandle Handle;
+	FAFPredictionHandle PredictionHandle;
 
 	mutable FTimerHandle PeriodTimerHandle;
 	mutable FTimerHandle DurationTimerHandle;
@@ -558,19 +540,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Duration")
 		float PeriodNum;
 };
-/*
-	Effect spec struct, which can be used to create effect specs directly inside abitrary classes ?
-*/
-USTRUCT(BlueprintType)
-struct ABILITYFRAMEWORK_API FGAEffectSpecDefinition
-{
-	GENERATED_USTRUCT_BODY()
-};
-
-struct FGAActiveGameEffect
-{
-	FGAActiveGameEffect();
-};
 
 USTRUCT(BlueprintType)
 struct ABILITYFRAMEWORK_API FGAInstigatorInstancedEffectContainer
@@ -582,10 +551,7 @@ struct ABILITYFRAMEWORK_API FGAInstigatorInstancedEffectContainer
 };
 
 /*
-	Contains all active effects (which have duration, period or are infinite).
-
-	The only reason this is USTRUCT() is because we need to hold hard references somewhere to instanced
-	effects.
+	Simplified and minimal version of game effect replicated back to clients.
 */
 
 USTRUCT(BlueprintType)
@@ -600,6 +566,10 @@ public:
 	//Handle to effect, which is using this info.
 	UPROPERTY()
 		FGAEffectHandle Handle;
+	
+	UPROPERTY()
+		FAFPredictionHandle PredictionHandle;
+
 	UPROPERTY()
 		float AppliedTime;
 	UPROPERTY()
@@ -665,6 +635,10 @@ public:
 	{
 		return Handle == Other.Handle;
 	}
+	friend uint32 GetTypeHash(const FAFEffectRepInfo& InHandle)
+	{
+		return GetTypeHash(InHandle.Handle);
+	}
 
 	FAFEffectRepInfo(float AppliedTimeIn, float PeriodTimeIn, float DurationIn, float ReplicationTimeIn,
 		class UAFAbilityComponent* InComponent);
@@ -705,7 +679,7 @@ public:
 	//change to SharedPtr ?
 	mutable TMap<FGAEffectHandle, FAFEffectRepInfo*> EffectInfos;
 
-
+	TMap<FAFPredictionHandle, FAFEffectRepInfo*> PredictedEffectInfos;
 
 	TMap<FGAAttribute, TSet<FGAEffectHandle>> EffectByAttribute;
 

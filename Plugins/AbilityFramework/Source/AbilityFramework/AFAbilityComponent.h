@@ -38,6 +38,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FAFEffectRepInfoDelegate, FAFEffectRepInfo*)
 
 DECLARE_DELEGATE(FAFOnAbilityReady);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAFOnAbilityAdded, const FGameplayTag&, AbilityTag);
+DECLARE_DELEGATE(FAFGenericAttributeDelegate);
 
 //UAFAssetManager* GetAssetManager()
 //{
@@ -147,7 +148,7 @@ public:
 	void SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
 	UGAAbilityBase* GetAbility(FGameplayTag TagIn);
 	
-	void HandleInputPressed(FGameplayTag ActionName);
+	void HandleInputPressed(FGameplayTag ActionName, const FAFPredictionHandle& InPredictionHandle);
 	void HandleInputReleased(FGameplayTag ActionName);
 
 	void TriggerAbylityByTag(FGameplayTag InTag);
@@ -160,6 +161,48 @@ public:
 
 template<>
 struct TStructOpsTypeTraits< FGASAbilityContainer > : public TStructOpsTypeTraitsBase2<FGASAbilityContainer>
+{
+	enum
+	{
+		WithNetDeltaSerializer = true,
+	};
+};
+
+
+USTRUCT()
+struct FAFReplicatedAttributeItem : public FFastArraySerializerItem
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY()
+		FGameplayTag AttributeTag;
+	UPROPERTY()
+		UGAAttributesBase* Attributes;
+
+	void PreReplicatedRemove(const struct FAFReplicatedAttributeContainer& InArraySerializer);
+	void PostReplicatedAdd(const struct FAFReplicatedAttributeContainer& InArraySerializer);
+	void PostReplicatedChange(const struct FAFReplicatedAttributeContainer& InArraySerializer);
+};
+
+USTRUCT()
+struct FAFReplicatedAttributeContainer : public FFastArraySerializer
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY()
+		TArray<FAFReplicatedAttributeItem> Attributes;
+
+	TMap<FGameplayTag, UGAAttributesBase*> AttributeMap;
+
+	UGAAttributesBase* Add(const FGameplayTag InTag, UGAAttributesBase* InAttributes, class UAFAbilityComponent* InOuter);
+	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
+	{
+		return FFastArraySerializer::FastArrayDeltaSerialize<FAFReplicatedAttributeItem, FAFReplicatedAttributeContainer>(Attributes, DeltaParms, *this);
+	}
+};
+
+template<>
+struct TStructOpsTypeTraits< FAFReplicatedAttributeContainer > : public TStructOpsTypeTraitsBase2<FAFReplicatedAttributeContainer>
 {
 	enum
 	{
@@ -218,8 +261,8 @@ public:
 	//probabaly replace FGameplayTag with FObjectKey
 	TMap<FGameplayTag, class UGAAttributesBase*> AdditionalAttributes;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Replicated)
-		TArray<class UGAAttributesBase*> RepAttributes;
+	UPROPERTY(Replicated)
+		FAFReplicatedAttributeContainer RepAttributes;
 
 	UPROPERTY(ReplicatedUsing = OnRep_AttributeChanged)
 		FGAModifiedAttributeData ModifiedAttribute;
@@ -285,15 +328,13 @@ public:
 		UGAAttributesBase* AttributeSet = AdditionalAttributes.FindRef(InOwner);
 		return Cast<T>(AttributeSet);
 	}
-	void AddAddtionalAttributes(FGameplayTag InOwner, UGAAttributesBase* InAttributes)
+	UGAAttributesBase* AddAddtionalAttributes(FGameplayTag InOwner, UGAAttributesBase* InAttributes)
 	{
-		bool bExists = AdditionalAttributes.Contains(InOwner);
-		if (bExists)
-		{
-			return;
-		}
-		RepAttributes.Add(InAttributes);
-		AdditionalAttributes.Add(InOwner, InAttributes);
+		if (!InAttributes)
+			return nullptr;
+		UGAAttributesBase* retVal = RepAttributes.Add(InOwner, InAttributes, this);
+		RepAttributes.MarkArrayDirty();
+		return retVal;
 	}
 	UFUNCTION(BlueprintCallable, Category = "Test")
 		void GetAttributeStructTest(FGAAttribute Name);
@@ -320,8 +361,7 @@ public:
 
 	void ApplyEffectToTarget(TSubclassOf<UGAGameEffectSpec> InSpecClass, 
 		const FGAEffectContext& InContext, const FGAEffectHandle& InHandle);
-
-
+	
 	/* Have to to copy handle around, because timer delegates do not support references. */
 	void ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty
 		,FAFFunctionModifier Modifier, FGAEffectContext InContext);
@@ -512,6 +552,7 @@ public:
 			return;
 		if (!OnEffectEvent.Contains(InEventTag))
 		{
+			UE_LOG(AbilityFramework, Log, TEXT("AddEffectEvent: %s"), *InEventTag.ToString());
 			OnEffectEvent.Add(InEventTag, InEvent);
 		}
 	}
@@ -522,6 +563,7 @@ public:
 		FSimpleDelegate* Delegate = OnEffectEvent.Find(InEventTag);
 		if (Delegate)
 		{
+			UE_LOG(AbilityFramework, Log, TEXT("ExecuteEffectEvent: %s"), *InEventTag.ToString());
 			Delegate->ExecuteIfBound();
 		}
 	}
@@ -529,6 +571,7 @@ public:
 	{
 		if (!InEventTag.IsValid())
 			return;
+		UE_LOG(AbilityFramework, Log, TEXT("RemoveEffectEvent: %s"), *InEventTag.ToString());
 		OnEffectEvent.Remove(InEventTag);
 	}
 	/*
@@ -570,8 +613,52 @@ public:
 		}
 	}
 
-	FAFOnAbilityReady OnAbilityReady;
+	TMap<FGAAttribute, TArray<FAFGenericAttributeDelegate>> OnPreAttributeModifiedMap;
+	void AddOnPreAttributeModifiedDelegate(const FGAAttribute& InAttribute, const FAFGenericAttributeDelegate& InDelegate)
+	{
+		TArray<FAFGenericAttributeDelegate>& delegates = OnPreAttributeModifiedMap.FindOrAdd(InAttribute);
+		delegates.Add(InDelegate);
+	}
 
+	void NotifyOnPreAttributeModified(const FGAAttribute& InAttribute)
+	{
+		if (TArray<FAFGenericAttributeDelegate>* Ready = OnPreAttributeModifiedMap.Find(InAttribute))
+		{
+			for(const FAFGenericAttributeDelegate& delegate : *Ready)
+				delegate.ExecuteIfBound();
+		}
+	}
+
+	void RemoveOnPreAttributeModified(const FGAAttribute& InAttribute, const FAFGenericAttributeDelegate& Delegate)
+	{
+		if (TArray<FAFGenericAttributeDelegate>* Ready = OnPreAttributeModifiedMap.Find(InAttribute))
+		{
+			//Ready->RemoveSingle(Delegate);
+			if (Ready->Num() <= 0)
+			{
+				OnPreAttributeModifiedMap.Remove(InAttribute);
+			}
+		}
+	}
+
+	TMap<FGAAttribute, TArray<FAFGenericAttributeDelegate>> OnPostAttributeModifiedMap;
+	void AddOnPostAttributeModifiedDelegate(const FGAAttribute& InAttribute, const FAFGenericAttributeDelegate& InDelegate)
+	{
+		TArray<FAFGenericAttributeDelegate>& delegates = OnPostAttributeModifiedMap.FindOrAdd(InAttribute);
+		delegates.Add(InDelegate);
+	}
+
+	void NotifyOnPostAttributeModified(const FGAAttribute& InAttribute)
+	{
+		if (TArray<FAFGenericAttributeDelegate>* Ready = OnPostAttributeModifiedMap.Find(InAttribute))
+		{
+			for (const FAFGenericAttributeDelegate& delegate : *Ready)
+				delegate.ExecuteIfBound();
+		}
+	}
+
+	FAFOnAbilityReady OnAbilityReady;
+	
 	UPROPERTY(BlueprintAssignable, Category = "AbilityFramework")
 			FAFOnAbilityAdded OnAbilityAdded;
 
@@ -618,15 +705,16 @@ public:
 	UFUNCTION(Client, Reliable)
 		void ClientNotifyAbilityInputReady(FGameplayTag AbilityTag);
 	void ClientNotifyAbilityInputReady_Implementation(FGameplayTag AbilityTag);
-		
+
+
 	UFUNCTION(BlueprintCallable, meta=(DisplayName="Input Pressed"), Category = "AbilityFramework|Abilities")
 		void BP_InputPressed(FGameplayTag ActionName);
 
 	void NativeInputPressed(FGameplayTag ActionName);
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerNativeInputPressed(FGameplayTag ActionName);
-	virtual void ServerNativeInputPressed_Implementation(FGameplayTag ActionName);
-	virtual bool ServerNativeInputPressed_Validate(FGameplayTag ActionName);
+		void ServerNativeInputPressed(FGameplayTag ActionName, FAFPredictionHandle InPredictionHandle);
+	virtual void ServerNativeInputPressed_Implementation(FGameplayTag ActionName, FAFPredictionHandle InPredictionHandle);
+	virtual bool ServerNativeInputPressed_Validate(FGameplayTag ActionName, FAFPredictionHandle InPredictionHandle);
 
 
 

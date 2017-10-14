@@ -29,6 +29,33 @@
 DEFINE_STAT(STAT_ApplyEffect);
 DEFINE_STAT(STAT_ModifyAttribute);
 
+void FAFReplicatedAttributeItem::PreReplicatedRemove(const struct FAFReplicatedAttributeContainer& InArraySerializer)
+{
+	FAFReplicatedAttributeContainer& ArraySerializer = const_cast<FAFReplicatedAttributeContainer&>(InArraySerializer);
+	ArraySerializer.AttributeMap.Remove(AttributeTag);
+}
+void FAFReplicatedAttributeItem::PostReplicatedAdd(const struct FAFReplicatedAttributeContainer& InArraySerializer)
+{
+	FAFReplicatedAttributeContainer& ArraySerializer = const_cast<FAFReplicatedAttributeContainer&>(InArraySerializer);
+	UGAAttributesBase*& Attribute = ArraySerializer.AttributeMap.FindOrAdd(AttributeTag);
+	Attribute = Attributes;
+}
+void FAFReplicatedAttributeItem::PostReplicatedChange(const struct FAFReplicatedAttributeContainer& InArraySerializer)
+{
+
+}
+UGAAttributesBase* FAFReplicatedAttributeContainer::Add(const FGameplayTag InTag, UGAAttributesBase* InAttributes, class UAFAbilityComponent* InOuter)
+{
+	UGAAttributesBase* AttributesDup = DuplicateObject<UGAAttributesBase>(InAttributes, InOuter);
+	FAFReplicatedAttributeItem Item;
+	Item.AttributeTag = InTag;
+	Item.Attributes = AttributesDup;
+	Attributes.Add(Item);
+	MarkItemDirty(Item);
+	UGAAttributesBase*& Added = AttributeMap.FindOrAdd(InTag);
+	Added = AttributesDup;
+	return AttributesDup;
+}
 UAFAbilityComponent::UAFAbilityComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -154,46 +181,39 @@ FGAEffectHandle UAFAbilityComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 			MulticastApplyEffectCue(CueParams);
 		}
 	}
-	
+	FString prefix = "";
+	if (mode == ENetMode::NM_Client)
+	{
+		prefix = FString::Printf(TEXT("Client %d: "), GPlayInEditorID - 1);
+	}
+	else if (mode == ENetMode::NM_DedicatedServer)
+	{
+		prefix = FString::Printf(TEXT("DedicatedServer: "));
+	}
+	UE_LOG(AbilityFramework, Log, TEXT("%s : ApplyEffectToTarget Owner: %s, Instigator: %s"),
+		*prefix,
+		*GetOwner()->GetName(),
+		*InContext.Instigator->GetName()
+	);
 	//here, we should start attribute change prediction
 	//either change attribute or apply effect which will do so
 
-	FString prefix = "";
-	if (mode == ENetMode::NM_Standalone
-		|| role == ENetRole::ROLE_Authority)
+	
+	//if (mode == ENetMode::NM_Standalone
+	//	|| role >= ENetRole::ROLE_Authority)
 	{
-		if (mode == ENetMode::NM_Client)
-		{
-			prefix = FString::Printf(TEXT("Client %d: "), GPlayInEditorID - 1);
-		}
-		else if (mode == ENetMode::NM_DedicatedServer)
-		{
-			prefix = FString::Printf(TEXT("DedicatedServer: "));
-		}
-		UE_LOG(AbilityFramework, Log, TEXT("%s : ApplyEffectToTarget Owner: %s, Instigator: %s"),
-			*prefix,
-			*GetOwner()->GetName(),
-			*InContext.Instigator->GetName()
-		);
 		//execute cue from effect regardless if we have target object or not.
 		if (InContext.TargetComp.IsValid())
 			return InContext.TargetComp->ApplyEffectToSelf(EffectIn, InProperty, InContext, Modifier);
 	}
 
-	
 	return FGAEffectHandle();
-
-//	if (EffectIn.IsValid() && EffectIn.Context.TargetComp.IsValid())
-//	{
-		//OnEffectApplyToTarget.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
-	//	return EffectIn.Context.TargetComp->ApplyEffectToSelf(EffectIn, HandleIn);
-//	}
 }
 
 void UAFAbilityComponent::OnAttributeModified(const FGAEffectMod& InMod, 
 	const FGAEffectHandle& InHandle, UGAAttributesBase* InAttributeSet)
 {
-
+	
 }
 void UAFAbilityComponent::ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty
 	,FAFFunctionModifier Modifier, FGAEffectContext InContex)
@@ -432,13 +452,13 @@ bool UAFAbilityComponent::ReplicateSubobjects(class UActorChannel *Channel, clas
 			WroteSomething |= Channel->ReplicateSubobject(const_cast<UGAAbilityBase*>(Ability.Ability), *Bunch, *RepFlags);
 	}
 
-	for (UGAAttributesBase* Attribute : RepAttributes)
+	for (const FAFReplicatedAttributeItem& Attribute : RepAttributes.Attributes)
 	{
 		//if (Set.InputOverride)
 		//	WroteSomething |= Channel->ReplicateSubobject(const_cast<UGASInputOverride*>(Set.InputOverride), *Bunch, *RepFlags);
 
-		if (Attribute)
-			WroteSomething |= Channel->ReplicateSubobject(const_cast<UGAAttributesBase*>(Attribute), *Bunch, *RepFlags);
+		if (Attribute.Attributes)
+			WroteSomething |= Channel->ReplicateSubobject(const_cast<UGAAttributesBase*>(Attribute.Attributes), *Bunch, *RepFlags);
 	}
 
 	return WroteSomething;
@@ -526,8 +546,8 @@ void FGASAbilityItem::PostReplicatedAdd(const struct FGASAbilityContainer& InArr
 		}
 		Ability->InitAbility();
 		Ability->Attributes = nullptr;
-		//UGAAttributesBase* attr = InArraySerializer.AbilitiesComp->AdditionalAttributes.FindRef(Ability->AbilityTag);
-		//Ability->Attributes = attr;
+		UGAAttributesBase* attr = InArraySerializer.AbilitiesComp->RepAttributes.AttributeMap.FindRef(Ability->AbilityTag);
+		Ability->Attributes = attr;
 		InArraySerializerC.AbilitiesInputs.Add(Ability->AbilityTag, Ability); //.Add(Ability->AbilityTag, Ability);
 		InArraySerializerC.AbilitiesComp->NotifyOnAbilityReady(Ability->AbilityTag);
 	}
@@ -588,12 +608,19 @@ void FGASAbilityContainer::SetAbilityToAction(const FGameplayTag& InAbilityTag, 
 {
 	FGameplayTag& AbilityTag = ActionToAbility.FindOrAdd(InInputTag);
 	AbilityTag = InAbilityTag;
+
+	if (!AbilitiesComp.IsValid())
+		return;
+	if (AbilitiesComp->GetOwner()->GetNetMode() == ENetMode::NM_DedicatedServer)
+	{
+		AbilitiesComp->ClientNotifyAbilityInputReady(InAbilityTag);
+	}
 }
 UGAAbilityBase* FGASAbilityContainer::GetAbility(FGameplayTag TagIn)
 {
 	return AbilitiesInputs.FindRef(TagIn);
 }
-void FGASAbilityContainer::HandleInputPressed(FGameplayTag ActionName)
+void FGASAbilityContainer::HandleInputPressed(FGameplayTag ActionName, const FAFPredictionHandle& InPredictionHandle)
 {
 	if (BlockedInput.FindRef(ActionName))
 	{
@@ -608,7 +635,7 @@ void FGASAbilityContainer::HandleInputPressed(FGameplayTag ActionName)
 			ability->ConfirmAbility();
 			return;
 		}
-		ability->OnNativeInputPressed(ActionName);
+		ability->OnNativeInputPressed(ActionName, InPredictionHandle);
 	}
 }
 void FGASAbilityContainer::HandleInputReleased(FGameplayTag ActionName)
@@ -635,7 +662,8 @@ void FGASAbilityContainer::TriggerAbylityByTag(FGameplayTag InTag)
 			ability->ConfirmAbility();
 			return;
 		}
-		ability->OnNativeInputPressed(FGameplayTag());
+		FAFPredictionHandle PredHandle = FAFPredictionHandle::GenerateClientHandle(AbilitiesComp.Get());
+		ability->OnNativeInputPressed(FGameplayTag(), PredHandle);
 	}
 }
 
@@ -730,37 +758,43 @@ void UAFAbilityComponent::BP_InputPressed(FGameplayTag ActionName)
 }
 void UAFAbilityComponent::NativeInputPressed(FGameplayTag ActionName)
 {
-	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	FAFPredictionHandle PredHandle;
+	if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
 	{
-		ServerNativeInputPressed(ActionName);
+		PredHandle = FAFPredictionHandle::GenerateClientHandle(this);
+	}
+	//if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		ServerNativeInputPressed(ActionName, PredHandle);
 		//UE_LOG(AbilityFramework, Log, TEXT("Client UAFAbilityComponent::NativeInputPressed: %s"), *AbilityTag.GetTagName().ToString());
 		//naive needs better qynchornization to what going on where.
 		//if (UGAAbilityBase* Ability = AbilityContainer.GetAbility(AbilityTag))
 		{
 			//if (Ability->AbilityComponent == this)
 			{
-				AbilityContainer.HandleInputPressed(ActionName);
+				AbilityContainer.HandleInputPressed(ActionName, PredHandle);
 			}
 		}
 	}
-	else
-	{
+	//else
+	//{
 		//UE_LOG(AbilityFramework, Log, TEXT("Server UAFAbilityComponent::NativeInputPressed: %s"), *AbilityTag.GetTagName().ToString());
 		//if (UGAAbilityBase* Ability = AbilityContainer.GetAbility(AbilityTag))
-		{
+		//{
 			//if (Ability->AbilityComponent == this)
-			{
-				AbilityContainer.HandleInputPressed(ActionName);
-			}
-		}
-	}
+			//{
+			//	AbilityContainer.HandleInputPressed(ActionName);
+			//}
+		//}
+	//}
 }
 
-void UAFAbilityComponent::ServerNativeInputPressed_Implementation(FGameplayTag ActionName)
+void UAFAbilityComponent::ServerNativeInputPressed_Implementation(FGameplayTag ActionName, FAFPredictionHandle InPredictionHandle)
 {
-	NativeInputPressed(ActionName);
+	AbilityContainer.HandleInputPressed(ActionName, InPredictionHandle);
+	//NativeInputPressed(ActionName);
 }
-bool UAFAbilityComponent::ServerNativeInputPressed_Validate(FGameplayTag ActionName)
+bool UAFAbilityComponent::ServerNativeInputPressed_Validate(FGameplayTag ActionName, FAFPredictionHandle InPredictionHandle)
 {
 	return true;
 }
@@ -851,6 +885,10 @@ bool UAFAbilityComponent::ServerNativeAddAbilityFromTag_Validate(FGameplayTag In
 void UAFAbilityComponent::OnFinishedLoad(FGameplayTag InAbilityTag,
 	FPrimaryAssetId InPrimaryAssetId)
 {
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		return;
+	}
 	if (UAssetManager* Manager = UAssetManager::GetIfValid())
 	{
 		UObject* loaded = Manager->GetPrimaryAssetObject(InPrimaryAssetId);
@@ -927,7 +965,7 @@ void UAFAbilityComponent::PlayMontage(UAnimMontage* MontageIn, FName SectionName
 		AnimInst->Montage_Play(MontageIn, Speed);
 		if (SectionName != NAME_None)
 		{
-			AnimInst->Montage_JumpToSection(SectionName, MontageIn);
+			//AnimInst->Montage_JumpToSection(SectionName, MontageIn);
 		}
 
 		UE_LOG(AbilityFramework, Log, TEXT("PlayMontage MontageName: %s SectionNAme: %s Where: %s"), *MontageIn->GetName(), *SectionName.ToString(), (GetOwnerRole() < ENetRole::ROLE_Authority ? TEXT("Client") : TEXT("Server")));

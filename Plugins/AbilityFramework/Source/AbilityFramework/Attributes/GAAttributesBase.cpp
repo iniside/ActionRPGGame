@@ -29,7 +29,7 @@ void UGAAttributesBase::InitializeAttributes(UAFAbilityComponent* InOwningAttrib
 		FAFAttributeBase* attr = StrIt->ContainerPtrToValuePtr<FAFAttributeBase>(this);
 		if (attr)
 		{
-			attr->InitializeAttribute();
+			attr->InitializeAttribute(InOwningAttributeComp, StrIt->GetFName());
 			TickableAttributes.Add(attr);
 		}
 	}
@@ -69,7 +69,8 @@ void UGAAttributesBase::InitializeAttributesFromTable()
 				attr->SetMaxValue(row->MaxValue);
 				attr->SetMinValue(row->MinValue);
 				attr->SetCurrentValue(row->CurrentValue);
-				attr->InitializeAttribute();
+				attr->SetExtensionClass(row->Extension);
+				attr->InitializeAttribute(OwningAttributeComp, StrIt->GetFName());
 			}
 			//TickableAttributes.Add(attr);
 		}

@@ -33,6 +33,7 @@ void FGAEffectProperty::InitializeIfNotInitialized()
 		Initialize();
 	}
 }
+
 FAFEffectRepInfo::FAFEffectRepInfo(float AppliedTimeIn, float PeriodTimeIn, float DurationIn, float ReplicationTimeIn,
 	class UAFAbilityComponent* InComponent)
 	: AppliedTime(AppliedTimeIn),
@@ -57,6 +58,7 @@ void FAFEffectRepInfo::Init()
 }
 void FAFEffectRepInfo::OnExpired()
 {
+	UE_LOG(AbilityFramework, Log, TEXT("Client FAFEffectRepInfo. OnExpired"));
 	OwningComoponent->ExecuteEffectEvent(OnExpiredEvent);
 }
 void FAFEffectRepInfo::OnPeriod()
@@ -65,6 +67,9 @@ void FAFEffectRepInfo::OnPeriod()
 }
 void FAFEffectRepInfo::OnRemoved()
 {
+	FString EffectInfoLog(TEXT("FAFEffectRepInfo::OnRemoved "));
+	EffectInfoLog += EffectTag.ToString();
+	AddLogDebugInfo(EffectInfoLog, OwningComoponent->GetWorld());
 	FTimerManager& Timer = OwningComoponent->GetWorld()->GetTimerManager();
 	Timer.ClearTimer(ExpiredHandle);
 	Timer.ClearTimer(PeriodHandle);
@@ -86,6 +91,21 @@ void FAFEffectRepInfo::PreReplicatedRemove(const struct FGAEffectContainer& InAr
 }
 void FAFEffectRepInfo::PostReplicatedAdd(const struct FGAEffectContainer& InArraySerializer)
 {
+	if (PredictionHandle.IsValid() && InArraySerializer.PredictedEffectInfos.Contains(PredictionHandle))
+	{
+		FGAEffectContainer& cont = const_cast<FGAEffectContainer&>(InArraySerializer);
+		auto RemovePredicate = [&](const FAFEffectRepInfo& EmitterHandle) { return EmitterHandle.Handle == Handle; };
+		//cont.ActiveEffectInfos.Remove(*this);
+		cont.ActiveEffectInfos.RemoveAll(RemovePredicate);
+		return;
+		//remove replicated rep info ?
+		//keep client side handle.
+		//possibly override client predicted repinfo with informations from server.
+	}
+	else
+	{
+		//remove predicted effect.
+	}
 	OwningComoponent = InArraySerializer.OwningComponent;
 	InArraySerializer.EffectInfos.Add(Handle, this);
 	InArraySerializer.OwningComponent->OnEffectRepInfoApplied.Broadcast(this);
@@ -93,7 +113,7 @@ void FAFEffectRepInfo::PostReplicatedAdd(const struct FGAEffectContainer& InArra
 	//OwningComoponent->ExecuteEffectEvent(OnAppliedEvent);
 
 	FTimerManager& Timer = OwningComoponent->GetWorld()->GetTimerManager();
-
+	AppliedTime = OwningComoponent->GetWorld()->GetTimeSeconds();
 	FTimerDelegate delDuration = FTimerDelegate::CreateRaw(this, &FAFEffectRepInfo::OnExpired);
 	Timer.SetTimer(ExpiredHandle, delDuration,
 		Duration, false);
@@ -358,15 +378,17 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 	FGAEffectHandle Handle;
 	bool bHasDuration = InProperty.Duration > 0;
 	bool bHasPeriod = InProperty.Period > 0;
-
+	ENetRole role = OwningComponent->GetOwnerRole();
+	ENetMode mode = OwningComponent->GetOwner()->GetNetMode();
 	//we should not generate handle on clients.
+	//do we need valid handle for instant effects ?
 	if (bHasDuration || bHasPeriod)
 	{
 		Handle = FGAEffectHandle::GenerateHandle(EffectIn);
 	}
 	if (InProperty.ApplicationRequirement->CanApply(EffectIn, InProperty, this, InContext, Handle))
 	{
-		if(!bHasDuration && !bHasPeriod)
+		if(!bHasDuration && !bHasPeriod) //instatnt effect.
 		{
 			if (InProperty.Handle.IsValid())
 			{
@@ -399,10 +421,15 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 				EffectIn, InProperty, this, InContext))
 			{
 				InProperty.Application->ExecuteEffect(Handle, InProperty, InContext, Modifier);
+				//generate it only on client, and apply prediction key from client.
+				//if server replicates with valid key, then nothing happens.
+				//if not we try to rewind effect application.
+				//we probabaly don't need to unwind attribute changes, since next replication from
+				//server will overridem them anyway.
 				ApplyReplicationInfo(Handle, InProperty);
-				//	UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::EffectApplied %s"), *HandleIn.GetEffectSpec()->GetName() );
+				bool bIsServer = GEngine->GetNetMode(OwningComponent->GetWorld());
+				UE_LOG(AbilityFramework, Log, TEXT("%s :: FGAEffectContainer::EffectApplied %s"), bIsServer ? TEXT("Server") : TEXT("Client"),  *Handle.GetEffectSpec()->GetName() );
 			}
-			
 		}
 		
 	}
@@ -420,6 +447,10 @@ void FGAEffectContainer::ApplyReplicationInfo(const FGAEffectHandle& InHandle, c
 {
 	ENetMode mode = OwningComponent->GetNetMode();
 	ENetRole role = OwningComponent->GetOwnerRole();
+
+	bool bIsServer = GEngine->GetNetMode(OwningComponent->GetWorld()) == ENetMode::NM_DedicatedServer;
+	UE_LOG(AbilityFramework, Log, TEXT("%s :: FGAEffectContainer::ApplyReplicationInfo"), bIsServer ? TEXT("Server") : TEXT("Client"));
+
 	if (mode == ENetMode::NM_DedicatedServer)
 	{
 		const UWorld* World = OwningComponent->GetWorld();
@@ -428,6 +459,7 @@ void FGAEffectContainer::ApplyReplicationInfo(const FGAEffectHandle& InHandle, c
 		RepInfo->OnPeriodEvent = InProperty.GetSpec()->OnPeriodEvent;
 		RepInfo->OnRemovedEvent = InProperty.GetSpec()->OnRemovedEvent;
 		RepInfo->Handle = InHandle;
+		RepInfo->PredictionHandle = InProperty.PredictionHandle;
 		RepInfo->Init();
 		MarkItemDirty(*RepInfo);
 		ActiveEffectInfos.Add(*RepInfo);
@@ -440,22 +472,24 @@ void FGAEffectContainer::ApplyReplicationInfo(const FGAEffectHandle& InHandle, c
 			EffectInfos.Add(InHandle, RepInfo);
 		}
 	}
-	else if(mode == ENetMode::NM_Standalone)
+	else if(mode == ENetMode::NM_Standalone || mode == ENetMode::NM_Client)
 	{
-		
+		//add replication handle (and send it to server ?)
 		const UWorld* World = OwningComponent->GetWorld();
 		FAFEffectRepInfo* RepInfo = new FAFEffectRepInfo(World->GetTimeSeconds(), InProperty.Period, InProperty.Duration, 0, OwningComponent);
 		RepInfo->OnExpiredEvent = InProperty.GetSpec()->OnExpiredEvent;
 		RepInfo->OnPeriodEvent = InProperty.GetSpec()->OnPeriodEvent;
 		RepInfo->OnRemovedEvent = InProperty.GetSpec()->OnRemovedEvent;
 		RepInfo->Handle = InHandle;
+		RepInfo->PredictionHandle = InProperty.PredictionHandle;
 		RepInfo->Init();
 		//MarkItemDirty(RepInfo);
 		ActiveEffectInfos.Add(*RepInfo);
 		//MarkArrayDirty();
-
+		UE_LOG(AbilityFramework, Log, TEXT("Client ApplyReplicationInfo. Duration: %f"), InProperty.Duration);
 		//predictevily add effect info ?
 		{
+			PredictedEffectInfos.Add(InProperty.PredictionHandle, RepInfo);
 			EffectInfos.Add(InHandle, RepInfo);
 		}
 	}
@@ -706,6 +740,9 @@ void FGAEffectContainer::RemoveEffect(const FGAEffectProperty& HandleIn, int32 N
 					EffectInfos.RemoveAndCopyValue(OutHandle, Out);
 					if (Out)
 					{
+						FString EffectInfoLog(TEXT("FGAEffectContainer::RemoveEffect "));
+						EffectInfoLog += Out->EffectTag.ToString();
+						AddLogDebugInfo(EffectInfoLog, OwningComponent->GetWorld());
 						MarkItemDirty(*Out);
 						Out->OnRemoved();
 						ActiveEffectInfos.Remove(*Out);

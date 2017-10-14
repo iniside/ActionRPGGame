@@ -7,7 +7,11 @@
 #include "ARGunAttributes.generated.h"
 
 /**
- * 
+ * 1. Register FAFReplicationHandle with attribute change.
+ * 2. If handle is valid then attribute change is also valid (for attribute prediction)
+ * 3. If valid we don't override with server values.
+ * 4. Wont work on attributes which can be changed by several sources at the same time like HP.
+ * This will require custom treatment.
  */
 UCLASS()
 class ACTIONRPGGAME_API UARGunAttributes : public UGAAttributesBase
@@ -32,5 +36,5 @@ public:
 		FAFAttributeBase Spread;
 	
 	UFUNCTION()
-		void OnRep_Magazine();
+		void OnRep_Magazine(FAFAttributeBase OldVal);
 };

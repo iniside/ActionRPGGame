@@ -129,13 +129,13 @@ public:
 		//SourceComponent->GetAttributes<UGAAttributesTest>()->PhysicalBonus.Stacking = EAFAttributeStacking::Add;
 		//SourceComponent->GetAttributes<UGAAttributesTest>()->MagicResistance.Stacking = EAFAttributeStacking::Override;
 
-		SourceComponent->GetAttributes<UGAAttributesTest>()->Health.InitializeAttribute();
-		SourceComponent->GetAttributes<UGAAttributesTest>()->Energy.InitializeAttribute();
-		SourceComponent->GetAttributes<UGAAttributesTest>()->Stamina.InitializeAttribute();
+		SourceComponent->GetAttributes<UGAAttributesTest>()->Health.InitializeAttribute(SourceComponent, TEXT("Health"));
+		SourceComponent->GetAttributes<UGAAttributesTest>()->Energy.InitializeAttribute(SourceComponent, TEXT("Energy"));
+		SourceComponent->GetAttributes<UGAAttributesTest>()->Stamina.InitializeAttribute(SourceComponent, TEXT("Stamina"));
 
-		SourceComponent->GetAttributes<UGAAttributesTest>()->MagicalBonus.InitializeAttribute();
-		SourceComponent->GetAttributes<UGAAttributesTest>()->PhysicalBonus.InitializeAttribute();
-		SourceComponent->GetAttributes<UGAAttributesTest>()->MagicResistance.InitializeAttribute();
+		SourceComponent->GetAttributes<UGAAttributesTest>()->MagicalBonus.InitializeAttribute(SourceComponent, TEXT("MagicalBonus"));
+		SourceComponent->GetAttributes<UGAAttributesTest>()->PhysicalBonus.InitializeAttribute(SourceComponent, TEXT("PhysicalBonus"));
+		SourceComponent->GetAttributes<UGAAttributesTest>()->MagicResistance.InitializeAttribute(SourceComponent, TEXT("MagicResistance"));
 		SourceComponent->DefaultAttributes->InitializeAttributes(SourceComponent);
 
 		DestActor = World->SpawnActor<AGACharacterAttributeTest>();
@@ -154,13 +154,13 @@ public:
 		DestComponent->GetAttributes<UGAAttributesTest>()->PhysicalBonus.SetMaxValue(500);
 		DestComponent->GetAttributes<UGAAttributesTest>()->MagicResistance.SetMaxValue(500);
 
-		DestComponent->GetAttributes<UGAAttributesTest>()->Health.InitializeAttribute();
-		DestComponent->GetAttributes<UGAAttributesTest>()->Energy.InitializeAttribute();
-		DestComponent->GetAttributes<UGAAttributesTest>()->Stamina.InitializeAttribute();
+		DestComponent->GetAttributes<UGAAttributesTest>()->Health.InitializeAttribute(DestComponent, TEXT("Health"));
+		DestComponent->GetAttributes<UGAAttributesTest>()->Energy.InitializeAttribute(DestComponent, TEXT("Energy"));
+		DestComponent->GetAttributes<UGAAttributesTest>()->Stamina.InitializeAttribute(DestComponent, TEXT("Stamina"));
 
-		DestComponent->GetAttributes<UGAAttributesTest>()->MagicalBonus.InitializeAttribute();
-		DestComponent->GetAttributes<UGAAttributesTest>()->PhysicalBonus.InitializeAttribute();
-		DestComponent->GetAttributes<UGAAttributesTest>()->MagicResistance.InitializeAttribute();
+		DestComponent->GetAttributes<UGAAttributesTest>()->MagicalBonus.InitializeAttribute(DestComponent, TEXT("MagicalBonus"));
+		DestComponent->GetAttributes<UGAAttributesTest>()->PhysicalBonus.InitializeAttribute(DestComponent, TEXT("PhysicalBonus"));
+		DestComponent->GetAttributes<UGAAttributesTest>()->MagicResistance.InitializeAttribute(DestComponent, TEXT("MagicResistance"));
 		DestComponent->DefaultAttributes->InitializeAttributes(DestComponent);
 
 		TargetOne = World->SpawnActor<AGACharacterAttributeTest>();
@@ -179,13 +179,13 @@ public:
 		TargetCompOne->GetAttributes<UGAAttributesTest>()->PhysicalBonus.SetMaxValue(500);
 		TargetCompOne->GetAttributes<UGAAttributesTest>()->MagicResistance.SetMaxValue(500);
 
-		TargetCompOne->GetAttributes<UGAAttributesTest>()->Health.InitializeAttribute();
-		TargetCompOne->GetAttributes<UGAAttributesTest>()->Energy.InitializeAttribute();
-		TargetCompOne->GetAttributes<UGAAttributesTest>()->Stamina.InitializeAttribute();
+		TargetCompOne->GetAttributes<UGAAttributesTest>()->Health.InitializeAttribute(TargetCompOne, TEXT("Health"));
+		TargetCompOne->GetAttributes<UGAAttributesTest>()->Energy.InitializeAttribute(TargetCompOne, TEXT("Energy"));
+		TargetCompOne->GetAttributes<UGAAttributesTest>()->Stamina.InitializeAttribute(TargetCompOne, TEXT("Stamina"));
 
-		TargetCompOne->GetAttributes<UGAAttributesTest>()->MagicalBonus.InitializeAttribute();
-		TargetCompOne->GetAttributes<UGAAttributesTest>()->PhysicalBonus.InitializeAttribute();
-		TargetCompOne->GetAttributes<UGAAttributesTest>()->MagicResistance.InitializeAttribute();
+		TargetCompOne->GetAttributes<UGAAttributesTest>()->MagicalBonus.InitializeAttribute(TargetCompOne, TEXT("MagicalBonus"));
+		TargetCompOne->GetAttributes<UGAAttributesTest>()->PhysicalBonus.InitializeAttribute(TargetCompOne, TEXT("PhysicalBonus"));
+		TargetCompOne->GetAttributes<UGAAttributesTest>()->MagicResistance.InitializeAttribute(TargetCompOne, TEXT("MagicResistance"));
 		TargetCompOne->DefaultAttributes->InitializeAttributes(TargetCompOne);
 
 
@@ -205,13 +205,13 @@ public:
 		TargetCompTwo->GetAttributes<UGAAttributesTest>()->PhysicalBonus.SetMaxValue(500);
 		TargetCompTwo->GetAttributes<UGAAttributesTest>()->MagicResistance.SetMaxValue(500);
 
-		TargetCompTwo->GetAttributes<UGAAttributesTest>()->Health.InitializeAttribute();
-		TargetCompTwo->GetAttributes<UGAAttributesTest>()->Energy.InitializeAttribute();
-		TargetCompTwo->GetAttributes<UGAAttributesTest>()->Stamina.InitializeAttribute();
+		TargetCompTwo->GetAttributes<UGAAttributesTest>()->Health.InitializeAttribute(TargetCompTwo, TEXT("Health"));
+		TargetCompTwo->GetAttributes<UGAAttributesTest>()->Energy.InitializeAttribute(TargetCompTwo, TEXT("Energy"));
+		TargetCompTwo->GetAttributes<UGAAttributesTest>()->Stamina.InitializeAttribute(TargetCompTwo, TEXT("Stamina"));
 
-		TargetCompTwo->GetAttributes<UGAAttributesTest>()->MagicalBonus.InitializeAttribute();
-		TargetCompTwo->GetAttributes<UGAAttributesTest>()->PhysicalBonus.InitializeAttribute();
-		TargetCompTwo->GetAttributes<UGAAttributesTest>()->MagicResistance.InitializeAttribute();
+		TargetCompTwo->GetAttributes<UGAAttributesTest>()->MagicalBonus.InitializeAttribute(TargetCompTwo, TEXT("MagicalBonus"));
+		TargetCompTwo->GetAttributes<UGAAttributesTest>()->PhysicalBonus.InitializeAttribute(TargetCompTwo, TEXT("PhysicalBonus"));
+		TargetCompTwo->GetAttributes<UGAAttributesTest>()->MagicResistance.InitializeAttribute(TargetCompTwo, TEXT("MagicResistance"));
 		TargetCompTwo->DefaultAttributes->InitializeAttributes(TargetCompTwo);
 
 		//DestActor->BeginPlay();

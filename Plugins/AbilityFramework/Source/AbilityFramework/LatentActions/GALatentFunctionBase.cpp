@@ -55,11 +55,6 @@ void UGALatentFunctionBase::EndTask()
 void UGALatentFunctionBase::BeginDestroy()
 {
 	Super::BeginDestroy();
-	if (Endpoint.IsValid())
-	{
-		FMessageEndpoint::SafeRelease(Endpoint);
-		Endpoint.Reset();
-	}
 }
 UWorld* UGALatentFunctionBase::GetWorld() const
 {

@@ -67,6 +67,10 @@ public:
 	{
 		static_assert(DelayedFalse<T>(), "UAbilityTask::NewTask should never be used. Use NewAbilityTask instead");
 	}
+
+	//network overrides:
+	int32 GetFunctionCallspace(UFunction* Function, void* Parameters, FFrame* Stack) override;
+	virtual bool CallRemoteFunction(UFunction* Function, void* Parameters, FOutParmRec* OutParms, FFrame* Stack) override;
 protected:
 	void EndAbilityTask();
 };

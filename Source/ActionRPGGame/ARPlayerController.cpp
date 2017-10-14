@@ -9,12 +9,15 @@
 #include "Engine/AssetManager.h"
 #include "ARAbilityBase.h"
 
+#include "Weapons/ARWeaponManagerComponent.h"
+
 AARPlayerController::AARPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	UIComponent = ObjectInitializer.CreateDefaultSubobject<UARUIComponent>(this, "UIComponent");
 	UIAbilityManagerComponent = ObjectInitializer.CreateDefaultSubobject<UARUIAbilityManagerComponent>(this, "UIAbilityManagerComponent");
 	UIWeaponEquipment = ObjectInitializer.CreateDefaultSubobject<UARUIWeaponEquipment>(this, "UIWeaponEquipment");
+	WeaponManager = ObjectInitializer.CreateDefaultSubobject<UARWeaponManagerComponent>(this, "WeaponManager");
 }
 
 void AARPlayerController::SetPawn(APawn* InPawn)
@@ -35,6 +38,7 @@ void AARPlayerController::SetPawn(APawn* InPawn)
 		AbilityComp->BindAbilityToAction(InputComponent, InputNextWeapon);
 		AbilityComp->BindAbilityToAction(InputComponent, InputPreviousWeapon);
 
+		//doesn't matter. Internally ability component make sure abilities are instanced on server and replicated back.
 		FAFOnAbilityReady del1 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, AbilitytNextWeapon, InputNextWeapon);
 		AbilityComp->AddOnAbilityReadyDelegate(AbilitytNextWeapon, del1);
 		AbilityComp->NativeAddAbilityFromTag(AbilitytNextWeapon, nullptr);
@@ -49,9 +53,6 @@ void AARPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 	InputComponent->BindAction("SwitchAbilitySet", IE_Pressed, this, &AARPlayerController::InputSwitchAbilitySet);
-	//InputComponent->BindAction("NextWeapon", IE_Pressed, this, &AARPlayerController::InputNextWeapon);
-	//InputComponent->BindAction("PreviousWeapon", IE_Pressed, this, &AARPlayerController::InputPreviousWeapon);
-
 }
 
 void AARPlayerController::InputSwitchAbilitySet()
@@ -59,14 +60,6 @@ void AARPlayerController::InputSwitchAbilitySet()
 	UIAbilityManagerComponent->SwitchSet();
 }
 
-//void AARPlayerController::InputNextWeapon()
-//{
-//	UIWeaponEquipment->NextWeapon();
-//}
-//void AARPlayerController::InputPreviousWeapon()
-//{
-//	UIWeaponEquipment->PreviousWeapon();
-//}
 void AARPlayerController::OnInputAbilityReady(FGameplayTag InAbilityTag, FGameplayTag InInputTag)
 {
 	IAFAbilityInterface* ABInt = Cast<IAFAbilityInterface>(GetPawn());
@@ -80,4 +73,14 @@ void AARPlayerController::OnInputAbilityReady(FGameplayTag InAbilityTag, FGamepl
 	UARAbilityBase* Ability = Cast<UARAbilityBase>(AbilityComp->BP_GetAbilityByTag(InAbilityTag));
 	
 	AbilityComp->SetAbilityToAction(InAbilityTag, InInputTag, FAFOnAbilityReady());
+}
+
+void AARPlayerController::NextWeapon()
+{
+	WeaponManager->NextWeapon();
+}
+
+void AARPlayerController::PreviousWeapon()
+{
+	WeaponManager->PreviousWeapon();
 }

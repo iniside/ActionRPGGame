@@ -136,18 +136,12 @@ void UARUIAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbil
 	if (!AbilityComp)
 		return;
 
-	/*if (!AbilityComp->OnAbilityAdded.IsAlreadyBound(this, &UARUIAbilityManagerComponent::OnAbilityReady))
-	{
-		FGameplayTag d = GetInputTag(InAbilitySet, AbilityIndex);
-		AbilityComp->OnAbilityReady.AddDynamic(this, &UARUIAbilityManagerComponent::OnAbilityReady);
-	}*/
 	FGameplayTag IAbilityInput = GetInputTag(InAbilitySet, AbilityIndex);
 	FAFOnAbilityReady ReadyDelegate = FAFOnAbilityReady::CreateUObject(this, &UARUIAbilityManagerComponent::OnAbilityReady, 
 		InAbilityTag, IAbilityInput, InAbilitySet, AbilityIndex);
 	AbilityComp->AddOnAbilityReadyDelegate(InAbilityTag, ReadyDelegate);
 
-	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, nullptr);// , GetInputTag(InAbilitySet, AbilityIndex));
-	
+	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, nullptr);
 }
 void UARUIAbilityManagerComponent::OnAbilityReady(FGameplayTag InAbilityTag, FGameplayTag InAbilityInput,
 	int32 InAbilitySet, int32 InAbilityIndex)
@@ -170,15 +164,39 @@ void UARUIAbilityManagerComponent::NativeOnAbilityReady(const FGameplayTag& InAb
 
 	
 	UARAbilityBase* Ability = Cast<UARAbilityBase>(AbilityComp->BP_GetAbilityByTag(InAbilityTag));
-		
+	if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
+	{
+		FAFOnAbilityReady ReadyDelegate = FAFOnAbilityReady::CreateUObject(this, &UARUIAbilityManagerComponent::OnAbilityInputReady,
+			InAbilityTag, InAbilityInput, InAbilitySet, InAbilityIndex);
+
+		AbilityComp->SetAbilityToAction(InAbilityTag, InAbilityInput, ReadyDelegate);
+	}
+	else
+	{
+		SetAbility(InAbilitySet, InAbilityIndex, Ability);
+		SetAbilityTag(InAbilitySet, InAbilityIndex, InAbilityTag);
+		SetInputTag(InAbilitySet, InAbilityIndex, InAbilityInput);
+		AbilityComp->SetAbilityToAction(InAbilityTag, InAbilityInput, FAFOnAbilityReady());
+	}
+}
+void UARUIAbilityManagerComponent::OnAbilityInputReady(FGameplayTag InAbilityTag, FGameplayTag InAbilityInput,
+	int32 InAbilitySet, int32 InAbilityIndex)
+{
+	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
+	if (!MyPC)
+		return;
+	IAFAbilityInterface* ABInt = Cast<IAFAbilityInterface>(MyPC->GetPawn());
+	if (!ABInt)
+		return;
+
+	UAFAbilityComponent* AbilityComp = ABInt->GetAbilityComp();
+	if (!AbilityComp)
+		return;
+	UARAbilityBase* Ability = Cast<UARAbilityBase>(AbilityComp->BP_GetAbilityByTag(InAbilityTag));
 	SetAbility(InAbilitySet, InAbilityIndex, Ability);
 	SetAbilityTag(InAbilitySet, InAbilityIndex, InAbilityTag);
 	SetInputTag(InAbilitySet, InAbilityIndex, InAbilityInput);
-		
-		
-	AbilityComp->SetAbilityToAction(InAbilityTag, InAbilityInput, FAFOnAbilityReady());
 }
-
 void UARUIAbilityManagerComponent::SwitchSet()
 {
 	//in reality it should be vlidated on server as well
@@ -204,7 +222,6 @@ void UARUIAbilityManagerComponent::SwitchSet()
 		{
 			AbilityComp->SetBlockedInput(InputTags[Idx], true);
 			AbilityComp->SetBlockedInput(InputTags2[Idx], false);
-			//AbilityComp->BP_BindAbilityToAction(InputBinding, AbilityTag);
 		}
 		ActiveSet = 1;
 		OnAbilitySetChanged.Broadcast(1);
@@ -218,7 +235,6 @@ void UARUIAbilityManagerComponent::SwitchSet()
 		{
 			AbilityComp->SetBlockedInput(InputTags[Idx], true);
 			AbilityComp->SetBlockedInput(InputTags2[Idx], false);
-			//AbilityComp->BP_BindAbilityToAction(InputBinding, AbilityTag);
 		}
 		ActiveSet = 0;
 		OnAbilitySetChanged.Broadcast(0);

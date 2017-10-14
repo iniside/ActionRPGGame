@@ -28,6 +28,18 @@ public:
 		Mod = Other.Mod;
 	}
 };
+
+//wrapper for multi-precision attribute.
+//works like any numeric type, but depending on preprocessor flag it can int16,in32, float or double.
+
+typedef int16 AttributeReal;
+
+struct FNumericAttribute
+{
+	AttributeReal Value;
+};
+
+class UAFAbilityComponent;
 /*
 	I probabaly should chaange attribute to use int's instead of floats. Stable, accurate and
 	I can still have decimal values with them.
@@ -71,7 +83,7 @@ public:
 	TArray<TMap<FGAEffectHandle, FGAEffectMod>> Modifiers;
 	FAFAttributeBase();
 	FAFAttributeBase(float BaseValueIn);
-	void InitializeAttribute();
+	void InitializeAttribute(UAFAbilityComponent* InComponent, const FName InAttributeName);
 	/* You should never use those tree function to set attributes.
 	Only use them for testing/debugging and setting initial values for attributes. */
 	inline void SetBaseValue(float ValueIn) { BaseValue = ValueIn; }
@@ -91,6 +103,7 @@ public:
 	float Modify(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);
 	void AddBonus(const FGAEffectMod& ModIn, const FGAEffectHandle& Handle);
 	void RemoveBonus(const FGAEffectHandle& Handle, EGAAttributeMod InMod);
+	void SetExtensionClass(TSubclassOf<class UGAAttributeExtension> InExtensionClass) { ExtensionClass = InExtensionClass; };
 	//EAFAttributeStacking GetStacking() const { return Stacking; }
 };
 template<>

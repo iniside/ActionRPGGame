@@ -21,6 +21,8 @@ public:
 		class UARUIAbilityManagerComponent* UIAbilityManagerComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
 		class UARUIWeaponEquipment* UIWeaponEquipment;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
+		class UARWeaponManagerComponent* WeaponManager;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
 		FGameplayTag InputNextWeapon;
@@ -39,8 +41,10 @@ public:
 
 	void InputSwitchAbilitySet();
 
-//	void InputNextWeapon();
-	//void InputPreviousWeapon();
+	UFUNCTION(BlueprintCallable, Category = "ActionRPGGame|Weapons")
+		void NextWeapon();
+	UFUNCTION(BlueprintCallable, Category = "ActionRPGGame|Weapons")
+		void PreviousWeapon();
 
 	void OnInputAbilityReady(FGameplayTag InAbilityTag, FGameplayTag InInputTag);
 };

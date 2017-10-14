@@ -44,6 +44,8 @@ public:
 	//those tags will be merged into effect owned tags.
 	virtual FGameplayTagContainer GetCauserTags() { return FGameplayTagContainer(); }
 
+	virtual FAFPredictionHandle GetPredictionHandle() { return FAFPredictionHandle(); }
+
 	template<class T>
 	T* GetAttributesTyped()
 	{

@@ -8,6 +8,13 @@
 #include "Effects/GAEffectExecution.h"
 #include "AFAbilityInterface.h"
 #include "Effects/GACustomCalculation.h"
+
+void AddLogDebugInfo(FString Text, UWorld* World)
+{
+	bool bIsServer = GEngine->GetNetMode(World) == ENetMode::NM_DedicatedServer;
+	UE_LOG(AbilityFramework, Log, TEXT("%s :: %s"), bIsServer ? TEXT("Server") : TEXT("Client"), *Text);
+}
+
 FGAEffectContext::FGAEffectContext(TWeakObjectPtr<class UGAAttributesBase> TargetAttributesIn, TWeakObjectPtr<class UGAAttributesBase> InstigatorAttributesIn,
 	const FVector& TargetHitLocationIn, TWeakObjectPtr<UObject> TargetIn,
 	TWeakObjectPtr<UObject> CauserIn, TWeakObjectPtr<APawn> InstigatorIn,
@@ -126,6 +133,20 @@ void FGAEffectHandle::Reset()
 	Handle = 0;
 	EffectPtr.Reset();
 }
+
+FAFPredictionHandle FAFPredictionHandle::GenerateClientHandle(UAFAbilityComponent* InComponent)
+{
+	if (InComponent->GetOwner()->GetNetMode() == ENetMode::NM_Client)
+	{
+		static uint32 Counter = 1;
+		Counter++;
+		FAFPredictionHandle Handle;
+		Handle.Handle = Counter;
+		return Handle;
+	}
+	return FAFPredictionHandle();
+}
+
 FGAHashedGameplayTagContainer::FGAHashedGameplayTagContainer(const FGameplayTagContainer& TagsIn)
 	: Tags(TagsIn)
 {

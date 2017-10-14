@@ -1,52 +1,42 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "ARUIWeaponEquipment.h"
+#include "ARWeaponManagerComponent.h"
 #include "AFAbilityInterface.h"
 #include "AFAbilityComponent.h"
+#include "ARWeaponAbilityBase.h"
 // Sets default values for this component's properties
-UARUIWeaponEquipment::UARUIWeaponEquipment()
+UARWeaponManagerComponent::UARWeaponManagerComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-	Weapons.SetNum(4);
-	ActiveWeaponIndex = 0;
+	AllWeapons.SetNum(4);
 	// ...
 }
 
 
 // Called when the game starts
-void UARUIWeaponEquipment::BeginPlay()
+void UARWeaponManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
-	if (!MyPC)
-		return;
 
-	IAFAbilityInterface* ABInt = Cast<IAFAbilityInterface>(MyPC->GetPawn());
-	if (!ABInt)
-		return;
-
-	UAFAbilityComponent* AbilityComp = ABInt->GetAbilityComp();
-	if (!AbilityComp)
-		return;
-	UInputComponent* InputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
-	AbilityComp->BindAbilityToAction(InputComponent, ShootInput);
-	AbilityComp->BindAbilityToAction(InputComponent, ReloadInput);
-	//alt fire ?
 	// ...
 	
 }
 
 
 // Called every frame
-void UARUIWeaponEquipment::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UARWeaponManagerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
 	// ...
 }
-
-void UARUIWeaponEquipment::NativeEquipWeapon(const FGameplayTag& InAbilityTag, int32 SlotIndex)
+void UARWeaponManagerComponent::BP_EquipWeapon(const FGameplayTag& InAbilityTag, int32 SlotIndex)
+{
+	NativeEquipWeapon(InAbilityTag, SlotIndex);
+}
+void UARWeaponManagerComponent::NativeEquipWeapon(const FGameplayTag& InAbilityTag, int32 SlotIndex)
 {
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
 	if (!MyPC)
@@ -60,12 +50,11 @@ void UARUIWeaponEquipment::NativeEquipWeapon(const FGameplayTag& InAbilityTag, i
 	if (!AbilityComp)
 		return;
 
-	FAFOnAbilityReady del = FAFOnAbilityReady::CreateUObject(this, &UARUIWeaponEquipment::OnWeaponReady, InAbilityTag, SlotIndex);
+	FAFOnAbilityReady del = FAFOnAbilityReady::CreateUObject(this, &UARWeaponManagerComponent::OnWeaponReady, InAbilityTag, SlotIndex);
 	AbilityComp->AddOnAbilityReadyDelegate(InAbilityTag, del);
 	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, nullptr);// , /*Input*/ ShootInput);
 }
-
-void UARUIWeaponEquipment::OnWeaponReady(FGameplayTag InAbilityTag, int32 SlotIndex)
+void UARWeaponManagerComponent::OnWeaponReady(FGameplayTag InAbilityTag, int32 SlotIndex)
 {
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
 	if (!MyPC)
@@ -78,26 +67,22 @@ void UARUIWeaponEquipment::OnWeaponReady(FGameplayTag InAbilityTag, int32 SlotIn
 	if (!AbilityComp)
 		return;
 
-	UARAbilityBase* Ability = Cast<UARAbilityBase>(AbilityComp->BP_GetAbilityByTag(InAbilityTag));
+	UARWeaponAbilityBase* Ability = Cast<UARWeaponAbilityBase>(AbilityComp->BP_GetAbilityByTag(InAbilityTag));
 	if (SlotIndex == 0)
 	{
-		Weapons[SlotIndex] = Ability;
-		ActiveWeapon = Ability;
+		AllWeapons[SlotIndex] = Ability;
+		CurrentWeapon = Ability;
 		ActiveWeaponIndex = SlotIndex;
 		AbilityComp->SetAbilityToAction(InAbilityTag, ShootInput, FAFOnAbilityReady());
 		AbilityComp->SetAbilityToAction(InAbilityTag, ReloadInput, FAFOnAbilityReady());
 	}
 	else
 	{
-		Weapons[SlotIndex] = Ability;
+		AllWeapons[SlotIndex] = Ability;
 	}
 }
-void UARUIWeaponEquipment::BP_EquipWeapon(const FGameplayTag& InAbilityTag, int32 SlotIndex)
-{
-	NativeEquipWeapon(InAbilityTag, SlotIndex);
-}
 
-void UARUIWeaponEquipment::NextWeapon()
+void UARWeaponManagerComponent::NextWeapon()
 {
 	ENetMode NetMode = GetOwner()->GetNetMode();
 	if (NetMode == ENetMode::NM_Client
@@ -106,12 +91,12 @@ void UARUIWeaponEquipment::NextWeapon()
 		ActiveWeaponIndex++;
 		if (ActiveWeaponIndex < 4)
 		{
-			ActiveWeapon = Weapons[ActiveWeaponIndex];
+			CurrentWeapon = AllWeapons[ActiveWeaponIndex];
 		}
 		else
 		{
 			ActiveWeaponIndex = 0;
-			ActiveWeapon = Weapons[ActiveWeaponIndex];
+			CurrentWeapon = AllWeapons[ActiveWeaponIndex];
 		}
 	}
 
@@ -121,36 +106,36 @@ void UARUIWeaponEquipment::NextWeapon()
 	}
 
 }
-void UARUIWeaponEquipment::PreviousWeapon()
+void UARWeaponManagerComponent::PreviousWeapon()
 {
 	ActiveWeaponIndex--;
 	if (ActiveWeaponIndex >= 0)
 	{
-		ActiveWeapon = Weapons[ActiveWeaponIndex];
+		CurrentWeapon = AllWeapons[ActiveWeaponIndex];
 	}
 	else
 	{
 		ActiveWeaponIndex = 0;
-		ActiveWeapon = Weapons[ActiveWeaponIndex];
+		CurrentWeapon = AllWeapons[ActiveWeaponIndex];
 	}
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
 		ServerPreviousWeapon(ActiveWeaponIndex);
 	}
-	
+
 }
 
-void UARUIWeaponEquipment::ServerNextWeapon_Implementation(int32 WeaponIndex)
+void UARWeaponManagerComponent::ServerNextWeapon_Implementation(int32 WeaponIndex)
 {
 	ActiveWeaponIndex++;
 	if (ActiveWeaponIndex < 4)
 	{
-		ActiveWeapon = Weapons[ActiveWeaponIndex];
+		CurrentWeapon = AllWeapons[ActiveWeaponIndex];
 	}
 	else
 	{
 		ActiveWeaponIndex = 0;
-		ActiveWeapon = Weapons[ActiveWeaponIndex];
+		CurrentWeapon = AllWeapons[ActiveWeaponIndex];
 	}
 	//so Server index is different. Client might tried to cheat
 	//or sometrhing. We will override it.
@@ -162,33 +147,33 @@ void UARUIWeaponEquipment::ServerNextWeapon_Implementation(int32 WeaponIndex)
 		ClientNextWeapon(ActiveWeaponIndex);
 	}
 }
-bool UARUIWeaponEquipment::ServerNextWeapon_Validate(int32 WeaponIndex)
+bool UARWeaponManagerComponent::ServerNextWeapon_Validate(int32 WeaponIndex)
 {
 	return true;
 }
-void UARUIWeaponEquipment::ClientNextWeapon_Implementation(int32 WeaponIndex)
+void UARWeaponManagerComponent::ClientNextWeapon_Implementation(int32 WeaponIndex)
 {
 	ActiveWeaponIndex = WeaponIndex;
-	ActiveWeapon = Weapons[ActiveWeaponIndex];
+	CurrentWeapon = AllWeapons[ActiveWeaponIndex];
 }
-void UARUIWeaponEquipment::ServerPreviousWeapon_Implementation(int32 WeaponIndex)
+void UARWeaponManagerComponent::ServerPreviousWeapon_Implementation(int32 WeaponIndex)
 {
 	ActiveWeaponIndex--;
 	if (ActiveWeaponIndex >= 0)
 	{
-		ActiveWeapon = Weapons[ActiveWeaponIndex];
+		CurrentWeapon = AllWeapons[ActiveWeaponIndex];
 	}
 	else
 	{
 		ActiveWeaponIndex = 0;
-		ActiveWeapon = Weapons[ActiveWeaponIndex];
+		CurrentWeapon = AllWeapons[ActiveWeaponIndex];
 	}
 	if (ActiveWeaponIndex != WeaponIndex)
 	{
 
 	}
 }
-bool UARUIWeaponEquipment::ServerPreviousWeapon_Validate(int32 WeaponIndex)
+bool UARWeaponManagerComponent::ServerPreviousWeapon_Validate(int32 WeaponIndex)
 {
 	return true;
 }

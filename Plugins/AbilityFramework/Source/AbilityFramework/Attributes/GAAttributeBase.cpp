@@ -5,6 +5,7 @@
 #include "../AFAbilityComponent.h"
 #include "GAAttributesBase.h"
 #include "../AFAbilityInterface.h"
+#include "GAAttributeExtension.h"
 
 #include "GAAttributeBase.h"
 DEFINE_STAT(STAT_CalculateBonus);
@@ -30,7 +31,7 @@ FAFAttributeBase::FAFAttributeBase(float BaseValueIn)
 };
 
 
-void FAFAttributeBase::InitializeAttribute()
+void FAFAttributeBase::InitializeAttribute(UAFAbilityComponent* InComponent, const FName InAttributeName)
 {
 	CurrentValue = BaseValue;
 	CalculateBonus();
@@ -38,7 +39,10 @@ void FAFAttributeBase::InitializeAttribute()
 	Modifiers.Empty();
 	Modifiers.AddDefaulted(7);// static_cast<int32>(EGAAttributeMod::Invalid));
 	//Modifiers.AddDefaulted(static_cast<int32>(EGAAttributeMod::Invalid));
-	
+	if (ExtensionClass)
+	{
+		ExtensionClass.GetDefaultObject()->Initialize(InComponent, InAttributeName);
+	}
 }
 
 void FAFAttributeBase::CalculateBonus()
@@ -154,6 +158,7 @@ bool FAFAttributeBase::CheckIfModsMatch(const FGAEffectHandle& InHandle, const F
 			return true;
 		}
 	}
+	
 	if (mods.Num() <= 0)
 		return true;
 	return false; 
@@ -178,6 +183,11 @@ bool FAFAttributeBase::CheckIfStronger(const FGAEffectMod& InMod)
 float FAFAttributeBase::Modify(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn,
 	FGAEffectProperty& InProperty)
 {
+	//FString name = GetTypeName<FAFAttributeBase>();
+	if (ExtensionClass)
+	{
+		ExtensionClass.GetDefaultObject()->OnPreAttributeModify(CurrentValue);
+	}
 	float returnValue = -1;
 	bool isPeriod = InProperty.Period > 0;
 	bool IsDuration = InProperty.Duration > 0;
@@ -230,6 +240,10 @@ float FAFAttributeBase::Modify(const FGAEffectMod& ModIn, const FGAEffectHandle&
 			break;
 		}
 		}
+	}
+	if (ExtensionClass)
+	{
+		ExtensionClass.GetDefaultObject()->OnPreAttributeModify(returnValue);
 	}
 	return returnValue;
 }

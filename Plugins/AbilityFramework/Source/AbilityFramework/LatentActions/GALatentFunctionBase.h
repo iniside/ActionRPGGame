@@ -32,7 +32,6 @@ protected:
 	friend struct FGALatentFunctionTick;
 	FGALatentFunctionTick TickFunction;
 
-	TSharedPtr<FMessageEndpoint, ESPMode::ThreadSafe> Endpoint;
 	UGALatentFunctionBase(const FObjectInitializer& ObjectInitializer);
 	virtual UWorld* GetWorld() const override;
 

@@ -64,6 +64,7 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 	UE_LOG(GameAttributesEffects, Log, TEXT("MakeOutgoingSpecObj: Created new Context: %s"), *Context.ToString());
 	InEffect.Duration = InEffect.GetSpec()->Duration.GetFloatValue(Context);
 	InEffect.Period = InEffect.GetSpec()->Period.GetFloatValue(Context);
+
 	FGAEffect* effect = nullptr;
 	if (InEffect.Duration <= 0 && InEffect.Period <= 0)
 	{
@@ -85,6 +86,14 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 		AddTagsToEffect(effect);
 		effect->Context = Context;
 		effect->GameEffect = InEffect.GetSpec();
+	}
+	if (IAFAbilityInterface* Ability = Cast<IAFAbilityInterface>(Causer))
+	{
+		InEffect.SetPredictionHandle(Ability->GetPredictionHandle());
+		if (effect)
+		{
+			effect->PredictionHandle = Ability->GetPredictionHandle();
+		}
 	}
 
 	return Context.InstigatorComp->ApplyEffectToTarget(effect, InEffect, Context, Modifier);
