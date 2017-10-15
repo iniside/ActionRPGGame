@@ -39,6 +39,7 @@ void FAFReplicatedAttributeItem::PostReplicatedAdd(const struct FAFReplicatedAtt
 	FAFReplicatedAttributeContainer& ArraySerializer = const_cast<FAFReplicatedAttributeContainer&>(InArraySerializer);
 	UGAAttributesBase*& Attribute = ArraySerializer.AttributeMap.FindOrAdd(AttributeTag);
 	Attribute = Attributes;
+	InArraySerializer.OnAttributeReplicated(AttributeTag);
 }
 void FAFReplicatedAttributeItem::PostReplicatedChange(const struct FAFReplicatedAttributeContainer& InArraySerializer)
 {
@@ -166,6 +167,7 @@ FGAEffectHandle UAFAbilityComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 	//application to object which was hit ?
 	ENetRole role = GetOwnerRole();
 	ENetMode mode = GetOwner()->GetNetMode();
+
 	if (InProperty.GetSpec()->Cues.CueTags.Num() > 0)
 	{
 		FGAEffectCueParams CueParams;
@@ -204,7 +206,14 @@ FGAEffectHandle UAFAbilityComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 	{
 		//execute cue from effect regardless if we have target object or not.
 		if (InContext.TargetComp.IsValid())
-			return InContext.TargetComp->ApplyEffectToSelf(EffectIn, InProperty, InContext, Modifier);
+		{
+			FGAEffectHandle Handle;
+			Handle = InContext.TargetComp->ApplyEffectToSelf(EffectIn, InProperty, InContext, Modifier);
+			if (!PropertyByHandle.Contains(Handle))
+				PropertyByHandle.Add(Handle, &InProperty);
+
+			return Handle;
+		}
 	}
 
 	return FGAEffectHandle();
@@ -268,8 +277,15 @@ void UAFAbilityComponent::ExpireEffect(FGAEffectHandle HandleIn, FGAEffectProper
 {
 	//call effect internal delegate:
 	HandleIn.GetEffectPtr()->OnExpired();
-	//InternalRemoveEffect(HandleIn);
-	//OnEffectExpired.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
+	ENetRole role = GetOwnerRole();
+	ENetMode mode = GetOwner()->GetNetMode();
+	
+	if (mode == ENetMode::NM_DedicatedServer
+		|| mode == ENetMode::NM_ListenServer)
+	{
+		ClientExpireEffect(InProperty.PredictionHandle);
+	}
+
 	if (InProperty.GetSpec()->Cues.CueTags.Num() > 0)
 	{
 		FGAEffectCueParams CueParams;
@@ -279,8 +295,7 @@ void UAFAbilityComponent::ExpireEffect(FGAEffectHandle HandleIn, FGAEffectProper
 		CueParams.CueTags = InProperty.GetSpec()->Cues.CueTags;
 		CueParams.Period = InProperty.Period;
 		CueParams.Duration = InProperty.Duration;
-		ENetRole role = GetOwnerRole();
-		ENetMode mode = GetOwner()->GetNetMode();
+		
 		if (mode == ENetMode::NM_Standalone
 			|| role >= ENetRole::ROLE_Authority)
 		{
@@ -289,6 +304,12 @@ void UAFAbilityComponent::ExpireEffect(FGAEffectHandle HandleIn, FGAEffectProper
 	}
 	GameEffectContainer.RemoveEffectByHandle(HandleIn, InProperty);
 }
+
+void UAFAbilityComponent::ClientExpireEffect_Implementation(FAFPredictionHandle PredictionHandle)
+{
+
+}
+
 void UAFAbilityComponent::RemoveEffect(const FGAEffectProperty& InProperty, 
 	const FGAEffectContext& InContext)
 {

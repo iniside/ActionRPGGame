@@ -1,4 +1,4 @@
-// Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
+﻿// Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
 #include "../AbilityFramework.h"
 #include "../AFAbilityComponent.h"
@@ -40,6 +40,14 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 	class UObject* Target, class APawn* Instigator,
 	UObject* Causer, const FHitResult& HitIn, const FAFFunctionModifier& Modifier )
 {
+
+	IAFAbilityInterface* Ability = Cast<IAFAbilityInterface>(Causer);
+	if (!Ability)
+	{
+		UE_LOG(GameAttributesEffects, Error, TEXT("UGABlueprintLibrary::ApplyEffect Effects must be applied trough Ability"));
+		return FGAEffectHandle();
+	}
+
 	InEffect.InitializeIfNotInitialized();
 
 	if (!InEffect.IsInitialized())
@@ -87,7 +95,7 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 		effect->Context = Context;
 		effect->GameEffect = InEffect.GetSpec();
 	}
-	if (IAFAbilityInterface* Ability = Cast<IAFAbilityInterface>(Causer))
+	if (Ability)
 	{
 		InEffect.SetPredictionHandle(Ability->GetPredictionHandle());
 		if (effect)

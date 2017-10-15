@@ -306,8 +306,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
 		void PlayMontage(UAnimMontage* MontageIn, FName SectionName, float Speed = 1);
 
-	virtual void InitAbility();
-
+	void InitAbility();
+	UFUNCTION()
+		void OnAttributeSetReplicated();
 	//called on both server and client after InitAbility();
 	virtual void OnAbilityInited();
 	/*

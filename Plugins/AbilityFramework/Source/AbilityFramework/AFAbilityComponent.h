@@ -192,7 +192,28 @@ public:
 	UPROPERTY()
 		TArray<FAFReplicatedAttributeItem> Attributes;
 
-	TMap<FGameplayTag, UGAAttributesBase*> AttributeMap;
+	UPROPERTY()
+		TMap<FGameplayTag, UGAAttributesBase*> AttributeMap;
+
+
+	TMap<FGameplayTag, FSimpleDelegate> AttributeReplicatedEvent;
+
+	void RegisterAttributeRepEvent(const FGameplayTag& InTag, const FSimpleDelegate& InDelegate)
+	{
+		if (!AttributeReplicatedEvent.Contains(InTag))
+			return;
+
+		AttributeReplicatedEvent.Add(InTag, InDelegate);
+	}
+
+	void OnAttributeReplicated(const FGameplayTag& InTag) const
+	{
+		if (const FSimpleDelegate* Delegate = AttributeReplicatedEvent.Find(InTag))
+		{
+			Delegate->Execute();
+			//AttributeReplicatedEvent.Remove(InTag);
+		}
+	}
 
 	UGAAttributesBase* Add(const FGameplayTag InTag, UGAAttributesBase* InAttributes, class UAFAbilityComponent* InOuter);
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
@@ -295,6 +316,10 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_GameEffectContainer)
 		FGAEffectContainer GameEffectContainer;
 
+	//Maps effect handles to Properties from which effect was created.
+	//usefull when all we have is handle or PredictionHandle.
+	TMap<FGAEffectHandle, FGAEffectProperty*> PropertyByHandle;
+
 	FAFEffectRepInfoDelegate OnEffectRepInfoApplied;
 	FAFEffectRepInfoDelegate OnEffectRepInfoRemoved;
 	/*
@@ -334,6 +359,7 @@ public:
 			return nullptr;
 		UGAAttributesBase* retVal = RepAttributes.Add(InOwner, InAttributes, this);
 		RepAttributes.MarkArrayDirty();
+
 		return retVal;
 	}
 	UFUNCTION(BlueprintCallable, Category = "Test")
@@ -369,6 +395,11 @@ public:
 	/* ExpireEffect is used to remove existing effect naturally when their time expires. */
 	void ExpireEffect(FGAEffectHandle HandleIn, FGAEffectProperty InProperty, 
 		FGAEffectContext InContext);
+
+	UFUNCTION(Client, Reliable)
+		void ClientExpireEffect(FAFPredictionHandle PredictionHandle);
+	void ClientExpireEffect_Implementation(FAFPredictionHandle PredictionHandle);
+
 	/* RemoveEffect is used to remove effect by force. */
 	void RemoveEffect(const FGAEffectProperty& InProperty, const FGAEffectContext& InContext);
 	void InternalRemoveEffect(const FGAEffectProperty& InProperty, const FGAEffectContext& InContext);

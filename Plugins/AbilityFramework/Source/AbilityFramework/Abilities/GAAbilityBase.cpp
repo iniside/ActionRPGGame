@@ -181,6 +181,14 @@ void UGAAbilityBase::InitAbility()
 	
 	ENetRole role = AbilityComponent->GetOwnerRole();
 	ENetMode mode = AbilityComponent->GetOwner()->GetNetMode();
+	
+	if (role < ENetRole::ROLE_Authority)
+	{ 
+		FSimpleDelegate Delegate = FSimpleDelegate::CreateUObject(this, &UGAAbilityBase::OnAttributeSetReplicated);
+		AbilityComponent->RepAttributes.RegisterAttributeRepEvent(AbilityTag, Delegate);
+	}
+
+	//AbilityComponent->RepAttributes.AttributeMap.Add(AbilityTag, Attributes);
 	if (role == ENetRole::ROLE_Authority ||
 		mode == ENetMode::NM_Standalone)
 	{
@@ -201,6 +209,13 @@ void UGAAbilityBase::InitAbility()
 	TickFunction.SetTickFunctionEnable(true);
 	OnAbilityInited();
 }
+
+void UGAAbilityBase::OnAttributeSetReplicated()
+{
+	UGAAttributesBase* attributes = AbilityComponent->RepAttributes.AttributeMap.FindRef(AbilityTag);
+	Attributes = attributes;
+}
+
 void UGAAbilityBase::OnAbilityInited()
 {
 

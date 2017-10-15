@@ -679,6 +679,9 @@ public:
 	//change to SharedPtr ?
 	mutable TMap<FGAEffectHandle, FAFEffectRepInfo*> EffectInfos;
 
+	TMap<FAFPredictionHandle, FGAEffectHandle> HandleByPrediction;
+	TMap<FGAEffectHandle, FAFPredictionHandle> PredictionByHandle;
+
 	TMap<FAFPredictionHandle, FAFEffectRepInfo*> PredictedEffectInfos;
 
 	TMap<FGAAttribute, TSet<FGAEffectHandle>> EffectByAttribute;

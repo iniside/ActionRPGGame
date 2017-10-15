@@ -380,8 +380,7 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 	bool bHasPeriod = InProperty.Period > 0;
 	ENetRole role = OwningComponent->GetOwnerRole();
 	ENetMode mode = OwningComponent->GetOwner()->GetNetMode();
-	//we should not generate handle on clients.
-	//do we need valid handle for instant effects ?
+	
 	if (bHasDuration || bHasPeriod)
 	{
 		Handle = FGAEffectHandle::GenerateHandle(EffectIn);
@@ -433,7 +432,12 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 		}
 		
 	}
+	
+	HandleByPrediction.Add(InProperty.PredictionHandle, Handle);
+	PredictionByHandle.Add(Handle, InProperty.PredictionHandle);
+
 	EffectIn->OnApplied();
+	
 	return Handle;
 	//apply additonal effect applied with this effect.
 	//for (TSubclassOf<UGAGameEffectSpec> Spec : EffectIn.GameEffect->OnAppliedEffects)
@@ -451,28 +455,24 @@ void FGAEffectContainer::ApplyReplicationInfo(const FGAEffectHandle& InHandle, c
 	bool bIsServer = GEngine->GetNetMode(OwningComponent->GetWorld()) == ENetMode::NM_DedicatedServer;
 	UE_LOG(AbilityFramework, Log, TEXT("%s :: FGAEffectContainer::ApplyReplicationInfo"), bIsServer ? TEXT("Server") : TEXT("Client"));
 
-	if (mode == ENetMode::NM_DedicatedServer)
-	{
-		const UWorld* World = OwningComponent->GetWorld();
-		FAFEffectRepInfo* RepInfo = new FAFEffectRepInfo(World->GetTimeSeconds(), InProperty.Period, InProperty.Duration, 0, OwningComponent);
-		RepInfo->OnExpiredEvent = InProperty.GetSpec()->OnExpiredEvent;
-		RepInfo->OnPeriodEvent = InProperty.GetSpec()->OnPeriodEvent;
-		RepInfo->OnRemovedEvent = InProperty.GetSpec()->OnRemovedEvent;
-		RepInfo->Handle = InHandle;
-		RepInfo->PredictionHandle = InProperty.PredictionHandle;
-		RepInfo->Init();
-		MarkItemDirty(*RepInfo);
-		ActiveEffectInfos.Add(*RepInfo);
-		MarkArrayDirty();
-		
-		//predictevily add effect info ?
-		//if (mode == ENetMode::NM_Standalone
-		//	|| role == ENetRole::ROLE_Authority)
-		{
-			EffectInfos.Add(InHandle, RepInfo);
-		}
-	}
-	else if(mode == ENetMode::NM_Standalone || mode == ENetMode::NM_Client)
+	//we need it to mark array dirt on server. Do we ?
+	/*if (mode == ENetMode::NM_DedicatedServer)
+	{*/
+		//const UWorld* World = OwningComponent->GetWorld();
+		//FAFEffectRepInfo* RepInfo = new FAFEffectRepInfo(World->GetTimeSeconds(), InProperty.Period, InProperty.Duration, 0, OwningComponent);
+		//RepInfo->OnExpiredEvent = InProperty.GetSpec()->OnExpiredEvent;
+		//RepInfo->OnPeriodEvent = InProperty.GetSpec()->OnPeriodEvent;
+		//RepInfo->OnRemovedEvent = InProperty.GetSpec()->OnRemovedEvent;
+		//RepInfo->Handle = InHandle;
+		//RepInfo->PredictionHandle = InProperty.PredictionHandle;
+		//RepInfo->EffectTag = InProperty.GetSpec()->EffectTag;
+		//RepInfo->Init();
+		//MarkItemDirty(*RepInfo);
+		//ActiveEffectInfos.Add(*RepInfo);
+		//MarkArrayDirty();
+		//EffectInfos.Add(InHandle, RepInfo);
+	//}
+	//else if(mode == ENetMode::NM_Standalone || mode == ENetMode::NM_Client)
 	{
 		//add replication handle (and send it to server ?)
 		const UWorld* World = OwningComponent->GetWorld();
@@ -482,16 +482,15 @@ void FGAEffectContainer::ApplyReplicationInfo(const FGAEffectHandle& InHandle, c
 		RepInfo->OnRemovedEvent = InProperty.GetSpec()->OnRemovedEvent;
 		RepInfo->Handle = InHandle;
 		RepInfo->PredictionHandle = InProperty.PredictionHandle;
+		RepInfo->EffectTag = InProperty.GetSpec()->EffectTag;
 		RepInfo->Init();
-		//MarkItemDirty(RepInfo);
+		MarkItemDirty(*RepInfo);
 		ActiveEffectInfos.Add(*RepInfo);
-		//MarkArrayDirty();
-		UE_LOG(AbilityFramework, Log, TEXT("Client ApplyReplicationInfo. Duration: %f"), InProperty.Duration);
+		MarkArrayDirty();
 		//predictevily add effect info ?
-		{
-			PredictedEffectInfos.Add(InProperty.PredictionHandle, RepInfo);
-			EffectInfos.Add(InHandle, RepInfo);
-		}
+		
+		PredictedEffectInfos.Add(InProperty.PredictionHandle, RepInfo);
+		EffectInfos.Add(InHandle, RepInfo);
 	}
 }
 
@@ -737,6 +736,11 @@ void FGAEffectContainer::RemoveEffect(const FGAEffectProperty& HandleIn, int32 N
 				FGAEffectHandle OutHandle = (*handles)[0];
 				if (OutHandle.IsValid())
 				{
+					HandleByPrediction.Remove(HandleIn.PredictionHandle);
+					
+					if(PredictionByHandle.Contains(OutHandle))
+						PredictionByHandle.Remove(OutHandle);
+
 					EffectInfos.RemoveAndCopyValue(OutHandle, Out);
 					if (Out)
 					{
