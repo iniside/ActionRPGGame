@@ -701,6 +701,36 @@ void UGAAbilityBase::ExecuteAbilityInputReleasedFromTag(FGameplayTag AbilityTagI
 	AbilityComponent->NativeInputReleased(ActionName);
 }
 
+bool UGAAbilityBase::HaveGameplayTag(AActor* Target, const FGameplayTag& Tag)
+{
+	bool bHaveTag = false;
+	if (IAFAbilityInterface* Interface = Cast<IAFAbilityInterface>(Target))
+	{
+		if (UAFAbilityComponent* Comp = Interface->GetAbilityComp())
+		{
+			if (Comp->HasTag(Tag))
+			{
+				bHaveTag = true;
+			}
+		}
+	}
+	return bHaveTag;
+}
+bool UGAAbilityBase::HaveAnyGameplayTag(AActor* Target, const FGameplayTagContainer& Tag)
+{
+	bool bHaveTag = false;
+	if (IAFAbilityInterface* Interface = Cast<IAFAbilityInterface>(Target))
+	{
+		if (UAFAbilityComponent* Comp = Interface->GetAbilityComp())
+		{
+			if (Comp->HasAny(Tag))
+			{
+				bHaveTag = true;
+			}
+		}
+	}
+	return bHaveTag;
+}
 /* Tracing Helpers Start */
 bool UGAAbilityBase::LineTraceSingleByChannel(const FVector Start, const FVector End, ETraceTypeQuery TraceChannel, bool bTraceComplex, FHitResult& OutHit)
 {

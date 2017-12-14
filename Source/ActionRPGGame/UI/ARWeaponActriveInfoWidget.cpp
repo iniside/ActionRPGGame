@@ -2,17 +2,17 @@
 
 #include "ARWeaponActriveInfoWidget.h"
 #include "ARPlayerController.h"
-#include "ARUIWeaponEquipment.h"
+
 #include "ARAbilityBase.h"
 #include "ARGunAttributes.h"
-
-
+#include "../Weapons/ARWeaponManagerComponent.h"
+#include "../Weapons/ARWeaponAbilityBase.h"
 
 float UARWeaponActriveInfoWidget::GetActiveMagazineAmmo()
 {
 	if (!WeaponEquipement.IsValid())
 		return 0;
-	UARAbilityBase* Ability = WeaponEquipement->ActiveWeapon.Get();
+	UGAAbilityBase* Ability = WeaponEquipement->GetCurrentWeapon();
 	if (!Ability)
 		return 0;
 
@@ -27,7 +27,7 @@ float UARWeaponActriveInfoWidget::GetActiveMagazineAmmoNormalized()
 {
 	if (!WeaponEquipement.IsValid())
 		return 0;
-	UARAbilityBase* Ability = WeaponEquipement->ActiveWeapon.Get();
+	UGAAbilityBase* Ability = WeaponEquipement->GetCurrentWeapon();
 	if (!Ability)
 		return 0;
 
@@ -44,7 +44,7 @@ float UARWeaponActriveInfoWidget::GetReloadTimeNormalized()
 {
 	if (!WeaponEquipement.IsValid())
 		return 0;
-	UARAbilityBase* Ability = WeaponEquipement->ActiveWeapon.Get();
+	UGAAbilityBase* Ability = WeaponEquipement->GetCurrentWeapon();
 	if (!Ability)
 		return 0;
 

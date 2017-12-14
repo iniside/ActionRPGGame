@@ -29,7 +29,7 @@ DECLARE_CYCLE_STAT_EXTERN(TEXT("AttributeComponentModifyAttribute"), STAT_Modify
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGAOnAttributeChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGAOnAttributeModifed, const FAFAttributeChangedData&, Mod);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGAGenericEffectDelegate, const FGAEffectHandle&, Handle, const FGameplayTagContainer&, Tags);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGAGenericEffectDelegate, FGAEffectHandle, Handle);
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FAFEventDelegate , FAFEventData);
 DECLARE_MULTICAST_DELEGATE_OneParam(FAFAttributeChangedDelegate, FAFAttributeChangedData);
@@ -40,6 +40,7 @@ DECLARE_DELEGATE(FAFOnAbilityReady);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAFOnAbilityAdded, const FGameplayTag&, AbilityTag);
 DECLARE_DELEGATE(FAFGenericAttributeDelegate);
 
+DECLARE_DELEGATE(FAFEffectEvent);
 //UAFAssetManager* GetAssetManager()
 //{
 //	return Cast<UAFASsetManager>(UAssetManager::GetIfValid());
@@ -123,6 +124,16 @@ public:
 	void PreReplicatedRemove(const struct FGASAbilityContainer& InArraySerializer);
 	void PostReplicatedAdd(const struct FGASAbilityContainer& InArraySerializer);
 	void PostReplicatedChange(const struct FGASAbilityContainer& InArraySerializer);
+
+	const bool operator==(const FGameplayTag& AbilityTag) const;
+	const bool operator==(UGAAbilityBase* OtherAbility) const
+	{
+		return Ability == OtherAbility;
+	}
+	const bool operator==(const FGASAbilityItem& OtherItem) const
+	{
+		return Ability == OtherItem.Ability;
+	}
 };
 USTRUCT()
 struct ABILITYFRAMEWORK_API FGASAbilityContainer : public FFastArraySerializer
@@ -138,14 +149,22 @@ public:
 
 	
 	//Custom binding, for server side validation.
-	//ActionName, AbilityTag
+	//ActionInput, AbilityTag
 	TMap<FGameplayTag, FGameplayTag> ActionToAbility;
+	//AbilityTag, ActionInput 
+	TMap<FGameplayTag, TArray<FGameplayTag>> AbilityToAction;
+	//abilityTag, Ability Ptr
 	TMap<FGameplayTag, UGAAbilityBase*> AbilitiesInputs;
 
 	void SetBlockedInput(const FGameplayTag& InInput, bool bBlock);
 	UGAAbilityBase* AddAbility(TSubclassOf<class UGAAbilityBase> AbilityIn, 
 		AActor* InAvatar);
+	void RemoveAbility(const FGameplayTag& AbilityIn);
+
 	void SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
+	bool IsAbilityBoundToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
+	void RemoveAbilityFromAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
+	
 	UGAAbilityBase* GetAbility(FGameplayTag TagIn);
 	
 	void HandleInputPressed(FGameplayTag ActionName, const FAFPredictionHandle& InPredictionHandle);
@@ -237,9 +256,11 @@ class ABILITYFRAMEWORK_API UAFAbilityComponent : public UGameplayTasksComponent,
 	GENERATED_BODY()
 		/* Attributes handling */
 public:
-	friend struct FAFMessageTick;
 	//Only for base testing and prototyping cue application.
 	//will be removed when Cue Manager will be more functional.
+	
+	//FAFEffectTimerManager EffectTimerManager;
+
 	UPROPERTY(EditAnywhere)
 		class UAFCueSet* TestCueSet;
 	UPROPERTY(EditAnywhere, Category = "Test")
@@ -285,23 +306,16 @@ public:
 	UPROPERTY(Replicated)
 		FAFReplicatedAttributeContainer RepAttributes;
 
-	UPROPERTY(ReplicatedUsing = OnRep_AttributeChanged)
-		FGAModifiedAttributeData ModifiedAttribute;
-	UFUNCTION()
-		void OnRep_AttributeChanged();
 	UPROPERTY(BlueprintAssignable, Category = "Game Attributes")
 		FGAOnAttributeModifed OnAttributeModifed;
 	UPROPERTY(BlueprintAssignable, Category = "Game Attributes")
 		FGAOnAttributeModifed OnTargetAttributeModifed;
 	/* Effect/Attribute System Delegates */
 	UPROPERTY(BlueprintAssignable, Category = "Effect")
-		FGAGenericEffectDelegate OnEffectApplied;
+		FGAGenericEffectDelegate OnEffectAppliedToTarget;
 
 	UPROPERTY(BlueprintAssignable, Category = "Effect")
-		FGAGenericEffectDelegate OnEffectApplyToTarget;
-
-	UPROPERTY(BlueprintAssignable, Category = "Effect")
-		FGAGenericEffectDelegate OnEffectApplyToSelf;
+		FGAGenericEffectDelegate OnEffectAppliedToSelf;
 
 	UPROPERTY(BlueprintAssignable, Category = "Effect")
 		FGAGenericEffectDelegate OnEffectExecuted;
@@ -365,25 +379,57 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Test")
 		void GetAttributeStructTest(FGAAttribute Name);
 
+	/** UActorComponent Interface - Begin */
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void DestroyComponent(bool bPromoteChildren = false) override;
-
 	virtual void InitializeComponent() override;
-
 	virtual void UninitializeComponent() override;
-
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	/* UActorComponent Interface - End **/
 
 public:
 	/////////////////////////////////////////////////
 	//////////// EFFECTS HANDLING
-	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	
 	void Update();
+	
+	/*
+	* @call Order:
+	* Previous Function: UAFAbilityComponent::ApplyEffectToTarget
+	* Next Function: FGAEffectContainer::ApplyEffect
+	* Apply target to Me. Try to apply effect to container and launch Events in:
+	* TMap<FGameplayTag, FSimpleDelegate> OnEffectEvent - event is called before application;
+	* TMap<FGameplayTag, FAFEffectEvent> OnEffectApplyToSelf - event is called before application;
+	* 
+	* @param EffectIn* - Effect to apply
+	* @param InProperty - cached effect information
+	* @param InContext - Context about effect application. Target, instigator, causer.
+	* @param Modifier - optional modifier which can be applied to effect.
+	* @return Handle to Effect;
+	*/
 	FGAEffectHandle ApplyEffectToSelf(FGAEffect* EffectIn, 
 		FGAEffectProperty& InProperty, FGAEffectContext& InContext
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
+
+	/*
+	 * @call Order: 
+	 * Previous Function: UGABlueprintLibrary::ApplyEffect
+	 * Next Function: UAFAbilityComponent::ApplyEffectToSelf
+	 * Apply effect to target provided inside Context.
+	 * Try launch events:
+	 * TMap<FGameplayTag, FAFEffectEvent> OnEffectApplyToTarget - event is called before application
+	 * 
+	 * @param EffectIn* - Effect to apply
+	 * @param InProperty - cached effect information
+	 * @param InContext - Context about effect application. Target, instigator, causer.
+	 * @param Modifier - optional modifier which can be applied to effect.
+	 * @return Handle to Effect;
+	 */
 	FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn, 
 		FGAEffectProperty& InProperty, FGAEffectContext& InContext
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
+
 
 	void ApplyEffectToTarget(TSubclassOf<UGAGameEffectSpec> InSpecClass, 
 		const FGAEffectContext& InContext, const FGAEffectHandle& InHandle);
@@ -404,6 +450,14 @@ public:
 	void RemoveEffect(const FGAEffectProperty& InProperty, const FGAEffectContext& InContext);
 	void InternalRemoveEffect(const FGAEffectProperty& InProperty, const FGAEffectContext& InContext);
 
+	const TSet<FGAEffectHandle>& GetAllEffectsHandles() const
+	{
+		return GameEffectContainer.GetAllEffectHandles();
+	}
+	const TArray<FAFEffectRepInfo>& GetAllEffectsInfo() const
+	{
+		return GameEffectContainer.GetAllEffectsInfo();
+	}
 	/*
 	Need prediction for spawning effects on client,
 	and then on updateing them predicitvely on all other clients.
@@ -515,13 +569,13 @@ public:
 	bool DenyEffectApplication(const FGameplayTagContainer& InTags);
 	bool HaveEffectRquiredTags(const FGameplayTagContainer& InTags);
 	/*
-	Effect Container Wrapp Start
+		Effect Container Wrapp Start
 	*/
 	/*
 	*/
 	inline bool IsEffectActive(const FGAEffectHandle& HandleIn) { return GameEffectContainer.IsEffectActive(HandleIn); };
 	/*
-	Effect Container Wrapp End
+		Effect Container Wrapp End
 	*/
 
 	/* Counted Tag Container Wrapper Start */
@@ -605,6 +659,11 @@ public:
 		UE_LOG(AbilityFramework, Log, TEXT("RemoveEffectEvent: %s"), *InEventTag.ToString());
 		OnEffectEvent.Remove(InEventTag);
 	}
+
+	TMap<FGameplayTag, FAFEffectEvent> OnEffectApplyToSelf;
+
+	TMap<FGameplayTag, FAFEffectEvent> OnEffectApplyToTarget;
+
 	/*
 		True if player is currently casting/channeling/activating(?)
 		any ability.
@@ -688,6 +747,8 @@ public:
 		}
 	}
 
+
+
 	FAFOnAbilityReady OnAbilityReady;
 	
 	UPROPERTY(BlueprintAssignable, Category = "AbilityFramework")
@@ -725,7 +786,12 @@ public:
 	void BindAbilityToAction(UInputComponent* InputComponent, FGameplayTag ActionName);
 	
 	//need to be called on both client and server.
+	//Change InInputTag To Array, clear previous binds on the same tag.
+	void SetAbilityToAction(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag, const FAFOnAbilityReady& InputDelegate);
 	void SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag, const FAFOnAbilityReady& InputDelegate);
+
+	bool IsAbilityBoundToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
+	void RemoveAbilityFromAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerSetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);

@@ -43,13 +43,17 @@ public class ActionRPGGame : ModuleRules
             "CoreUObject",
             "Engine",
             "InputCore",
+            "Slate",
+            "SlateCore",
+            "UMG",
             "GameplayTags",
             "AbilityFramework",
-            "SlateCore",
             "AssetRegistry",
-            "Sockets",
-            "OnlineSubsystemUtils",
-            "ActorSequence"
+            //"Sockets",
+            //"OnlineSubsystemUtils",
+            "ActorSequence",
+            "AbilityManager",
+            "DraggableWindow"
         });
 	}
 }

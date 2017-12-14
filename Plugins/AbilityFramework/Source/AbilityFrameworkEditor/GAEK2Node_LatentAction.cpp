@@ -67,7 +67,7 @@ void UGAEK2Node_LatentAction::GetMenuActions(FBlueprintActionDatabaseRegistrar& 
 		check(NodeSpawner != nullptr);
 		NodeSpawner->NodeClass = NodeClass;
 
-		TWeakObjectPtr<UFunction> FunctionPtr = FactoryFunc;
+		TWeakObjectPtr<UFunction> FunctionPtr = const_cast<UFunction*>(FactoryFunc);
 		NodeSpawner->CustomizeNodeDelegate = UBlueprintNodeSpawner::FCustomizeNodeDelegate::CreateStatic(GetMenuActions_Utils::SetNodeFunc, FunctionPtr);
 		return NodeSpawner;
 	}));

@@ -312,16 +312,28 @@ public:
 	//called on both server and client after InitAbility();
 	virtual void OnAbilityInited();
 	/*
-		Called when ability received input.
-		One ability can receive multiple input calls, how those will be handled 
-		is up to ability.
-	*/
+	 * @call Order:
+	 * Previous Function: FGASAbilityContainer::HandleInputPressed
+	 * Next Function: UGAAbilityBase::OnInputPressed
+	 *
+	 * Called on both Client and Server.
+	 *
+	 * @param ActionName - Name of action which tirggered this ability
+	 * @param InPredictionHandle - Prediction Handle Generate By Client
+	 */
 	void OnNativeInputPressed(FGameplayTag ActionName, const FAFPredictionHandle& InPredictionHandle);
 	/*
-		Called when ability receive input press. Does not start ability execution automatically, so it
-		is safe to make any pre execution preparations of ability here.
-
-		To start ability execution you must call ExecuteAbility.
+	* @call Order:
+	* Previous Function: UGAAbilityBase::OnNativeInputPressed
+	* Next Function: Multiple Choices. Next function is usually called from within Ability Blueprint
+	* Default Choices:
+	* UGAAbilityBase::StartActivation
+	* UGAAbilityBase::CanUseAbility
+	* Custom Function
+	* 
+	* Called on both Client and Server.
+	*
+	* @param ActionName - Name of action which tirggered this ability
 	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnInputPressed(FGameplayTag ActionName);
@@ -331,15 +343,11 @@ public:
 		void OnInputReleased(FGameplayTag ActionName);
 
 
-	virtual void NativeOnBeginAbilityActivation(bool bApplyActivationEffect);
+	
 
 	void NativeOnAbilityConfirmed();
 
-	/*
-		Called when StartActivation is triggered.
-	*/
-	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
-		void OnActivate();
+
 
 	/*
 		Called When activation effect expired.
@@ -349,33 +357,57 @@ public:
 		void OnActivationFinished();
 
 	/*
-		In blueprint, call this function to trigger event of the same name,
-		after ability is ready to be executed (like after targeting is done, input is confirmed,
-		or simply after receiving first input press.
-
-		This function will trigger selected Activation State, which then will trigger Event OnAbilityExecuted.
-		In C++ it will trigger OnAbilityExecutedNative().
-
-		ActiveState will always be called first, so it is possible to bypass entire state stage if ActivationState will
-		go straight away for event call.
-
-		bApplyActivationEffect - should apply activation effect ?
-		if Period or Activation is > 0, it will be overrided to true.
+	* @call Order:
+	* Previous Function: (Blueprint) UGAAbilityBase::OnInputPressed
+	* Next Function: UGAAbilityBase::NativeOnBeginAbilityActivation
+	*
+	* Called on both Client and Server.
+	*
+	* @param bApplyActivationEffect - Should apply activation effect to Owner.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
 		void StartActivation(bool bApplyActivationEffect);
 
+	/*
+	* @call Order:
+	* Previous Function: UGAAbilityBase::StartActivation
+	* Next Function: UGAAbilityBase::ApplyActivationEffect
+	* Next Function: (Blueprint) UGAAbilityBase::OnActivate
+	* 
+	* Called on both Client and Server.
+	*
+	* @param bApplyActivationEffect - Should apply activation effect to Owner.
+	*/
+	virtual void NativeOnBeginAbilityActivation(bool bApplyActivationEffect);
+
+	/*
+	* @call Order:
+	* Previous Function: UGAAbilityBase::NativeOnBeginAbilityActivation -
+	* called when activation effect finishes (or immedietly, if there was no activation effect applied).
+	* Next Function: (Blueprint) Custom Functions
+	* Next Function: (Blueprint) UGAAbilityBase::FinishAbility - must be called at some point
+	* finish ability.
+	*
+	* Called on both Client and Server.
+	*/
+	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
+		void OnActivate();
 
 	/* Event called when ability activation has been canceled. */
 	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnActivationCancel();
-
+	/*
+	* @call Order:
+	* Previous Function: Called if Periodic effect has been applied and is active. Otherwise inactive.
+	* called when activation effect finishes (or immedietly, if there was no activation effect applied).
+	* Next Function: (Blueprint) Custom Functions
+	*
+	* Called on both Client and Server.
+	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnPeriod();
 
-	/* Event called when ability finishes it's execution. Called AFTER OnAbilityExecuted. */
-	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
-		void OnAbilityFinished();
+	
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnCooldownStart();
@@ -390,11 +422,37 @@ public:
 		void NativeOnAbilityActivationCancel();
 
 	/*
-		Finishes ability. Use it to finish ability after activation or released input.
+	* @call Order:
+	* Previous Function: UGAAbilityBase::NativeOnBeginAbilityActivation -
+	* called when activation effect finishes (or immedietly, if there was no activation effect applied).
+	* Next Function: (Blueprint) Custom Functions
+	* Next Function: (Blueprint) UGAAbilityBase::FinishAbility - must be called at some point
+	* finish ability.
+	*
+	* Called to finish ability and start clean up.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities")
 		void FinishAbility();
+	/*
+	* @call Order:
+	* Previous Function: UGAAbilityBase::FinishAbility
+	* Next Function: (Blueprint) UGAAbilityBase::OnAbilityFinished
+	* 
+	* Called to finish ability and start clean up.
+	*/
 	void NativeFinishAbility();
+
+	/*
+	* @call Order:
+	* Previous Function: UGAAbilityBase::NativeFinishAbility
+	* Next Function: (Blueprint) Custom Functions
+	* Next Function: (Blueprint) UGAAbilityBase::FinishAbility - must be called at some point
+	* finish ability.
+	*
+	* Called to finish ability and start clean up.
+	*/
+	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
+		void OnAbilityFinished();
 	/*
 		Stop effect activation and remove activation effect.
 	*/
@@ -516,6 +574,11 @@ public:
 	{
 		return AbilityTasks.FindRef(InName);
 	}
+
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities|Tags")
+		bool HaveGameplayTag(AActor* Target, const FGameplayTag& Tag);
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities|Tags")
+		bool HaveAnyGameplayTag(AActor* Target, const FGameplayTagContainer& Tag);
 
 	/* Tracing Helpers Start */
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities|Tracing")

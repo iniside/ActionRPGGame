@@ -9,6 +9,7 @@
 #include "ARAvailableAbilities.h"
 #include "ARUIAbilityManagerComponent.generated.h"
 
+
 USTRUCT(BlueprintType)
 struct FARAbilityInputBinding
 {

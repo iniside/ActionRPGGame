@@ -20,9 +20,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
 		class UARUIAbilityManagerComponent* UIAbilityManagerComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
-		class UARUIWeaponEquipment* UIWeaponEquipment;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
 		class UARWeaponManagerComponent* WeaponManager;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
+		class UARAbilityManagerComponent* AbilityManager;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
 		FGameplayTag InputNextWeapon;

@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "ARUMGWidgetBase.h"
 #include "ARGunAttributes.h"
+#include "GameplayTags.h"
+#include "../Weapons/ARWeaponsTypes.h"
+#include "AMTypes.h"
 #include "ARWeaponInfoWidget.generated.h"
 
 /**
@@ -16,8 +19,14 @@ class ACTIONRPGGAME_API UARWeaponInfoWidget : public UARUMGWidgetBase
 	GENERATED_BODY()
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		int32 SlotIndex;
-	TWeakObjectPtr<class UARUIWeaponEquipment> WeaponEquipement;
+		EAMGroup SlotIndex;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		FGameplayTag WeaponSlotTag;
+
+	TWeakObjectPtr<class UARWeaponAbilityBase> Weapon;
+
+	TWeakObjectPtr<class UARWeaponManagerComponent> WeaponEquipement;
 public:
 
 	virtual void NativePreConstruct() override;
@@ -27,4 +36,7 @@ public:
 		float GetMagazineAmmo();
 	UFUNCTION(BlueprintPure, Category = "ActionRPGGame|UI|Weapon")
 		float GetMagazineAmmoNormalized();
+
+	UFUNCTION()
+		void OnWeaponChanged(class UARWeaponAbilityBase* InAbility);
 };

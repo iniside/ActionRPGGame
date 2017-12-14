@@ -21,13 +21,16 @@
 #include "Effects/GAEffectCue.h"
 #include "AFCueSet.h"
 #include "AFCueManager.h"
-
+#include "Effects/GABlueprintLibrary.h"
+#include "Async.h"
 #include "AFAbilityComponent.h"
 
 
 
 DEFINE_STAT(STAT_ApplyEffect);
 DEFINE_STAT(STAT_ModifyAttribute);
+
+
 
 void FAFReplicatedAttributeItem::PreReplicatedRemove(const struct FAFReplicatedAttributeContainer& InArraySerializer)
 {
@@ -69,7 +72,6 @@ UAFAbilityComponent::UAFAbilityComponent(const FObjectInitializer& ObjectInitial
 	PrimaryComponentTick.bRunOnAnyThread = false;
 	PrimaryComponentTick.bAllowTickOnDedicatedServer = true;
 	PrimaryComponentTick.TickGroup = ETickingGroup::TG_DuringPhysics;
-
 }
 
 void UAFAbilityComponent::BroadcastAttributeChange(const FGAAttribute& InAttribute,
@@ -130,10 +132,17 @@ void UAFAbilityComponent::Update()
 void UAFAbilityComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	FAFEffectTimerManager::Get();
+}
+void UAFAbilityComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	
 }
 void UAFAbilityComponent::DestroyComponent(bool bPromoteChildren)
 {
 	Super::DestroyComponent(bPromoteChildren);
+	
 }
 
 FGAEffectHandle UAFAbilityComponent::ApplyEffectToSelf(FGAEffect* EffectIn
@@ -142,6 +151,7 @@ FGAEffectHandle UAFAbilityComponent::ApplyEffectToSelf(FGAEffect* EffectIn
 {
 	const FGameplayTagContainer& AppliedEventTags = InProperty.GetSpec()->AppliedEventTags;
 	FAFEventData Data;
+	
 	for (const FGameplayTag& Tag : AppliedEventTags)
 	{
 		if (FAFEventDelegate* Event = EffectEvents.Find(Tag))
@@ -149,25 +159,29 @@ FGAEffectHandle UAFAbilityComponent::ApplyEffectToSelf(FGAEffect* EffectIn
 			Event->Broadcast(Data);
 		}
 	}
-
-	//OnEffectApplyToSelf.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
+	if (FAFEffectEvent* Delegate = OnEffectApplyToTarget.Find(InProperty.GetSpec()->EffectTag))
+	{
+		Delegate->ExecuteIfBound();
+	}
+	
 	FGAEffectHandle Handle = GameEffectContainer.ApplyEffect(EffectIn, InProperty, InContext, Modifier);
 	GameEffectContainer.MarkArrayDirty();
+	OnEffectAppliedToSelf.Broadcast(Handle);
 	return Handle;
-	//FGAEffectCueParams CueParams;
-	//CueParams.HitResult = EffectIn.Context.HitResult;
-	//OnEffectApplied.Broadcast(HandleIn, HandleIn.GetEffectPtr()->OwnedTags);
 }
+
+
 FGAEffectHandle UAFAbilityComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 	, FGAEffectProperty& InProperty, FGAEffectContext& InContext
 	, const FAFFunctionModifier& Modifier)
 {
-	//broadcast cues first ?
-	//Probabaly because effect might not always apply. Or relegate cue
-	//application to object which was hit ?
+	if(FAFEffectEvent* Delegate = OnEffectApplyToSelf.Find(InProperty.GetSpec()->EffectTag))
+	{
+		Delegate->ExecuteIfBound();
+	}
 	ENetRole role = GetOwnerRole();
 	ENetMode mode = GetOwner()->GetNetMode();
-
+	
 	if (InProperty.GetSpec()->Cues.CueTags.Num() > 0)
 	{
 		FGAEffectCueParams CueParams;
@@ -180,7 +194,10 @@ FGAEffectHandle UAFAbilityComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 		//if (mode == ENetMode::NM_Standalone
 		//	|| role >= ENetRole::ROLE_Authority)
 		{
-			MulticastApplyEffectCue(CueParams);
+			//AsyncTask(ENamedThreads::GameThread, [=]()
+			//{
+				MulticastApplyEffectCue(CueParams);
+			//});
 		}
 	}
 	FString prefix = "";
@@ -211,7 +228,8 @@ FGAEffectHandle UAFAbilityComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 			Handle = InContext.TargetComp->ApplyEffectToSelf(EffectIn, InProperty, InContext, Modifier);
 			if (!PropertyByHandle.Contains(Handle))
 				PropertyByHandle.Add(Handle, &InProperty);
-
+			
+			OnEffectAppliedToTarget.Broadcast(Handle);
 			return Handle;
 		}
 	}
@@ -253,7 +271,7 @@ void UAFAbilityComponent::ExecuteEffect(FGAEffectHandle HandleIn, FGAEffectPrope
 		}
 	}
 
-	OnEffectExecuted.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
+	//OnEffectExecuted.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
 	UE_LOG(GameAttributesEffects, Log, TEXT("UAFAbilityComponent:: Effect %s executed"), *HandleIn.GetEffectSpec()->GetName());
 	FGAEffect& Effect = HandleIn.GetEffectRef();
 	FGAEffectMod Mod = FAFStatics::GetAttributeModifier(InProperty.GetAttributeModifier()
@@ -431,7 +449,6 @@ void UAFAbilityComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProp
 	//to allow prediction for UI.
 	DOREPLIFETIME(UAFAbilityComponent, DefaultAttributes);
 	DOREPLIFETIME(UAFAbilityComponent, RepAttributes);
-	DOREPLIFETIME(UAFAbilityComponent, ModifiedAttribute);
 	DOREPLIFETIME(UAFAbilityComponent, GameEffectContainer);
 
 	DOREPLIFETIME(UAFAbilityComponent, ActiveCues);
@@ -449,13 +466,6 @@ void UAFAbilityComponent::OnRep_ActiveCues()
 
 }
 
-void UAFAbilityComponent::OnRep_AttributeChanged()
-{
-	//for (FGAModifiedAttribute& attr : ModifiedAttribute.Mods)
-	//{
-	//	attr.Causer->OnAttributeModifed.Broadcast(attr);
-	//}
-}
 bool UAFAbilityComponent::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
 {
 	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
@@ -547,9 +557,22 @@ bool UAFAbilityComponent::HaveEffectRquiredTags(const FGameplayTagContainer& InT
 	}
 	return bAllowApplication;
 }
+const bool FGASAbilityItem::operator==(const FGameplayTag& AbilityTag) const
+{
+	return Ability->AbilityTag == AbilityTag;
+}
 void FGASAbilityItem::PreReplicatedRemove(const struct FGASAbilityContainer& InArraySerializer)
 {
-
+	if (InArraySerializer.AbilitiesComp.IsValid())
+	{
+		FGASAbilityContainer& InArraySerializerC = const_cast<FGASAbilityContainer&>(InArraySerializer);
+		//remove attributes
+		//UGAAttributesBase* attr = InArraySerializer.AbilitiesComp->RepAttributes.AttributeMap.FindRef(Ability->AbilityTag);
+		Ability->Attributes = nullptr;
+		FGameplayTag AbilityTag = Ability->AbilityTag;
+		InArraySerializerC.RemoveAbilityFromAction(AbilityTag, FGameplayTag());
+		InArraySerializerC.AbilitiesInputs.Remove(AbilityTag);
+	}
 }
 void FGASAbilityItem::PostReplicatedAdd(const struct FGASAbilityContainer& InArraySerializer)
 {
@@ -625,10 +648,39 @@ UGAAbilityBase* FGASAbilityContainer::AddAbility(TSubclassOf<class UGAAbilityBas
 	}
 	return nullptr;
 }
+void FGASAbilityContainer::RemoveAbility(const FGameplayTag& AbilityIn)
+{
+	int32 Index = AbilitiesItems.IndexOfByKey(AbilityIn);
+	if (Index == INDEX_NONE)
+		return;
+	RemoveAbilityFromAction(AbilityIn, FGameplayTag());
+	AbilitiesItems.RemoveAt(Index);
+}
+bool FGASAbilityContainer::IsAbilityBoundToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
+{
+	bool bHave = false;
+
+	return bHave;
+}
+void FGASAbilityContainer::RemoveAbilityFromAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
+{
+	TArray<FGameplayTag> OutActions;
+	AbilityToAction.RemoveAndCopyValue(InAbilityTag, OutActions);
+
+	for(const FGameplayTag& Action : OutActions)
+	{
+		ActionToAbility.Remove(Action);
+	}
+
+	AbilitiesInputs.Remove(InAbilityTag);
+}
 void FGASAbilityContainer::SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
 {
 	FGameplayTag& AbilityTag = ActionToAbility.FindOrAdd(InInputTag);
 	AbilityTag = InAbilityTag;
+
+	TArray<FGameplayTag>& ActionTag = AbilityToAction.FindOrAdd(InAbilityTag);
+	ActionTag.Add(InInputTag);
 
 	if (!AbilitiesComp.IsValid())
 		return;
@@ -637,9 +689,11 @@ void FGASAbilityContainer::SetAbilityToAction(const FGameplayTag& InAbilityTag, 
 		AbilitiesComp->ClientNotifyAbilityInputReady(InAbilityTag);
 	}
 }
+
 UGAAbilityBase* FGASAbilityContainer::GetAbility(FGameplayTag TagIn)
 {
-	return AbilitiesInputs.FindRef(TagIn);
+	UGAAbilityBase* retAbility = AbilitiesInputs.FindRef(TagIn);
+	return retAbility;
 }
 void FGASAbilityContainer::HandleInputPressed(FGameplayTag ActionName, const FAFPredictionHandle& InPredictionHandle)
 {
@@ -694,7 +748,9 @@ void UAFAbilityComponent::InitializeComponent()
 	//PawnInterface = Cast<IIGIPawn>(GetOwner());
 	UInputComponent* InputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
 	AbilityContainer.AbilitiesComp = this;
-
+	//EffectTimerManager = MakeShareable(new FAFEffectTimerManager());
+	
+	//EffectTimerManager.InitThread();
 	if (DefaultAttributes)
 	{
 		DefaultAttributes->InitializeAttributes(this);
@@ -705,10 +761,18 @@ void UAFAbilityComponent::InitializeComponent()
 	//ActiveCues.OwningComponent = this;
 	AppliedTags.AddTagContainer(DefaultTags);
 	InitializeInstancedAbilities();
+
+	AActor* MyOwner = GetOwner();
+	if (!MyOwner || !MyOwner->IsTemplate())
+	{
+		ULevel* ComponentLevel = (MyOwner ? MyOwner->GetLevel() : GetWorld()->PersistentLevel);
+	}
 }
 void UAFAbilityComponent::UninitializeComponent()
 {
 	Super::UninitializeComponent();
+	//EffectTimerManager.Deinitialize();
+	//EffectTimerManager.Reset();
 	//GameEffectContainer
 }
 void UAFAbilityComponent::SetBlockedInput(const FGameplayTag& InInput, bool bBlock)
@@ -739,10 +803,20 @@ void UAFAbilityComponent::BindAbilityToAction(UInputComponent* InputComponent, F
 	}
 	SetBlockedInput(ActionName, false);
 }
-
+void UAFAbilityComponent::SetAbilityToAction(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag
+	, const FAFOnAbilityReady& InputDelegate)
+{
+	for (const FGameplayTag& Tag : InInputTag)
+	{
+		SetAbilityToAction(InAbilityTag, Tag, InputDelegate);
+	}
+}
 void UAFAbilityComponent::SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag, 
 	const FAFOnAbilityReady& InputDelegate)
 {
+	//check if there is input under tag
+	//clear it
+	//then bind.
 	AbilityContainer.SetAbilityToAction(InAbilityTag, InInputTag);
 	ENetRole role = GetOwnerRole();
 	
@@ -755,6 +829,14 @@ void UAFAbilityComponent::SetAbilityToAction(const FGameplayTag& InAbilityTag, c
 		}
 		ServerSetAbilityToAction(InAbilityTag, InInputTag);
 	}
+}
+bool UAFAbilityComponent::IsAbilityBoundToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
+{
+	return AbilityContainer.IsAbilityBoundToAction(InAbilityTag, InInputTag);
+}
+void UAFAbilityComponent::RemoveAbilityFromAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
+{
+	AbilityContainer.RemoveAbilityFromAction(InAbilityTag, InInputTag);
 }
 void UAFAbilityComponent::ServerSetAbilityToAction_Implementation(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
 {
@@ -784,30 +866,8 @@ void UAFAbilityComponent::NativeInputPressed(FGameplayTag ActionName)
 	{
 		PredHandle = FAFPredictionHandle::GenerateClientHandle(this);
 	}
-	//if (GetOwnerRole() < ENetRole::ROLE_Authority)
-	{
-		ServerNativeInputPressed(ActionName, PredHandle);
-		//UE_LOG(AbilityFramework, Log, TEXT("Client UAFAbilityComponent::NativeInputPressed: %s"), *AbilityTag.GetTagName().ToString());
-		//naive needs better qynchornization to what going on where.
-		//if (UGAAbilityBase* Ability = AbilityContainer.GetAbility(AbilityTag))
-		{
-			//if (Ability->AbilityComponent == this)
-			{
-				AbilityContainer.HandleInputPressed(ActionName, PredHandle);
-			}
-		}
-	}
-	//else
-	//{
-		//UE_LOG(AbilityFramework, Log, TEXT("Server UAFAbilityComponent::NativeInputPressed: %s"), *AbilityTag.GetTagName().ToString());
-		//if (UGAAbilityBase* Ability = AbilityContainer.GetAbility(AbilityTag))
-		//{
-			//if (Ability->AbilityComponent == this)
-			//{
-			//	AbilityContainer.HandleInputPressed(ActionName);
-			//}
-		//}
-	//}
+	ServerNativeInputPressed(ActionName, PredHandle);
+	AbilityContainer.HandleInputPressed(ActionName, PredHandle);	
 }
 
 void UAFAbilityComponent::ServerNativeInputPressed_Implementation(FGameplayTag ActionName, FAFPredictionHandle InPredictionHandle)
@@ -931,7 +991,8 @@ void UAFAbilityComponent::BP_RemoveAbility(FGameplayTag TagIn)
 }
 UGAAbilityBase* UAFAbilityComponent::BP_GetAbilityByTag(FGameplayTag TagIn)
 {
-	return AbilityContainer.GetAbility(TagIn);
+	UGAAbilityBase* retVal = AbilityContainer.GetAbility(TagIn);
+	return retVal;
 }
 UGAAbilityBase* UAFAbilityComponent::InstanceAbility(TSubclassOf<class UGAAbilityBase> AbilityClass,
 	AActor* InAvatar)

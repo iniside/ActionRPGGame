@@ -3,21 +3,25 @@
 #include "ARPlayerController.h"
 #include "ARUIComponent.h"
 #include "ARUIAbilityManagerComponent.h"
-#include "ARUIWeaponEquipment.h"
 #include "AFAbilityComponent.h"
 #include "AssetRegistryModule.h"
 #include "Engine/AssetManager.h"
 #include "ARAbilityBase.h"
 
 #include "Weapons/ARWeaponManagerComponent.h"
+#include "Abilities/ARAbilityManagerComponent.h"
+
+
 
 AARPlayerController::AARPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	UIComponent = ObjectInitializer.CreateDefaultSubobject<UARUIComponent>(this, "UIComponent");
 	UIAbilityManagerComponent = ObjectInitializer.CreateDefaultSubobject<UARUIAbilityManagerComponent>(this, "UIAbilityManagerComponent");
-	UIWeaponEquipment = ObjectInitializer.CreateDefaultSubobject<UARUIWeaponEquipment>(this, "UIWeaponEquipment");
 	WeaponManager = ObjectInitializer.CreateDefaultSubobject<UARWeaponManagerComponent>(this, "WeaponManager");
+	AbilityManager = ObjectInitializer.CreateDefaultSubobject<UARAbilityManagerComponent>(this, "AbilityManager");
+
+	AbilityManager->ComponentTags.Add(TEXT("AbilityManager"));
 }
 
 void AARPlayerController::SetPawn(APawn* InPawn)
@@ -37,7 +41,7 @@ void AARPlayerController::SetPawn(APawn* InPawn)
 
 		AbilityComp->BindAbilityToAction(InputComponent, InputNextWeapon);
 		AbilityComp->BindAbilityToAction(InputComponent, InputPreviousWeapon);
-
+		WeaponManager->BindInputs();
 		//doesn't matter. Internally ability component make sure abilities are instanced on server and replicated back.
 		FAFOnAbilityReady del1 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, AbilitytNextWeapon, InputNextWeapon);
 		AbilityComp->AddOnAbilityReadyDelegate(AbilitytNextWeapon, del1);

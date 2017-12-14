@@ -3,6 +3,7 @@
 #include "../AbilityFramework.h"
 #include "../GAGlobalTypes.h"
 #include "../AFAbilityComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "GAAttributesBase.h"
 
 UGAAttributesBase::UGAAttributesBase(const FObjectInitializer& ObjectInitializer)

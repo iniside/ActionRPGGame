@@ -24,6 +24,7 @@ public:
 		static FGAEffectHandle ApplyGameEffectToActor(UPARAM(ref) FGAEffectProperty& InEffect,
 			class AActor* Target, class APawn* Instigator,
 			UObject* Causer, const FAFFunctionModifier& Modifier);
+
 	/*
 		Makes outgoing effect spec and assign handle to it.
 		If valid handle is provided it will instead reuse existing effect spec from handle,
@@ -36,6 +37,10 @@ public:
 			UObject* Causer, const FAFFunctionModifier& Modifier);
 
 	static FGAEffectHandle ApplyEffect(FGAEffectProperty& InEffect,
+		class UObject* Target, class APawn* Instigator,
+		UObject* Causer, const FHitResult& HitIn, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
+
+	static FGAEffectHandle ApplyEffect(FGAEffectProperty* InEffect,
 		class UObject* Target, class APawn* Instigator,
 		UObject* Causer, const FHitResult& HitIn, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 

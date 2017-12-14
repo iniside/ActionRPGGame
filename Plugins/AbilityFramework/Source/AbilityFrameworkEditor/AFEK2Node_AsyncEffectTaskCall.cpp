@@ -4,7 +4,7 @@
 #include "Kismet/KismetArrayLibrary.h"
 #include "GameplayTask.h"
 #include "Effects/EffectTasks/AFEffectTask.h"
-#include "Abilities/AFBlueprintFunctionLibrary.h"
+#include "AFBlueprintFunctionLibrary.h"
 #include "Effects/GAEffectExtension.h"
 #include "KismetCompiler.h"
 #include "BlueprintEditorUtils.h"
@@ -80,7 +80,7 @@ void UAFEK2Node_AsyncEffectTaskCall::GetMenuActions(FBlueprintActionDatabaseRegi
 		check(NodeSpawner != nullptr);
 		NodeSpawner->NodeClass = NodeClass;
 
-		TWeakObjectPtr<UFunction> FunctionPtr = FactoryFunc;
+		TWeakObjectPtr<UFunction> FunctionPtr = const_cast<UFunction*>(FactoryFunc);
 		NodeSpawner->CustomizeNodeDelegate = UBlueprintNodeSpawner::FCustomizeNodeDelegate::CreateStatic(GetMenuActions_Utils::SetNodeFunc, FunctionPtr);
 		return NodeSpawner;
 	}));

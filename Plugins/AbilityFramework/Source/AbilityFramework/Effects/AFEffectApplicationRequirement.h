@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "../GAGlobalTypes.h"
+#include "GAGameEffect.h"
 #include "AFEffectApplicationRequirement.generated.h"
 
 /**

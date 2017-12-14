@@ -93,6 +93,20 @@ public:
 		FGameplayTagContainer CueTags;
 };
 
+USTRUCT(BlueprintType)
+struct FAFConditionalEffectContainer
+{
+	GENERATED_BODY()
+public:
+	/* If target have this tag apply specified effects */
+	UPROPERTY(EditAnywhere)
+		FGameplayTag RequiredTag;
+
+	UPROPERTY(EditAnywhere)
+		TArray<TSubclassOf<class UGAGameEffectSpec>> Effects;
+};
+
+
 /*
 	Base effect class. You can derive your own specialized classes from it
 	with preset customizations and values. You should never directly inherit blueprints from it.
@@ -184,12 +198,19 @@ public:
 		FGameplayTag OnPeriodEvent;
 	UPROPERTY(EditAnywhere, Category = "Event Tags")
 		FGameplayTag OnRemovedEvent;
+
+
+	UPROPERTY(EditAnywhere, Category = "Event Application Tags")
+		FGameplayTag OnEffectApplyToTargetEvent;
+	UPROPERTY(EditAnywhere, Category = "Event Application Tags")
+		FGameplayTag OnEffectApplyToSelfEvent;
+
 	/* 
 		Effects applied only when certain criteria are met.
 		Just dumbed here it needs it's own structure that will actually alow to setup those conditions.
 	*/
 	UPROPERTY(EditAnywhere, Category = "Linked Effects")
-		TArray<TSubclassOf<UGAGameEffectSpec>> ConditonalEffects;
+		FAFConditionalEffectContainer IfHaveTagEffect;
 
 
 	/* Remove effects with these tags. */
@@ -270,6 +291,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		TSubclassOf<UGAGameEffectSpec> SpecClass;
 
+	FGAEffectClass()
+	{}
+	FGAEffectClass(TSubclassOf<UGAGameEffectSpec> InClass)
+		: SpecClass(InClass)
+	{}
 	const bool operator==(const FGAEffectClass& Other) const
 	{
 		return SpecClass == Other.SpecClass;
@@ -334,6 +360,14 @@ public:
 	TMap<UObject*, FGAEffectHandle> Handles;
 	FGAEffectProperty()
 		: ApplicationRequirement(nullptr),
+		Application(nullptr),
+		Execution(nullptr),
+		Spec(nullptr)
+	{};
+
+	FGAEffectProperty(TSubclassOf<UGAGameEffectSpec> InClass)
+		: SpecClass(InClass),
+		ApplicationRequirement(nullptr),
 		Application(nullptr),
 		Execution(nullptr),
 		Spec(nullptr)
@@ -721,9 +755,26 @@ public:
 		class UAFAbilityComponent* OwningComponent;
 public:
 	//FGAEffectContainer();
+	/*
+	* @call Order:
+	* Previous Function: UAFAbilityComponent::ApplyEffectToSelf 
+	* Next Function: InProperty.Application->ApplyEffect();
+	* FGAEffectContainer::ApplyReplicationInfo()
+	* 
+	* Apply target to Me. Try to apply effect to container and launch Events in:
+	* TMap<FGameplayTag, FSimpleDelegate> OnEffectEvent - event is called before application;
+	* TMap<FGameplayTag, FSimpleDelegate> OnEffectApplyToSelf - event is called before application;
+	*
+	* @param EffectIn* - Effect to apply
+	* @param InProperty - cached effect information
+	* @param InContext - Context about effect application. Target, instigator, causer.
+	* @param Modifier - optional modifier which can be applied to effect.
+	* @return Handle to Effect @ UAFAbilityComponent::ApplyEffectToSelf 
+	*/
 	FGAEffectHandle ApplyEffect(FGAEffect* EffectIn, FGAEffectProperty& InProperty
 		, const FGAEffectContext& InContext
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
+
 	void ApplyReplicationInfo(const FGAEffectHandle& InHandle, const FGAEffectProperty& InProperty);
 	/* Removesgiven number of effects of the same type. If Num == 0 Removes all effects */
 	void RemoveEffect(const FGAEffectProperty& HandleIn, int32 Num = 1);
@@ -757,6 +808,17 @@ public:
 		//return FastArrayDeltaSerialize<FGAEffectRepInfo>(ActiveEffectInfos, DeltaParms, *this);
 		return FFastArraySerializer::FastArrayDeltaSerialize<FAFEffectRepInfo, FGAEffectContainer>(ActiveEffectInfos, DeltaParms, *this);
 	}
+
+	const TSet<FGAEffectHandle>& GetAllEffectHandles() const
+	{
+		return ActiveEffectHandles;
+	}
+
+	const TArray<FAFEffectRepInfo>& GetAllEffectsInfo() const
+	{
+		return ActiveEffectInfos;
+	}
+
 	UWorld* GetWorld() const;
 	
 	///Helpers

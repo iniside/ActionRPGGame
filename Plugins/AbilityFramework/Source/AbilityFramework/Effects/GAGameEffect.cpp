@@ -6,13 +6,13 @@
 #include "../Attributes/GAAttributesBase.h"
 #include "../AFAbilityInterface.h"
 
-#include "../AFAbilityComponent.h"
 #include "GAEffectExecution.h"
 #include "GAEffectExtension.h"
 #include "../GAGlobalTypes.h"
 #include "AFEffectApplicationRequirement.h"
 #include "AFEffectCustomApplication.h"
 #include "GAGameEffect.h"
+#include "GABlueprintLibrary.h"
 
 DEFINE_STAT(STAT_GatherModifiers);
 
@@ -380,7 +380,7 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 	bool bHasPeriod = InProperty.Period > 0;
 	ENetRole role = OwningComponent->GetOwnerRole();
 	ENetMode mode = OwningComponent->GetOwner()->GetNetMode();
-	
+
 	if (bHasDuration || bHasPeriod)
 	{
 		Handle = FGAEffectHandle::GenerateHandle(EffectIn);
@@ -425,8 +425,9 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 				//if not we try to rewind effect application.
 				//we probabaly don't need to unwind attribute changes, since next replication from
 				//server will overridem them anyway.
+				
 				ApplyReplicationInfo(Handle, InProperty);
-				bool bIsServer = GEngine->GetNetMode(OwningComponent->GetWorld());
+				bool bIsServer = GEngine->GetNetMode(OwningComponent->GetWorld()) == ENetMode::NM_DedicatedServer;
 				UE_LOG(AbilityFramework, Log, TEXT("%s :: FGAEffectContainer::EffectApplied %s"), bIsServer ? TEXT("Server") : TEXT("Client"),  *Handle.GetEffectSpec()->GetName() );
 			}
 		}
@@ -438,14 +439,18 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 
 	EffectIn->OnApplied();
 	
-	return Handle;
-	//apply additonal effect applied with this effect.
-	//for (TSubclassOf<UGAGameEffectSpec> Spec : EffectIn.GameEffect->OnAppliedEffects)
-	//{
-	//	FGAEffectHandle Handle = EffectIn.Context.TargetComp->MakeGameEffect(Spec, EffectIn.Context);
+	if (InProperty.Spec->IfHaveTagEffect.RequiredTag.IsValid()
+		&& InContext.TargetComp->HasTag(InProperty.Spec->IfHaveTagEffect.RequiredTag))
+	{
+		for (TSubclassOf<class UGAGameEffectSpec>& Effect : InProperty.Spec->IfHaveTagEffect.Effects)
+		{
+			FGAEffectProperty prop(Effect);
+			UGABlueprintLibrary::ApplyEffect(prop, InContext.Target.Get(), InContext.Instigator.Get(), InContext.Causer.Get(), InContext.HitResult);
+		}
+	}
 
-	//	EffectIn.Context.InstigatorComp->ApplyEffectToTarget(Handle.GetEffect(), Handle, InProperty);
-	//}
+	return Handle;
+	
 }
 void FGAEffectContainer::ApplyReplicationInfo(const FGAEffectHandle& InHandle, const FGAEffectProperty& InProperty)
 {
@@ -455,43 +460,23 @@ void FGAEffectContainer::ApplyReplicationInfo(const FGAEffectHandle& InHandle, c
 	bool bIsServer = GEngine->GetNetMode(OwningComponent->GetWorld()) == ENetMode::NM_DedicatedServer;
 	UE_LOG(AbilityFramework, Log, TEXT("%s :: FGAEffectContainer::ApplyReplicationInfo"), bIsServer ? TEXT("Server") : TEXT("Client"));
 
-	//we need it to mark array dirt on server. Do we ?
-	/*if (mode == ENetMode::NM_DedicatedServer)
-	{*/
-		//const UWorld* World = OwningComponent->GetWorld();
-		//FAFEffectRepInfo* RepInfo = new FAFEffectRepInfo(World->GetTimeSeconds(), InProperty.Period, InProperty.Duration, 0, OwningComponent);
-		//RepInfo->OnExpiredEvent = InProperty.GetSpec()->OnExpiredEvent;
-		//RepInfo->OnPeriodEvent = InProperty.GetSpec()->OnPeriodEvent;
-		//RepInfo->OnRemovedEvent = InProperty.GetSpec()->OnRemovedEvent;
-		//RepInfo->Handle = InHandle;
-		//RepInfo->PredictionHandle = InProperty.PredictionHandle;
-		//RepInfo->EffectTag = InProperty.GetSpec()->EffectTag;
-		//RepInfo->Init();
-		//MarkItemDirty(*RepInfo);
-		//ActiveEffectInfos.Add(*RepInfo);
-		//MarkArrayDirty();
-		//EffectInfos.Add(InHandle, RepInfo);
-	//}
-	//else if(mode == ENetMode::NM_Standalone || mode == ENetMode::NM_Client)
-	{
-		//add replication handle (and send it to server ?)
-		const UWorld* World = OwningComponent->GetWorld();
-		FAFEffectRepInfo* RepInfo = new FAFEffectRepInfo(World->GetTimeSeconds(), InProperty.Period, InProperty.Duration, 0, OwningComponent);
-		RepInfo->OnExpiredEvent = InProperty.GetSpec()->OnExpiredEvent;
-		RepInfo->OnPeriodEvent = InProperty.GetSpec()->OnPeriodEvent;
-		RepInfo->OnRemovedEvent = InProperty.GetSpec()->OnRemovedEvent;
-		RepInfo->Handle = InHandle;
-		RepInfo->PredictionHandle = InProperty.PredictionHandle;
-		RepInfo->EffectTag = InProperty.GetSpec()->EffectTag;
-		RepInfo->Init();
-		MarkItemDirty(*RepInfo);
-		ActiveEffectInfos.Add(*RepInfo);
-		MarkArrayDirty();
-		//predictevily add effect info ?
+	//add replication handle (and send it to server ?)
+	const UWorld* World = OwningComponent->GetWorld();
+	FAFEffectRepInfo* RepInfo = new FAFEffectRepInfo(World->GetTimeSeconds(), InProperty.Period, InProperty.Duration, 0, OwningComponent);
+	RepInfo->OnExpiredEvent = InProperty.GetSpec()->OnExpiredEvent;
+	RepInfo->OnPeriodEvent = InProperty.GetSpec()->OnPeriodEvent;
+	RepInfo->OnRemovedEvent = InProperty.GetSpec()->OnRemovedEvent;
+	RepInfo->Handle = InHandle;
+	RepInfo->PredictionHandle = InProperty.PredictionHandle;
+	RepInfo->EffectTag = InProperty.GetSpec()->EffectTag;
+	RepInfo->Init();
+	MarkItemDirty(*RepInfo);
+	ActiveEffectInfos.Add(*RepInfo);
+	MarkArrayDirty();
+	//predictevily add effect info ?
 		
-		PredictedEffectInfos.Add(InProperty.PredictionHandle, RepInfo);
-		EffectInfos.Add(InHandle, RepInfo);
-	}
+	PredictedEffectInfos.Add(InProperty.PredictionHandle, RepInfo);
+	EffectInfos.Add(InHandle, RepInfo);
 }
 
 EGAEffectAggregation FGAEffectContainer::GetEffectAggregation(const FGAEffectHandle& HandleIn) const
@@ -726,53 +711,53 @@ void FGAEffectContainer::RemoveEffect(const FGAEffectProperty& HandleIn, int32 N
 	TArray<FGAEffectHandle>* handles = EffectByClass.Find(FObjectKey(HandleIn.GetClass()));//GetHandlesByClass(HandleIn, InContext);
 	FAFEffectRepInfo* Out = nullptr;
 	
+	
+	if (!handles)
+		return;
 
-	if (handles)
+	for (int32 idx = 0; idx < Num; idx++)
 	{
-		for (int32 idx = 0; idx < Num; idx++)
+		if (handles->IsValidIndex(0))
 		{
-			if (handles->IsValidIndex(0))
+			FGAEffectHandle OutHandle = (*handles)[0];
+			if (OutHandle.IsValid())
 			{
-				FGAEffectHandle OutHandle = (*handles)[0];
-				if (OutHandle.IsValid())
-				{
-					HandleByPrediction.Remove(HandleIn.PredictionHandle);
-					
-					if(PredictionByHandle.Contains(OutHandle))
-						PredictionByHandle.Remove(OutHandle);
+				HandleByPrediction.Remove(HandleIn.PredictionHandle);
 
-					EffectInfos.RemoveAndCopyValue(OutHandle, Out);
-					if (Out)
-					{
-						FString EffectInfoLog(TEXT("FGAEffectContainer::RemoveEffect "));
-						EffectInfoLog += Out->EffectTag.ToString();
-						AddLogDebugInfo(EffectInfoLog, OwningComponent->GetWorld());
-						MarkItemDirty(*Out);
-						Out->OnRemoved();
-						ActiveEffectInfos.Remove(*Out);
-						MarkArrayDirty();
-						delete Out;
-					}
-					if (!ActiveEffectHandles.Contains(OutHandle))
-					{
-						UE_LOG(GameAttributes, Log, TEXT("RemoveEffect Effect %s Is not applied"), *OutHandle.GetEffectRef().ToString());
-						continue;
-					}
-					switch (Aggregation)
-					{
-					case EGAEffectAggregation::AggregateByInstigator:
-					{
-						RemoveInstigatorEffect(OutHandle, HandleIn);
-						break;
-					}
-					case EGAEffectAggregation::AggregateByTarget:
-					{
-						RemoveTargetEffect(OutHandle, HandleIn);
-						break;
-					}
-					default:
-						break;
-					}
+				if (PredictionByHandle.Contains(OutHandle))
+					PredictionByHandle.Remove(OutHandle);
+
+				EffectInfos.RemoveAndCopyValue(OutHandle, Out);
+				if (Out)
+				{
+					FString EffectInfoLog(TEXT("FGAEffectContainer::RemoveEffect "));
+					EffectInfoLog += Out->EffectTag.ToString();
+					AddLogDebugInfo(EffectInfoLog, OwningComponent->GetWorld());
+					MarkItemDirty(*Out);
+					Out->OnRemoved();
+					ActiveEffectInfos.Remove(*Out);
+					MarkArrayDirty();
+					delete Out;
+				}
+				if (!ActiveEffectHandles.Contains(OutHandle))
+				{
+					UE_LOG(GameAttributes, Log, TEXT("RemoveEffect Effect %s Is not applied"), *OutHandle.GetEffectRef().ToString());
+					continue;
+				}
+				switch (Aggregation)
+				{
+				case EGAEffectAggregation::AggregateByInstigator:
+				{
+					RemoveInstigatorEffect(OutHandle, HandleIn);
+					break;
+				}
+				case EGAEffectAggregation::AggregateByTarget:
+				{
+					RemoveTargetEffect(OutHandle, HandleIn);
+					break;
+				}
+				default:
+					break;
 				}
 			}
 		}

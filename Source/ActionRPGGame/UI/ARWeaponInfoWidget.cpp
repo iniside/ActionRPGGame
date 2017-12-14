@@ -2,29 +2,37 @@
 
 #include "ARWeaponInfoWidget.h"
 #include "ARPlayerController.h"
-#include "ARUIWeaponEquipment.h"
 #include "ARAbilityBase.h"
 #include "ARGunAttributes.h"
+#include "../Weapons/ARWeaponAbilityBase.h"
+#include "../Weapons/ARWeaponManagerComponent.h"
 void UARWeaponInfoWidget::NativePreConstruct()
 {
 	if (AARPlayerController* MyPC = Cast<AARPlayerController>(GetOwningPlayer()))
 	{
-		WeaponEquipement = MyPC->UIWeaponEquipment;
+		WeaponEquipement = MyPC->WeaponManager;
 	}
-	Super::NativePreConstruct();
+Super::NativePreConstruct();
 }
 void UARWeaponInfoWidget::NativeConstruct()
 {
+	UARWeaponManagerComponent* WMC = nullptr;
 	if (AARPlayerController* MyPC = Cast<AARPlayerController>(GetOwningPlayer()))
 	{
-		WeaponEquipement = MyPC->UIWeaponEquipment;
+		WeaponEquipement = MyPC->WeaponManager;
+		WMC = MyPC->WeaponManager;
+	}
+	if (WeaponSlotTag.IsValid())
+	{
+	//	FAROnWeaponReady Delegate = FAROnWeaponReady::CreateUObject(this, &UARWeaponInfoWidget::OnWeaponChanged);
+	//	WMC->AddOnWeaponChangedEvent(WeaponSlotTag, Delegate);
 	}
 	Super::NativeConstruct();
 }
 
 float UARWeaponInfoWidget::GetMagazineAmmo()
 {
-	UARAbilityBase* Ability = WeaponEquipement->Weapons[SlotIndex].Get();
+	UGAAbilityBase* Ability = WeaponEquipement->GetAbility(SlotIndex, EAMSlot::Slot001);
 	if (!Ability)
 		return 0;
 
@@ -36,7 +44,7 @@ float UARWeaponInfoWidget::GetMagazineAmmo()
 }
 float UARWeaponInfoWidget::GetMagazineAmmoNormalized()
 {
-	UARAbilityBase* Ability = WeaponEquipement->Weapons[SlotIndex].Get();
+	UGAAbilityBase* Ability = WeaponEquipement->GetAbility(SlotIndex, EAMSlot::Slot001);
 	if (!Ability)
 		return 0;
 
@@ -47,4 +55,9 @@ float UARWeaponInfoWidget::GetMagazineAmmoNormalized()
 		return FMath::GetMappedRangeValueClamped(Input, FVector2D(0, 1), CurrentValue);
 	}
 	return 0;
+}
+
+void UARWeaponInfoWidget::OnWeaponChanged(class UARWeaponAbilityBase* InAbility)
+{
+	
 }

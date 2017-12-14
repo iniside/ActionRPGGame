@@ -4,7 +4,7 @@
 #include "Kismet/KismetArrayLibrary.h"
 #include "GameplayTask.h"
 #include "Abilities/Tasks/GAAbilityTask.h"
-#include "Abilities/AFBlueprintFunctionLibrary.h"
+#include "AFBlueprintFunctionLibrary.h"
 #include "Abilities/GAAbilityBase.h"
 #include "KismetCompiler.h"
 #include "BlueprintEditorUtils.h"
@@ -80,7 +80,7 @@ void UGAEK2Node_LatentAbilityTaskCall::GetMenuActions(FBlueprintActionDatabaseRe
 		check(NodeSpawner != nullptr);
 		NodeSpawner->NodeClass = NodeClass;
 
-		TWeakObjectPtr<UFunction> FunctionPtr = FactoryFunc;
+		TWeakObjectPtr<UFunction> FunctionPtr = const_cast<UFunction*>(FactoryFunc);
 		NodeSpawner->CustomizeNodeDelegate = UBlueprintNodeSpawner::FCustomizeNodeDelegate::CreateStatic(GetMenuActions_Utils::SetNodeFunc, FunctionPtr);
 		return NodeSpawner;
 	}));
