@@ -533,16 +533,20 @@ TSet<FGAEffectHandle> FGAEffectContainer::GetHandlesByClass(const FGAEffectPrope
 	return Handles;
 }
 
-void FGAEffectContainer::AddEffect(const FGAEffectHandle& HandleIn, bool bInfinite)
+void FGAEffectContainer::AddEffect(FGAEffectProperty& InProperty, const FGAEffectHandle& HandleIn, bool bInfinite)
 {
 	TSet<FGAEffectHandle>& AttributeEffect = EffectByAttribute.FindOrAdd(HandleIn.GetAttribute());
 	AttributeEffect.Add(HandleIn);
 	ActiveEffectHandles.Add(HandleIn);
 	AddEffectByClass(HandleIn);
 	UGAGameEffectSpec* Spec = HandleIn.GetEffectSpec();
-	FObjectKey key(HandleIn.GetEffectSpec()->GetClass());
+	FObjectKey key(InProperty.GetClass());
 	TArray<FGAEffectHandle>& handles = EffectByClass.FindOrAdd(key);
 	handles.Add(HandleIn);
+	if(EffectByClass.Num() == 0)
+	{
+		int asasd = 0;
+	}
 	if (bInfinite)
 	{
 		InfiniteEffects.Add(HandleIn);
@@ -616,6 +620,26 @@ void FGAEffectContainer::RemoveEffectProtected(const FGAEffectHandle& HandleIn
 		{
 			EffectByClass.Remove(FObjectKey(InProperty.GetClass()));
 		}
+	}
+	FAFEffectRepInfo* Out = nullptr;
+	EffectInfos.RemoveAndCopyValue(HandleIn, Out);
+	if (Out)
+	{
+		FString EffectInfoLog(TEXT("FGAEffectContainer::RemoveEffect "));
+		EffectInfoLog += Out->EffectTag.ToString();
+		AddLogDebugInfo(EffectInfoLog, OwningComponent->GetWorld());
+		MarkItemDirty(*Out);
+		Out->OnRemoved();
+		ActiveEffectInfos.Remove(*Out);
+		MarkArrayDirty();
+		delete Out;
+	}
+	FAFPredictionHandle* PredHandle = PredictionByHandle.Find(HandleIn);
+	if(PredHandle)
+	{
+		PredictedEffectInfos.Remove(*PredHandle);
+		HandleByPrediction.Remove(*PredHandle);
+		PredictionByHandle.Remove(HandleIn);
 	}
 }
 void FGAEffectContainer::RemoveInstigatorEffect(const FGAEffectHandle& HandleIn
@@ -704,41 +728,25 @@ void FGAEffectContainer::RemoveTargetEffect(const FGAEffectHandle& HandleIn
 	}
 }
 
-void FGAEffectContainer::RemoveEffect(const FGAEffectProperty& HandleIn, int32 Num)
+TArray<FGAEffectHandle> FGAEffectContainer::RemoveEffect(const FGAEffectProperty& HandleIn, int32 Num)
 {
 	UGAGameEffectSpec* Spec = HandleIn.Spec;
 	EGAEffectAggregation Aggregation = Spec->EffectAggregation;
-	TArray<FGAEffectHandle>* handles = EffectByClass.Find(FObjectKey(HandleIn.GetClass()));//GetHandlesByClass(HandleIn, InContext);
+	FObjectKey key(HandleIn.GetClass());
+	TArray<FGAEffectHandle>* handles = EffectByClass.Find(key);//GetHandlesByClass(HandleIn, InContext);
 	FAFEffectRepInfo* Out = nullptr;
 	
-	
 	if (!handles)
-		return;
+		return TArray<FGAEffectHandle>();
+	TArray<FGAEffectHandle> copy = *handles;
 
 	for (int32 idx = 0; idx < Num; idx++)
 	{
 		if (handles->IsValidIndex(0))
 		{
-			FGAEffectHandle OutHandle = (*handles)[0];
+			FGAEffectHandle OutHandle = (*handles)[idx];
 			if (OutHandle.IsValid())
 			{
-				HandleByPrediction.Remove(HandleIn.PredictionHandle);
-
-				if (PredictionByHandle.Contains(OutHandle))
-					PredictionByHandle.Remove(OutHandle);
-
-				EffectInfos.RemoveAndCopyValue(OutHandle, Out);
-				if (Out)
-				{
-					FString EffectInfoLog(TEXT("FGAEffectContainer::RemoveEffect "));
-					EffectInfoLog += Out->EffectTag.ToString();
-					AddLogDebugInfo(EffectInfoLog, OwningComponent->GetWorld());
-					MarkItemDirty(*Out);
-					Out->OnRemoved();
-					ActiveEffectInfos.Remove(*Out);
-					MarkArrayDirty();
-					delete Out;
-				}
 				if (!ActiveEffectHandles.Contains(OutHandle))
 				{
 					UE_LOG(GameAttributes, Log, TEXT("RemoveEffect Effect %s Is not applied"), *OutHandle.GetEffectRef().ToString());
@@ -762,6 +770,7 @@ void FGAEffectContainer::RemoveEffect(const FGAEffectProperty& HandleIn, int32 N
 			}
 		}
 	}
+	return copy;
 }
 
 //FGAEffectContainer::FGAEffectContainer()

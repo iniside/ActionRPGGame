@@ -414,6 +414,8 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnCooldownEnd(FGAEffectHandle InHandle);
 
+	void NativeOnCooldownEnd(FGAEffectHandle InHandle);
+
 	UFUNCTION()
 		void OnCooldownEffectExpired();
 	UFUNCTION()

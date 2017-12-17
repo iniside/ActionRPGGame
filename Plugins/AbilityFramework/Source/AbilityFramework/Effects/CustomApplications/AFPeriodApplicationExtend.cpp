@@ -40,7 +40,7 @@ bool UAFPeriodApplicationExtend::ApplyEffect(const FGAEffectHandle& InHandle, st
 		PeriodTimer.SetTimer(InHandle.GetEffectPtr()->PeriodTimerHandle, PeriodDuration,
 			InProperty.Period, true);
 
-		InContainer->AddEffect(InHandle);
+		InContainer->AddEffect(InProperty, InHandle);
 	}
 	return true;
 }

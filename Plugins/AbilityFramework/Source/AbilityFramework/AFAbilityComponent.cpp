@@ -230,6 +230,11 @@ FGAEffectHandle UAFAbilityComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 				PropertyByHandle.Add(Handle, &InProperty);
 			
 			OnEffectAppliedToTarget.Broadcast(Handle);
+			if(InProperty.Duration == 0
+				&& InProperty.Period == 0)
+			{
+				OnEffectRemoved.Broadcast(Handle);
+			}
 			return Handle;
 		}
 	}
@@ -320,7 +325,11 @@ void UAFAbilityComponent::ExpireEffect(FGAEffectHandle HandleIn, FGAEffectProper
 			MulticastRemoveEffectCue(CueParams);
 		}
 	}
-	GameEffectContainer.RemoveEffectByHandle(HandleIn, InProperty);
+	TArray<FGAEffectHandle> handles = GameEffectContainer.RemoveEffect(InProperty);
+	for (const FGAEffectHandle& Handle : handles)
+	{
+		OnEffectExpired.Broadcast(Handle);
+	}
 }
 
 void UAFAbilityComponent::ClientExpireEffect_Implementation(FAFPredictionHandle PredictionHandle)
@@ -336,7 +345,6 @@ void UAFAbilityComponent::RemoveEffect(const FGAEffectProperty& InProperty,
 	{
 		InternalRemoveEffect(InProperty, InContext);
 	}
-	//OnEffectRemoved.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
 }
 void UAFAbilityComponent::InternalRemoveEffect(const FGAEffectProperty& InProperty, 
 	const FGAEffectContext& InContext)
@@ -361,7 +369,11 @@ void UAFAbilityComponent::InternalRemoveEffect(const FGAEffectProperty& InProper
 			MulticastRemoveEffectCue(CueParams);
 		}
 	}
-	GameEffectContainer.RemoveEffect(InProperty);
+	TArray<FGAEffectHandle> handles = GameEffectContainer.RemoveEffect(InProperty);
+	for(const FGAEffectHandle& Handle : handles)
+	{
+		OnEffectRemoved.Broadcast(Handle);
+	}
 }
 
 

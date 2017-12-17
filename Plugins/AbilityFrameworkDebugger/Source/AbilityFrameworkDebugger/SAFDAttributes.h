@@ -5,10 +5,18 @@
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 #include "AFAbilityInterface.h"
+#include "Attributes/GAAttributesBase.h"
 
-struct FAttributeRow
+struct FAttributeRow : public TSharedFromThis<FAttributeRow>
 {
 	FString Name;
+	FAFAttributeBase* Attribute;
+	TAttribute<FText> Value;
+
+	FText GetValue() const
+	{
+		return FText::AsNumber(Attribute->GetCurrentValue());
+	}
 };
 
 /**

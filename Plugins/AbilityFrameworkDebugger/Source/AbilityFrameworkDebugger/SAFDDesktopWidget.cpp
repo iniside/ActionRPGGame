@@ -22,14 +22,79 @@ void SAFDMainWidget::Construct(const FArguments& InArgs)
 	World = world;
 	FOnClicked OnPickActorClickedDel = FOnClicked::CreateSP(this, &SAFDMainWidget::OnPickActorClicked);
 
+	FOnClicked OnAttributesClickedDel = FOnClicked::CreateSP(this, &SAFDMainWidget::OnAttributesClicked);
+	FOnClicked OnEffectsClickedDel = FOnClicked::CreateSP(this, &SAFDMainWidget::OnEffectsClicked);
+
 	ChildSlot
+	.HAlign(EHorizontalAlignment::HAlign_Fill)
+	.VAlign(EVerticalAlignment::VAlign_Fill)
 	[
 		SNew(SVerticalBox)
 		+SVerticalBox::Slot()
+		.FillHeight(1.0f)
+		.HAlign(EHorizontalAlignment::HAlign_Fill)
+		.VAlign(EVerticalAlignment::VAlign_Fill)
 		[
-			SAssignNew(Content, SOverlay)
+			SNew(SOverlay)
+			+SOverlay::Slot()
+			.HAlign(EHorizontalAlignment::HAlign_Fill)
+			.VAlign(EVerticalAlignment::VAlign_Fill)
+			[
+				SNew(SVerticalBox)
+				+SVerticalBox::Slot()
+				.HAlign(EHorizontalAlignment::HAlign_Fill)
+				.VAlign(EVerticalAlignment::VAlign_Top)
+				.AutoHeight()
+				[
+					SNew(STextBlock)
+					.Text(this, &SAFDMainWidget::GetActorName)
+				]
+				+ SVerticalBox::Slot()
+				.HAlign(EHorizontalAlignment::HAlign_Fill)
+				.VAlign(EVerticalAlignment::VAlign_Top)
+				.MaxHeight(24)
+				.AutoHeight()
+				[
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					[
+						SNew(SButton)
+						.OnClicked(OnAttributesClickedDel)
+						[
+							SNew(STextBlock)
+							.Text(FText::FromString("Attributes"))
+						]
+					]
+					+ SHorizontalBox::Slot()
+					[
+						SNew(SButton)
+						.OnClicked(OnEffectsClickedDel)
+						[
+							SNew(STextBlock)
+							.Text(FText::FromString("Effects"))
+						]
+					]
+				]
+				+ SVerticalBox::Slot()
+				.HAlign(EHorizontalAlignment::HAlign_Fill)
+				.VAlign(EVerticalAlignment::VAlign_Fill)
+				[
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.FillWidth(1.0f)
+					.HAlign(EHorizontalAlignment::HAlign_Fill)
+					.VAlign(EVerticalAlignment::VAlign_Fill)
+					[
+						SAssignNew(Content, SWidgetSwitcher)
+					]
+				]
+			]
 		]
 		+SVerticalBox::Slot()
+		.MaxHeight(32.0f)
+			.AutoHeight()
+		.HAlign(EHorizontalAlignment::HAlign_Fill)
+		.VAlign(EVerticalAlignment::VAlign_Bottom)
 		[
 			SNew(SButton)
 			.OnClicked(OnPickActorClickedDel)
@@ -38,14 +103,6 @@ void SAFDMainWidget::Construct(const FArguments& InArgs)
 				.Text(FText::FromString("Pick Actor"))
 			]
 		]
-	];
-
-	Content->AddSlot()
-	.HAlign(EHorizontalAlignment::HAlign_Left)
-	.VAlign(EVerticalAlignment::VAlign_Top)
-	[
-		SNew(STextBlock)
-		.Text(this, &SAFDMainWidget::GetActorName)
 	];
 }
 
@@ -66,6 +123,18 @@ FReply SAFDMainWidget::OnPickActorClicked()
 
 	return FReply::Handled();
 }
+
+FReply SAFDMainWidget::OnAttributesClicked()
+{
+	Content->SetActiveWidgetIndex(0);
+	return FReply::Handled();
+}
+FReply SAFDMainWidget::OnEffectsClicked()
+{
+	Content->SetActiveWidgetIndex(1);
+	return FReply::Handled();
+}
+
 void SAFDMainWidget::OnActorPicked()
 {
 	APlayerController* PC = World->GetFirstPlayerController();
@@ -79,10 +148,17 @@ void SAFDMainWidget::OnActorPicked()
 		if(IAFAbilityInterface* Interface = Cast<IAFAbilityInterface>(OutHit.GetActor()))
 		{
 			Content->AddSlot()
-				.HAlign(EHorizontalAlignment::HAlign_Left)
-				.VAlign(EVerticalAlignment::VAlign_Top)
+				.HAlign(EHorizontalAlignment::HAlign_Fill)
+				.VAlign(EVerticalAlignment::VAlign_Fill)
 				[
 					SNew(SAFDAttributes)
+					.AbilityInterface(Interface)
+				];
+			Content->AddSlot()
+				.HAlign(EHorizontalAlignment::HAlign_Fill)
+				.VAlign(EVerticalAlignment::VAlign_Fill)
+				[
+					SNew(SAFDEffects)
 					.AbilityInterface(Interface)
 				];
 		}
@@ -124,6 +200,6 @@ FReply SAFDDesktopWidget::OnNewDebugWindowClicked()
 	FDWWWindowHandle Handle = FAFDManager::Get().AddNewWindow(window);
 	TSharedPtr<SAFDMainWidget> wid = SNew(SAFDMainWidget);
 	window->AddContent(wid);
-	wid->WindowHandle = Handle;
+	wid->SetWindowHandle(Handle);
 	return FReply::Handled();
 }

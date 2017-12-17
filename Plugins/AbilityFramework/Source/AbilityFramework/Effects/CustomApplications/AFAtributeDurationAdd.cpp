@@ -19,7 +19,7 @@ bool UAFAtributeDurationAdd::ApplyEffect(const FGAEffectHandle& InHandle, struct
 	DurationTimer.SetTimer(InHandle.GetEffectPtr()->DurationTimerHandle, delDuration,
 		InProperty.Duration, false);
 
-	InContainer->AddEffect(InHandle);
+	InContainer->AddEffect(InProperty, InHandle);
 	//EffectIn->Context.TargetComp->ExecuteEffect(InHandle, InProperty);
 	return true;
 }

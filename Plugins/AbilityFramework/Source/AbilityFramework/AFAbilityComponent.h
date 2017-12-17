@@ -29,7 +29,7 @@ DECLARE_CYCLE_STAT_EXTERN(TEXT("AttributeComponentModifyAttribute"), STAT_Modify
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGAOnAttributeChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGAOnAttributeModifed, const FAFAttributeChangedData&, Mod);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGAGenericEffectDelegate, FGAEffectHandle, Handle);
+DECLARE_MULTICAST_DELEGATE_OneParam(FGAGenericEffectDelegate, FGAEffectHandle);
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FAFEventDelegate , FAFEventData);
 DECLARE_MULTICAST_DELEGATE_OneParam(FAFAttributeChangedDelegate, FAFAttributeChangedData);
@@ -311,19 +311,19 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Game Attributes")
 		FGAOnAttributeModifed OnTargetAttributeModifed;
 	/* Effect/Attribute System Delegates */
-	UPROPERTY(BlueprintAssignable, Category = "Effect")
+	//UPROPERTY(BlueprintAssignable, Category = "Effect")
 		FGAGenericEffectDelegate OnEffectAppliedToTarget;
 
-	UPROPERTY(BlueprintAssignable, Category = "Effect")
+	//UPROPERTY(BlueprintAssignable, Category = "Effect")
 		FGAGenericEffectDelegate OnEffectAppliedToSelf;
 
-	UPROPERTY(BlueprintAssignable, Category = "Effect")
+	//UPROPERTY(BlueprintAssignable, Category = "Effect")
 		FGAGenericEffectDelegate OnEffectExecuted;
 
-	UPROPERTY(BlueprintAssignable, Category = "Effect")
+	//UPROPERTY(BlueprintAssignable, Category = "Effect")
 		FGAGenericEffectDelegate OnEffectExpired;
 
-	UPROPERTY(BlueprintAssignable, Category = "Effect")
+	//UPROPERTY(BlueprintAssignable, Category = "Effect")
 		FGAGenericEffectDelegate OnEffectRemoved;
 
 	/* NEW EFFECT SYSTEM */
@@ -346,6 +346,18 @@ public:
 
 	TMap<FGameplayTag, FAFEventDelegate> EffectEvents;
 	TMap<FGAAttribute, FAFAttributeChangedDelegate> AttributeChanged;
+
+
+	const FGAGenericEffectDelegate& GetOnEffectApppliedToTarget() const
+	{
+		return OnEffectAppliedToTarget;
+	}
+	const FGAGenericEffectDelegate& GetOnEffectRemoved() const
+	{
+		return OnEffectRemoved;
+	}
+
+	void RegisterToEffectEvents(void* Object, TFunction<void(FGAEffectHandle)> InFunction);
 
 	void BroadcastAttributeChange(const FGAAttribute& InAttribute, 
 		const FAFAttributeChangedData& InData);

@@ -11,7 +11,7 @@ bool UAFAttributeDurationInfinite::ApplyEffect(const FGAEffectHandle& InHandle, 
 	const FGAEffectContext& InContext,
 	const FAFFunctionModifier& Modifier)
 {
-	InContainer->AddEffect(InHandle, true);
+	InContainer->AddEffect(InProperty, InHandle, true);
 	//EffectIn->Context.TargetComp->ExecuteEffect(InHandle, InProperty);
 	return true;
 }

@@ -32,7 +32,7 @@ bool UAFPeriodApplicationOverride::ApplyEffect(const FGAEffectHandle& InHandle, 
 	PeriodTimer.SetTimer(InHandle.GetEffectPtr()->PeriodTimerHandle, PeriodDuration,
 		InProperty.Period, true);
 
-	InContainer->AddEffect(InHandle);
+	InContainer->AddEffect(InProperty, InHandle);
 	//EffectIn.Context.TargetComp->ExecuteEffect(InHandle, InProperty);
 	return true;
 }

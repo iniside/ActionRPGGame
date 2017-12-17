@@ -362,7 +362,9 @@ public:
 		: ApplicationRequirement(nullptr),
 		Application(nullptr),
 		Execution(nullptr),
-		Spec(nullptr)
+		Spec(nullptr),
+		Duration(0),
+		Period(0)
 	{};
 
 	FGAEffectProperty(TSubclassOf<UGAGameEffectSpec> InClass)
@@ -370,7 +372,9 @@ public:
 		ApplicationRequirement(nullptr),
 		Application(nullptr),
 		Execution(nullptr),
-		Spec(nullptr)
+		Spec(nullptr),
+		Duration(0),
+		Period(0)
 	{};
 
 	TSubclassOf<UGAGameEffectSpec> GetClass() const { return SpecClass.SpecClass; }
@@ -712,24 +716,32 @@ public:
 	//that's why handle should only be created on server (and by that, effects).
 	//change to SharedPtr ?
 	mutable TMap<FGAEffectHandle, FAFEffectRepInfo*> EffectInfos;
-
+	
+	UPROPERTY()
 	TMap<FAFPredictionHandle, FGAEffectHandle> HandleByPrediction;
+	
+	UPROPERTY()
 	TMap<FGAEffectHandle, FAFPredictionHandle> PredictionByHandle;
 
+	
 	TMap<FAFPredictionHandle, FAFEffectRepInfo*> PredictedEffectInfos;
 
+	
 	TMap<FGAAttribute, TSet<FGAEffectHandle>> EffectByAttribute;
 
+	
 	TMap<FObjectKey, TArray<FGAEffectHandle>> EffectByClass;
 
 	//TQueue<FGAEffectHandle> dupa;
 	/* All effects. */
+	UPROPERTY()
 	TSet<FGAEffectHandle> ActiveEffectHandles;
 	/* 
 		Contains effects with infinite duration.
 		Infinite effects are considred to be special case, where they can only be self spplied
 		and must be manually removed.
 	*/
+	UPROPERTY()
 	TSet<FGAEffectHandle> InfiniteEffects;
 	
 	//not really sure if we really need set.\
@@ -739,12 +751,14 @@ public:
 		FName = Effect class name
 		FGAEffectHandle = handle to effect of class.
 	*/
+	
 	TMap<UObject*, TMap<UClass*, TSet<FGAEffectHandle>>> InstigatorEffectByClass;
 
 	/*
 		FName = Effect class name
 		FGAEffectHandle = handle to effect of class.
 	*/
+	
 	TMap<UClass*, TSet<FGAEffectHandle>> TargetEffectByClass;
 
 	/* Keeps effects instanced per target actor. */
@@ -777,7 +791,7 @@ public:
 
 	void ApplyReplicationInfo(const FGAEffectHandle& InHandle, const FGAEffectProperty& InProperty);
 	/* Removesgiven number of effects of the same type. If Num == 0 Removes all effects */
-	void RemoveEffect(const FGAEffectProperty& HandleIn, int32 Num = 1);
+	TArray<FGAEffectHandle> RemoveEffect(const FGAEffectProperty& HandleIn, int32 Num = 1);
 	/* Removesgiven number of effects of the same type. If Num == 0 Removes all effects */
 	void RemoveEffectByHandle(const FGAEffectHandle& InHandle, const FGAEffectProperty& InProperty);
 
@@ -790,7 +804,7 @@ public:
 	TSet<FGAEffectHandle> GetHandlesByClass(const FGAEffectProperty& InProperty,
 		const FGAEffectContext& InContext);
 
-	void AddEffect(const FGAEffectHandle& HandleIn, bool bInfinite = false);
+	void AddEffect(FGAEffectProperty& InProperty, const FGAEffectHandle& HandleIn, bool bInfinite = false);
 	void AddEffectByClass(const FGAEffectHandle& HandleIn);
 
 	void RemoveFromAttribute(const FGAEffectHandle& HandleIn);

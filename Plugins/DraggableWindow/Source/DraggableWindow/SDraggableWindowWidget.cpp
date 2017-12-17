@@ -216,15 +216,12 @@ void SDraggableWindowWidget::Construct(const FArguments& InArgs)
 			.VAlign(EVerticalAlignment::VAlign_Fill)
 			[
 				SAssignNew(WindowBox, SWindowBox)
-				/*.HAlign(EHorizontalAlignment::HAlign_Fill)
-				.VAlign(EVerticalAlignment::VAlign_Fill)*/
 				//.HeightOverride(heightAttr)
 				//.WidthOverride(widthAttr)
 				[
 					SNew(SVerticalBox)
 					+ SVerticalBox::Slot()
-					//.FillHeight(0.2f)
-					.MaxHeight(32)
+					.AutoHeight()
 					.MaxHeight(32)
 					[
 							SNew(SHorizontalBox)
@@ -237,9 +234,16 @@ void SDraggableWindowWidget::Construct(const FArguments& InArgs)
 						
 					]
 					+ SVerticalBox::Slot()
+						.HAlign(EHorizontalAlignment::HAlign_Fill)
+						.VAlign(EVerticalAlignment::VAlign_Fill)
 					.FillHeight(1.0f)
 					[
-						SAssignNew(Content, SOverlay)
+						SNew(SBox)
+						.HAlign(EHorizontalAlignment::HAlign_Fill)
+						.VAlign(EVerticalAlignment::VAlign_Fill)
+						[
+							SAssignNew(Content, SOverlay)
+						]
 					]
 				]
 				
@@ -394,6 +398,8 @@ void SDraggableWindowWidget::Tick(const FGeometry& AllottedGeometry, const doubl
 void SDraggableWindowWidget::AddContent(TSharedPtr<SWidget> InWidget)
 {
 	Content->AddSlot()
+	.HAlign(EHorizontalAlignment::HAlign_Fill)
+	.VAlign(EVerticalAlignment::VAlign_Fill)
 	[
 		InWidget.ToSharedRef()
 	];
