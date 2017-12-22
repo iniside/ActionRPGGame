@@ -14,7 +14,7 @@ UARUIAbilityManagerComponent::UARUIAbilityManagerComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 
 	// ...
 }
@@ -23,6 +23,7 @@ UARUIAbilityManagerComponent::UARUIAbilityManagerComponent()
 // Called when the game starts
 void UARUIAbilityManagerComponent::BeginPlay()
 {
+	Super::BeginPlay();
 	//initiazile Model (hhueheu).
 	AbilitySet.SetNum(2);
 	AbilitySet[0].SetNum(6);
@@ -80,7 +81,7 @@ void UARUIAbilityManagerComponent::BeginPlay()
 	{
 		AbilityComp->BP_BindAbilityToAction(Tag);
 	}
-	Super::BeginPlay();
+	
 }
 
 

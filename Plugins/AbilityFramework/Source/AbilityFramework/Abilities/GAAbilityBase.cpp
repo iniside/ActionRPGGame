@@ -273,7 +273,7 @@ void UGAAbilityBase::OnCooldownEffectExpired()
 
 	if (CooldownEffectHandle.IsValid())
 	{
-		CooldownEffectHandle.GetContextRef().InstigatorComp->RemoveEffect(CooldownEffect, DefaultContext);
+		//CooldownEffectHandle.GetContextRef().InstigatorComp->RemoveEffect(CooldownEffect, DefaultContext);
 	}
 }
 /* Functions for activation effect delegates */
@@ -317,7 +317,7 @@ void UGAAbilityBase::NativeFinishAbility()
 	OnConfirmDelegate.RemoveAll(this);
 	//if (ActivationEffect.Handle.IsValid())
 	{
-		AbilityComponent->RemoveEffect(ActivationEffect, DefaultContext);
+		AbilityComponent->RemoveEffect(ActivationEffect, DefaultContext, ActivationEffectHandle);
 	}
 	//remove effect.
 }
@@ -331,7 +331,7 @@ void UGAAbilityBase::NativeCancelActivation()
 	UAFAbilityComponent* AttrComp = ActivationEffect.Handle.GetContext().InstigatorComp.Get();
 	if (AbilityComponent)
 	{
-		AbilityComponent->RemoveEffect(ActivationEffect, DefaultContext);
+		AbilityComponent->RemoveEffect(ActivationEffect, DefaultContext, ActivationEffectHandle);
 	}
 }
 
@@ -377,7 +377,7 @@ bool UGAAbilityBase::ApplyCooldownEffect()
 }
 void UGAAbilityBase::NativeOnCooldownEnd(FGAEffectHandle InHandle)
 {
-	AbilityComponent->RemoveEffect(CooldownEffect, DefaultContext);
+	//AbilityComponent->RemoveEffect(CooldownEffect, DefaultContext);
 	OnCooldownEnd(InHandle);
 }
 void UGAAbilityBase::ClientSetCooldownHandle_Implementation(FGAEffectHandle InCooldownHandle)

@@ -301,19 +301,19 @@ UObject* UGAAbilityBlueprintFactory::FactoryCreateNew(UClass* Class, UObject* In
 			if (AbilityBP == NULL)
 			{
 				const UEdGraphSchema_K2* K2Schema = GetDefault<UEdGraphSchema_K2>();
-
+#if WITH_EDITORONLY_DATA
 				// Only allow a gameplay ability graph if there isn't one in a parent blueprint
 				UEdGraph* NewGraph = FBlueprintEditorUtils::CreateNewGraph(NewBP, TEXT("Ability Graph"), UGAAbilityGraph::StaticClass(), UGAAbilityGraphSchema::StaticClass());
-#if WITH_EDITORONLY_DATA
+
 				if (NewBP->UbergraphPages.Num())
 				{
 					FBlueprintEditorUtils::RemoveGraphs(NewBP, NewBP->UbergraphPages);
 				}
-#endif
+
 				FBlueprintEditorUtils::AddUbergraphPage(NewBP, NewGraph);
 				NewBP->LastEditedDocuments.Add(NewGraph);
 				NewGraph->bAllowDeletion = false;
-
+#endif
 				UBlueprintEditorSettings* Settings = GetMutableDefault<UBlueprintEditorSettings>();
 				if(Settings && Settings->bSpawnDefaultBlueprintNodes)
 				{

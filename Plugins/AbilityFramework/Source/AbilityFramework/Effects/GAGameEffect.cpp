@@ -47,10 +47,8 @@ FAFEffectRepInfo::FAFEffectRepInfo(float AppliedTimeIn, float PeriodTimeIn, floa
 void FAFEffectRepInfo::Init()
 {
 	FTimerManager& Timer = OwningComoponent->GetWorld()->GetTimerManager();
-
-	FTimerDelegate delDuration = FTimerDelegate::CreateRaw(this, &FAFEffectRepInfo::OnExpired);
-	Timer.SetTimer(ExpiredHandle, delDuration,
-		Duration, false);
+	ENetRole role = OwningComoponent->GetOwnerRole();
+	ENetMode mode = OwningComoponent->GetOwner()->GetNetMode();
 
 	FTimerDelegate PeriodDuration = FTimerDelegate::CreateRaw(this, &FAFEffectRepInfo::OnPeriod);
 	Timer.SetTimer(PeriodHandle, PeriodDuration,
@@ -60,6 +58,18 @@ void FAFEffectRepInfo::OnExpired()
 {
 	UE_LOG(AbilityFramework, Log, TEXT("Client FAFEffectRepInfo. OnExpired"));
 	OwningComoponent->ExecuteEffectEvent(OnExpiredEvent);
+
+	FString EffectInfoLog(TEXT("FAFEffectRepInfo::OnExpired "));
+	EffectInfoLog += EffectTag.ToString();
+	AddLogDebugInfo(EffectInfoLog, OwningComoponent->GetWorld());
+	FTimerManager& Timer = OwningComoponent->GetWorld()->GetTimerManager();
+	Timer.ClearTimer(ExpiredHandle);
+	Timer.ClearTimer(PeriodHandle);
+	OwningComoponent->ExecuteEffectEvent(OnRemovedEvent);
+
+	OwningComoponent->RemoveEffectEvent(OnExpiredEvent);
+	OwningComoponent->RemoveEffectEvent(OnPeriodEvent);
+	OwningComoponent->RemoveEffectEvent(OnRemovedEvent);
 }
 void FAFEffectRepInfo::OnPeriod()
 {
@@ -73,6 +83,8 @@ void FAFEffectRepInfo::OnRemoved()
 	FTimerManager& Timer = OwningComoponent->GetWorld()->GetTimerManager();
 	Timer.ClearTimer(ExpiredHandle);
 	Timer.ClearTimer(PeriodHandle);
+	OwningComoponent->ExecuteEffectEvent(OnRemovedEvent);
+
 	OwningComoponent->RemoveEffectEvent(OnExpiredEvent);
 	OwningComoponent->RemoveEffectEvent(OnPeriodEvent);
 	OwningComoponent->RemoveEffectEvent(OnRemovedEvent);
@@ -85,6 +97,8 @@ void FAFEffectRepInfo::PreReplicatedRemove(const struct FGAEffectContainer& InAr
 	FTimerManager& Timer = OwningComoponent->GetWorld()->GetTimerManager();
 	Timer.ClearTimer(ExpiredHandle);
 	Timer.ClearTimer(PeriodHandle);
+	OwningComoponent->ExecuteEffectEvent(OnRemovedEvent);
+
 	OwningComoponent->RemoveEffectEvent(OnExpiredEvent);
 	OwningComoponent->RemoveEffectEvent(OnPeriodEvent);
 	OwningComoponent->RemoveEffectEvent(OnRemovedEvent);
@@ -93,14 +107,12 @@ void FAFEffectRepInfo::PostReplicatedAdd(const struct FGAEffectContainer& InArra
 {
 	if (PredictionHandle.IsValid() && InArraySerializer.PredictedEffectInfos.Contains(PredictionHandle))
 	{
+		//remove predicted effect and move on.
 		FGAEffectContainer& cont = const_cast<FGAEffectContainer&>(InArraySerializer);
 		auto RemovePredicate = [&](const FAFEffectRepInfo& EmitterHandle) { return EmitterHandle.Handle == Handle; };
 		//cont.ActiveEffectInfos.Remove(*this);
 		cont.ActiveEffectInfos.RemoveAll(RemovePredicate);
 		return;
-		//remove replicated rep info ?
-		//keep client side handle.
-		//possibly override client predicted repinfo with informations from server.
 	}
 	else
 	{
@@ -109,6 +121,7 @@ void FAFEffectRepInfo::PostReplicatedAdd(const struct FGAEffectContainer& InArra
 	OwningComoponent = InArraySerializer.OwningComponent;
 	InArraySerializer.EffectInfos.Add(Handle, this);
 	InArraySerializer.OwningComponent->OnEffectRepInfoApplied.Broadcast(this);
+	Type = ERepInfoType::RemotePredicted;
 
 	//OwningComoponent->ExecuteEffectEvent(OnAppliedEvent);
 
@@ -463,6 +476,15 @@ void FGAEffectContainer::ApplyReplicationInfo(const FGAEffectHandle& InHandle, c
 	//add replication handle (and send it to server ?)
 	const UWorld* World = OwningComponent->GetWorld();
 	FAFEffectRepInfo* RepInfo = new FAFEffectRepInfo(World->GetTimeSeconds(), InProperty.Period, InProperty.Duration, 0, OwningComponent);
+	if(bIsServer)
+	{
+		RepInfo->Type = ERepInfoType::Server;
+	}
+	else
+	{
+		RepInfo->Type = ERepInfoType::LocallyPredicted;
+	}
+	RepInfo->Spec = InProperty.GetClass();
 	RepInfo->OnExpiredEvent = InProperty.GetSpec()->OnExpiredEvent;
 	RepInfo->OnPeriodEvent = InProperty.GetSpec()->OnPeriodEvent;
 	RepInfo->OnRemovedEvent = InProperty.GetSpec()->OnRemovedEvent;
@@ -543,10 +565,7 @@ void FGAEffectContainer::AddEffect(FGAEffectProperty& InProperty, const FGAEffec
 	FObjectKey key(InProperty.GetClass());
 	TArray<FGAEffectHandle>& handles = EffectByClass.FindOrAdd(key);
 	handles.Add(HandleIn);
-	if(EffectByClass.Num() == 0)
-	{
-		int asasd = 0;
-	}
+
 	if (bInfinite)
 	{
 		InfiniteEffects.Add(HandleIn);
@@ -610,6 +629,9 @@ void FGAEffectContainer::RemoveEffectProtected(const FGAEffectHandle& HandleIn
 	, const FGAEffectProperty& InProperty)
 {
 	RemoveFromAttribute(HandleIn);
+	
+	const_cast<FGAEffectProperty&>(InProperty).RemoveHandle(HandleIn);
+
 	ActiveEffectHandles.Remove(HandleIn);
 	InfiniteEffects.Remove(HandleIn);
 	TArray<FGAEffectHandle>* handles = EffectByClass.Find(FObjectKey(InProperty.GetClass()));
@@ -629,7 +651,6 @@ void FGAEffectContainer::RemoveEffectProtected(const FGAEffectHandle& HandleIn
 		EffectInfoLog += Out->EffectTag.ToString();
 		AddLogDebugInfo(EffectInfoLog, OwningComponent->GetWorld());
 		MarkItemDirty(*Out);
-		Out->OnRemoved();
 		ActiveEffectInfos.Remove(*Out);
 		MarkArrayDirty();
 		delete Out;

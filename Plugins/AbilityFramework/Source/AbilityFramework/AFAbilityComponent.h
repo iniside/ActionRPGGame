@@ -459,7 +459,7 @@ public:
 	void ClientExpireEffect_Implementation(FAFPredictionHandle PredictionHandle);
 
 	/* RemoveEffect is used to remove effect by force. */
-	void RemoveEffect(const FGAEffectProperty& InProperty, const FGAEffectContext& InContext);
+	void RemoveEffect(const FGAEffectProperty& InProperty, const FGAEffectContext& InContext, const FGAEffectHandle& InHandle);
 	void InternalRemoveEffect(const FGAEffectProperty& InProperty, const FGAEffectContext& InContext);
 
 	const TSet<FGAEffectHandle>& GetAllEffectsHandles() const

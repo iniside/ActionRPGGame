@@ -357,7 +357,12 @@ public:
 		Holds handle to duration/infinite effects. Since there can be multiple effects active on multiple targets.
 
 	*/
-	TMap<UObject*, FGAEffectHandle> Handles;
+protected:
+	//possibly multiple handles per target ?
+	TMap<FObjectKey, FGAEffectHandle> Handles;
+	TMap<FGAEffectHandle, UObject*> HandleToTarget;
+	TMap<FGAEffectHandle, FGAEffectContext*> Contexts;
+public:
 	FGAEffectProperty()
 		: ApplicationRequirement(nullptr),
 		Application(nullptr),
@@ -389,6 +394,43 @@ public:
 	void Initialize();
 	void InitializeIfNotInitialized();
 
+
+	void AddHandle(UObject* Target, const FGAEffectHandle& InHandle)
+	{
+		FObjectKey key(Target);
+		Handles.Add(key, InHandle);
+		HandleToTarget.Add(InHandle, Target);
+	}
+
+	void RemoveHandle(const FGAEffectHandle& InHandle)
+	{
+		UObject* Target = nullptr;
+		HandleToTarget.RemoveAndCopyValue(InHandle, Target);
+		if(Target)
+		{
+			FObjectKey key(Target);
+			Handles.Remove(key);
+			Contexts.Remove(InHandle);
+		}
+	}
+
+	FGAEffectHandle FindTargetEffect(UObject* Target)
+	{
+		FObjectKey key(Target);
+		if (FGAEffectHandle* handle = Handles.Find(key))
+			return *handle;
+
+		return FGAEffectHandle();
+	}
+
+	FGAEffectHandle FindTargetEffect(UObject* Target) const
+	{
+		FObjectKey key(Target);
+		if (const FGAEffectHandle* handle = Handles.Find(key))
+			return *handle;
+
+		return FGAEffectHandle();
+	}
 	void SetPredictionHandle(const FAFPredictionHandle& InHandle)
 	{
 		PredictionHandle = InHandle;
@@ -591,13 +633,25 @@ struct ABILITYFRAMEWORK_API FGAInstigatorInstancedEffectContainer
 /*
 	Simplified and minimal version of game effect replicated back to clients.
 */
-
+UENUM()
+enum class ERepInfoType : uint8
+{
+	LocallyPredicted,
+	RemotePredicted,
+	Server
+};
 USTRUCT(BlueprintType)
 struct ABILITYFRAMEWORK_API FAFEffectRepInfo : public FFastArraySerializerItem
 {
 	GENERATED_USTRUCT_BODY()
 
 public:
+	UPROPERTY()
+	ERepInfoType Type;
+
+	UPROPERTY()
+		TSubclassOf<UGAGameEffectSpec> Spec;
+
 	//tags are generally unique per effect type.
 	UPROPERTY()
 		FGameplayTag EffectTag;
@@ -616,6 +670,8 @@ public:
 		float Duration;
 	UPROPERTY()
 		float ReplicationTime;
+	UPROPERTY()
+		float LastPeriodTime;
 
 	UPROPERTY()
 		FGameplayTag OnExpiredEvent;
@@ -628,6 +684,11 @@ public:
 	FTimerHandle PeriodHandle;
 	class UAFAbilityComponent* OwningComoponent;
 
+	UGAGameEffectSpec* GetSpec() const
+	{
+		return Spec.GetDefaultObject();
+	}
+
 	//UPROPERTY()
 	//	FGAEffectContext Context;
 
@@ -639,6 +700,13 @@ public:
 	void PreReplicatedRemove(const struct FGAEffectContainer& InArraySerializer);
 	void PostReplicatedAdd(const struct FGAEffectContainer& InArraySerializer);
 	void PostReplicatedChange(const struct FGAEffectContainer& InArraySerializer);
+
+	float GetPeriodTime(float InWorldTime)
+	{
+		if (InWorldTime > (LastPeriodTime + PeriodTime))
+			LastPeriodTime = InWorldTime;
+		return InWorldTime - LastPeriodTime;
+	}
 
 	float GetRemainingTime(float InWorldTime) const
 	{
@@ -835,6 +903,11 @@ public:
 
 	UWorld* GetWorld() const;
 	
+	FAFEffectRepInfo* GetReplicationInfo(const FGAEffectHandle& InHandle)
+	{
+		return EffectInfos.FindRef(InHandle);
+	}
+
 	///Helpers
 	float GetRemainingTime(const FGAEffectHandle& InHandle) const
 	{

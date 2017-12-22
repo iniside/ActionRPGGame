@@ -55,5 +55,10 @@ public class ActionRPGGame : ModuleRules
             "AbilityManager",
             "DraggableWindow"
         });
-	}
+        if (Target.Type == TargetRules.TargetType.Editor)
+        {
+            PublicDependencyModuleNames.AddRange(new string[] { "UnrealEd", "SourceControl", "Matinee", "PropertyEditor", "ShaderCore", "AbilityFrameworkEditor" });
+            PrivateDependencyModuleNames.AddRange(new string[] { "AbilityFrameworkEditor" });
+        }
+    }
 }

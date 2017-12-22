@@ -4,9 +4,9 @@
 #include "Effects/GAEffectCue.h"
 #include "AFCueSet.h"
 #include "AFCueManager.h"
-#if WITH_EDITOR
-#include "Editor.H"
-#endif
+//#if WITH_EDITOR
+//#include "Editor.H"
+//#endif
 
 UAFCueManager* UAFCueManager::ManagerInstance = nullptr;
 //UWorld* UAFCueManager::CurrentWorld = nullptr;
@@ -27,9 +27,9 @@ UAFCueManager* UAFCueManager::Get()
 }
 void UAFCueManager::Initialize()
 {
-#if WITH_EDITOR
-	FEditorDelegates::EndPIE.AddUObject(this, &UAFCueManager::HandleOnPIEEnd);
-#endif //WITH_EDITOR
+#if WITH_EDITORONLY_DATA
+//	FEditorDelegates::EndPIE.AddUObject(this, &UAFCueManager::HandleOnPIEEnd);
+#endif //WITH_EDITORONLY_DATA
 	FCoreUObjectDelegates::PreLoadMap.AddUObject(this, &UAFCueManager::HandlePreLoadMap);
 	FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UAFCueManager::HandlePostLoadMap);
 }

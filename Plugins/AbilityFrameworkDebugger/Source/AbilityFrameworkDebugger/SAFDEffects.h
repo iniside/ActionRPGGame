@@ -5,13 +5,31 @@
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 
+#include "GAGlobalTypes.h"
+#include "Effects/GAGameEffect.h"
 #include "AFAbilityInterface.h"
 #include "AFAbilityComponent.h"
 
-struct FAFDEffectRow
+struct FAFDEffectRow : public TSharedFromThis<FAFDEffectRow>
 {
 	FString EffectClassName;
 	FGAEffectHandle Handle;
+	FAFEffectRepInfo* RepInfo;
+	TAttribute<FText> TimeRemaining;
+	TAttribute<FText> PeriodTime;
+	TWeakObjectPtr<UAFAbilityComponent> AbilityComponent;
+
+	FText GetTimeRemaining() const
+	{
+		//return FText::AsNumber(0);
+		return FText::AsNumber(AbilityComponent->GameEffectContainer.GetRemainingTime(Handle));
+	}
+
+	FText GetPeriodTime() const
+	{
+		//return FText::AsNumber(0);
+		return FText::AsNumber(RepInfo->GetPeriodTime(static_cast<float>(FPlatformTime::Seconds())));
+	}
 
 	const bool operator==(const FAFDEffectRow& Other) const
 	{

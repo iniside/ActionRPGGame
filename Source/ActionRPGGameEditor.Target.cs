@@ -9,5 +9,6 @@ public class ActionRPGGameEditorTarget : TargetRules
 	{
 		Type = TargetType.Editor;
 		ExtraModuleNames.Add("ActionRPGGame");
-	}
+		ExtraModuleNames.Add("ActionRPGGameEditor");
+    }
 }

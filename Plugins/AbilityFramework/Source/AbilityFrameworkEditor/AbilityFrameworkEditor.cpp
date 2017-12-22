@@ -76,7 +76,10 @@ void FAbilityFrameworkEditor::OnInitializeSequence(UGAEffectCueSequence* Sequenc
 	/** IModuleInterface implementation */
 void FAbilityFrameworkEditor::StartupModule()
 {
-	BlueprintEditorTabBinding = MakeShared<FEffectCueequenceEditorTabBinding>();
+	if(GEditor)
+		BlueprintEditorTabBinding = MakeShared<FEffectCueequenceEditorTabBinding>();
+	
+	
 
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	PropertyModule.RegisterCustomPropertyTypeLayout("GAAttribute", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGAAttributeDetailCustomization::MakeInstance));

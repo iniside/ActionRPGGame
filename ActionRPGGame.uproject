@@ -3,139 +3,164 @@
 	"EngineAssociation": "{A36EBF10-476D-8159-343E-8FA796F9AC8F}",
 	"Category": "",
 	"Description": "",
-	"Modules": [
-		{
-			"Name": "ActionRPGGame",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"AbilityFramework",
-				"Engine",
-				"AIModule",
-				"UMG",
-				"CoreUObject"
-			]
-		}
-	],
-	"Plugins": [
-		{
-			"Name": "ActorSequence",
-			"Enabled": true
-		},
-		{
-			"Name": "AbilityFramework",
-			"Enabled": true
-		},
-		{
-			"Name": "ActorSequenceEditor",
-			"Enabled": true
-		},
-		{
-			"Name": "ImagePlate",
-			"Enabled": true
-		},
-		{
-			"Name": "PerformanceMonitor",
-			"Enabled": true
-		},
-		{
-			"Name": "OnlineSubsystemAmazon",
-			"Enabled": true
-		},
-		{
-			"Name": "OnlineFramework",
-			"Enabled": true
-		},
-		{
-			"Name": "SteamVR",
-			"Enabled": false
-		},
-		{
-			"Name": "OculusVR",
-			"Enabled": false
-		},
-		{
-			"Name": "Niagara",
-			"Enabled": true
-		},
-		{
-			"Name": "SoundUtilities",
-			"Enabled": true
-		},
-		{
-			"Name": "SoundVisualizations",
-			"Enabled": true
-		},
-		{
-			"Name": "BlueprintStats",
-			"Enabled": true
-		},
-		{
-			"Name": "LocationServicesBPLibrary",
-			"Enabled": false
-		},
-		{
-			"Name": "WindowsDeviceProfileSelector",
-			"Enabled": true
-		},
-		{
-			"Name": "AndroidDeviceProfileSelector",
-			"Enabled": false
-		},
-		{
-			"Name": "IOSDeviceProfileSelector",
-			"Enabled": false
-		},
-		{
-			"Name": "AndroidMedia",
-			"Enabled": false
-		},
-		{
-			"Name": "MobileLauncherProfileWizard",
-			"Enabled": false
-		},
-		{
-			"Name": "MobilePatchingUtils",
-			"Enabled": false
-		},
-		{
-			"Name": "AndroidMoviePlayer",
-			"Enabled": false
-		},
-		{
-			"Name": "AppleMoviePlayer",
-			"Enabled": false
-		},
-		{
-			"Name": "GoogleCloudMessaging",
-			"Enabled": false
-		},
-		{
-			"Name": "OnlineSubsystemIOS",
-			"Enabled": false,
-			"SupportedTargetPlatforms": [
-				"IOS",
-				"TVOS"
-			]
-		},
-		{
-			"Name": "OnlineSubsystemGooglePlay",
-			"Enabled": false,
-			"SupportedTargetPlatforms": [
-				"Android"
-			]
-		},
-		{
-			"Name": "ApexDestruction",
-			"Enabled": true
-		},
-		{
-			"Name": "AndroidPermission",
-			"Enabled": false
-		}
-	],
-	"TargetPlatforms": [
-		"LinuxNoEditor",
-		"WindowsNoEditor"
-	]
+  "Modules": [
+    {
+      "Name": "ActionRPGGame",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "AdditionalDependencies": [
+        "AbilityFramework",
+        "AbilityFrameworkDebugger",
+        "AbilityManager",
+        "Engine",
+        "AIModule",
+        "UMG",
+        "CoreUObject"
+      ]
+    },
+    {
+      "Name": "ActionRPGGameEditor",
+      "Type": "Editor",
+      "LoadingPhase": "Default",
+      "AdditionalDependencies": [
+        "AbilityFramework",
+        "AbilityFrameworkEditor",
+        "AbilityFrameworkDebugger",
+        "AbilityManager",
+        "Engine",
+        "AIModule",
+        "UMG",
+        "CoreUObject"
+      ]
+    }
+    ],
+    "Plugins" : [
+      {
+        "Name": "ActorSequence",
+        "Enabled": true
+      },
+      {
+        "Name": "AbilityFramework",
+        "Enabled": true
+      },
+      {
+        "Name": "AbilityFrameworkDebugger",
+        "Enabled": true
+      },
+      {
+        "Name": "AbilityManager",
+        "Enabled": true
+      },
+      {
+        "Name": "ActorSequenceEditor",
+        "Enabled": true
+      },
+      {
+        "Name": "ImagePlate",
+        "Enabled": true
+      },
+      {
+        "Name": "PerformanceMonitor",
+        "Enabled": true
+      },
+      {
+        "Name": "OnlineSubsystemAmazon",
+        "Enabled": true
+      },
+      {
+        "Name": "OnlineFramework",
+        "Enabled": true
+      },
+      {
+        "Name": "SteamVR",
+        "Enabled": false
+      },
+      {
+        "Name": "OculusVR",
+        "Enabled": false
+      },
+      {
+        "Name": "Niagara",
+        "Enabled": true
+      },
+      {
+        "Name": "SoundUtilities",
+        "Enabled": true
+      },
+      {
+        "Name": "SoundVisualizations",
+        "Enabled": true
+      },
+      {
+        "Name": "BlueprintStats",
+        "Enabled": true
+      },
+      {
+        "Name": "LocationServicesBPLibrary",
+        "Enabled": false
+      },
+      {
+        "Name": "WindowsDeviceProfileSelector",
+        "Enabled": true
+      },
+      {
+        "Name": "AndroidDeviceProfileSelector",
+        "Enabled": false
+      },
+      {
+        "Name": "IOSDeviceProfileSelector",
+        "Enabled": false
+      },
+      {
+        "Name": "AndroidMedia",
+        "Enabled": false
+      },
+      {
+        "Name": "MobileLauncherProfileWizard",
+        "Enabled": false
+      },
+      {
+        "Name": "MobilePatchingUtils",
+        "Enabled": false
+      },
+      {
+        "Name": "AndroidMoviePlayer",
+        "Enabled": false
+      },
+      {
+        "Name": "AppleMoviePlayer",
+        "Enabled": false
+      },
+      {
+        "Name": "GoogleCloudMessaging",
+        "Enabled": false
+      },
+      {
+        "Name": "OnlineSubsystemIOS",
+        "Enabled": false,
+        "SupportedTargetPlatforms": [
+          "IOS",
+          "TVOS"
+        ]
+      },
+      {
+        "Name": "OnlineSubsystemGooglePlay",
+        "Enabled": false,
+        "SupportedTargetPlatforms": [
+          "Android"
+        ]
+      },
+      {
+        "Name": "ApexDestruction",
+        "Enabled": true
+      },
+      {
+        "Name": "AndroidPermission",
+        "Enabled": false
+      }
+    ],
+    "TargetPlatforms": [
+      "LinuxNoEditor",
+      "WindowsNoEditor"
+    ]
 }

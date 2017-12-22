@@ -325,6 +325,15 @@ void UAFAbilityComponent::ExpireEffect(FGAEffectHandle HandleIn, FGAEffectProper
 			MulticastRemoveEffectCue(CueParams);
 		}
 	}
+//	if (role < ENetRole::ROLE_Authority
+//		|| mode == ENetMode::NM_Standalone)
+	{
+		FAFEffectRepInfo* RepInfo = GameEffectContainer.GetReplicationInfo(HandleIn);
+		if (RepInfo)
+		{
+			RepInfo->OnExpired();
+		}
+	}
 	TArray<FGAEffectHandle> handles = GameEffectContainer.RemoveEffect(InProperty);
 	for (const FGAEffectHandle& Handle : handles)
 	{
@@ -338,8 +347,17 @@ void UAFAbilityComponent::ClientExpireEffect_Implementation(FAFPredictionHandle 
 }
 
 void UAFAbilityComponent::RemoveEffect(const FGAEffectProperty& InProperty, 
-	const FGAEffectContext& InContext)
+	const FGAEffectContext& InContext, const FGAEffectHandle& InHandle)
 {
+	{
+		FAFEffectRepInfo* RepInfo = GameEffectContainer.GetReplicationInfo(InHandle);
+		if (RepInfo && 
+			(RepInfo->Type == ERepInfoType::LocallyPredicted
+				|| RepInfo->Type == ERepInfoType::Server))
+		{
+			RepInfo->OnExpired();
+		}
+	}
 	//if (GetOwnerRole() == ENetRole::ROLE_Authority
 	//	|| GetOwner()->GetNetMode() == ENetMode::NM_Standalone)
 	{
@@ -369,6 +387,7 @@ void UAFAbilityComponent::InternalRemoveEffect(const FGAEffectProperty& InProper
 			MulticastRemoveEffectCue(CueParams);
 		}
 	}
+	
 	TArray<FGAEffectHandle> handles = GameEffectContainer.RemoveEffect(InProperty);
 	for(const FGAEffectHandle& Handle : handles)
 	{

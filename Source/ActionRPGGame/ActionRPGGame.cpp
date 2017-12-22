@@ -5,6 +5,9 @@
 #include "AssetRegistryModule.h"
 #include "Engine/AssetManager.h"
 #include "Abilities/GAAbilityBase.h"
+#if WITH_EDITOR
+#include "IAbilityFrameworkEditor.h"
+#endif
 void FActionRPGGameModule::StartupModule()
 {
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
@@ -19,6 +22,10 @@ void FActionRPGGameModule::StartupModule()
 	{
 		Manager->ScanPathsForPrimaryAssets(FPrimaryAssetType("Ability"), ContentPaths, UGAAbilityBase::StaticClass(), true);
 	}
+#if WITH_EDITOR
+	FModuleManager::Get().LoadModule(TEXT("AbilityFrameworkEditor"));
+	//FModuleManager::LoadModuleChecked<IAbilityFrameworkEditor>(TEXT("AbilityFrameworkEditor"));
+#endif //WITH_EDITOR
 };
 IMPLEMENT_PRIMARY_GAME_MODULE(FActionRPGGameModule, ActionRPGGame, "ActionRPGGame");
  

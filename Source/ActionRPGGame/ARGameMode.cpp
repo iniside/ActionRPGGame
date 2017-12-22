@@ -8,7 +8,7 @@
 #include "Abilities/ARAbilityBase.h"
 //#include "IpConnec"
 //#include "OnlineSubsystemUtils/IpConnection.h"
-#include "IPAddress.h"
+//#include "IPAddress.h"
 #include "SDraggableWindowWidget.h"
 AARGameMode::AARGameMode()
 {
@@ -20,11 +20,11 @@ void AARGameMode::BeginPlay()
 	{
 		if (UNetConnection* Conn = GetNetConnection())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Your message, %s \n"), *FString::FromInt(Conn->GetAddrAsInt()));
+		//	UE_LOG(LogTemp, Warning, TEXT("Your message, %s \n"), *FString::FromInt(Conn->GetAddrAsInt()));
 		}
 	}
-	TSharedPtr<SDraggableDesktopWidget> desktop = SNew(SDraggableDesktopWidget);
-	GEngine->GameViewport->AddViewportWidgetContent(desktop.ToSharedRef());
+	//TSharedPtr<SDraggableDesktopWidget> desktop = SNew(SDraggableDesktopWidget);
+	//GEngine->GameViewport->AddViewportWidgetContent(desktop.ToSharedRef());
 
 	//TSharedPtr<SDraggableWindowWidget> window = SNew(SDraggableWindowWidget);
 	//GEngine->GameViewport->AddViewportWidgetContent(window.ToSharedRef());

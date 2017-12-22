@@ -115,8 +115,13 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 			effect->PredictionHandle = Ability->GetPredictionHandle();
 		}
 	}
-
-	return Context.InstigatorComp->ApplyEffectToTarget(effect, InEffect, Context, Modifier);
+	FGAEffectHandle Handle = Context.InstigatorComp->ApplyEffectToTarget(effect, InEffect, Context, Modifier);
+	if (InEffect.Duration > 0 || InEffect.Period > 0)
+	{
+		InEffect.AddHandle(Context.Target.Get(), Handle);
+	}
+	
+	return Handle;
 }
 FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty* InEffect,
 	class UObject* Target, class APawn* Instigator,

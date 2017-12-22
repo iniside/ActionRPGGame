@@ -189,6 +189,9 @@ FAFEffectTimeHandle FAFEffectTimerManager::AddTimer(double InDuration, double In
 
 void FAbilityFramework::StartupModule()
 {
+#if WITH_EDITOR
+	//FModuleManager::Get().LoadModule(TEXT("AbilityFrameworkEditor"));
+#endif //WITH_EDITOR
 	//FAFEffectTimerManager::Get();
 	// This code will execute after your module is loaded into memory (but after global variables are initialized, of course.)
 }

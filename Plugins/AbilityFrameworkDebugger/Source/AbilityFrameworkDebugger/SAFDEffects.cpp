@@ -45,7 +45,11 @@ void SAFDEffects::InitializeEffects()
 	{
 		TSharedPtr<FAFDEffectRow> Row = MakeShareable(new FAFDEffectRow);
 		Row->Handle = RepInfo.Handle;
+		Row->RepInfo = const_cast<FAFEffectRepInfo*>(&RepInfo);
+		Row->AbilityComponent = AbilityComponent;
 		Row->EffectClassName = RepInfo.Handle.GetEffectSpec()->GetName();
+		Row->TimeRemaining = TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateSP(Row.Get(), &FAFDEffectRow::GetTimeRemaining));
+		Row->PeriodTime = TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateSP(Row.Get(), &FAFDEffectRow::GetPeriodTime));
 		Effects.Add(Row);
 	}
 	//ListView->RebuildList();
@@ -59,12 +63,26 @@ TSharedRef<ITableRow> SAFDEffects::GenerateListRow(TSharedPtr<FAFDEffectRow> Eff
 		[
 			SNew(SGridPanel)
 			.FillColumn(0, 1)
+			/*.FillColumn(1,1)
+			.FillColumn(2,1)*/
 			+ SGridPanel::Slot(0, 0)
 			.HAlign(EHorizontalAlignment::HAlign_Fill)
 			[
 				SNew(STextBlock)
 				.Text(FText::FromString(EffectRow->EffectClassName))
 			]
+			+ SGridPanel::Slot(1, 0)
+			.HAlign(EHorizontalAlignment::HAlign_Fill)
+			[
+				SNew(STextBlock)
+				.Text(EffectRow->TimeRemaining)
+			]
+			+ SGridPanel::Slot(2, 0)
+				.HAlign(EHorizontalAlignment::HAlign_Fill)
+				[
+					SNew(STextBlock)
+					.Text(EffectRow->PeriodTime)
+				]
 		];
 }
 
@@ -72,9 +90,14 @@ void SAFDEffects::OnEffectApplied(FGAEffectHandle InHandle)
 {
 	TSharedPtr<FAFDEffectRow> Row = MakeShareable(new FAFDEffectRow);
 	Row->Handle = InHandle;
+	Row->RepInfo = AbilityComponent->GameEffectContainer.GetReplicationInfo(InHandle);
+	Row->AbilityComponent = AbilityComponent;
 	Row->EffectClassName = InHandle.GetEffectSpec()->GetName();
+	Row->TimeRemaining = TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateSP(Row.Get(), &FAFDEffectRow::GetTimeRemaining));
+	Row->PeriodTime = TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateSP(Row.Get(), &FAFDEffectRow::GetPeriodTime));
 	UE_LOG(LogTemp, Warning, TEXT("SAFDEffects::OnEffectAppliede"));
 	Effects.Add(Row);
+	
 	ListView->RebuildList();
 }
 void SAFDEffects::OnEffectRemoved(FGAEffectHandle InHandle)

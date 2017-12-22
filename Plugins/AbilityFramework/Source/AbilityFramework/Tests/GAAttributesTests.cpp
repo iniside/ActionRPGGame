@@ -1076,7 +1076,7 @@ public:
 		float FinishedVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
 		TestEqual("Source Stamina Finished: ", FinishedVal, 150.0f);
 		FGAEffectContext Context = UGABlueprintLibrary::MakeContext(DestActor, SourceActor, DestActor, SourceActor, FHitResult(ForceInit));
-		DestComponent->RemoveEffect(Effect, Context);
+		//DestComponent->RemoveEffect(Effect, Context);
 		float PostRemovedVal = DestComponent->GetAttributeValue(FGAAttribute("Stamina"));
 		TestEqual("Source Stamina Finished: ", PostRemovedVal, 100.0f);
 	}

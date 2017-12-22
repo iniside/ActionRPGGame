@@ -2,32 +2,27 @@
   "FileVersion": 3,
   "Version": 1,
   "VersionName": "1.0",
-  "FriendlyName": "AbilityFramework",
-  "Description": "",
-  "Category": "Gameplay",
+  "FriendlyName": "AbilityManager",
+  "Description": "Manages input and UI for abilities. Sample implementation with most common functionality.",
+  "Category": "Other",
   "CreatedBy": "",
   "CreatedByURL": "",
   "DocsURL": "",
   "MarketplaceURL": "",
   "SupportURL": "",
   "CanContainContent": true,
-  "IsBetaVersion": true,
-  "Installed": true,
+  "IsBetaVersion": false,
+  "Installed": false,
   "Modules": [
     {
-      "Name": "AbilityFramework",
+      "Name": "AbilityManager",
       "Type": "Runtime",
       "LoadingPhase": "Default"
-    },
-    {
-      "Name": "AbilityFrameworkEditor",
-      "Type": "Editor",
-      "LoadingPhase": "PostEngineInit"
     }
   ],
   "Plugins": [
     {
-      "Name": "ActorSequence",
+      "Name": "AbilityFramework",
       "Enabled": true
     }
   ]
