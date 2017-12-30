@@ -271,6 +271,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Config")
 		FGAAttribute DeathAttribute;
 
+	UPROPERTY(EditAnywhere, Category = "Input Config")
+		TArray<FGameplayTag> AbilityInputs;
+
 	UPROPERTY(EditAnywhere, Category = "Tags")
 		FGameplayTagContainer DefaultTags;
 
@@ -793,6 +796,7 @@ public:
 	//TSharedPtr<FStreamableHandle> AbilityLoadedHandle;
 	void OnFinishedLoad(FGameplayTag InAbilityTag, FPrimaryAssetId InPrimaryAssetId);
 	void SetBlockedInput(const FGameplayTag& InInput, bool bBlock);
+	void BindInputs(class UInputComponent* InputComponent);
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Bind Ability To Action"), Category = "AbilityFramework|Abilities")
 		void BP_BindAbilityToAction(FGameplayTag ActionName);
 	void BindAbilityToAction(UInputComponent* InputComponent, FGameplayTag ActionName);

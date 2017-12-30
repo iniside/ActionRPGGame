@@ -12,7 +12,6 @@ class ABILITYFRAMEWORKDEBUGGER_API FAFDManager
 private:
 	static FAFDManager* Instance;
 	TSharedPtr<SAFDDesktopWidget> Dekstop;
-	TSharedPtr<SDraggableDesktopWidget> WindowDesktop;
 protected:
 	void Init();
 public:
@@ -27,7 +26,12 @@ public:
 		return*Instance;
 	}
 
-	FDWWWindowHandle AddNewWindow(TSharedPtr<SDraggableWindowWidget> InWindow);
+#if WITH_EDITORONLY_DATA
+	static void PIEDestroy();
+#endif
+
+
+	FDWWWindowHandle AddDebugWindow(TSharedPtr<SWidget> InWindowContent);
 
 	FAFDManager();
 	~FAFDManager();

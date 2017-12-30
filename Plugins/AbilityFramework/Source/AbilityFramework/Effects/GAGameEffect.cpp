@@ -57,37 +57,37 @@ void FAFEffectRepInfo::Init()
 void FAFEffectRepInfo::OnExpired()
 {
 	UE_LOG(AbilityFramework, Log, TEXT("Client FAFEffectRepInfo. OnExpired"));
-	OwningComoponent->ExecuteEffectEvent(OnExpiredEvent);
+	OwningComoponent->ExecuteEffectEvent(GetSpec()->OnExpiredEvent);
 
 	FString EffectInfoLog(TEXT("FAFEffectRepInfo::OnExpired "));
-	EffectInfoLog += EffectTag.ToString();
+	EffectInfoLog += GetEffectTag().ToString();
 	AddLogDebugInfo(EffectInfoLog, OwningComoponent->GetWorld());
 	FTimerManager& Timer = OwningComoponent->GetWorld()->GetTimerManager();
 	Timer.ClearTimer(ExpiredHandle);
 	Timer.ClearTimer(PeriodHandle);
-	OwningComoponent->ExecuteEffectEvent(OnRemovedEvent);
+	OwningComoponent->ExecuteEffectEvent(GetSpec()->OnRemovedEvent);
 
-	OwningComoponent->RemoveEffectEvent(OnExpiredEvent);
-	OwningComoponent->RemoveEffectEvent(OnPeriodEvent);
-	OwningComoponent->RemoveEffectEvent(OnRemovedEvent);
+	OwningComoponent->RemoveEffectEvent(GetSpec()->OnExpiredEvent);
+	OwningComoponent->RemoveEffectEvent(GetSpec()->OnPeriodEvent);
+	OwningComoponent->RemoveEffectEvent(GetSpec()->OnRemovedEvent);
 }
 void FAFEffectRepInfo::OnPeriod()
 {
-	OwningComoponent->ExecuteEffectEvent(OnPeriodEvent);
+	OwningComoponent->ExecuteEffectEvent(GetSpec()->OnPeriodEvent);
 }
 void FAFEffectRepInfo::OnRemoved()
 {
 	FString EffectInfoLog(TEXT("FAFEffectRepInfo::OnRemoved "));
-	EffectInfoLog += EffectTag.ToString();
+	EffectInfoLog += GetEffectTag().ToString();
 	AddLogDebugInfo(EffectInfoLog, OwningComoponent->GetWorld());
 	FTimerManager& Timer = OwningComoponent->GetWorld()->GetTimerManager();
 	Timer.ClearTimer(ExpiredHandle);
 	Timer.ClearTimer(PeriodHandle);
-	OwningComoponent->ExecuteEffectEvent(OnRemovedEvent);
+	OwningComoponent->ExecuteEffectEvent(GetSpec()->OnRemovedEvent);
 
-	OwningComoponent->RemoveEffectEvent(OnExpiredEvent);
-	OwningComoponent->RemoveEffectEvent(OnPeriodEvent);
-	OwningComoponent->RemoveEffectEvent(OnRemovedEvent);
+	OwningComoponent->RemoveEffectEvent(GetSpec()->OnExpiredEvent);
+	OwningComoponent->RemoveEffectEvent(GetSpec()->OnPeriodEvent);
+	OwningComoponent->RemoveEffectEvent(GetSpec()->OnRemovedEvent);
 }
 
 void FAFEffectRepInfo::PreReplicatedRemove(const struct FGAEffectContainer& InArraySerializer)
@@ -97,11 +97,13 @@ void FAFEffectRepInfo::PreReplicatedRemove(const struct FGAEffectContainer& InAr
 	FTimerManager& Timer = OwningComoponent->GetWorld()->GetTimerManager();
 	Timer.ClearTimer(ExpiredHandle);
 	Timer.ClearTimer(PeriodHandle);
-	OwningComoponent->ExecuteEffectEvent(OnRemovedEvent);
+	OwningComoponent->ExecuteEffectEvent(GetSpec()->OnRemovedEvent);
 
-	OwningComoponent->RemoveEffectEvent(OnExpiredEvent);
-	OwningComoponent->RemoveEffectEvent(OnPeriodEvent);
-	OwningComoponent->RemoveEffectEvent(OnRemovedEvent);
+	OwningComoponent->RemoveEffectEvent(GetSpec()->OnExpiredEvent);
+	OwningComoponent->RemoveEffectEvent(GetSpec()->OnPeriodEvent);
+	OwningComoponent->RemoveEffectEvent(GetSpec()->OnRemovedEvent);
+
+	OwningComoponent->OnEffectRemoved.Broadcast(Handle);
 }
 void FAFEffectRepInfo::PostReplicatedAdd(const struct FGAEffectContainer& InArraySerializer)
 {
@@ -119,6 +121,7 @@ void FAFEffectRepInfo::PostReplicatedAdd(const struct FGAEffectContainer& InArra
 		//remove predicted effect.
 	}
 	OwningComoponent = InArraySerializer.OwningComponent;
+	AppliedTime = OwningComoponent->GetWorld()->GetTimeSeconds();
 	InArraySerializer.EffectInfos.Add(Handle, this);
 	InArraySerializer.OwningComponent->OnEffectRepInfoApplied.Broadcast(this);
 	Type = ERepInfoType::RemotePredicted;
@@ -134,6 +137,8 @@ void FAFEffectRepInfo::PostReplicatedAdd(const struct FGAEffectContainer& InArra
 	FTimerDelegate PeriodDuration = FTimerDelegate::CreateRaw(this, &FAFEffectRepInfo::OnPeriod);
 	Timer.SetTimer(PeriodHandle, PeriodDuration,
 		PeriodTime, true);
+	Handle.EffectPtr = MakeShareable(new FGAEffect(Spec.GetDefaultObject(), Context));
+	OwningComoponent->OnEffectAppliedToTarget.Broadcast(Handle);
 
 }
 void FAFEffectRepInfo::PostReplicatedChange(const struct FGAEffectContainer& InArraySerializer)
@@ -485,12 +490,9 @@ void FGAEffectContainer::ApplyReplicationInfo(const FGAEffectHandle& InHandle, c
 		RepInfo->Type = ERepInfoType::LocallyPredicted;
 	}
 	RepInfo->Spec = InProperty.GetClass();
-	RepInfo->OnExpiredEvent = InProperty.GetSpec()->OnExpiredEvent;
-	RepInfo->OnPeriodEvent = InProperty.GetSpec()->OnPeriodEvent;
-	RepInfo->OnRemovedEvent = InProperty.GetSpec()->OnRemovedEvent;
+	RepInfo->Context = InHandle.GetContext();
 	RepInfo->Handle = InHandle;
 	RepInfo->PredictionHandle = InProperty.PredictionHandle;
-	RepInfo->EffectTag = InProperty.GetSpec()->EffectTag;
 	RepInfo->Init();
 	MarkItemDirty(*RepInfo);
 	ActiveEffectInfos.Add(*RepInfo);
@@ -648,7 +650,7 @@ void FGAEffectContainer::RemoveEffectProtected(const FGAEffectHandle& HandleIn
 	if (Out)
 	{
 		FString EffectInfoLog(TEXT("FGAEffectContainer::RemoveEffect "));
-		EffectInfoLog += Out->EffectTag.ToString();
+		EffectInfoLog += Out->GetEffectTag().ToString();
 		AddLogDebugInfo(EffectInfoLog, OwningComponent->GetWorld());
 		MarkItemDirty(*Out);
 		ActiveEffectInfos.Remove(*Out);

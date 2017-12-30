@@ -196,10 +196,8 @@ END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 FReply SAFDDesktopWidget::OnNewDebugWindowClicked()
 {
-	TSharedPtr<SDraggableWindowWidget> window = SNew(SDraggableWindowWidget);
-	FDWWWindowHandle Handle = FAFDManager::Get().AddNewWindow(window);
 	TSharedPtr<SAFDMainWidget> wid = SNew(SAFDMainWidget);
-	window->AddContent(wid);
+	FDWWWindowHandle Handle = FAFDManager::Get().AddDebugWindow(wid);
 	wid->SetWindowHandle(Handle);
 	return FReply::Handled();
 }

@@ -304,6 +304,8 @@ USTRUCT(BlueprintType)
 struct ABILITYFRAMEWORK_API FGAEffectHandle
 {
 	GENERATED_BODY()
+public:
+	friend struct FAFEffectRepInfo;
 protected:
 	//just to be safe we don't run out of numbers..
 	UPROPERTY()

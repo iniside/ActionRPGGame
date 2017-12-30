@@ -76,6 +76,7 @@ protected:
 	UPROPERTY(EditAnywhere)
 		uint8 MaxGroups;
 
+	//Map input bindings to particular slot and group.
 	UPROPERTY(EditAnywhere)
 		FAMAbilityInputContainer InputSetup;
 
@@ -99,7 +100,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	void BindInputs();
+	
 	UGAAbilityBase* GetAbility(EAMGroup InGroup, EAMSlot InSlot);
 	void SetAbility(EAMGroup InGroup, EAMSlot InSlot, UGAAbilityBase* InAbility);
 

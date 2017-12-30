@@ -15,4 +15,8 @@ public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+
+#if WITH_EDITORONLY_DATA
+	void HandlePIEEnd(bool InVal);
+#endif
 };

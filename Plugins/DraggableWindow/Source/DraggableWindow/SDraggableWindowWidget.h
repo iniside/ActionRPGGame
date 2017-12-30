@@ -5,25 +5,15 @@
 #include "CoreMinimal.h"
 #include "Input/Events.h"
 #include "Widgets/SCompoundWidget.h"
+#include "SlateCore.h"
+#include "Styling/SlateTypes.h"
 #include "SOverlay.h"
 #include "SGridPanel.h"
 #include "SBox.h"
+#include "SBorder.h"
+#include "SButton.h"
 #include "SConstraintCanvas.h"
-struct FDWWWindowHandle
-{
-	TWeakPtr<class SDraggableWindowWidget> Window;
-protected:
-	uint32 Handle;
-public:
-	FDWWWindowHandle()
-	{};
-	FDWWWindowHandle(uint32 InHandle)
-		: Handle(InHandle)
-	{
-		
-	}
-	static FDWWWindowHandle Make(TSharedPtr<class SDraggableWindowWidget> InWindow);
-};
+#include "DWTypes.h"
 enum class EDDWState : uint8
 {
 	Dragging = 0,
@@ -40,15 +30,19 @@ enum class EDDWState : uint8
 };
 class DRAGGABLEWINDOW_API SDraggableDesktopWidget : public SCompoundWidget
 {
+
 	SLATE_BEGIN_ARGS(SDraggableDesktopWidget) {}
 	SLATE_END_ARGS()
-
+public:
+	friend class FDWManager;
 		/** Constructs this widget with InArgs */
-		void Construct(const FArguments& InArgs);
-
+	void Construct(const FArguments& InArgs);
+protected:
 	TArray<TSharedPtr<class SDraggableWindowWidget>> Windows;
 	TSharedPtr<class SOverlay> Container;
+	void Clean();
 	FDWWWindowHandle AddWindow(TSharedPtr<class SDraggableWindowWidget> InWindow);
+	void RemoveWindow(TSharedPtr<class SDraggableWindowWidget> InWindow);
 };
 
 class SWindowBox : public SPanel
@@ -120,29 +114,41 @@ protected:
  */
 class DRAGGABLEWINDOW_API SDraggableWindowWidget : public SCompoundWidget
 {
-public:
 	SLATE_BEGIN_ARGS(SDraggableWindowWidget){}
+		SLATE_ATTRIBUTE(bool, HideOnClose)
 	SLATE_END_ARGS()
+public:
+	friend struct FDWWWindowHandle;
+	friend class SDraggableDesktopWidget;
+	friend class FDWManager;
 protected:
 	EDDWState ResizingState;
-	bool bDragging;
-
+	
 	FVector2D CurrentSize;
 	FVector2D CurrentCursorPosition;
+	FVector2D DragPosition;
 
 	TSharedPtr<SOverlay> Content;
 	TSharedPtr<SWindowBox> WindowBox;
 	float CurrentHeight;
 	float CurrentWidth;
-	float CurrentX;
+	FButtonStyle ButtonStyle;
+	TAttribute<FSlateColor> BackgroundColor;
+	TSharedPtr<SButton> WindowBar;
+	FDWWWindowHandle Handle;
 public:
 	/** Constructs this widget with InArgs */
 	void Construct(const FArguments& InArgs);
+	~SDraggableWindowWidget();
+protected:
 	virtual FVector2D ComputeDesiredSize(float) const override;
 	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 	
 	void AddContent(TSharedPtr<SWidget> InWidget);
-protected:
+
+	void SetHandle(const FDWWWindowHandle& InHandle);
+	void OnCloseButtonPressed();
+
 	void OnPressed();
 	void OnReleased();
 
@@ -165,10 +171,11 @@ protected:
 	void OnBottomLeftResizePressed();
 	void OnBottomLeftResizeReleased();
 
-	FVector2D GetPosition() const;
-	FVector2D GetSize() const;
+	void OnTopRightResizePressed();
+	void OnTopRightResizeReleased();
 
-	FOptionalSize GetHeight() const;
-	FOptionalSize GetWidth() const;
-	FText GetCurrentX() const;
+	void OnTopLeftResizePressed();
+	void OnTopLeftResizeReleased();
+
+	FVector2D GetPosition() const;
 };

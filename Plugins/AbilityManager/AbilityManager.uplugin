@@ -18,6 +18,11 @@
       "Name": "AbilityManager",
       "Type": "Runtime",
       "LoadingPhase": "Default"
+    },
+     {
+      "Name": "AbilityManagerEditor",
+      "Type": "Editor",
+      "LoadingPhase": "Default"
     }
   ],
   "Plugins": [

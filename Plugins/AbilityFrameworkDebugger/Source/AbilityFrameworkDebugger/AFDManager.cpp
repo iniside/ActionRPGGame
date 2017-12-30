@@ -6,6 +6,7 @@
 #include "Engine/GameViewportClient.h"
 #include "Slate.h"
 #include "SlateCore.h"
+#include "DWManager.h"
 
 FAFDManager* FAFDManager::Instance = nullptr;
 
@@ -21,12 +22,20 @@ void FAFDManager::Init()
 {
 	Dekstop = SNew(SAFDDesktopWidget).Visibility(EVisibility::SelfHitTestInvisible);
 	GEngine->GameViewport->AddViewportWidgetContent(Dekstop.ToSharedRef());
-
-	WindowDesktop = SNew(SDraggableDesktopWidget).Visibility(EVisibility::SelfHitTestInvisible);
-	GEngine->GameViewport->AddViewportWidgetContent(WindowDesktop.ToSharedRef());
 }
 
-FDWWWindowHandle FAFDManager::AddNewWindow(TSharedPtr<SDraggableWindowWidget> InWindow)
+FDWWWindowHandle FAFDManager::AddDebugWindow(TSharedPtr<SWidget> InWindowContent)
 {
-	return WindowDesktop->AddWindow(InWindow);
+	return FDWManager::Get().CreateWindow(InWindowContent);
 }
+
+#if WITH_EDITORONLY_DATA
+void FAFDManager::PIEDestroy()
+{
+	if (Instance)
+	{
+		delete Instance;
+		Instance = nullptr;
+	}
+}
+#endif

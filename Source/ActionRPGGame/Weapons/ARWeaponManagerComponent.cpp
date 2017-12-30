@@ -50,8 +50,8 @@ void UARWeaponManagerComponent::BeginPlay()
 
 	//for (const FGameplayTag& Tag : AbilityInputs)
 	{
-		AbilityComp->BP_BindAbilityToAction(InputSetup.GetInputs(EAMGroup::Group001, EAMSlot::Slot001)[0]);
-		AbilityComp->BP_BindAbilityToAction(InputSetup.GetInputs(EAMGroup::Group001, EAMSlot::Slot001)[1]);
+		//AbilityComp->BP_BindAbilityToAction(InputSetup.GetInputs(EAMGroup::Group001, EAMSlot::Slot001)[0]);
+		//AbilityComp->BP_BindAbilityToAction(InputSetup.GetInputs(EAMGroup::Group001, EAMSlot::Slot001)[1]);
 	}
 	// ...
 	

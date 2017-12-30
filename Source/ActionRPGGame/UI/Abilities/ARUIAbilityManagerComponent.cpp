@@ -66,24 +66,9 @@ void UARUIAbilityManagerComponent::BeginPlay()
 			WeaponCrosshairWidget->AddToViewport();
 		}
 	}
-	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
-	if (!MyPC)
-		return;
-	IAFAbilityInterface* ABInt = Cast<IAFAbilityInterface>(MyPC->GetPawn());
-	if (!ABInt)
-		return;
 
-	UAFAbilityComponent* AbilityComp = ABInt->GetAbilityComp();
-	if (!AbilityComp)
-		return;
-
-	for (const FGameplayTag& Tag : AbilityInputs)
-	{
-		AbilityComp->BP_BindAbilityToAction(Tag);
-	}
 	
 }
-
 
 // Called every frame
 void UARUIAbilityManagerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

@@ -2,15 +2,15 @@
 
 using UnrealBuildTool;
 
-public class DraggableWindow : ModuleRules
+public class AbilityManagerEditor : ModuleRules
 {
-	public DraggableWindow(ReadOnlyTargetRules Target) : base(Target)
+	public AbilityManagerEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
 		PublicIncludePaths.AddRange(
 			new string[] {
-				"DraggableWindow/Public"
+				"AbilityManagerEditor/Public"
 				// ... add public include paths required here ...
 			}
 			);
@@ -18,7 +18,7 @@ public class DraggableWindow : ModuleRules
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
-				"DraggableWindow/Private",
+				"AbilityManagerEditor/Private",
 				// ... add other private include paths required here ...
 			}
 			);
@@ -38,24 +38,23 @@ public class DraggableWindow : ModuleRules
 			{
 				"CoreUObject",
 				"Engine",
-                "InputCore",
 				"Slate",
 				"SlateCore",
-                "UMG"
+                "UnrealEd",
+			    "PropertyEditor",
+                "GameplayTags",
+                "GameplayTasks",
+                "AbilityFramework",
+				"AbilityManager"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
-		
-		
-		DynamicallyLoadedModuleNames.AddRange(
+
+        DynamicallyLoadedModuleNames.AddRange(
 			new string[]
 			{
 				// ... add any modules that your module loads dynamically here ...
 			}
 			);
-        if (Target.Type == TargetRules.TargetType.Editor)
-        {
-            PublicDependencyModuleNames.AddRange(new string[] { "UnrealEd", "PropertyEditor" });
-        }
-    }
+	}
 }

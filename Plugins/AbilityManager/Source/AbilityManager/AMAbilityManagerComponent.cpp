@@ -42,26 +42,6 @@ void UAMAbilityManagerComponent::TickComponent(float DeltaTime, ELevelTick TickT
 	// ...
 }
 
-void UAMAbilityManagerComponent::BindInputs()
-{
-	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
-	if (!MyPC)
-		return;
-
-	IAFAbilityInterface* ABInt = Cast<IAFAbilityInterface>(MyPC->GetPawn());
-	if (!ABInt)
-		return;
-
-	UAFAbilityComponent* AbilityComp = ABInt->GetAbilityComp();
-	if (!AbilityComp)
-		return;
-
-	for (const FGameplayTag& Tag : InputsToBind)
-	{
-		AbilityComp->BP_BindAbilityToAction(Tag);
-	}
-}
-
 UGAAbilityBase* UAMAbilityManagerComponent::GetAbility(EAMGroup InGroup, EAMSlot InSlot)
 {
 	return AbilitySet.Num() >= MaxGroups ? AbilitySet[AMEnumToInt<EAMGroup>(InGroup)][AMEnumToInt<EAMSlot>(InSlot)].Get() : nullptr;

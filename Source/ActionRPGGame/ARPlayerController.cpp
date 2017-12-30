@@ -41,7 +41,7 @@ void AARPlayerController::SetPawn(APawn* InPawn)
 
 		AbilityComp->BindAbilityToAction(InputComponent, InputNextWeapon);
 		AbilityComp->BindAbilityToAction(InputComponent, InputPreviousWeapon);
-		WeaponManager->BindInputs();
+		//WeaponManager->BindInputs();
 		//doesn't matter. Internally ability component make sure abilities are instanced on server and replicated back.
 		FAFOnAbilityReady del1 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, AbilitytNextWeapon, InputNextWeapon);
 		AbilityComp->AddOnAbilityReadyDelegate(AbilitytNextWeapon, del1);
@@ -51,12 +51,14 @@ void AARPlayerController::SetPawn(APawn* InPawn)
 		AbilityComp->AddOnAbilityReadyDelegate(AbilitytPreviousWeapon, del2);
 		AbilityComp->NativeAddAbilityFromTag(AbilitytPreviousWeapon, nullptr);
 	}
+	//UIAbilityManagerComponent->BindInputs();
 }
 
 void AARPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 	InputComponent->BindAction("SwitchAbilitySet", IE_Pressed, this, &AARPlayerController::InputSwitchAbilitySet);
+	
 }
 
 void AARPlayerController::InputSwitchAbilitySet()

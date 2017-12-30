@@ -16,7 +16,7 @@
   "Modules": [
     {
       "Name": "AbilityFrameworkDebugger",
-      "Type": "Developer",
+      "Type": "Runtime",
       "LoadingPhase": "Default"
     }
   ],

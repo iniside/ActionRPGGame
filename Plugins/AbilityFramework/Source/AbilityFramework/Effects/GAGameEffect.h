@@ -652,9 +652,9 @@ public:
 	UPROPERTY()
 		TSubclassOf<UGAGameEffectSpec> Spec;
 
-	//tags are generally unique per effect type.
 	UPROPERTY()
-		FGameplayTag EffectTag;
+		FGAEffectContext Context;
+
 	//Handle to effect, which is using this info.
 	UPROPERTY()
 		FGAEffectHandle Handle;
@@ -662,7 +662,7 @@ public:
 	UPROPERTY()
 		FAFPredictionHandle PredictionHandle;
 
-	UPROPERTY()
+	UPROPERTY(NotReplicated)
 		float AppliedTime;
 	UPROPERTY()
 		float PeriodTime;
@@ -670,15 +670,9 @@ public:
 		float Duration;
 	UPROPERTY()
 		float ReplicationTime;
-	UPROPERTY()
+	UPROPERTY(NotReplicated)
 		float LastPeriodTime;
 
-	UPROPERTY()
-		FGameplayTag OnExpiredEvent;
-	UPROPERTY()
-		FGameplayTag OnPeriodEvent;
-	UPROPERTY()
-		FGameplayTag OnRemovedEvent;
 
 	FTimerHandle ExpiredHandle;
 	FTimerHandle PeriodHandle;
@@ -700,6 +694,11 @@ public:
 	void PreReplicatedRemove(const struct FGAEffectContainer& InArraySerializer);
 	void PostReplicatedAdd(const struct FGAEffectContainer& InArraySerializer);
 	void PostReplicatedChange(const struct FGAEffectContainer& InArraySerializer);
+
+	FGameplayTag GetEffectTag()
+	{
+		return GetSpec()->EffectTag;
+	}
 
 	float GetPeriodTime(float InWorldTime)
 	{

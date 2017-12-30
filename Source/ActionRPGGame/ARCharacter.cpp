@@ -7,6 +7,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "ARPlayerController.h"
+#include "ARUIAbilityManagerComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AARCharacter
@@ -69,9 +71,13 @@ void AARCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AARCharacter::LookUpAtRate);
 
-
+	Abilities->BindInputs(PlayerInputComponent);
 }
 
+void AARCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+}
 void AARCharacter::TurnAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information

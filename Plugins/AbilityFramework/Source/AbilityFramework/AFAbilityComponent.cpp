@@ -806,6 +806,13 @@ void UAFAbilityComponent::UninitializeComponent()
 	//EffectTimerManager.Reset();
 	//GameEffectContainer
 }
+void UAFAbilityComponent::BindInputs(class UInputComponent* InputComponent)
+{
+	for (const FGameplayTag& Tag : AbilityInputs)
+	{
+		BindAbilityToAction(InputComponent, Tag);
+	}
+}
 void UAFAbilityComponent::SetBlockedInput(const FGameplayTag& InInput, bool bBlock)
 {
 	AbilityContainer.SetBlockedInput(InInput, bBlock);
@@ -813,10 +820,14 @@ void UAFAbilityComponent::SetBlockedInput(const FGameplayTag& InInput, bool bBlo
 void UAFAbilityComponent::BP_BindAbilityToAction(FGameplayTag ActionName)
 {
 	UInputComponent* InputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
+	check(InputComponent);
+
 	BindAbilityToAction(InputComponent, ActionName);
 }
 void UAFAbilityComponent::BindAbilityToAction(UInputComponent* InputComponent, FGameplayTag ActionName)
 {
+	check(InputComponent);
+
 	if (!InputComponent)
 		return;
 

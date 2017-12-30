@@ -3,7 +3,9 @@
 #include "AbilityFrameworkDebugger.h"
 #include "HAL/IConsoleManager.h"
 #include "AFDManager.h"
-
+#if WITH_EDITORONLY_DATA
+#include "Editor.H"
+#endif
 #define LOCTEXT_NAMESPACE "FAbilityFrameworkDebuggerModule"
 
 void FAbilityFrameworkDebuggerModule::StartupModule()
@@ -15,6 +17,10 @@ void FAbilityFrameworkDebuggerModule::StartupModule()
 		FConsoleCommandDelegate::CreateStatic(OpenAbilityDebugger),
 		ECVF_Default
 	);
+
+#if WITH_EDITORONLY_DATA
+	FEditorDelegates::EndPIE.AddRaw(this, &FAbilityFrameworkDebuggerModule::HandlePIEEnd);
+#endif //WITH_EDITORONLY_DATA
 }
 
 void FAbilityFrameworkDebuggerModule::ShutdownModule()
@@ -28,7 +34,12 @@ void FAbilityFrameworkDebuggerModule::OpenAbilityDebugger()
 {
 	FAFDManager::Get();
 }
-
+#if WITH_EDITORONLY_DATA
+void FAbilityFrameworkDebuggerModule::HandlePIEEnd(bool InVal)
+{
+	FAFDManager::PIEDestroy();
+}
+#endif
 #undef LOCTEXT_NAMESPACE
 	
 IMPLEMENT_MODULE(FAbilityFrameworkDebuggerModule, AbilityFrameworkDebugger)
