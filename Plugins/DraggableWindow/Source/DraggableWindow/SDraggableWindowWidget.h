@@ -35,6 +35,7 @@ class DRAGGABLEWINDOW_API SDraggableDesktopWidget : public SCompoundWidget
 	SLATE_END_ARGS()
 public:
 	friend class FDWManager;
+	friend class SDraggableWindowWidget;
 		/** Constructs this widget with InArgs */
 	void Construct(const FArguments& InArgs);
 protected:
@@ -127,6 +128,8 @@ protected:
 	FVector2D CurrentSize;
 	FVector2D CurrentCursorPosition;
 	FVector2D DragPosition;
+	FVector2D AbsPosition;
+	FVector2D AbsDragPosition;
 
 	TSharedPtr<SOverlay> Content;
 	TSharedPtr<SWindowBox> WindowBox;

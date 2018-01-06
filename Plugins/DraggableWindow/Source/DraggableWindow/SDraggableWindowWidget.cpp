@@ -9,6 +9,10 @@
 #include "Widgets/Layout/SGridPanel.h"
 #include "Widgets/Layout/SBackgroundBlur.h"
 #include "DWManager.h"
+#include "EngineGlobals.h"
+#include "Engine/Engine.h"
+#include "Engine/GameViewportClient.h"
+#include "SceneViewport.h"
 
 DECLARE_CYCLE_STAT(TEXT("DraggebleWindow.Tick"), STAT_DraggebleWindowTick, STATGROUP_DraggebleWindow);
 
@@ -102,7 +106,6 @@ void SWindowBox::OnArrangeChildren(const FGeometry& AllottedGeometry, FArrangedC
 	const EVisibility& MyCurrentVisibility = this->GetVisibility();
 	if (ArrangedChildren.Accepts(MyCurrentVisibility))
 	{
-		//const FOptionalSize CurrentMaxAspectRatio = MaxAspectRatio.Get();
 		const FMargin SlotPadding(ChildSlot.SlotPadding.Get());
 		bool bAlignChildren = true;
 
@@ -123,7 +126,6 @@ void SWindowBox::OnArrangeChildren(const FGeometry& AllottedGeometry, FArrangedC
 				ChildSlot.GetWidget(),
 				FVector2D(XAlignmentResult.Offset, YAlignmentResult.Offset),
 				FVector2D(AlignedSizeX, AlignedSizeY)
-				//FVector2D(WidthOverride.Get().Get(), HeightOverride.Get().Get())
 			)
 		);
 	}
@@ -272,32 +274,32 @@ void SDraggableWindowWidget::Construct(const FArguments& InArgs)
 					.AutoHeight()
 					.MaxHeight(24)
 					[
-							SNew(SOverlay)
-							+ SOverlay::Slot()
+						SNew(SOverlay)
+						+ SOverlay::Slot()
+						[
+							SNew(SBackgroundBlur)
+							.BlurRadius(4)
+							.BlurStrength(16)
+							.Visibility(EVisibility::SelfHitTestInvisible)
+						]
+						+ SOverlay::Slot()
+						[
+							SAssignNew(WindowBar, SButton)
+							.OnPressed(OnPressedDel)
+							.OnReleased(OnReleasedDel)
+							.VAlign(EVerticalAlignment::VAlign_Center)
+							.HAlign(EHorizontalAlignment::HAlign_Right)
+							.ContentPadding(FMargin(0))
+							.ButtonStyle(&ButtonStyle)
 							[
-								SNew(SBackgroundBlur)
-								.BlurRadius(4)
-								.BlurStrength(16)
-								.Visibility(EVisibility::SelfHitTestInvisible)
-							]
-							+ SOverlay::Slot()
-							[
-								SAssignNew(WindowBar, SButton)
-								.OnPressed(OnPressedDel)
-								.OnReleased(OnReleasedDel)
-								.VAlign(EVerticalAlignment::VAlign_Center)
-								.HAlign(EHorizontalAlignment::HAlign_Right)
-								.ContentPadding(FMargin(0))
-								.ButtonStyle(&ButtonStyle)
+								SNew(SButton)
+								.OnPressed(OnCloseButtonPressedDel)
 								[
-									SNew(SButton)
-									.OnPressed(OnCloseButtonPressedDel)
-									[
-										SNew(STextBlock)
-										.Text(FText::FromString("X"))
-									]
+									SNew(STextBlock)
+									.Text(FText::FromString("X"))
 								]
 							]
+						]
 						
 					]
 					+ SVerticalBox::Slot()
@@ -379,19 +381,9 @@ void SDraggableWindowWidget::Construct(const FArguments& InArgs)
 				]
 			]
 		]
-		// Populate the widget
 	];
 	WindowBox->SetHeightOverride(CurrentHeight);
 	WindowBox->SetWidthOverride(CurrentWidth);
-	/*Content->AddSlot()
-		[
-			SNew(SButton)
-			[
-				SNew(STextBlock)
-				.Text(this, &SDraggableWindowWidget::GetCurrentX)
-			]
-		];*/
-
 }
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 SDraggableWindowWidget::~SDraggableWindowWidget()
@@ -400,7 +392,6 @@ SDraggableWindowWidget::~SDraggableWindowWidget()
 FVector2D SDraggableWindowWidget::ComputeDesiredSize(float) const
 {
 	return SCompoundWidget::ComputeDesiredSize(1);
-	//return FVector2D(CurrentWidth, CurrentHeight);
 }
 void SDraggableWindowWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
@@ -408,30 +399,56 @@ void SDraggableWindowWidget::Tick(const FGeometry& AllottedGeometry, const doubl
 	SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
 	
 	FVector2D LastPosition = AllottedGeometry.AbsoluteToLocal(FSlateApplicationBase::Get().GetLastCursorPos());
+	
 	FVector2D CurrentPosition = AllottedGeometry.AbsoluteToLocal(FSlateApplicationBase::Get().GetCursorPos());
-	float dist = FVector2D::Distance(CurrentPosition, LastPosition);// *InDeltaTime;
+	
+	float dist = FVector2D::Distance(CurrentPosition, LastPosition);
 	
 	switch (ResizingState)
 	{
 	case EDDWState::Dragging:
 	{
+		FVector2D AbsPos = FSlateApplicationBase::Get().GetCursorPos();
 		FVector2D locaPos = CurrentPosition;
-		locaPos = locaPos - DragPosition; //FVector2D(50, 12);
-		if ( (locaPos.X + DragPosition.X) <= 20)
-		{
-			CurrentCursorPosition.X = 20;
-		}
-		if ( (locaPos.Y + DragPosition.Y) <= 20)
-		{
-			CurrentCursorPosition.Y = 20;
-		}
-		CurrentCursorPosition = locaPos;
+		locaPos = locaPos - DragPosition;
+		AbsPosition = AbsPos - AbsDragPosition;
+
+		FVector2D WindowPosition = GEngine->GameViewport->GetWindow()->GetPositionInScreen();
+		FVector2D WindowSize = GEngine->GameViewport->GetWindow()->GetSizeInScreen();
 		
+		const float ApplicationScale = FSlateApplication::Get().GetApplicationScale();
+		FVector2D AbsSize = AllottedGeometry.LocalToAbsolute(FVector2D(CurrentWidth, CurrentHeight));
+		FVector2D localSize = WindowSize + WindowPosition;
+		float distanceX = localSize.X - (AbsPosition.X + (CurrentWidth - AbsDragPosition.X));
+		UE_LOG(LogTemp, Warning, TEXT("EDDWState::Dragging: WindowEdges X: %f Y: %f"), localSize.X, WindowPosition.Y + WindowSize.Y);
+		UE_LOG(LogTemp, Warning, TEXT("EDDWState::Dragging: AbsPos X: %f Y: %f"), locaPos.X, locaPos.Y);
+		UE_LOG(LogTemp, Warning, TEXT("EDDWState::Dragging: distanceX: %f"), distanceX);
+
+		UE_LOG(LogTemp, Warning, TEXT("EDDWState::Dragging: AbsPosCalc X: %f Y: %f"), ((AbsPos.X)) + ((AbsSize.X - AbsDragPosition.X)* ApplicationScale), ((AbsPos.Y) + (CurrentHeight - DragPosition.Y)));
+		UE_LOG(LogTemp, Warning, TEXT("EDDWState::Dragging: CurrentWidth - DragPosition. X: %f Y: %f"), (((AbsSize.X) - AbsDragPosition.X)* ApplicationScale), ((CurrentHeight - DragPosition.Y)));
+		UE_LOG(LogTemp, Warning, TEXT("EDDWState::Dragging: DragPosition. X: %f Y: %f"), ((AbsDragPosition.X)), ((AbsDragPosition.Y)));
+		//(DragPosition.X))
+		if ((locaPos.X >= 0) && (((AbsPos.X) + ((AbsSize.X - AbsDragPosition.X)* ApplicationScale)) <= (localSize.X)))
+		{
+			CurrentCursorPosition.X = locaPos.X;
+		}
+		if ((locaPos.Y >= 0) && (((AbsPos.Y) + ((AbsSize.Y - AbsDragPosition.Y)* ApplicationScale)) <= (localSize.Y)))
+		{
+			CurrentCursorPosition.Y = locaPos.Y;
+		}
+		if (locaPos.X <= 0)
+		{
+			CurrentCursorPosition.X = 0;
+		}
+		if (locaPos.Y <= 0)
+		{
+			CurrentCursorPosition.Y = 0;
+		}
 		break;
 	}
 	case EDDWState::HorizontalRight:
 	{	
-		float CurrentXX = 0;// dist * sign;// CurrentPosition.X - LastPosition.X;
+		float CurrentXX = 0;
 		if (dist != 0)
 		{
 			CurrentXX = CurrentPosition.X - (CurrentCursorPosition.X + CurrentWidth);
@@ -442,12 +459,12 @@ void SDraggableWindowWidget::Tick(const FGeometry& AllottedGeometry, const doubl
 	}
 	case EDDWState::HorizontalLeft:
 	{
-		float CurrentXX = 0;// dist * sign;// CurrentPosition.X - LastPosition.X;
+		float CurrentXX = 0;
 		if (dist != 0)
 		{
 			CurrentXX = CurrentCursorPosition.X - CurrentPosition.X;
 		}
-		//float CurrentXX = LastPosition.X - CurrentPosition.X;
+		
 		CurrentCursorPosition.X -= CurrentXX;
 		CurrentWidth = CurrentWidth + CurrentXX;
 		WindowBox->SetWidthOverride(CurrentWidth);
@@ -455,35 +472,34 @@ void SDraggableWindowWidget::Tick(const FGeometry& AllottedGeometry, const doubl
 	}
 	case EDDWState::VerticalTop:
 	{	
-		float CurrentXX = 0;// dist * sign;// CurrentPosition.X - LastPosition.X;
-		float CurrentY = 0;// dist * sign;// CurrentPosition.X - LastPosition.X;
+		float CurrentXX = 0;
+		float CurrentY = 0;
 		if (dist != 0)
 		{
 			CurrentXX = CurrentCursorPosition.Y - CurrentPosition.Y;
-			//CurrentY = CurrentPosition.Y - (CurrentCursorPosition.Y + CurrentHeight);
+			
 		}
 		CurrentCursorPosition.Y -= CurrentXX;
-		//CurrentX = CurrentY;
 		CurrentHeight = CurrentHeight + CurrentXX;
 		WindowBox->SetHeightOverride(CurrentHeight);
 		break;
 	}
 	case EDDWState::VerticalBottom:
 	{	
-		float CurrentY = 0;// dist * sign;// CurrentPosition.X - LastPosition.X;
+		float CurrentY = 0;
 		if (dist != 0)
 		{
 			CurrentY = CurrentPosition.Y - (CurrentCursorPosition.Y + CurrentHeight);
 		}
-		//CurrentX = CurrentY;
+		
 		CurrentHeight = CurrentHeight + CurrentY;
 		WindowBox->SetHeightOverride(CurrentHeight);
 		break;
 	}
 	case EDDWState::DiagonalBottomRight:
 	{	
-		float CurrentXX = 0;// dist * sign;// CurrentPosition.X - LastPosition.X;
-		float CurrentY = 0;// dist * sign;// CurrentPosition.X - LastPosition.X;
+		float CurrentXX = 0;
+		float CurrentY = 0;
 		if (dist != 0)
 		{
 			CurrentXX = CurrentPosition.X - (CurrentCursorPosition.X + CurrentWidth);
@@ -497,8 +513,8 @@ void SDraggableWindowWidget::Tick(const FGeometry& AllottedGeometry, const doubl
 	}
 	case EDDWState::DiagonalBottomLeft:
 	{	
-		float CurrentXX = 0;// dist * sign;// CurrentPosition.X - LastPosition.X;
-		float CurrentY = 0;// dist * sign;// CurrentPosition.X - LastPosition.X;
+		float CurrentXX = 0;
+		float CurrentY = 0;
 		if (dist != 0)
 		{
 			CurrentXX = CurrentCursorPosition.X - CurrentPosition.X;
@@ -513,15 +529,15 @@ void SDraggableWindowWidget::Tick(const FGeometry& AllottedGeometry, const doubl
 	}
 	case EDDWState::DiagonalTopRight:
 	{	
-		float CurrentXX = 0;// dist * sign;// CurrentPosition.X - LastPosition.X;
-		float CurrentY = 0;// dist * sign;// CurrentPosition.X - LastPosition.X;
+		float CurrentXX = 0;
+		float CurrentY = 0;
 		if (dist != 0)
 		{
 			CurrentY = CurrentCursorPosition.Y - CurrentPosition.Y;
 			CurrentXX = CurrentPosition.X - (CurrentCursorPosition.X + CurrentWidth);
 		}
 		CurrentCursorPosition.Y -= CurrentY;
-		//CurrentX = CurrentY;
+		
 		CurrentHeight = CurrentHeight + CurrentY;
 		CurrentWidth = CurrentWidth + CurrentXX;
 		WindowBox->SetHeightOverride(CurrentHeight);
@@ -530,8 +546,8 @@ void SDraggableWindowWidget::Tick(const FGeometry& AllottedGeometry, const doubl
 	}
 	case EDDWState::DiagonalTopLeft:
 	{	
-		float CurrentXX = 0;// dist * sign;// CurrentPosition.X - LastPosition.X;
-		float CurrentY = 0;// dist * sign;// CurrentPosition.X - LastPosition.X;
+		float CurrentXX = 0;
+		float CurrentY = 0;
 		if (dist != 0)
 		{
 			CurrentY = CurrentCursorPosition.Y - CurrentPosition.Y;
@@ -572,15 +588,15 @@ void SDraggableWindowWidget::OnCloseButtonPressed()
 void SDraggableWindowWidget::OnPressed()
 {
 	FGeometry geom = GetCachedGeometry();
-	FVector2D CurrentPosition = geom.AbsoluteToLocal(FSlateApplicationBase::Get().GetLastCursorPos());
+	FVector2D CurrentPosAbs = FSlateApplicationBase::Get().GetLastCursorPos();
+	FVector2D CurrentPosition = geom.AbsoluteToLocal(CurrentPosAbs);
 	//UE_LOG(LogTemp, Warning, TEXT("SDraggableWindowWidget::OnPressed Pre DragPosition X: %f Y: %f"), DragPosition.X, DragPosition.Y);
 	DragPosition = CurrentPosition - CurrentCursorPosition;
-	//DragPosition.X = FMath::Clamp<float>(DragPosition.X, CurrentCursorPosition.X, CurrentCursorPosition.X + CurrentWidth);
-	//DragPosition.Y = FMath::Clamp<float>(DragPosition.Y, CurrentCursorPosition.Y, CurrentCursorPosition.Y + 24);
+	AbsDragPosition = CurrentPosAbs - AbsPosition;
 
-	UE_LOG(LogTemp, Warning, TEXT("SDraggableWindowWidget::OnPressed CurrentPosition X: %f Y: %f"), CurrentPosition.X, CurrentPosition.Y);
-	UE_LOG(LogTemp, Warning, TEXT("SDraggableWindowWidget::OnPressed CurrentCursorPosition X: %f Y: %f"), CurrentCursorPosition.X, CurrentCursorPosition.Y);
-	UE_LOG(LogTemp, Warning, TEXT("SDraggableWindowWidget::OnPressed DragPosition X: %f Y: %f"), DragPosition.X, DragPosition.Y);
+	//UE_LOG(LogTemp, Warning, TEXT("SDraggableWindowWidget::OnPressed CurrentPosition X: %f Y: %f"), CurrentPosition.X, CurrentPosition.Y);
+	//UE_LOG(LogTemp, Warning, TEXT("SDraggableWindowWidget::OnPressed CurrentCursorPosition X: %f Y: %f"), CurrentCursorPosition.X, CurrentCursorPosition.Y);
+	//UE_LOG(LogTemp, Warning, TEXT("SDraggableWindowWidget::OnPressed DragPosition X: %f Y: %f"), DragPosition.X, DragPosition.Y);
 	ResizingState = EDDWState::Dragging;
 }
 void SDraggableWindowWidget::OnReleased()
