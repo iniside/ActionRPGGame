@@ -94,7 +94,18 @@ public:
 };
 
 bool operator>(float Rhs, const FSpectrDecision& Lhs);
+struct FTestContext
+{
+	bool bTreeInRange;
+	bool bLogInRange;
 
+	FTestContext()
+		: bTreeInRange(true)
+		, bLogInRange(false)
+	{
+
+	}
+};
 USTRUCT(BlueprintType)
 struct FSpectrAction
 {
@@ -103,11 +114,51 @@ public:
 	FString Name;
 	TMap<FName, bool> PreCondition;
 	TMap<FName, bool> Effects;
-
+	bool CustomConditon;
 	//precondition
 	//Score to cosnider how viable given action will be
 	UPROPERTY(EditAnywhere)
 		FSpectrQualifier Qualifier;
+
+	virtual ~FSpectrAction() {};
+	virtual void Execute(FTestContext& Context) {}
+	
+	virtual bool EvaluateCondition(FTestContext& Context) const
+	{
+		return CustomConditon;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct FPickLogAction : public FSpectrAction
+{
+	GENERATED_BODY()
+public:
+	virtual ~FPickLogAction() {};
+	virtual void Execute(FTestContext& Context)
+	{
+		Context.bLogInRange = false;
+	}
+	virtual bool EvaluateCondition(FTestContext& Context) const override
+	{
+		return Context.bLogInRange;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct FChopTreeAction : public FSpectrAction
+{
+	GENERATED_BODY()
+public:
+	virtual ~FChopTreeAction() {};
+	virtual void Execute(FTestContext& Context)
+	{
+		Context.bTreeInRange = false;
+	}
+	virtual bool EvaluateCondition(FTestContext& Context) const override
+	{
+		return Context.bTreeInRange;
+	}
 };
 
 /*
@@ -157,21 +208,21 @@ struct SPECTRAI_API FSpectrAI
 {
 	GENERATED_BODY()
 public:
-	TArray<FSpectrAction> ActionList;
+	TArray<TSharedPtr<FSpectrAction>> ActionList;
 
 	//Precondition, List of action for this precondition;
 	TMap<FGameplayTag, TArray<FSpectrAction>> ActionMap;
 
 	void BuildGraph(const TMap<FName, bool>& InTargetGoal, const TMap<FName, bool>& InCurrent,
-		TArray<FSpectrAction>& ActionQueue)
+		TArray<FSpectrAction>& ActionQueue, FTestContext& Context)
 	{
 		bool bDone = false;
-		for (const FSpectrAction& Action : ActionList)
+		for (const TSharedPtr<FSpectrAction>& Action : ActionList)
 		{
-			if (CheckGoal(Action.PreCondition, InCurrent))
+			if (Action->EvaluateCondition(Context) &&  CheckGoal(Action->PreCondition, InCurrent))
 			{
-				TMap<FName, bool> NewState = AddGoalChanges(InCurrent, Action.Effects);
-				ActionQueue.Add(Action);
+				TMap<FName, bool> NewState = AddGoalChanges(InCurrent, Action->Effects);
+				ActionQueue.Add(*Action);
 				if (CheckGoal(InTargetGoal, NewState))
 				{
 					return;
@@ -179,7 +230,7 @@ public:
 				if (!bDone)
 				{
 					bDone = true;
-					BuildGraph(InTargetGoal, NewState, ActionQueue);
+					BuildGraph(InTargetGoal, NewState, ActionQueue, Context);
 					break;
 				}
 			}
@@ -232,9 +283,10 @@ public:
 		return NewSet;
 	}
 
-	void Plan(const TMap<FName, bool>& InTargetGoal, const TMap<FName, bool>& InCurrentState, TArray<FSpectrAction>& InActionQueue)
+	void Plan(const TMap<FName, bool>& InTargetGoal, const TMap<FName, bool>& InCurrentState, TArray<FSpectrAction>& InActionQueue,
+		FTestContext& Context)
 	{
-		BuildGraph(InTargetGoal, InCurrentState, InActionQueue);
+		BuildGraph(InTargetGoal, InCurrentState, InActionQueue, Context);
 	}
 };
 
