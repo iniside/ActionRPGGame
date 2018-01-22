@@ -51,24 +51,22 @@ FDWManager::~FDWManager()
 {
 }
 
-FDWWWindowHandle FDWManager::CreateWindow()
+FDWWWindowHandle FDWManager::CreateWindow(const FString& WindowName)
 {
 	TSharedPtr<SDraggableWindowWidget> NewWindow = SNew(SDraggableWindowWidget);
-	FDWWWindowHandle Handle = Desktop->AddWindow(NewWindow);
-	WindowHandles.Add(Handle);
-	return Handle;
+	return AddWindow(NewWindow, WindowName);
 }
-FDWWWindowHandle FDWManager::CreateWindow(TSharedPtr<SWidget> InWindowContent)
+FDWWWindowHandle FDWManager::CreateWindow(TSharedPtr<SWidget> InWindowContent, const FString& WindowName)
 {
+	
 	TSharedPtr<SDraggableWindowWidget> NewWindow = SNew(SDraggableWindowWidget);
 	NewWindow->AddContent(InWindowContent);
-	FDWWWindowHandle Handle = Desktop->AddWindow(NewWindow);
-	WindowHandles.Add(Handle);
-	return Handle;
+	return AddWindow(NewWindow, WindowName);
 }
-FDWWWindowHandle FDWManager::AddWindow(TSharedPtr<SDraggableWindowWidget> InWindowWidget)
+FDWWWindowHandle FDWManager::AddWindow(TSharedPtr<SDraggableWindowWidget> InWindowWidget, const FString& WindowName)
 {
 	FDWWWindowHandle Handle = Desktop->AddWindow(InWindowWidget);
 	WindowHandles.Add(Handle);
+	WindowsByName.Add(FName(*WindowName), Handle);
 	return Handle;
 }

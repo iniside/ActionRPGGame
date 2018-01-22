@@ -284,21 +284,35 @@ void SDraggableWindowWidget::Construct(const FArguments& InArgs)
 						]
 						+ SOverlay::Slot()
 						[
-							SAssignNew(WindowBar, SButton)
-							.OnPressed(OnPressedDel)
-							.OnReleased(OnReleasedDel)
-							.VAlign(EVerticalAlignment::VAlign_Center)
-							.HAlign(EHorizontalAlignment::HAlign_Right)
-							.ContentPadding(FMargin(0))
-							.ButtonStyle(&ButtonStyle)
+							SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot()
+							.FillWidth(0.8f)
+							.AutoWidth()
 							[
-								SNew(SButton)
-								.OnPressed(OnCloseButtonPressedDel)
+								SNew(STextBlock)
+								.Text(FText::FromString("Window Title"))
+							]
+							+ SHorizontalBox::Slot()
+							.FillWidth(0.2f)
+							.AutoWidth()
+							[
+								SAssignNew(WindowBar, SButton)
+								.OnPressed(OnPressedDel)
+								.OnReleased(OnReleasedDel)
+								.VAlign(EVerticalAlignment::VAlign_Center)
+								.HAlign(EHorizontalAlignment::HAlign_Right)
+								.ContentPadding(FMargin(0))
+								.ButtonStyle(&ButtonStyle)
 								[
-									SNew(STextBlock)
-									.Text(FText::FromString("X"))
+									SNew(SButton)
+									.OnPressed(OnCloseButtonPressedDel)
+									[
+										SNew(STextBlock)
+										.Text(FText::FromString("X"))
+									]
 								]
 							]
+							
 						]
 						
 					]
@@ -409,40 +423,33 @@ void SDraggableWindowWidget::Tick(const FGeometry& AllottedGeometry, const doubl
 	case EDDWState::Dragging:
 	{
 		FVector2D AbsPos = FSlateApplicationBase::Get().GetCursorPos();
-		FVector2D locaPos = CurrentPosition;
-		locaPos = locaPos - DragPosition;
+		
+		CurrentPosition = CurrentPosition - DragPosition;
 		AbsPosition = AbsPos - AbsDragPosition;
 
 		FVector2D WindowPosition = GEngine->GameViewport->GetWindow()->GetPositionInScreen();
-		FVector2D WindowSize = GEngine->GameViewport->GetWindow()->GetSizeInScreen();
+		FVector2D WindowSize = GEngine->GameViewport->GetWindow()->GetSizeInScreen() - 8;
 		
 		const float ApplicationScale = FSlateApplication::Get().GetApplicationScale();
 		FVector2D AbsSize = AllottedGeometry.LocalToAbsolute(FVector2D(CurrentWidth, CurrentHeight));
 		FVector2D localSize = WindowSize + WindowPosition;
-		float distanceX = localSize.X - (AbsPosition.X + (CurrentWidth - AbsDragPosition.X));
-		UE_LOG(LogTemp, Warning, TEXT("EDDWState::Dragging: WindowEdges X: %f Y: %f"), localSize.X, WindowPosition.Y + WindowSize.Y);
-		UE_LOG(LogTemp, Warning, TEXT("EDDWState::Dragging: AbsPos X: %f Y: %f"), locaPos.X, locaPos.Y);
-		UE_LOG(LogTemp, Warning, TEXT("EDDWState::Dragging: distanceX: %f"), distanceX);
-
-		UE_LOG(LogTemp, Warning, TEXT("EDDWState::Dragging: AbsPosCalc X: %f Y: %f"), ((AbsPos.X)) + ((AbsSize.X - AbsDragPosition.X)* ApplicationScale), ((AbsPos.Y) + (CurrentHeight - DragPosition.Y)));
-		UE_LOG(LogTemp, Warning, TEXT("EDDWState::Dragging: CurrentWidth - DragPosition. X: %f Y: %f"), (((AbsSize.X) - AbsDragPosition.X)* ApplicationScale), ((CurrentHeight - DragPosition.Y)));
-		UE_LOG(LogTemp, Warning, TEXT("EDDWState::Dragging: DragPosition. X: %f Y: %f"), ((AbsDragPosition.X)), ((AbsDragPosition.Y)));
-		//(DragPosition.X))
-		if ((locaPos.X >= 0) && (((AbsPos.X) + ((AbsSize.X - AbsDragPosition.X)* ApplicationScale)) <= (localSize.X)))
-		{
-			CurrentCursorPosition.X = locaPos.X;
-		}
-		if ((locaPos.Y >= 0) && (((AbsPos.Y) + ((AbsSize.Y - AbsDragPosition.Y)* ApplicationScale)) <= (localSize.Y)))
-		{
-			CurrentCursorPosition.Y = locaPos.Y;
-		}
-		if (locaPos.X <= 0)
+		CurrentCursorPosition = CurrentPosition;
+		
+		if (CurrentPosition.X <= 0)
 		{
 			CurrentCursorPosition.X = 0;
 		}
-		if (locaPos.Y <= 0)
+		if (CurrentPosition.Y <= 0)
 		{
 			CurrentCursorPosition.Y = 0;
+		}
+		if ((AbsPos.X + ((AbsSize.X - AbsDragPosition.X) * ApplicationScale)) >= localSize.X)
+		{
+			CurrentCursorPosition.X = localSize.X - CurrentWidth;
+		}
+		if ((AbsPos.Y + ((AbsSize.Y - AbsDragPosition.Y) * ApplicationScale)) >= localSize.Y)
+		{
+			CurrentCursorPosition.Y = localSize.Y - CurrentHeight;
 		}
 		break;
 	}
@@ -685,4 +692,9 @@ void SDraggableWindowWidget::OnTopLeftResizeReleased()
 FVector2D SDraggableWindowWidget::GetPosition() const
 {
 	return CurrentCursorPosition;
+}
+
+FText SDraggableWindowWidget::GetTitle() const
+{
+	return WindowTitle;
 }

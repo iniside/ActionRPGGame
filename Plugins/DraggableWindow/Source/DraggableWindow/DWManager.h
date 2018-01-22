@@ -17,10 +17,13 @@ private:
 	static FDWManager* Instance;
 	TSharedPtr<SDraggableDesktopWidget> Desktop;
 	TSet<FDWWWindowHandle> WindowHandles;
+	//name of window, window handle
+	TMap<FName, FDWWWindowHandle> WindowsByName;
 	void Init();
 	void CleanUp();
 	void RemoveWindow(const FDWWWindowHandle& InHandle);
 	FDWManager();
+
 public:
 	static FDWManager& Get();
 #if WITH_EDITORONLY_DATA
@@ -28,8 +31,8 @@ public:
 #endif //WITH_EDITORONLY_DATA
 	~FDWManager();
 
-	FDWWWindowHandle CreateWindow();
-	FDWWWindowHandle CreateWindow(TSharedPtr<SWidget> InWindowContent);
-	FDWWWindowHandle AddWindow(TSharedPtr<SDraggableWindowWidget> InWindowWidget);
+	FDWWWindowHandle CreateWindow(const FString& WindowName);
+	FDWWWindowHandle CreateWindow(TSharedPtr<SWidget> InWindowContent, const FString& WindowName);
+	FDWWWindowHandle AddWindow(TSharedPtr<SDraggableWindowWidget> InWindowWidget, const FString& WindowName);
 };
 typedef FDWManager FDraggableWindowManager;

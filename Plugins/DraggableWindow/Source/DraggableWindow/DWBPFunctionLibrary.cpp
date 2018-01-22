@@ -4,11 +4,11 @@
 #include "DWManager.h"
 
 
-FDWWWindowHandle UDWBPFunctionLibrary::CreateWindow()
+FDWWWindowHandle UDWBPFunctionLibrary::CreateWindow(const FString& WindowName)
 {
-	return FDWManager::Get().CreateWindow();
+	return FDWManager::Get().CreateWindow(WindowName);
 }
-FDWWWindowHandle UDWBPFunctionLibrary::CreateWindowWithContent(UUserWidget* InWindowContent)
+FDWWWindowHandle UDWBPFunctionLibrary::CreateWindowWithContent(UUserWidget* InWindowContent, const FString& WindowName)
 {
-	return FDWManager::Get().CreateWindow(InWindowContent->TakeWidget());
+	return FDWManager::Get().CreateWindow(InWindowContent->TakeWidget(), WindowName);
 }

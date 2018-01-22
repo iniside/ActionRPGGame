@@ -26,7 +26,7 @@ void FAFDManager::Init()
 
 FDWWWindowHandle FAFDManager::AddDebugWindow(TSharedPtr<SWidget> InWindowContent)
 {
-	return FDWManager::Get().CreateWindow(InWindowContent);
+	return FDWManager::Get().CreateWindow(InWindowContent, "Debug");
 }
 
 #if WITH_EDITORONLY_DATA

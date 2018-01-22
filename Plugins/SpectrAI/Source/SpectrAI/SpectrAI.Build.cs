@@ -1,16 +1,16 @@
-// Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
 
-public class DraggableWindow : ModuleRules
+public class SpectrAI : ModuleRules
 {
-	public DraggableWindow(ReadOnlyTargetRules Target) : base(Target)
+	public SpectrAI(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
 		PublicIncludePaths.AddRange(
 			new string[] {
-				"DraggableWindow/Public"
+				"SpectrAI/Public"
 				// ... add public include paths required here ...
 			}
 			);
@@ -18,7 +18,7 @@ public class DraggableWindow : ModuleRules
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
-				"DraggableWindow/Private",
+				"SpectrAI/Private",
 				// ... add other private include paths required here ...
 			}
 			);
@@ -27,7 +27,7 @@ public class DraggableWindow : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-                 "Core",
+				"Core",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -37,12 +37,14 @@ public class DraggableWindow : ModuleRules
 			new string[]
 			{
                 "Core",
-				"CoreUObject",
-				"Engine",
+                "CoreUObject",
+                "Engine",
                 "InputCore",
-				"Slate",
+                "Slate",
 				"SlateCore",
-                "UMG"
+                "AIModule",
+                "GameplayTags",
+                "GameplayTasks"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
@@ -54,9 +56,5 @@ public class DraggableWindow : ModuleRules
 				// ... add any modules that your module loads dynamically here ...
 			}
 			);
-        if (Target.Type == TargetRules.TargetType.Editor)
-        {
-            PublicDependencyModuleNames.AddRange(new string[] { "UnrealEd", "PropertyEditor" });
-        }
-    }
+	}
 }

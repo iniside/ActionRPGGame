@@ -14,6 +14,9 @@
 #include "SButton.h"
 #include "SConstraintCanvas.h"
 #include "DWTypes.h"
+
+DECLARE_STATS_GROUP(TEXT("DraggebleWindow"), STATGROUP_DraggebleWindow, STATCAT_Advanced);
+
 enum class EDDWState : uint8
 {
 	Dragging = 0,
@@ -139,6 +142,8 @@ protected:
 	TAttribute<FSlateColor> BackgroundColor;
 	TSharedPtr<SButton> WindowBar;
 	FDWWWindowHandle Handle;
+
+	FText WindowTitle;
 public:
 	/** Constructs this widget with InArgs */
 	void Construct(const FArguments& InArgs);
@@ -181,4 +186,6 @@ protected:
 	void OnTopLeftResizeReleased();
 
 	FVector2D GetPosition() const;
+
+	FText GetTitle() const;
 };

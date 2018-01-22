@@ -19,8 +19,8 @@ class DRAGGABLEWINDOW_API UDWBPFunctionLibrary : public UBlueprintFunctionLibrar
 	
 public:
 	UFUNCTION(BlueprintCallable, Category = "Draggable Window")
-		static FDWWWindowHandle CreateWindow();
+		static FDWWWindowHandle CreateWindow(const FString& WindowName);
 	
 	UFUNCTION(BlueprintCallable, Category = "Draggable Window")
-		static FDWWWindowHandle CreateWindowWithContent(UUserWidget* InWindowContent);
+		static FDWWWindowHandle CreateWindowWithContent(UUserWidget* InWindowContent, const FString& WindowName);
 };
