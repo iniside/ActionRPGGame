@@ -22,9 +22,14 @@ public:
 	//What to change in state if goal has been achieved ?
 	UPROPERTY(EditAnywhere)
 		TMap<FGameplayTag, bool> FinishedState;
-		
+	
+	virtual float QualifyGoal(class USpectrContext* InContext)
+	{
+		return -1.0f;
+	}
+
 	//What Should we do if this goal is selected ?
-	virtual void SetupState()
+	virtual void GoalSelected()
 	{
 		
 	}
