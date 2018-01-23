@@ -10,6 +10,12 @@
 #include "SpectrAction.h"
 #include "SpectrBrainComponent.generated.h"
 
+//Node representing single step in plan.
+struct FSpectrNode
+{
+
+};
+
 USTRUCT(BlueprintType)
 struct SPECTRAI_API FSpectrAI
 {
@@ -25,6 +31,7 @@ public:
 		bool bDone = false;
 		for (const TSubclassOf<USpectrAction>& Action : ActionList)
 		{
+			UE_LOG(LogTemp, Log, TEXT("-Build Plan - Action Name: %s \n"), *Action.GetDefaultObject()->GetName());
 			if (Action.GetDefaultObject()->EvaluateCondition(InContext) && CheckGoal(Action.GetDefaultObject()->PreConditions, InCurrent))
 			{
 				TMap<FGameplayTag, bool> NewState = AddGoalChanges(InCurrent, Action.GetDefaultObject()->Effects);
@@ -46,17 +53,23 @@ public:
 	bool CheckGoal(const TMap<FGameplayTag, bool>& InTest, const TMap<FGameplayTag, bool>& InCurrent)
 	{
 		bool bAchieved = false;
-
+		for (TPair<FGameplayTag, bool> Test : InCurrent)
+		{
+			UE_LOG(LogTemp, Log, TEXT("---Build Plan - Check Current Key %s Value %d \n"), *Test.Key.ToString(), Test.Value);
+		}
+		
 		for (TPair<FGameplayTag, bool> Test : InTest)
 		{
 			if (InCurrent.Contains(Test.Key))
 			{
 				if (InCurrent[Test.Key] == Test.Value)
 				{
+					UE_LOG(LogTemp, Log, TEXT("----Build Plan - Check Passed Test %s Value %d \n"), *Test.Key.ToString(), Test.Value);
 					bAchieved = true;
 				}
 				else
 				{
+					UE_LOG(LogTemp, Log, TEXT("----Build Plan - Check Failed Test %s Value %d \n"), *Test.Key.ToString(), Test.Value);
 					bAchieved = false;
 					break; //all or nothing.
 				}
@@ -72,7 +85,12 @@ public:
 		TMap<FGameplayTag, bool> NewSet;
 
 		NewSet.Append(InCurrent);
-
+		UE_LOG(LogTemp, Log, TEXT("---Build Plan - AddGoalChanges PRE START"));
+		for (TPair<FGameplayTag, bool> Test : InCurrent)
+		{
+			UE_LOG(LogTemp, Log, TEXT("---Build Plan - Key %s Value %d \n"), *Test.Key.ToString(), Test.Value);
+		}
+		UE_LOG(LogTemp, Log, TEXT("---Build Plan - AddGoalChanges PRE END"));
 		for (TPair<FGameplayTag, bool> Change : InChange)
 		{
 			if (NewSet.Contains(Change.Key))
@@ -85,7 +103,12 @@ public:
 				NewSet.Add(Change.Key, Change.Value);
 			}
 		}
-
+		UE_LOG(LogTemp, Log, TEXT("---Build Plan - AddGoalChanges POST START"));
+		for (TPair<FGameplayTag, bool> Test : NewSet)
+		{
+			UE_LOG(LogTemp, Log, TEXT("---Build Plan - Key %s Value %d \n"), *Test.Key.ToString(), Test.Value);
+		}
+		UE_LOG(LogTemp, Log, TEXT("---Build Plan - AddGoalChanges POST END"));
 		return NewSet;
 	}
 

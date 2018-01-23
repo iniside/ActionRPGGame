@@ -104,20 +104,6 @@ struct FTestContext
 	}
 };
 
-/*
-	High level goal we try to create plan for.
-*/
-struct FSpectrGoal
-{
-	/*
-		All of these tags must be present on Actor State to satisfy this goal.
-	*/
-	TMap<FName, bool> RequiredConditions;
-	
-	/* Qualify if planner should for a plan for this Goal. */
-	FSpectrQualifier Qualifier;
-};
-
 /**
  * 
  */
