@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
-#include "SpectrContext.generated.h"
+#include "SpectrAction.h"
+#include "STestAction_MakePick.generated.h"
 
 /**
  * 
  */
 UCLASS(BlueprintType, Blueprintable)
-class SPECTRAI_API USpectrContext : public UObject
+class SPECTRAITEST_API USTestAction_MakePick : public USpectrAction
 {
 	GENERATED_BODY()
 	

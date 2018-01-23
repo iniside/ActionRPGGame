@@ -4,9 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
-#include "GameplayTags.h"
-#include "GameplayTagContainer.h"
-#include "Queue.h"
 #include "SpectrAIController.generated.h"
 
 //Consideration (calculates score)
@@ -106,60 +103,6 @@ struct FTestContext
 
 	}
 };
-USTRUCT(BlueprintType)
-struct FSpectrAction
-{
-	GENERATED_BODY()
-public:
-	FString Name;
-	TMap<FName, bool> PreCondition;
-	TMap<FName, bool> Effects;
-	bool CustomConditon;
-	//precondition
-	//Score to cosnider how viable given action will be
-	UPROPERTY(EditAnywhere)
-		FSpectrQualifier Qualifier;
-
-	virtual ~FSpectrAction() {};
-	virtual void Execute(FTestContext& Context) {}
-	
-	virtual bool EvaluateCondition(FTestContext& Context) const
-	{
-		return CustomConditon;
-	}
-};
-
-USTRUCT(BlueprintType)
-struct FPickLogAction : public FSpectrAction
-{
-	GENERATED_BODY()
-public:
-	virtual ~FPickLogAction() {};
-	virtual void Execute(FTestContext& Context)
-	{
-		Context.bLogInRange = false;
-	}
-	virtual bool EvaluateCondition(FTestContext& Context) const override
-	{
-		return Context.bLogInRange;
-	}
-};
-
-USTRUCT(BlueprintType)
-struct FChopTreeAction : public FSpectrAction
-{
-	GENERATED_BODY()
-public:
-	virtual ~FChopTreeAction() {};
-	virtual void Execute(FTestContext& Context)
-	{
-		Context.bTreeInRange = false;
-	}
-	virtual bool EvaluateCondition(FTestContext& Context) const override
-	{
-		return Context.bTreeInRange;
-	}
-};
 
 /*
 	High level goal we try to create plan for.
@@ -175,168 +118,6 @@ struct FSpectrGoal
 	FSpectrQualifier Qualifier;
 };
 
-USTRUCT(BlueprintType)
-struct FSpectrPlanner
-{
-	GENERATED_BODY()
-public:
-	void Plan(const FSpectrAction& InAction, const FSpectrGoal& Goal)
-	{
-		TQueue < FSpectrAction, EQueueMode::Mpsc > ActionQueue;
-	}
-};
-
-/*
-Actions::
---ChopLog
-	--Preconditions
-		AI.HasTool
-		AI.HasLogs
-	--Effects
-		AI.HasLogs
-
-
-Actor:
-	FSpectrGoal::
-		--CollectWood
-		Precondition:
-			--AI.HasLogs
-*/
-
-USTRUCT(BlueprintType)
-struct SPECTRAI_API FSpectrAI
-{
-	GENERATED_BODY()
-public:
-	TArray<TSharedPtr<FSpectrAction>> ActionList;
-
-	//Precondition, List of action for this precondition;
-	TMap<FGameplayTag, TArray<FSpectrAction>> ActionMap;
-
-	void BuildGraph(const TMap<FName, bool>& InTargetGoal, const TMap<FName, bool>& InCurrent,
-		TArray<FSpectrAction>& ActionQueue, FTestContext& Context)
-	{
-		bool bDone = false;
-		for (const TSharedPtr<FSpectrAction>& Action : ActionList)
-		{
-			if (Action->EvaluateCondition(Context) &&  CheckGoal(Action->PreCondition, InCurrent))
-			{
-				TMap<FName, bool> NewState = AddGoalChanges(InCurrent, Action->Effects);
-				ActionQueue.Add(*Action);
-				if (CheckGoal(InTargetGoal, NewState))
-				{
-					return;
-				}
-				if (!bDone)
-				{
-					bDone = true;
-					BuildGraph(InTargetGoal, NewState, ActionQueue, Context);
-					break;
-				}
-			}
-		}
-	}
-
-	bool CheckGoal(const TMap<FName, bool>& InTest, const TMap<FName, bool>& InCurrent)
-	{
-		bool bAchieved = false;
-		
-		for (TPair<FName, bool> Test : InTest)
-		{
-			if (InCurrent.Contains(Test.Key))
-			{
-				if (InCurrent[Test.Key] == Test.Value)
-				{
-					bAchieved = true;
-				}
-				else
-				{
-					bAchieved = false;
-					break; //all or nothing.
-				}
-			}
-		}
-
-
-		return bAchieved;
-	}
-
-	TMap<FName, bool> AddGoalChanges(const TMap<FName, bool>& InCurrent, const TMap<FName, bool>& InChange)
-	{
-		TMap<FName, bool> NewSet;
-
-		NewSet.Append(InCurrent);
-
-		for (TPair<FName, bool> Change : InChange)
-		{
-			if (NewSet.Contains(Change.Key))
-			{
-				bool* dd = NewSet.Find(Change.Key);
-				*dd = Change.Value;
-			}
-			else
-			{
-				NewSet.Add(Change.Key, Change.Value);
-			}
-		}
-
-		return NewSet;
-	}
-
-	void Plan(const TMap<FName, bool>& InTargetGoal, const TMap<FName, bool>& InCurrentState, TArray<FSpectrAction>& InActionQueue,
-		FTestContext& Context)
-	{
-		BuildGraph(InTargetGoal, InCurrentState, InActionQueue, Context);
-	}
-};
-
-USTRUCT(BlueprintType)
-struct SPECTRAI_API FSpectrSelector
-{
-	GENERATED_BODY()
-public:
-
-	UPROPERTY(EditAnywhere)
-		TArray<FSpectrEvaluator> Evaluators;
-
-	void Choose()
-	{
-		TArray<FSpectrDecision> SortedDecisions; //actually there will be only one highest scoring PoC
-		for (const FSpectrEvaluator& Evaluator : Evaluators)
-		{
-			if (SortedDecisions.Num() == 0)
-			{
-				Evaluator.Evaluate();
-				SortedDecisions.Add(Evaluator.Decision);
-			}
-			else
-			{
-				if (Evaluator.Evaluate() > SortedDecisions[0])
-				{
-					SortedDecisions[0] = Evaluator.Decision;
-				}
-			}
-		}
-	}
-};
-
-/*
-	Current state of the worl from perspective of single AI Actor.
-*/
-UCLASS()
-class SPECTRAI_API USpectrWorldState : public UObject
-{
-	GENERATED_BODY()
-	FGameplayTagContainer ConditionStates;
-};
-
-/*
-	Stores Context of world. Should be instanced per AI.
-	Should be filled by external (or internal) changes like stimuly from senses,
-	distance to interesting objects, or internal state of character (do I have this item in Inveotry ?).
-
-*/
-
 /**
  * 
  */
@@ -345,12 +126,10 @@ class SPECTRAI_API ASpectrAIController : public AAIController
 {
 	GENERATED_BODY()
 public:
-	
-	TMap<FName, bool> Goal;
-	TMap<FName, bool> CurrentState;
-	FSpectrAI Spectr;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		class USpectrBrainComponent* SpectrBrain;
 
-	ASpectrAIController();
-	UPROPERTY(EditAnywhere)
-		FSpectrSelector Selector;
+	ASpectrAIController(const FObjectInitializer& ObjectInitializer);
+
+	
 };
