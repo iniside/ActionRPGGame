@@ -16,6 +16,8 @@ class SPECTRAI_API USpectrAction : public UObject
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(EditAnywhere, Category = "State Configuration")
+		int32 Cost;
 	/*
 		Tag Name of requirent condition in agent state, Desiared State Value
 	*/
