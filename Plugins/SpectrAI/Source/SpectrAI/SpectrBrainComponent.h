@@ -32,37 +32,41 @@ public:
 		for (const TSubclassOf<USpectrAction>& Action : ActionList)
 		{
 			UE_LOG(LogTemp, Log, TEXT("-Build Plan - Action Name: %s \n"), *Action.GetDefaultObject()->GetName());
-			if (Action.GetDefaultObject()->EvaluateCondition(InContext) && CheckGoal(Action.GetDefaultObject()->PreConditions, InCurrent))
+			if (Action.GetDefaultObject()->EvaluateCondition(InContext) 
+				&& CheckGoal(Action.GetDefaultObject()->Effects, InTargetGoal))
 			{
-				TMap<FGameplayTag, bool> NewState = AddGoalChanges(InCurrent, Action.GetDefaultObject()->Effects);
+				TMap<FGameplayTag, bool> UpdatedGoalState = UpdateState(Action.GetDefaultObject()->Effects, 
+					InTargetGoal);
+				TMap<FGameplayTag, bool> NewGoal = AddGoalChanges(UpdatedGoalState, 
+					Action.GetDefaultObject()->PreConditions);
 				ActionQueue.Add(Action);
-				if (CheckGoal(InTargetGoal, NewState))
+				if (CheckGoal(UpdatedGoalState, NewGoal))
 				{
 					return;
 				}
 				if (!bDone)
 				{
 					bDone = true;
-					BuildGraph(InTargetGoal, NewState, ActionQueue, ActionList, InContext);
+					BuildGraph(NewGoal, NewGoal, ActionQueue, ActionList, InContext);
 					break;
 				}
 			}
 		}
 	}
 
-	bool CheckGoal(const TMap<FGameplayTag, bool>& InTest, const TMap<FGameplayTag, bool>& InCurrent)
+	bool CheckGoal(const TMap<FGameplayTag, bool>& InEffects, const TMap<FGameplayTag, bool>& InGoal)
 	{
 		bool bAchieved = false;
-		for (TPair<FGameplayTag, bool> Test : InCurrent)
+		for (TPair<FGameplayTag, bool> Test : InGoal)
 		{
 			UE_LOG(LogTemp, Log, TEXT("---Build Plan - Check Current Key %s Value %d \n"), *Test.Key.ToString(), Test.Value);
 		}
 		
-		for (TPair<FGameplayTag, bool> Test : InTest)
+		for (TPair<FGameplayTag, bool> Test : InEffects)
 		{
-			if (InCurrent.Contains(Test.Key))
+			if (InGoal.Contains(Test.Key))
 			{
-				if (InCurrent[Test.Key] == Test.Value)
+				if (InGoal[Test.Key] == Test.Value)
 				{
 					UE_LOG(LogTemp, Log, TEXT("----Build Plan - Check Passed Test %s Value %d \n"), *Test.Key.ToString(), Test.Value);
 					bAchieved = true;
@@ -80,23 +84,40 @@ public:
 		return bAchieved;
 	}
 
-	TMap<FGameplayTag, bool> AddGoalChanges(const TMap<FGameplayTag, bool>& InCurrent, const TMap<FGameplayTag, bool>& InChange)
+	TMap<FGameplayTag, bool> UpdateState(const TMap<FGameplayTag, bool>& InEffects,
+		const TMap<FGameplayTag, bool>& InCurrentState)
+	{
+		TMap<FGameplayTag, bool> NewState;
+		NewState.Append(InCurrentState);
+		for (TPair<FGameplayTag, bool> Effect : InEffects)
+		{
+			if (NewState.Contains(Effect.Key))
+			{
+				bool* dd = NewState.Find(Effect.Key);
+				*dd = Effect.Value;
+			}
+		}
+		return NewState;
+	}
+
+	TMap<FGameplayTag, bool> AddGoalChanges(const TMap<FGameplayTag, bool>& InCurrentGoal, 
+		const TMap<FGameplayTag, bool>& InGoalChange)
 	{
 		TMap<FGameplayTag, bool> NewSet;
 
-		NewSet.Append(InCurrent);
+		NewSet.Append(InCurrentGoal);
 		UE_LOG(LogTemp, Log, TEXT("---Build Plan - AddGoalChanges PRE START"));
-		for (TPair<FGameplayTag, bool> Test : InCurrent)
+		for (TPair<FGameplayTag, bool> Test : InCurrentGoal)
 		{
 			UE_LOG(LogTemp, Log, TEXT("---Build Plan - Key %s Value %d \n"), *Test.Key.ToString(), Test.Value);
 		}
 		UE_LOG(LogTemp, Log, TEXT("---Build Plan - AddGoalChanges PRE END"));
-		for (TPair<FGameplayTag, bool> Change : InChange)
+		for (TPair<FGameplayTag, bool> Change : InGoalChange)
 		{
 			if (NewSet.Contains(Change.Key))
 			{
-				bool* dd = NewSet.Find(Change.Key);
-				*dd = Change.Value;
+				/*bool* dd = NewSet.Find(Change.Key);
+				*dd = Change.Value;*/
 			}
 			else
 			{
