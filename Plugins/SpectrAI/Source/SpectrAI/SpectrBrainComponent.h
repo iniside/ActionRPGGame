@@ -25,7 +25,20 @@ struct FSpectrNode
 		, RemainingCost(InRemainingCost)
 		, State(InState)
 	{}
+
+	bool operator==(const FSpectrNode& Other) const
+	{
+		return Action == Other.Action;
+	}
+	bool operator==(const TSubclassOf<USpectrAction>& Other) const
+	{
+		return Action == Other;
+	}
+	
 };
+
+bool operator==(const FSpectrNode& Other, const TSubclassOf<USpectrAction>& Action);
+bool operator==(FSpectrNode* Other, const TSubclassOf<USpectrAction>& Action);
 
 USTRUCT(BlueprintType)
 struct SPECTRAI_API FSpectrAI
@@ -35,35 +48,6 @@ public:
 	//Precondition, List of action for this precondition;
 	TMap<FGameplayTag, TArray<TSubclassOf<USpectrAction>> > ActionMap;
 
-	void BuildGraph2(TArray<TSharedPtr<FSpectrNode>>& InNodes, const TArray<TSubclassOf<USpectrAction>>& ActionList, TSharedPtr<FSpectrNode> PathParent)
-	{
-		for (TSharedPtr<FSpectrNode> Node : InNodes)
-		{
-			for (TSubclassOf<USpectrAction> Action : ActionList)
-			{
-				if (CheckGoal(Action.GetDefaultObject()->Effects, Node->State))
-				{
-					TMap<FGameplayTag, bool> NewState = Action.GetDefaultObject()->PreConditions; // AddGoalChanges(Action.GetDefaultObject()->PreConditions, Node->State);
-					TSharedPtr<FSpectrNode> Node2 = MakeShareable(new FSpectrNode(NewState, 0, 0));
-					Node2->Action = Action;
-					Node->Children.Add(Node2);
-					
-					if (PathParent.IsValid())
-					{
-						PathParent->Cost += Action.GetDefaultObject()->Cost;
-					}
-					else
-					{
-						//first iteration;
-						PathParent = Node;
-						PathParent->Cost += Action.GetDefaultObject()->Cost;
-					}
-					BuildGraph2(Node->Children, ActionList, PathParent);
-					break;
-				}
-			}
-		}
-	}
 	void BuildGraph(const TMap<FGameplayTag, bool>& InTargetGoal, const TMap<FGameplayTag, bool>& InCurrent,
 		TArray<TSubclassOf<USpectrAction>>& ActionQueue, const TArray<TSubclassOf<USpectrAction>>& ActionList,
 		class USpectrContext* InContext)
@@ -74,62 +58,58 @@ public:
 
 		TSharedPtr<FSpectrNode> Node = MakeShareable(new FSpectrNode(InTargetGoal, 0, 0));
 
-		//OpenNodes.Push(Node);
+		OpenNodes.Push(Node);
 
 		TArray<TSubclassOf<USpectrAction>> AvailableActions = ActionList;
 
-
-		//first find all nodes which will fullfil intial goal
-		for (const TSubclassOf<USpectrAction>& Action : ActionList)
+		//reverse A*, or something similiar to it at least..
+		while (OpenNodes.Num())
 		{
-			if (CheckGoal(Action.GetDefaultObject()->Effects, InTargetGoal))
-			{
-				TMap<FGameplayTag, bool> NewState = Action.GetDefaultObject()->PreConditions;// AddGoalChanges(Action.GetDefaultObject()->PreConditions, Node->State);
-				TSharedPtr<FSpectrNode> Node2 = MakeShareable(new FSpectrNode(NewState, 0, 0));
-				Node2->Action = Action;
-				OpenNodes.Add(Node2);
+			TSharedPtr<FSpectrNode> CurrentNode = OpenNodes.Pop();
+			ClosedNodes.Push(CurrentNode);
 
-				//remove action which will fullfil initial goal state.
-				AvailableActions.Remove(Action);
+			for (const TSubclassOf<USpectrAction>& Action : AvailableActions)
+			{
+
+				if (ClosedNodes.ContainsByPredicate([&](const TSharedPtr<FSpectrNode>& Item)
+				{
+					return Item.Get() == Action;
+				}))
+				{
+					continue;
+				}
+
+				if (!(CurrentNode->Action == Action))
+				{
+					if (CheckGoal(Action.GetDefaultObject()->Effects, CurrentNode->State))
+					{
+						TSharedPtr<FSpectrNode> Node2 = MakeShareable(new FSpectrNode(Action.GetDefaultObject()->PreConditions, Action.GetDefaultObject()->Cost, 0));
+						Node2->Action = Action;
+						OpenNodes.Add(Node2);
+
+						if (CurrentNode->Children.Num() == 0)
+						{
+							CurrentNode->Children.Add(Node2);
+						}
+						else
+						{
+							if ( !(CurrentNode->Children[0]->Cost < Action.GetDefaultObject()->Cost) )
+							{
+								CurrentNode->Children.Empty();
+								CurrentNode->Children.Add(Node2);
+							}
+							else
+							{
+								//action has been discarded, remove it from OpenNodes
+								OpenNodes.Remove(Node2);
+								//and add to closed nodes. No reason to ever consider it again.
+								ClosedNodes.Add(Node2);
+							}
+						}
+					}
+				}
 			}
 		}
-		BuildGraph2(OpenNodes, AvailableActions, nullptr);
-		
-
-		for (TSharedPtr<FSpectrNode> Node : OpenNodes)
-		{
-
-		}
-		//TArray<TSubclassOf<USpectrAction>> AvailableActions;
-		//AvailableActions.Append(ActionList);
-		//TArray<TSubclassOf<USpectrAction>> UsedList;
-		//bool bDone = false;
-		//while (AvailableActions.Num() > 0)
-		//{
-		//	TSubclassOf<USpectrAction> Action = AvailableActions.Pop();
-		//	UsedList.Push(Action);
-		//	UE_LOG(LogTemp, Log, TEXT("-Build Plan - Action Name: %s \n"), *Action.GetDefaultObject()->GetName());
-		//	if (Action.GetDefaultObject()->EvaluateCondition(InContext) 
-		//		&& CheckGoal(Action.GetDefaultObject()->Effects, InTargetGoal))
-		//	{
-		//		TMap<FGameplayTag, bool> NewGoal = AddGoalChanges(InTargetGoal,
-		//			Action.GetDefaultObject()->PreConditions);
-		//		
-		//		ActionQueue.Add(Action);
-		//		/*if (CheckGoal(UpdatedGoalState, NewGoal))
-		//		{
-		//			return;
-		//		}*/
-		//		UsedList.Append(AvailableActions);
-		//		UsedList.Remove(Action);
-		//		if (!bDone)
-		//		{
-		//			bDone = true;
-		//			BuildGraph(NewGoal, NewGoal, ActionQueue, UsedList, InContext);
-		//			break;
-		//		}
-		//	}
-		//}
 	}
 	 
 	bool CheckGoal(const TMap<FGameplayTag, bool>& InEffects, const TMap<FGameplayTag, bool>& InGoal)

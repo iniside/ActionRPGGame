@@ -2,7 +2,14 @@
 
 #include "SpectrBrainComponent.h"
 #include "SpectrContext.h"
-
+bool operator==(const FSpectrNode& Other, const TSubclassOf<USpectrAction>& Action)
+{
+	return Other.Action == Action;
+}
+bool operator==(FSpectrNode* Other, const TSubclassOf<USpectrAction>& Action)
+{
+	return Other->Action == Action;
+}
 USpectrBrainComponent::USpectrBrainComponent()
 {
 	if(Context)
