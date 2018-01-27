@@ -8,16 +8,27 @@
 #include "GameplayTagContainer.h"
 #include "Queue.h"
 #include "SpectrAction.h"
+#include "Navigation/PathFollowingComponent.h"
+#include "AITypes.h"
+
 #include "SpectrBrainComponent.generated.h"
+
+enum class ESpectrState : uint8
+{
+	Idle = 0,
+	Action = 1,
+	Move = 2
+};
 
 //Node representing single step in plan.
 struct FSpectrNode
 {
 	int32 Cost;
+	float Score;
 	int32 RemainingCost;
 	TWeakPtr<FSpectrNode> Parent;
 	TMap<FGameplayTag, bool> State;
-	TSubclassOf<USpectrAction> Action;
+	USpectrAction* Action;
 	TArray<TSharedPtr<FSpectrNode>> Children;
 	FSpectrNode() {}
 	FSpectrNode(const TMap<FGameplayTag, bool>& InState, int32 InCost, int32 InRemainingCost)
@@ -26,19 +37,24 @@ struct FSpectrNode
 		, State(InState)
 	{}
 
+	bool Equals(USpectrAction* InAction)
+	{
+		return Action == InAction;
+	}
+
 	bool operator==(const FSpectrNode& Other) const
 	{
 		return Action == Other.Action;
 	}
-	bool operator==(const TSubclassOf<USpectrAction>& Other) const
+	bool operator==(const USpectrAction*& Other) const
 	{
 		return Action == Other;
 	}
 	
 };
 
-bool operator==(const FSpectrNode& Other, const TSubclassOf<USpectrAction>& Action);
-bool operator==(FSpectrNode* Other, const TSubclassOf<USpectrAction>& Action);
+bool operator==(const FSpectrNode& Other, const USpectrAction*& Action);
+
 
 USTRUCT(BlueprintType)
 struct SPECTRAI_API FSpectrAI
@@ -48,70 +64,6 @@ public:
 	//Precondition, List of action for this precondition;
 	TMap<FGameplayTag, TArray<TSubclassOf<USpectrAction>> > ActionMap;
 
-	void BuildGraph(const TMap<FGameplayTag, bool>& InTargetGoal, const TMap<FGameplayTag, bool>& InCurrent,
-		TArray<TSubclassOf<USpectrAction>>& ActionQueue, const TArray<TSubclassOf<USpectrAction>>& ActionList,
-		class USpectrContext* InContext)
-	{
-
-		TArray<TSharedPtr<FSpectrNode>> OpenNodes;
-		TArray<TSharedPtr<FSpectrNode>> ClosedNodes;
-
-		TSharedPtr<FSpectrNode> Node = MakeShareable(new FSpectrNode(InTargetGoal, 0, 0));
-
-		OpenNodes.Push(Node);
-
-		TArray<TSubclassOf<USpectrAction>> AvailableActions = ActionList;
-
-		//reverse A*, or something similiar to it at least..
-		while (OpenNodes.Num())
-		{
-			TSharedPtr<FSpectrNode> CurrentNode = OpenNodes.Pop();
-			ClosedNodes.Push(CurrentNode);
-
-			for (const TSubclassOf<USpectrAction>& Action : AvailableActions)
-			{
-
-				if (ClosedNodes.ContainsByPredicate([&](const TSharedPtr<FSpectrNode>& Item)
-				{
-					return Item.Get() == Action;
-				}))
-				{
-					continue;
-				}
-
-				if (!(CurrentNode->Action == Action))
-				{
-					if (CheckGoal(Action.GetDefaultObject()->Effects, CurrentNode->State))
-					{
-						TSharedPtr<FSpectrNode> Node2 = MakeShareable(new FSpectrNode(Action.GetDefaultObject()->PreConditions, Action.GetDefaultObject()->Cost, 0));
-						Node2->Action = Action;
-						OpenNodes.Add(Node2);
-
-						if (CurrentNode->Children.Num() == 0)
-						{
-							CurrentNode->Children.Add(Node2);
-						}
-						else
-						{
-							if ( !(CurrentNode->Children[0]->Cost < Action.GetDefaultObject()->Cost) )
-							{
-								CurrentNode->Children.Empty();
-								CurrentNode->Children.Add(Node2);
-							}
-							else
-							{
-								//action has been discarded, remove it from OpenNodes
-								OpenNodes.Remove(Node2);
-								//and add to closed nodes. No reason to ever consider it again.
-								ClosedNodes.Add(Node2);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	 
 	bool CheckGoal(const TMap<FGameplayTag, bool>& InEffects, const TMap<FGameplayTag, bool>& InGoal)
 	{
 		bool bAchieved = false;
@@ -202,11 +154,91 @@ public:
 			
 		}
 	}
-	void Plan(const TMap<FGameplayTag, bool>& InTargetGoal, const TMap<FGameplayTag, bool>& InCurrentState,
-		TArray<TSubclassOf<USpectrAction>>& InActionQueue, const TArray<TSubclassOf<USpectrAction>>& ActionList,
-		class USpectrContext* InContext)
+	void Plan(const TMap<FGameplayTag, bool>& InTargetGoal, const TMap<FGameplayTag, bool>& InCurrentState
+		, TArray<class USpectrAction*>& InActionQueue
+		, const TArray<class USpectrAction*>& ActionList
+		, class USpectrContext* InContext
+		, class AAIController* AIController)
 	{
-		BuildGraph(InTargetGoal, InCurrentState, InActionQueue, ActionList, InContext);
+		TArray<TSharedPtr<FSpectrNode>> OpenNodes;
+		TArray<TSharedPtr<FSpectrNode>> ClosedNodes;
+
+		TSharedPtr<FSpectrNode> Node = MakeShareable(new FSpectrNode(InTargetGoal, 0, 0));
+
+		//actually made action when constructing node path.
+		//and then execute it in reverse (from last item in array to first).
+		//so we don't was time traversing node tree and then reordering actions..
+		TArray<class USpectrAction*> ActionPlan;
+
+		OpenNodes.Push(Node);
+
+		TArray<class USpectrAction*> AvailableActions = ActionList;
+
+		//reverse A*, or something similiar to it at least..
+		while (OpenNodes.Num())
+		{
+			TSharedPtr<FSpectrNode> CurrentNode = OpenNodes.Pop();
+			ClosedNodes.Push(CurrentNode);
+
+			for (USpectrAction*& Action : AvailableActions)
+			{
+				//or instead of pushing to closed actions... we can remove them for Available Actions hmm ?
+				if (ClosedNodes.ContainsByPredicate([&](const TSharedPtr<FSpectrNode>& Item)
+				{
+					return Item->Equals(Action);
+				}))
+				{
+					continue;
+				}
+
+				if (!(CurrentNode->Action == Action))
+				{
+					if (CheckGoal(Action->Effects, CurrentNode->State))
+					{
+						//action scored Zero, so it probabaly can't be used anyway.
+						if (!Action->EvaluateCondition(InContext, AIController))
+						{
+							continue;
+						}
+						float Score = Action->Score(InContext, AIController);
+
+						TSharedPtr<FSpectrNode> Node2 = MakeShareable(new FSpectrNode(Action->PreConditions, Action->Cost, 0));
+						Node2->Action = Action;
+						Node2->Score = Score;
+						OpenNodes.Add(Node2);
+
+						if (CurrentNode->Children.Num() == 0)
+						{
+							CurrentNode->Children.Add(Node2);
+							ActionPlan.Add(Action);
+						}
+						else
+						{
+							//add new action, only if it is cheaper than current one. 
+							//very primitive we need to check if the actuall path will be cheaper.
+							//so compare current cost of the path with
+							if (Score > Node2->Score)
+							{
+								ActionPlan.Remove(CurrentNode->Children[0]->Action);
+								CurrentNode->Children.Empty();
+								CurrentNode->Children.Add(Node2);
+
+								ActionPlan.Add(Action);
+							}
+							else
+							{
+								//action has been discarded, remove it from OpenNodes
+								OpenNodes.Remove(Node2);
+								//and add to closed nodes. No reason to ever consider it again.
+								ClosedNodes.Add(Node2);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		InActionQueue = ActionPlan;
 	}
 };
 
@@ -249,12 +281,25 @@ class SPECTRAI_API USpectrBrainComponent : public UActorComponent
 {
 	GENERATED_BODY()
 public:
+	ESpectrState FSMState;
+
 	UPROPERTY(EditAnywhere)
 	TMap<FGameplayTag, bool> Goal;
 	UPROPERTY(EditAnywhere)
 	TMap<FGameplayTag, bool> CurrentState;
 	UPROPERTY(EditAnywhere)
 		TArray<TSubclassOf<USpectrAction>> ActionList;
+
+	UPROPERTY()
+		TArray<USpectrAction*> PendingPlan;
+
+	UPROPERTY()
+		USpectrAction* CurrentAction;
+
+	//maybe it will be better to instance actions per actor.
+	//this way we cloud change state of action without affecting other actors.
+	UPROPERTY()
+		TArray<class USpectrAction*> Actions;
 
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class USpectrContext> Context;
@@ -263,8 +308,20 @@ public:
 
 	FSpectrAI SpectrAI;
 
+	//Map of pending move events.
+	FSimpleDelegate PendingMoveEvent;
+
 	USpectrBrainComponent();
+	virtual void BeginPlay() override;
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 	UFUNCTION(BlueprintCallable)
 		void StarPlanning();
-	
+
+	void ExecutePlan();
+
+	void OnActionFinished(USpectrAction* InAction);
+	void OnMoveFinished(FAIRequestID RequestID, const FPathFollowingResult& Result);
+
+	void MoveToLocation();
+	void MoveToActor(AActor* Target);
 };

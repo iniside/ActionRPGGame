@@ -30,11 +30,45 @@ public:
 	UPROPERTY(EditAnywhere, Category = "State Configuration")
 		TMap<FGameplayTag, bool> Effects;
 
-	UFUNCTION(BlueprintNativeEvent)
-		void Execute(class USpectrContext* InContext);
-	virtual void Execute_Implementation(class USpectrContext* InContext);
+	UPROPERTY()
+		USpectrBrainComponent* OwningBrain;
+
+	/* Override to check if action in rnage of Target/Location to execute */
+	virtual bool NativeIsInRange()
+	{
+		return true;
+	}
+
+	virtual void NativeMoveTo(class USpectrBrainComponent* Brain);
+
+	virtual void NativeOnMoveFinished(class USpectrContext* InContext, class AAIController* AIController, class USpectrBrainComponent* Brain) {}
+
+	virtual void NativeExecute() {};
+
+	virtual float NativeSscore(class USpectrContext* InContext, class AAIController* AIController)
+	{
+		return Cost;
+	}
+
+	virtual float NativeEvaluateCondition(class USpectrContext* InContext, class AAIController* AIController)
+	{
+		return true;
+	}
+
+	void NativeFinished()
+	{
+
+	}
 
 	UFUNCTION(BlueprintNativeEvent)
-		bool EvaluateCondition(class USpectrContext* InContext);
-	virtual bool EvaluateCondition_Implementation(class USpectrContext* InContext);
+		void Execute(class USpectrContext* InContext, class AAIController* AIController, class USpectrBrainComponent* Brain);
+	virtual void Execute_Implementation(class USpectrContext* InContext, class AAIController* AIController, class USpectrBrainComponent* Brain);
+
+	UFUNCTION(BlueprintNativeEvent)
+		float Score(class USpectrContext* InContext, class AAIController* AIController);
+	virtual float Score_Implementation(class USpectrContext* InContext, class AAIController* AIController);
+
+	UFUNCTION(BlueprintNativeEvent)
+		bool EvaluateCondition(class USpectrContext* InContext, class AAIController* AIController);
+	virtual bool EvaluateCondition_Implementation(class USpectrContext* InContext, class AAIController* AIController);
 };
