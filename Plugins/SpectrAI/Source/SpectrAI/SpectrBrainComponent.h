@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BrainComponent.h"
+#include "GameplayTasksComponent.h"
 #include "GameplayTags.h"
 #include "GameplayTagContainer.h"
 #include "Queue.h"
@@ -196,11 +196,11 @@ public:
 					if (CheckGoal(Action->Effects, CurrentNode->State))
 					{
 						//action scored Zero, so it probabaly can't be used anyway.
-						if (!Action->EvaluateCondition(InContext, AIController))
+						if (!Action->NativeEvaluateCondition(InContext, AIController))
 						{
 							continue;
 						}
-						float Score = Action->Score(InContext, AIController);
+						float Score = Action->NativeScore(InContext, AIController);
 
 						TSharedPtr<FSpectrNode> Node2 = MakeShareable(new FSpectrNode(Action->PreConditions, Action->Cost, 0));
 						Node2->Action = Action;
@@ -242,42 +242,11 @@ public:
 	}
 };
 
-//USTRUCT(BlueprintType)
-//struct SPECTRAI_API FSpectrSelector
-//{
-//	GENERATED_BODY()
-//public:
-//
-//	UPROPERTY(EditAnywhere)
-//		TArray<FSpectrEvaluator> Evaluators;
-//
-//	void Choose()
-//	{
-//		TArray<FSpectrDecision> SortedDecisions; //actually there will be only one highest scoring PoC
-//		for (const FSpectrEvaluator& Evaluator : Evaluators)
-//		{
-//			if (SortedDecisions.Num() == 0)
-//			{
-//				Evaluator.Evaluate();
-//				SortedDecisions.Add(Evaluator.Decision);
-//			}
-//			else
-//			{
-//				if (Evaluator.Evaluate() > SortedDecisions[0])
-//				{
-//					SortedDecisions[0] = Evaluator.Decision;
-//				}
-//			}
-//		}
-//	}
-//};
-
-
 /**
  * 
  */
 UCLASS()
-class SPECTRAI_API USpectrBrainComponent : public UActorComponent
+class SPECTRAI_API USpectrBrainComponent : public UGameplayTasksComponent
 {
 	GENERATED_BODY()
 public:
@@ -289,39 +258,47 @@ public:
 	TMap<FGameplayTag, bool> CurrentState;
 	UPROPERTY(EditAnywhere)
 		TArray<TSubclassOf<USpectrAction>> ActionList;
+	UPROPERTY()
+		TArray<class USpectrAction*> Actions;
+
+	UPROPERTY(EditAnywhere, Instanced)
+		TArray<class USpectrGoal*> Goals;
+	UPROPERTY(EditAnywhere, Instanced)
+		class USpectrGoal* CurrentGoal;
+
 
 	UPROPERTY()
 		TArray<USpectrAction*> PendingPlan;
 
+	TQueue<USpectrAction*> PendingPlan2;
+
 	UPROPERTY()
 		USpectrAction* CurrentAction;
 
-	//maybe it will be better to instance actions per actor.
-	//this way we cloud change state of action without affecting other actors.
-	UPROPERTY()
-		TArray<class USpectrAction*> Actions;
+
 
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class USpectrContext> Context;
-
-	class USpectrContext* CurrentContext;
+	UPROPERTY()
+		class USpectrContext* CurrentContext;
 
 	FSpectrAI SpectrAI;
 
 	//Map of pending move events.
 	FSimpleDelegate PendingMoveEvent;
 
-	USpectrBrainComponent();
+	USpectrBrainComponent(const FObjectInitializer& ObjectInitializer);
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 	UFUNCTION(BlueprintCallable)
 		void StarPlanning();
 
-	void ExecutePlan();
-
+	void SelectGoal();
+	void ExecutePlan(class USpectrAction* PreviousAction);
+	void AbortPlan(const FString& Reason);
 	void OnActionFinished(USpectrAction* InAction);
 	void OnMoveFinished(FAIRequestID RequestID, const FPathFollowingResult& Result);
 
 	void MoveToLocation();
-	void MoveToActor(AActor* Target);
+	void MoveToActor(AActor* Target, float MinDistance);
 };

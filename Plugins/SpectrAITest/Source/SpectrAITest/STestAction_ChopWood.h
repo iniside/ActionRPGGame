@@ -13,7 +13,7 @@ UCLASS(BlueprintType, Blueprintable)
 class SPECTRAITEST_API USTestAction_ChopWood : public USpectrAction
 {
 	GENERATED_BODY()
-	
+
 	
 	
 	

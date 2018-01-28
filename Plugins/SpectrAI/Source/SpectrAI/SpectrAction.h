@@ -9,8 +9,11 @@
 #include "SpectrAction.generated.h"
 
 /**
- * 
+ *	Default implmenetations of Native* functions call to either blueprint events
+ *	or blueprint Native functions which can be overriden from blueprint. 
+ *	Though they do provide default implementation (where possible).
  */
+
 UCLASS(BlueprintType, Blueprintable)
 class SPECTRAI_API USpectrAction : public UObject
 {
@@ -30,39 +33,50 @@ public:
 	UPROPERTY(EditAnywhere, Category = "State Configuration")
 		TMap<FGameplayTag, bool> Effects;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category = "Spectr AI")
 		USpectrBrainComponent* OwningBrain;
 
 	/* Override to check if action in rnage of Target/Location to execute */
-	virtual bool NativeIsInRange()
+	virtual bool NativeIsInRange(class AAIController* AIController)
 	{
 		return true;
 	}
 
 	virtual void NativeMoveTo(class USpectrBrainComponent* Brain);
 
-	virtual void NativeOnMoveFinished(class USpectrContext* InContext, class AAIController* AIController, class USpectrBrainComponent* Brain) {}
-
-	virtual void NativeExecute() {};
-
-	virtual float NativeSscore(class USpectrContext* InContext, class AAIController* AIController)
-	{
-		return Cost;
-	}
-
-	virtual float NativeEvaluateCondition(class USpectrContext* InContext, class AAIController* AIController)
-	{
-		return true;
-	}
-
-	void NativeFinished()
-	{
-
-	}
+	virtual void NativeOnMoveFinished(class USpectrContext* InContext, class AAIController* AIController, class USpectrBrainComponent* Brain);
 
 	UFUNCTION(BlueprintNativeEvent)
-		void Execute(class USpectrContext* InContext, class AAIController* AIController, class USpectrBrainComponent* Brain);
-	virtual void Execute_Implementation(class USpectrContext* InContext, class AAIController* AIController, class USpectrBrainComponent* Brain);
+		void  MoveTo(class USpectrBrainComponent* Brain);
+	virtual void MoveTo_Implementation(class USpectrBrainComponent* Brain);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Spectr AI")
+		void OnMoveFinished(class USpectrContext* InContext, class AAIController* AIController, class USpectrBrainComponent* Brain);
+
+	UFUNCTION(BlueprintCallable, Category = "Spectr AI")
+		void FinishMove(class USpectrContext* InContext, class AAIController* AIController, class USpectrBrainComponent* Brain);
+
+	/* 
+		Call Super::NativeExecute if you want to execute OnExecuted BP event, or call it manually.
+
+		Remember to call NativeFinished() somewhere, to indicate that Action finished execution.
+	*/
+	virtual void NativeExecute(class USpectrContext* InContext, class AAIController* AIController, class USpectrBrainComponent* Brain);
+
+	virtual float NativeScore(class USpectrContext* InContext, class AAIController* AIController);
+
+	virtual bool NativeEvaluateCondition(class USpectrContext* InContext, class AAIController* AIController);
+	
+	/*
+		Remember to call it always after Action has finished execution. Otherwise Action Queue will be stuck.
+	*/
+	void NativeFinished();
+	
+	UFUNCTION(BlueprintImplementableEvent, Category = "Spectr AI")
+		void OnExecute(class USpectrContext* InContext, class AAIController* AIController, class USpectrBrainComponent* Brain);
+
+	UFUNCTION(BlueprintCallable, Category = "Spectr AI")
+		void ActionFinished();
 
 	UFUNCTION(BlueprintNativeEvent)
 		float Score(class USpectrContext* InContext, class AAIController* AIController);
@@ -71,4 +85,10 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 		bool EvaluateCondition(class USpectrContext* InContext, class AAIController* AIController);
 	virtual bool EvaluateCondition_Implementation(class USpectrContext* InContext, class AAIController* AIController);
+
+
+
+
+	UFUNCTION(BlueprintCallable)
+		void MoveToTarget(AActor* Target, float MinimumDistance);
 };

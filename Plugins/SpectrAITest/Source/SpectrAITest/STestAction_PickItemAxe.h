@@ -20,9 +20,15 @@ protected:
 	UPROPERTY()
 		AActor* TargetItem;
 public:
-		virtual void Execute_Implementation(class USpectrContext* InContext
-			, class AAIController* AIController
-			, class USpectrBrainComponent* Brain) override;
+	virtual bool NativeIsInRange(class AAIController* AIController) override;
+	virtual void NativeMoveTo(class USpectrBrainComponent* Brain) override;
+	virtual void NativeOnMoveFinished(class USpectrContext* InContext
+		, class AAIController* AIController
+		, class USpectrBrainComponent* Brain) override;
 	
-		virtual bool EvaluateCondition_Implementation(class USpectrContext* InContext, class AAIController* AIController);
+	virtual void NativeExecute(class USpectrContext* InContext
+		, class AAIController* AIController
+		, class USpectrBrainComponent* Brain) override;
+	
+		virtual bool NativeEvaluateCondition(class USpectrContext* InContext, class AAIController* AIController);
 };

@@ -10,7 +10,8 @@ bool operator==(const FSpectrNode& Other, const USpectrAction*& Action)
 	return Other.Action == Action;
 }
 
-USpectrBrainComponent::USpectrBrainComponent()
+USpectrBrainComponent::USpectrBrainComponent(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	FSMState = ESpectrState::Idle;
 	if(Context)
@@ -33,6 +34,7 @@ void USpectrBrainComponent::BeginPlay()
 	for (const TSubclassOf<USpectrAction>& ActionClass : ActionList)
 	{
 		USpectrAction* Action = NewObject<USpectrAction>(this, ActionClass);
+		Action->OwningBrain = this;
 		Actions.Add(Action);
 	}
 }
@@ -46,23 +48,48 @@ void USpectrBrainComponent::StarPlanning()
 	for (int32 Idx = OutActionList.Num() - 1; Idx >= 0; Idx--)
 	{
 		FString name = OutActionList[Idx]->GetName();
+		
 		PendingPlan.Add(OutActionList[Idx]);
+		PendingPlan2.Enqueue(OutActionList[Idx]);
+
 		UE_LOG(LogTemp, Log, TEXT("Action Name: %s \n"), *name);
 	}
-	ExecutePlan();
+	ExecutePlan(nullptr);
 }
 
-void USpectrBrainComponent::ExecutePlan()
+void USpectrBrainComponent::SelectGoal()
 {
-	if (PendingPlan.Num() && PendingPlan[0])
+
+}
+
+void USpectrBrainComponent::ExecutePlan(class USpectrAction* PreviousAction)
+{
+	if (PendingPlan2.IsEmpty())
+	{
+		//plan finished
+		StarPlanning(); //plan again
+		//in reality look for new goal.
+		return;
+	}
+	while (!PendingPlan2.IsEmpty())
+	{
+		USpectrAction* OutAction;
+		PendingPlan2.Dequeue(OutAction);
+		if (OutAction != PreviousAction)
+		{
+			CurrentAction = OutAction;
+			break;
+		}
+	}
+	/*if (PendingPlan.Num() && PendingPlan[0])
 	{
 		CurrentAction = PendingPlan[0];
 		PendingPlan.RemoveAt(0, 1, true);
-	}
+	}*/
 	if (AAIController* AIController = Cast<AAIController>(GetOwner()))
 	{
 		//Not in range
-		if (!CurrentAction->NativeIsInRange())
+		if (!CurrentAction->NativeIsInRange(AIController))
 		{
 			FSMState = ESpectrState::Move;
 			CurrentAction->NativeMoveTo(this);
@@ -72,18 +99,30 @@ void USpectrBrainComponent::ExecutePlan()
 		else //in range, just execute action.
 		{
 			FSMState = ESpectrState::Action;
-			CurrentAction->Execute(CurrentContext, AIController, this);
+			CurrentAction->NativeExecute(CurrentContext, AIController, this);
 		}
 		//
 	}
 }
-void USpectrBrainComponent::OnActionFinished(USpectrAction* InAction)
+void USpectrBrainComponent::AbortPlan(const FString& Reason)
 {
 
 }
+void USpectrBrainComponent::OnActionFinished(USpectrAction* InAction)
+{
+	ExecutePlan(InAction);
+}
 void USpectrBrainComponent::OnMoveFinished(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
-	PendingMoveEvent.ExecuteIfBound();
+	if (AAIController* AIController = Cast<AAIController>(GetOwner()))
+	{
+		if (CurrentAction)
+		{
+			CurrentAction->NativeOnMoveFinished(CurrentContext, AIController, this);
+		}
+	}
+	//PendingMoveEvent.ExecuteIfBound();
+	//PendingMoveEvent.Unbind();
 	//ExecutePlan();
 }
 
@@ -91,11 +130,11 @@ void USpectrBrainComponent::MoveToLocation()
 {
 	FSMState = ESpectrState::Move;
 }
-void USpectrBrainComponent::MoveToActor(AActor* Target)
+void USpectrBrainComponent::MoveToActor(AActor* Target, float MinDistance)
 {
 	FSMState = ESpectrState::Move;
 	if (AAIController* AIController = Cast<AAIController>(GetOwner()))
 	{
-		AIController->MoveToActor(Target, 500);
+		AIController->MoveToActor(Target, MinDistance);
 	}
 }

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "Perception/AIPerceptionComponent.h"
 #include "SpectrAIController.generated.h"
 
 //Consideration (calculates score)
@@ -24,85 +25,7 @@
 //--they are summed (or multiplied)
 //--contains single decision to execute.
 
-USTRUCT(BlueprintType)
-struct SPECTRAI_API FSpectrConsideration
-{
-	GENERATED_BODY()
-public:
-	virtual float Score() const { return 0; }
-	virtual ~FSpectrConsideration()
-	{}
-};
 
-USTRUCT(BlueprintType)
-struct SPECTRAI_API FSpectrQualifier
-{
-	GENERATED_BODY()
-public:
-	UPROPERTY(EditAnywhere)
-		TArray<FSpectrConsideration> Considerations;
-public:
-	virtual ~FSpectrQualifier()
-	{}
-	virtual float Qualify() const
-	{ 
-		float TotalScore = 0;
-		for (const FSpectrConsideration& Consideration : Considerations)
-		{
-			TotalScore += Consideration.Score();
-		}
-		return TotalScore;
-	}
-};
-
-USTRUCT(BlueprintType)
-struct SPECTRAI_API FSpectrDecision
-{
-	GENERATED_BODY()
-public:
-	mutable float Score;
-	void SetScore(float InScore) const
-	{
-		Score = InScore;
-	}
-};
-
-USTRUCT(BlueprintType)
-struct SPECTRAI_API FSpectrEvaluator
-{
-	GENERATED_BODY()
-public:
-	UPROPERTY(EditAnywhere)
-		FSpectrQualifier Qualifier;
-
-	UPROPERTY(EditAnywhere)
-		FSpectrDecision Decision;
-
-	mutable float Score;
-
-	float Evaluate() const
-	{
-		Score = 0;
-		float score = Qualifier.Qualify();
-		Decision.SetScore(score);
-		Score = score;
-		return score;
-	}
-};
-
-bool operator>(float Rhs, const FSpectrDecision& Lhs);
-struct FTestContext
-{
-	bool bTreeInRange;
-	bool bLogInRange;
-
-	FTestContext()
-		: bTreeInRange(true)
-		, bLogInRange(false)
-	{
-
-	}
-};
 
 /**
  * 
@@ -114,6 +37,10 @@ class SPECTRAI_API ASpectrAIController : public AAIController
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		class USpectrBrainComponent* SpectrBrain;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		class UAIPerceptionComponent* AIPerception;
+
 
 	ASpectrAIController(const FObjectInitializer& ObjectInitializer);
 

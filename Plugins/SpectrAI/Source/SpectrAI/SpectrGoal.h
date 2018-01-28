@@ -6,12 +6,13 @@
 #include "UObject/NoExportTypes.h"
 #include "GameplayTags.h"
 #include "GameplayTagContainer.h"
+#include "SpectrEvaluator.h"
 #include "SpectrGoal.generated.h"
 
 /**
  * 
  */
-UCLASS()
+UCLASS(BlueprintType, Blueprintable, EditInLineNew)
 class SPECTRAI_API USpectrGoal : public UObject
 {
 	GENERATED_BODY()
@@ -23,6 +24,9 @@ public:
 	UPROPERTY(EditAnywhere)
 		TMap<FGameplayTag, bool> FinishedState;
 	
+	UPROPERTY(EditAnywhere)
+		FSpectrEvaluator ScoreEvaluator;
+
 	virtual float QualifyGoal(class USpectrContext* InContext)
 	{
 		return -1.0f;
