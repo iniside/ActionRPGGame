@@ -284,25 +284,24 @@ void SDraggableWindowWidget::Construct(const FArguments& InArgs)
 						]
 						+ SOverlay::Slot()
 						[
-							SNew(SHorizontalBox)
-							+ SHorizontalBox::Slot()
-							.FillWidth(0.8f)
-							.AutoWidth()
+							SAssignNew(WindowBar, SButton)
+							.OnPressed(OnPressedDel)
+							.OnReleased(OnReleasedDel)
+							.VAlign(EVerticalAlignment::VAlign_Center)
+							.HAlign(EHorizontalAlignment::HAlign_Right)
+							.ContentPadding(FMargin(0))
+							.ButtonStyle(&ButtonStyle)
 							[
-								SNew(STextBlock)
-								.Text(FText::FromString("Window Title"))
-							]
-							+ SHorizontalBox::Slot()
-							.FillWidth(0.2f)
-							.AutoWidth()
-							[
-								SAssignNew(WindowBar, SButton)
-								.OnPressed(OnPressedDel)
-								.OnReleased(OnReleasedDel)
-								.VAlign(EVerticalAlignment::VAlign_Center)
-								.HAlign(EHorizontalAlignment::HAlign_Right)
-								.ContentPadding(FMargin(0))
-								.ButtonStyle(&ButtonStyle)
+								SNew(SHorizontalBox)
+								+ SHorizontalBox::Slot()
+								.FillWidth(0.8f)
+								.AutoWidth()
+								[
+									SNew(STextBlock)
+									.Visibility(EVisibility::SelfHitTestInvisible)
+									.Text(FText::FromString("Window Title"))
+								]
+								+ SHorizontalBox::Slot()
 								[
 									SNew(SButton)
 									.OnPressed(OnCloseButtonPressedDel)
@@ -312,7 +311,6 @@ void SDraggableWindowWidget::Construct(const FArguments& InArgs)
 									]
 								]
 							]
-							
 						]
 						
 					]

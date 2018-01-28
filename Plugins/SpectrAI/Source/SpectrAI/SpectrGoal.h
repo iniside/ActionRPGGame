@@ -24,6 +24,9 @@ public:
 	UPROPERTY(EditAnywhere)
 		TMap<FGameplayTag, bool> FinishedState;
 	
+	UPROPERTY(EditAnywhere, Instanced)
+		TArray<USpectrConsideration*> Considerations;
+
 	UPROPERTY(EditAnywhere)
 		FSpectrEvaluator ScoreEvaluator;
 

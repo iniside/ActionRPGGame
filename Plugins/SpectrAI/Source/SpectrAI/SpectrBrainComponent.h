@@ -242,6 +242,17 @@ public:
 	}
 };
 
+USTRUCT(BlueprintType)
+struct FGoalSpec
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, Instanced)
+		class USpectrGoal* Goal;
+	UPROPERTY(EditAnywhere, Instanced)
+		TArray<class USpectrConsideration*> Considerations;
+};
+
 /**
  * 
  */
@@ -260,10 +271,12 @@ public:
 		TArray<TSubclassOf<USpectrAction>> ActionList;
 	UPROPERTY()
 		TArray<class USpectrAction*> Actions;
+	UPROPERTY(EditAnywhere)
+		TArray<FGoalSpec> Goals2;
 
 	UPROPERTY(EditAnywhere, Instanced)
 		TArray<class USpectrGoal*> Goals;
-	UPROPERTY(EditAnywhere, Instanced)
+	UPROPERTY()
 		class USpectrGoal* CurrentGoal;
 
 
