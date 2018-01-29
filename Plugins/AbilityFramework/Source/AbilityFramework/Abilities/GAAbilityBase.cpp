@@ -329,10 +329,18 @@ void UGAAbilityBase::CancelActivation()
 }
 void UGAAbilityBase::NativeCancelActivation()
 {
-	UAFAbilityComponent* AttrComp = ActivationEffect.Handle.GetContext().InstigatorComp.Get();
+	if (!ActivationEffectHandle.IsValid())
+		return;
+
+	UAFAbilityComponent* AttrComp = ActivationEffectHandle.GetContext().InstigatorComp.Get();
+	AbilityComponent->ExecutingAbility = nullptr;
+	OnConfirmDelegate.Clear();
+	OnConfirmDelegate.RemoveAll(this);
 	if (AbilityComponent)
 	{
 		AbilityComponent->RemoveEffect(ActivationEffect, DefaultContext, ActivationEffectHandle);
+		AbilityState = EAFAbilityState::Waiting;
+		ActivationEffectHandle.Reset();
 	}
 }
 

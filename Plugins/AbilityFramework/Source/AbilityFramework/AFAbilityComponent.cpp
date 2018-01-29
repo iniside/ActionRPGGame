@@ -930,28 +930,33 @@ void UAFAbilityComponent::BP_InputReleased(FGameplayTag ActionName)
 
 void UAFAbilityComponent::NativeInputReleased(FGameplayTag ActionName)
 {
-	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
 	{
-		//if (UGAAbilityBase* Ability = AbilityContainer.GetAbility(AbilityTag))
-		{
-			//if (Ability->AbilityComponent == this)
-			{
-				AbilityContainer.HandleInputReleased(ActionName);
-			}
-		}
-		ServerNativeInputReleased(ActionName);
-	}
-	else
-	{
-		//UE_LOG(AbilityFramework, Log, TEXT("UAFAbilityComponent::NativeInputReleased: %s"), *AbilityTag.GetTagName().ToString());
-
 		AbilityContainer.HandleInputReleased(ActionName);
 	}
+	ServerNativeInputReleased(ActionName);
+	//if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	//{
+	//	//if (UGAAbilityBase* Ability = AbilityContainer.GetAbility(AbilityTag))
+	//	{
+	//		//if (Ability->AbilityComponent == this)
+	//		{
+	//			
+	//		}
+	//	}
+	//	ServerNativeInputReleased(ActionName);
+	//}
+	//else
+	//{
+	//	//UE_LOG(AbilityFramework, Log, TEXT("UAFAbilityComponent::NativeInputReleased: %s"), *AbilityTag.GetTagName().ToString());
+
+	//	AbilityContainer.HandleInputReleased(ActionName);
+	//}
 }
 
 void UAFAbilityComponent::ServerNativeInputReleased_Implementation(FGameplayTag ActionName)
 {
-	NativeInputReleased(ActionName);
+	AbilityContainer.HandleInputReleased(ActionName);
 }
 bool UAFAbilityComponent::ServerNativeInputReleased_Validate(FGameplayTag ActionName)
 {
