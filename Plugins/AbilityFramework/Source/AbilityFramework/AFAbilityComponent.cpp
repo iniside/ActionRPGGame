@@ -692,11 +692,16 @@ void FGASAbilityContainer::RemoveAbility(const FGameplayTag& AbilityIn)
 	AbilitiesItems.RemoveAt(Index);
 	MarkArrayDirty();
 }
-bool FGASAbilityContainer::IsAbilityBoundToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
+FGameplayTag FGASAbilityContainer::IsAbilityBoundToAction(const FGameplayTag& InInputTag)
 {
-	bool bHave = false;
-
-	return bHave;
+	FGameplayTag Ability;
+	FGameplayTag* AbilityTag = ActionToAbility.Find(InInputTag);
+	if (AbilityTag)
+	{
+		Ability = *AbilityTag
+	}
+	
+	return Ability;
 }
 void FGASAbilityContainer::RemoveAbilityFromAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
 {
@@ -877,18 +882,13 @@ void UAFAbilityComponent::SetAbilityToAction(const FGameplayTag& InAbilityTag, c
 		ServerSetAbilityToAction(InAbilityTag, InInputTag);
 	}
 }
-bool UAFAbilityComponent::IsAbilityBoundToAction(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag)
+FGameplayTag UAFAbilityComponent::IsAbilityBoundToAction(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag)
 {
-	bool bIs = false;
 	for (const FGameplayTag& Tag : InInputTag)
 	{
-		if (AbilityContainer.IsAbilityBoundToAction(InAbilityTag, Tag))
-		{
-			bIs = true;
-			break;
-		}
+		return AbilityContainer.IsAbilityBoundToAction(Tag);
+		break;
 	}
-	return bIs;
 }
 void UAFAbilityComponent::RemoveAbilityFromAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
 {
@@ -967,16 +967,17 @@ void UAFAbilityComponent::BP_AddAbilityFromTag(FGameplayTag InAbilityTag,
 void UAFAbilityComponent::NativeAddAbilityFromTag(FGameplayTag InAbilityTag,
 	AActor* InAvatar, const TArray<FGameplayTag>& InInputTag)
 {
-	if (IsAbilityBoundToAction(InAbilityTag, InInputTag))
+	FGameplayTag AlreadyBound = IsAbilityBoundToAction(InAbilityTag, InInputTag);
+	if (AlreadyBound.IsValid())
 	{
 		//remove ability if it is already bound to this input;
 		if (GetOwnerRole() < ENetRole::ROLE_Authority)
 		{
-			ServerNativeRemoveAbility(InAbilityTag);
+			ServerNativeRemoveAbility(AlreadyBound);
 		}
 		else
 		{
-			NativeRemoveAbility(InAbilityTag);
+			NativeRemoveAbility(AlreadyBound);
 		}
 	}
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)

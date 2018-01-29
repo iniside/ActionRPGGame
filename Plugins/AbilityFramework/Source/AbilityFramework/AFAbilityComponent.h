@@ -162,7 +162,7 @@ public:
 	void RemoveAbility(const FGameplayTag& AbilityIn);
 
 	void SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
-	bool IsAbilityBoundToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
+	FGameplayTag IsAbilityBoundToAction(const FGameplayTag& InInputTag);
 	void RemoveAbilityFromAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
 	
 	UGAAbilityBase* GetAbility(FGameplayTag TagIn);
@@ -806,7 +806,7 @@ public:
 	void SetAbilityToAction(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag, const FAFOnAbilityReady& InputDelegate);
 	void SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag, const FAFOnAbilityReady& InputDelegate);
 
-	bool IsAbilityBoundToAction(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag);
+	FGameplayTag IsAbilityBoundToAction(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag);
 	void RemoveAbilityFromAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
 
 	UFUNCTION(Server, Reliable, WithValidation)
