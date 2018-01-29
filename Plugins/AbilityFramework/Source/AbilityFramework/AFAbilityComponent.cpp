@@ -698,7 +698,7 @@ FGameplayTag FGASAbilityContainer::IsAbilityBoundToAction(const FGameplayTag& In
 	FGameplayTag* AbilityTag = ActionToAbility.Find(InInputTag);
 	if (AbilityTag)
 	{
-		Ability = *AbilityTag
+		Ability = *AbilityTag;
 	}
 	
 	return Ability;
