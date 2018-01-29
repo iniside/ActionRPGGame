@@ -127,7 +127,7 @@ void UARUIAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbil
 		InAbilityTag, IAbilityInput, InAbilitySet, AbilityIndex);
 	AbilityComp->AddOnAbilityReadyDelegate(InAbilityTag, ReadyDelegate);
 
-	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, nullptr);
+	//AbilityComp->NativeAddAbilityFromTag(InAbilityTag, nullptr);
 }
 void UARUIAbilityManagerComponent::OnAbilityReady(FGameplayTag InAbilityTag, FGameplayTag InAbilityInput,
 	int32 InAbilitySet, int32 InAbilityIndex)

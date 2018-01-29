@@ -647,6 +647,7 @@ UGAAbilityBase* FGASAbilityContainer::AddAbility(TSubclassOf<class UGAAbilityBas
 {
 	if (AbilityIn && AbilitiesComp.IsValid())
 	{
+		
 		UGAAbilityBase* ability = NewObject<UGAAbilityBase>(AbilitiesComp->GetOwner(), AbilityIn);
 		ability->AbilityComponent = AbilitiesComp.Get();
 		if (AbilitiesComp.IsValid())
@@ -662,9 +663,10 @@ UGAAbilityBase* FGASAbilityContainer::AddAbility(TSubclassOf<class UGAAbilityBas
 
 		AbilitiesInputs.Add(Tag, ability);
 		FGASAbilityItem AbilityItem;
+		MarkItemDirty(AbilityItem);
 		AbilityItem.Ability = ability;
 		AbilitiesItems.Add(AbilityItem);
-
+		MarkArrayDirty();
 		if (AbilitiesComp->GetNetMode() == ENetMode::NM_Standalone
 			|| AbilitiesComp->GetOwnerRole() == ENetRole::ROLE_Authority)
 		{
@@ -682,10 +684,13 @@ UGAAbilityBase* FGASAbilityContainer::AddAbility(TSubclassOf<class UGAAbilityBas
 void FGASAbilityContainer::RemoveAbility(const FGameplayTag& AbilityIn)
 {
 	int32 Index = AbilitiesItems.IndexOfByKey(AbilityIn);
+	
 	if (Index == INDEX_NONE)
 		return;
+	MarkItemDirty(AbilitiesItems[Index]);
 	RemoveAbilityFromAction(AbilityIn, FGameplayTag());
 	AbilitiesItems.RemoveAt(Index);
+	MarkArrayDirty();
 }
 bool FGASAbilityContainer::IsAbilityBoundToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
 {
@@ -872,9 +877,18 @@ void UAFAbilityComponent::SetAbilityToAction(const FGameplayTag& InAbilityTag, c
 		ServerSetAbilityToAction(InAbilityTag, InInputTag);
 	}
 }
-bool UAFAbilityComponent::IsAbilityBoundToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
+bool UAFAbilityComponent::IsAbilityBoundToAction(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag)
 {
-	return AbilityContainer.IsAbilityBoundToAction(InAbilityTag, InInputTag);
+	bool bIs = false;
+	for (const FGameplayTag& Tag : InInputTag)
+	{
+		if (AbilityContainer.IsAbilityBoundToAction(InAbilityTag, Tag))
+		{
+			bIs = true;
+			break;
+		}
+	}
+	return bIs;
 }
 void UAFAbilityComponent::RemoveAbilityFromAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
 {
@@ -935,23 +949,6 @@ void UAFAbilityComponent::NativeInputReleased(FGameplayTag ActionName)
 		AbilityContainer.HandleInputReleased(ActionName);
 	}
 	ServerNativeInputReleased(ActionName);
-	//if (GetOwnerRole() < ENetRole::ROLE_Authority)
-	//{
-	//	//if (UGAAbilityBase* Ability = AbilityContainer.GetAbility(AbilityTag))
-	//	{
-	//		//if (Ability->AbilityComponent == this)
-	//		{
-	//			
-	//		}
-	//	}
-	//	ServerNativeInputReleased(ActionName);
-	//}
-	//else
-	//{
-	//	//UE_LOG(AbilityFramework, Log, TEXT("UAFAbilityComponent::NativeInputReleased: %s"), *AbilityTag.GetTagName().ToString());
-
-	//	AbilityContainer.HandleInputReleased(ActionName);
-	//}
 }
 
 void UAFAbilityComponent::ServerNativeInputReleased_Implementation(FGameplayTag ActionName)
@@ -963,16 +960,28 @@ bool UAFAbilityComponent::ServerNativeInputReleased_Validate(FGameplayTag Action
 	return true;
 }
 void UAFAbilityComponent::BP_AddAbilityFromTag(FGameplayTag InAbilityTag,
-	AActor* InAvatar)
+	AActor* InAvatar, TArray<FGameplayTag> InInputTag)
 {
-	NativeAddAbilityFromTag(InAbilityTag, InAvatar);
+	NativeAddAbilityFromTag(InAbilityTag, InAvatar, InInputTag);
 }
 void UAFAbilityComponent::NativeAddAbilityFromTag(FGameplayTag InAbilityTag,
-	AActor* InAvatar)
+	AActor* InAvatar, const TArray<FGameplayTag>& InInputTag)
 {
+	if (IsAbilityBoundToAction(InAbilityTag, InInputTag))
+	{
+		//remove ability if it is already bound to this input;
+		if (GetOwnerRole() < ENetRole::ROLE_Authority)
+		{
+			ServerNativeRemoveAbility(InAbilityTag);
+		}
+		else
+		{
+			NativeRemoveAbility(InAbilityTag);
+		}
+	}
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
-		ServerNativeAddAbilityFromTag(InAbilityTag, InAvatar);
+		ServerNativeAddAbilityFromTag(InAbilityTag, InAvatar, InInputTag);
 	}
 	else
 	{
@@ -1001,13 +1010,30 @@ void UAFAbilityComponent::NativeAddAbilityFromTag(FGameplayTag InAbilityTag,
 }
 
 void UAFAbilityComponent::ServerNativeAddAbilityFromTag_Implementation(FGameplayTag InAbilityTag,
-	AActor* InAvatar)
+	AActor* InAvatar, const TArray<FGameplayTag>& InInputTag)
 {
-	NativeAddAbilityFromTag(InAbilityTag, InAvatar);
+	NativeAddAbilityFromTag(InAbilityTag, InAvatar, InInputTag);
 }
 
 bool UAFAbilityComponent::ServerNativeAddAbilityFromTag_Validate(FGameplayTag InAbilityTag,
-	AActor* InAvatar)
+	AActor* InAvatar, const TArray<FGameplayTag>& InInputTag)
+{
+	return true;
+}
+void UAFAbilityComponent::BP_RemoveAbility(FGameplayTag TagIn)
+{
+
+}
+void UAFAbilityComponent::NativeRemoveAbility(const FGameplayTag& InAbilityTag)
+{
+	AbilityContainer.RemoveAbility(InAbilityTag);
+}
+void UAFAbilityComponent::ServerNativeRemoveAbility_Implementation(FGameplayTag InAbilityTag)
+{
+	NativeRemoveAbility(InAbilityTag);
+}
+
+bool UAFAbilityComponent::ServerNativeRemoveAbility_Validate(FGameplayTag InAbilityTag)
 {
 	return true;
 }
@@ -1033,10 +1059,7 @@ void UAFAbilityComponent::OnFinishedLoad(FGameplayTag InAbilityTag,
 	}
 }
 
-void UAFAbilityComponent::BP_RemoveAbility(FGameplayTag TagIn)
-{
-	
-}
+
 UGAAbilityBase* UAFAbilityComponent::BP_GetAbilityByTag(FGameplayTag TagIn)
 {
 	UGAAbilityBase* retVal = AbilityContainer.GetAbility(TagIn);

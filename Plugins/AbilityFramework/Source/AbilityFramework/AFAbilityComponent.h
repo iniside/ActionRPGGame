@@ -806,7 +806,7 @@ public:
 	void SetAbilityToAction(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag, const FAFOnAbilityReady& InputDelegate);
 	void SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag, const FAFOnAbilityReady& InputDelegate);
 
-	bool IsAbilityBoundToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
+	bool IsAbilityBoundToAction(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag);
 	void RemoveAbilityFromAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
 
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -848,26 +848,34 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Add Ability From Tag"), Category = "AbilityFramework|Abilities")
 		void BP_AddAbilityFromTag(FGameplayTag InAbilityTag,
-			AActor* InAvatar);
+			AActor* InAvatar, TArray<FGameplayTag> InInputTag);
 
 	void NativeAddAbilityFromTag(FGameplayTag InAbilityTag,
-		AActor* InAvatar);
+		AActor* InAvatar, const TArray<FGameplayTag>& InInputTag);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerNativeAddAbilityFromTag(FGameplayTag InAbilityTag,
-		AActor* InAvatar);
+		AActor* InAvatar, const TArray<FGameplayTag>& InInputTag);
 
 	void ServerNativeAddAbilityFromTag_Implementation(FGameplayTag InAbilityTag,
-		AActor* InAvatar);
+		AActor* InAvatar, const TArray<FGameplayTag>& InInputTag);
 
 	bool ServerNativeAddAbilityFromTag_Validate(FGameplayTag InAbilityTag,
-		AActor* InAvatar);
-
-
-	//TODO: Make it procted
+		AActor* InAvatar, const TArray<FGameplayTag>& InInputTag);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Remove Ability"), Category = "AbilityFramework|Abilities")
 		void BP_RemoveAbility(FGameplayTag TagIn);
+
+	void NativeRemoveAbility(const FGameplayTag& InAbilityTag);
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerNativeRemoveAbility(const FGameplayTag& InAbilityTag);
+
+	void ServerNativeRemoveAbility_Implementation(FGameplayTag InAbilityTag);
+
+	bool ServerNativeRemoveAbility_Validate(FGameplayTag InAbilityTag);
+
+	//TODO: Make it procted
+
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Get Ability By Tag"), Category = "AbilityFramework|Abilities")
 		UGAAbilityBase* BP_GetAbilityByTag(FGameplayTag TagIn);

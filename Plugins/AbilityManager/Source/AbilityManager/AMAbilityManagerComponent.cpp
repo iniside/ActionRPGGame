@@ -92,7 +92,7 @@ void UAMAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbilit
 		IAbilityInput, InGroup, InSlot);
 
 	AbilityComp->AddOnAbilityReadyDelegate(InAbilityTag, del);
-	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, nullptr);// , /*Input*/ ShootInput);
+	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, nullptr, IAbilityInput);// , /*Input*/ ShootInput);
 }
 void UAMAbilityManagerComponent::OnAbilityReady(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput, 
 	EAMGroup InGroup, EAMSlot InSlot)

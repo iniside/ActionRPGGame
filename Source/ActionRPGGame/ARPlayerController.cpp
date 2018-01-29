@@ -45,11 +45,15 @@ void AARPlayerController::SetPawn(APawn* InPawn)
 		//doesn't matter. Internally ability component make sure abilities are instanced on server and replicated back.
 		FAFOnAbilityReady del1 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, AbilitytNextWeapon, InputNextWeapon);
 		AbilityComp->AddOnAbilityReadyDelegate(AbilitytNextWeapon, del1);
-		AbilityComp->NativeAddAbilityFromTag(AbilitytNextWeapon, nullptr);
+		TArray<FGameplayTag> NextWeap;
+		NextWeap.Add(InputNextWeapon);
+		AbilityComp->NativeAddAbilityFromTag(AbilitytNextWeapon, nullptr, NextWeap);
 
 		FAFOnAbilityReady del2 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, AbilitytPreviousWeapon, InputPreviousWeapon);
 		AbilityComp->AddOnAbilityReadyDelegate(AbilitytPreviousWeapon, del2);
-		AbilityComp->NativeAddAbilityFromTag(AbilitytPreviousWeapon, nullptr);
+		TArray<FGameplayTag> PrevWeap;
+		PrevWeap.Add(InputPreviousWeapon);
+		AbilityComp->NativeAddAbilityFromTag(AbilitytPreviousWeapon, nullptr, PrevWeap);
 	}
 	//UIAbilityManagerComponent->BindInputs();
 }
