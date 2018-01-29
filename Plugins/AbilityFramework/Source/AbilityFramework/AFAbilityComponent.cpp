@@ -889,6 +889,7 @@ FGameplayTag UAFAbilityComponent::IsAbilityBoundToAction(const FGameplayTag& InA
 		return AbilityContainer.IsAbilityBoundToAction(Tag);
 		break;
 	}
+	return FGameplayTag();
 }
 void UAFAbilityComponent::RemoveAbilityFromAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
 {
