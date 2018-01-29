@@ -130,7 +130,7 @@ bool FGAEffectHandle::IsValid() const
 //}
 void FGAEffectHandle::Reset()
 {
-	Handle = 0;
+	Handle = INDEX_NONE;
 	EffectPtr.Reset();
 }
 

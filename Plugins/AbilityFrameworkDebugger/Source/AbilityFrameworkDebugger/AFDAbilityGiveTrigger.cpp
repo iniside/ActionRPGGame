@@ -14,9 +14,12 @@ AAFDAbilityGiveTrigger::AAFDAbilityGiveTrigger()
 	RootComponent = RootComp;
 
 	Icon = CreateDefaultSubobject<UBillboardComponent>(IconName);
+	Icon->AttachToComponent(RootComp, FAttachmentTransformRules::KeepRelativeTransform);
 	Trigger = CreateDefaultSubobject<UBoxComponent>(TriggerName);
 	Trigger->AttachToComponent(RootComp, FAttachmentTransformRules::KeepRelativeTransform);
 
+	//Trigger2 = CreateDefaultSubobject<UBoxComponent>(TriggerName);
+	//Trigger2->AttachToComponent(RootComp, FAttachmentTransformRules::KeepRelativeTransform);
 }
 
 // Called when the game starts or when spawned

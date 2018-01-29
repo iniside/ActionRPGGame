@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/BoxComponent.h"
+#include "Components/ShapeComponent.h"
 #include "GameplayTags.h"
 #include "AMTypes.h"
 #include "AMAbilityManagerComponent.h"
@@ -33,15 +34,17 @@ class ABILITYFRAMEWORKDEBUGGER_API AAFDAbilityGiveTrigger : public AActor
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		USceneComponent* RootComp;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		UBillboardComponent* Icon;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		UBoxComponent* Trigger;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		UShapeComponent* Trigger2;
 
 	UPROPERTY(EditAnywhere, Category = "Config")
 		FAFDAbilityConfig AbilityConfig;

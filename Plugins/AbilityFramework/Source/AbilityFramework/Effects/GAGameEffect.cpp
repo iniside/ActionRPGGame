@@ -60,12 +60,12 @@ void FAFEffectRepInfo::OnExpired()
 	OwningComoponent->ExecuteEffectEvent(GetSpec()->OnExpiredEvent);
 
 	FString EffectInfoLog(TEXT("FAFEffectRepInfo::OnExpired "));
-	EffectInfoLog += GetEffectTag().ToString();
+	EffectInfoLog += Spec.GetDefaultObject()->EffectTag.ToString(); // GetEffectTag().ToString();
 	AddLogDebugInfo(EffectInfoLog, OwningComoponent->GetWorld());
 	FTimerManager& Timer = OwningComoponent->GetWorld()->GetTimerManager();
 	Timer.ClearTimer(ExpiredHandle);
 	Timer.ClearTimer(PeriodHandle);
-	OwningComoponent->ExecuteEffectEvent(GetSpec()->OnRemovedEvent);
+	//OwningComoponent->ExecuteEffectEvent(GetSpec()->OnRemovedEvent);
 
 	OwningComoponent->RemoveEffectEvent(GetSpec()->OnExpiredEvent);
 	OwningComoponent->RemoveEffectEvent(GetSpec()->OnPeriodEvent);

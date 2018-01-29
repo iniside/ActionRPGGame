@@ -315,9 +315,10 @@ void UGAAbilityBase::NativeFinishAbility()
 	AbilityComponent->ExecutingAbility = nullptr;
 	OnConfirmDelegate.Clear();
 	OnConfirmDelegate.RemoveAll(this);
-	//if (ActivationEffect.Handle.IsValid())
+	if (!ActivationEffectHandle.IsValid())
 	{
 		AbilityComponent->RemoveEffect(ActivationEffect, DefaultContext, ActivationEffectHandle);
+		ActivationEffectHandle.Reset();
 	}
 	//remove effect.
 }

@@ -907,9 +907,10 @@ void UAFAbilityComponent::NativeInputPressed(FGameplayTag ActionName)
 	if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
 	{
 		PredHandle = FAFPredictionHandle::GenerateClientHandle(this);
+		AbilityContainer.HandleInputPressed(ActionName, PredHandle);
 	}
 	ServerNativeInputPressed(ActionName, PredHandle);
-	AbilityContainer.HandleInputPressed(ActionName, PredHandle);	
+		
 }
 
 void UAFAbilityComponent::ServerNativeInputPressed_Implementation(FGameplayTag ActionName, FAFPredictionHandle InPredictionHandle)
