@@ -217,28 +217,22 @@ FGAEffectHandle UAFAbilityComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 	//here, we should start attribute change prediction
 	//either change attribute or apply effect which will do so
 
-	
-	//if (mode == ENetMode::NM_Standalone
-	//	|| role >= ENetRole::ROLE_Authority)
+	//execute cue from effect regardless if we have target object or not.
+	if (InContext.TargetComp.IsValid())
 	{
-		//execute cue from effect regardless if we have target object or not.
-		if (InContext.TargetComp.IsValid())
-		{
-			FGAEffectHandle Handle;
-			Handle = InContext.TargetComp->ApplyEffectToSelf(EffectIn, InProperty, InContext, Modifier);
-			if (!PropertyByHandle.Contains(Handle))
-				PropertyByHandle.Add(Handle, &InProperty);
+		FGAEffectHandle Handle;
+		Handle = InContext.TargetComp->ApplyEffectToSelf(EffectIn, InProperty, InContext, Modifier);
+		if (!PropertyByHandle.Contains(Handle))
+			PropertyByHandle.Add(Handle, &InProperty);
 			
-			OnEffectAppliedToTarget.Broadcast(Handle);
-			if(InProperty.Duration == 0
-				&& InProperty.Period == 0)
-			{
-				OnEffectRemoved.Broadcast(Handle);
-			}
-			return Handle;
+		OnEffectAppliedToTarget.Broadcast(Handle);
+		if(InProperty.Duration == 0
+			&& InProperty.Period == 0)
+		{
+			OnEffectRemoved.Broadcast(Handle);
 		}
+		return Handle;
 	}
-
 	return FGAEffectHandle();
 }
 
@@ -483,8 +477,8 @@ void UAFAbilityComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProp
 	DOREPLIFETIME(UAFAbilityComponent, GameEffectContainer);
 
 	DOREPLIFETIME(UAFAbilityComponent, ActiveCues);
-
-	DOREPLIFETIME_CONDITION(UAFAbilityComponent, AbilityContainer, COND_OwnerOnly);
+	DOREPLIFETIME(UAFAbilityComponent, AbilityContainer);
+	//DOREPLIFETIME_CONDITION(UAFAbilityComponent, AbilityContainer, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UAFAbilityComponent, RepMontage, COND_SkipOwner);
 	//DOREPLIFETIME(UAFAbilityComponent, RepMontage);
 }
@@ -968,25 +962,17 @@ void UAFAbilityComponent::BP_AddAbilityFromTag(FGameplayTag InAbilityTag,
 void UAFAbilityComponent::NativeAddAbilityFromTag(FGameplayTag InAbilityTag,
 	AActor* InAvatar, const TArray<FGameplayTag>& InInputTag)
 {
-	FGameplayTag AlreadyBound = IsAbilityBoundToAction(InAbilityTag, InInputTag);
-	if (AlreadyBound.IsValid())
-	{
-		//remove ability if it is already bound to this input;
-		if (GetOwnerRole() < ENetRole::ROLE_Authority)
-		{
-			ServerNativeRemoveAbility(AlreadyBound);
-		}
-		else
-		{
-			NativeRemoveAbility(AlreadyBound);
-		}
-	}
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
 		ServerNativeAddAbilityFromTag(InAbilityTag, InAvatar, InInputTag);
 	}
 	else
 	{
+		FGameplayTag AlreadyBound = IsAbilityBoundToAction(InAbilityTag, InInputTag);
+		if (AlreadyBound.IsValid())
+		{
+			NativeRemoveAbility(AlreadyBound);
+		}
 		if (UAssetManager* Manager = UAssetManager::GetIfValid())
 		{
 			FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");

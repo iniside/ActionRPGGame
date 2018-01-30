@@ -147,91 +147,152 @@ void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags,
 {
 	if (!CurrentWorld)
 		CurrentWorld = CueParams.Instigator->GetWorld();
-	for (const FGameplayTag& Tag : CueParams.CueTags)
+	
+
+	if (UAssetManager* Manager = UAssetManager::GetIfValid())
 	{
-		TSubclassOf<AGAEffectCue> CueClass = CueSet->Cues.FindRef(Tag);
-		if (!CueClass)
-			continue;
-		
-		ENetRole mode = CueParams.Instigator->GetRemoteRole();
-		FString role;
-		switch (mode)
+		for (const FGameplayTag& CueTag : Tags)
 		{
-		case ROLE_None:
-			role = "ROLE_None";
-			break;
-		case ROLE_SimulatedProxy:
-			role = "ROLE_SimulatedProxy";
-			break;
-		case ROLE_AutonomousProxy:
-			role = "ROLE_AutonomousProxy";
-			break;
-		case ROLE_Authority:
-			role = "ROLE_Authority";
-			break;
-		case ROLE_MAX:
-			role = "ROLE_MAX";
-			break;
-		default:
-			break;
-		}
 
-		FString prefix = "";
-		//if (mode == ENetMode::NM_Client)
-		//{
-		//	prefix = FString::Printf(TEXT("Client %d: "), GPlayInEditorID - 1);
-		//}
+			AGAEffectCue* actor = nullptr;
 
-		UE_LOG(AbilityFramework, Log, TEXT("%s : CueManager HandleCue: %s, Instigator: %s, Location: %s, World: %s, Role: %s"),
-			*prefix,
-			*Tag.ToString(),
-			CueParams.Instigator.IsValid() ? *CueParams.Instigator->GetName() : TEXT("Invalid Instigator"),
-			*CueParams.HitResult.Location.ToString(),
-			*CurrentWorld->GetName(),
-			*role
-		);
+			TUniquePtr<TQueue<AGAEffectCue*>>& Cues = InstancedCues.FindOrAdd(CueTag);
+			if (Cues.IsValid())
+			{
+				FObjectKey InstigatorKey(CueParams.Instigator.Get());
+				TMap<FGameplayTag, TUniquePtr<TQueue<AGAEffectCue*>>>& UsedCuesMap = UsedCues.FindOrAdd(InstigatorKey);
+				TUniquePtr<TQueue<AGAEffectCue*>>& UseCuesQueue = UsedCuesMap.FindOrAdd(CueTag);
 
-		FActorSpawnParameters SpawnParams;
-		FVector Location = CueParams.HitResult.Location;
-		FRotator Rotation = FRotator::ZeroRotator;
-		AGAEffectCue* actor = nullptr;
-		TUniquePtr<TQueue<AGAEffectCue*>>& Cues = InstancedCues.FindOrAdd(Tag);
-		if (!Cues.IsValid())
-		{
-			Cues = MakeUnique<TQueue<AGAEffectCue*>>();
-		}
-		FObjectKey InstigatorKey(CueParams.Instigator.Get());
-		TMap<FGameplayTag, TUniquePtr<TQueue<AGAEffectCue*>>>& UsedCuesMap = UsedCues.FindOrAdd(InstigatorKey);
-		TUniquePtr<TQueue<AGAEffectCue*>>& UseCuesQueue = UsedCuesMap.FindOrAdd(Tag);
+				if (!UseCuesQueue.IsValid())
+				{
+					UseCuesQueue = MakeUnique<TQueue<AGAEffectCue*>>();
+				}
+				{
+					Cues->Dequeue(actor);
+					UseCuesQueue->Enqueue(actor);
+				}
+				return;//don't try to load asset, we already have pooled instance.
+			}
+			
 
-		if (!UseCuesQueue.IsValid())
-		{
-			UseCuesQueue = MakeUnique<TQueue<AGAEffectCue*>>();
+			FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+			IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+			TArray<FAssetData> AssetData;
+			FARFilter Filter;
+			Filter.TagsAndValues.Add("AbilityTagSearch", CueTag.ToString());
+			AssetRegistryModule.Get().GetAssets(Filter, AssetData);
+			FPrimaryAssetId PrimaryAssetId = FPrimaryAssetId(FPrimaryAssetType("Ability"), AssetData[0].AssetName);
+			FPrimaryAssetTypeInfo Info;
+			if (Manager->GetPrimaryAssetTypeInfo(PrimaryAssetId.PrimaryAssetType, Info))
+			{
+				FStreamableDelegate del = FStreamableDelegate::CreateUObject(this, &UAFCueManager::OnFinishedLoad, CueTag, PrimaryAssetId, CueParams);
+
+				Manager->LoadPrimaryAsset(PrimaryAssetId,
+					TArray<FName>(),
+					del);
+			}
 		}
-		
-		if (Cues->IsEmpty())
-		{
-			actor = CurrentWorld->SpawnActor<AGAEffectCue>(CueClass, Location, Rotation, SpawnParams);
-			Cues->Enqueue(actor);
-			Cues->Dequeue(actor);
-			UseCuesQueue->Enqueue(actor);
-		}
-		else
-		{
-			Cues->Dequeue(actor);
-			UseCuesQueue->Enqueue(actor);
-		}
-		
-		//actor = CurrentWorld->SpawnActor<AGAEffectCue>(CueClass, Location, Rotation, SpawnParams);
-		if (actor)
-		{
-			actor->NativeBeginCue(CueParams.Instigator.Get(), CueParams.HitResult.Actor.Get(),
-				CueParams.Causer.Get(), CueParams.HitResult, CueParams);
-		}
-		/*UseCues->Dequeue(actor);
-		Cues->Enqueue(actor);*/
 	}
 }
+
+void UAFCueManager::OnFinishedLoad(FGameplayTag InCueTag
+	, FPrimaryAssetId InPrimaryAssetId
+	, FGAEffectCueParams CueParams)
+{
+	if (UAssetManager* Manager = UAssetManager::GetIfValid())
+	{
+		UObject* loaded = Manager->GetPrimaryAssetObject(InPrimaryAssetId);
+		TSubclassOf<AGAEffectCue> cls = Cast<UClass>(loaded);
+		if (cls)
+		{
+			TSubclassOf<AGAEffectCue> CueClass = cls;
+			if (!CueClass)
+				return;
+
+			ENetRole mode = CueParams.Instigator->GetRemoteRole();
+			FString role;
+			switch (mode)
+			{
+			case ROLE_None:
+				role = "ROLE_None";
+				break;
+			case ROLE_SimulatedProxy:
+				role = "ROLE_SimulatedProxy";
+				break;
+			case ROLE_AutonomousProxy:
+				role = "ROLE_AutonomousProxy";
+				break;
+			case ROLE_Authority:
+				role = "ROLE_Authority";
+				break;
+			case ROLE_MAX:
+				role = "ROLE_MAX";
+				break;
+			default:
+				break;
+			}
+
+			FString prefix = "";
+			//if (mode == ENetMode::NM_Client)
+			//{
+			//	prefix = FString::Printf(TEXT("Client %d: "), GPlayInEditorID - 1);
+			//}
+
+			UE_LOG(AbilityFramework, Log, TEXT("%s : CueManager HandleCue: %s, Instigator: %s, Location: %s, World: %s, Role: %s"),
+				*prefix,
+				*InCueTag.ToString(),
+				CueParams.Instigator.IsValid() ? *CueParams.Instigator->GetName() : TEXT("Invalid Instigator"),
+				*CueParams.HitResult.Location.ToString(),
+				*CurrentWorld->GetName(),
+				*role
+			);
+
+			FActorSpawnParameters SpawnParams;
+			FVector Location = CueParams.HitResult.Location;
+			FRotator Rotation = FRotator::ZeroRotator;
+			AGAEffectCue* actor = nullptr;
+			
+			TUniquePtr<TQueue<AGAEffectCue*>>& Cues = InstancedCues.FindOrAdd(InCueTag);
+			if (!Cues.IsValid())
+			{
+				Cues = MakeUnique<TQueue<AGAEffectCue*>>();
+			}
+			FObjectKey InstigatorKey(CueParams.Instigator.Get());
+			TMap<FGameplayTag, TUniquePtr<TQueue<AGAEffectCue*>>>& UsedCuesMap = UsedCues.FindOrAdd(InstigatorKey);
+			TUniquePtr<TQueue<AGAEffectCue*>>& UseCuesQueue = UsedCuesMap.FindOrAdd(InCueTag);
+
+			if (!UseCuesQueue.IsValid())
+			{
+				UseCuesQueue = MakeUnique<TQueue<AGAEffectCue*>>();
+			}
+
+			if (Cues->IsEmpty())
+			{
+				actor = CurrentWorld->SpawnActor<AGAEffectCue>(CueClass, Location, Rotation, SpawnParams);
+				Cues->Enqueue(actor);
+				Cues->Dequeue(actor);
+				UseCuesQueue->Enqueue(actor);
+			}
+			else
+			{
+				Cues->Dequeue(actor);
+				UseCuesQueue->Enqueue(actor);
+			}
+
+			if (actor)
+			{
+				actor->NativeBeginCue(CueParams.Instigator.Get(), CueParams.HitResult.Actor.Get(),
+					CueParams.Causer.Get(), CueParams.HitResult, CueParams);
+			}
+		}
+
+		{
+			Manager->UnloadPrimaryAsset(InPrimaryAssetId);
+		}
+	}
+}
+
 void UAFCueManager::HandleRemoveCue(const FGameplayTagContainer& Tags,
 	const FGAEffectCueParams& CueParams)
 {

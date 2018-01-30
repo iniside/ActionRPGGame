@@ -5,16 +5,35 @@
 #include "GameFramework/Actor.h"
 #include "MovieSceneSequencePlayer.h"
 #include "GAGlobalTypes.h"
+#include "GameplayTags.h"
+#include "AssetBundleData.h"
+#include "Engine/AssetManager.h"
 #include "GAEffectCue.generated.h"
 class UActorSequencePlayer;
 UCLASS()
 class ABILITYFRAMEWORK_API AGAEffectCue : public AActor
 {
 	GENERATED_BODY()
+protected:
+	UPROPERTY(EditAnywhere, Category = "Cue")
+		FGameplayTag CueTag;
+	UPROPERTY(AssetRegistrySearchable)
+		FName AbilityTagSearch;
+	UPROPERTY()
+		FAssetBundleData AssetBundleData;
 public:	
 	// Sets default values for this actor's properties
 	AGAEffectCue(const FObjectInitializer& ObjectInitializer);
-	virtual void PostInitProperties() override;
+	void PostInitProperties() override;
+
+	void Serialize(FArchive& Ar) override;
+
+#if WITH_EDITORONLY_DATA
+	void UpdateAssetBundleData();
+	void PreSave(const class ITargetPlatform* TargetPlatform) override;
+#endif //WITH_EDITORONLY_DATA
+	void PostLoad() override;
+	FPrimaryAssetId GetPrimaryAssetId() const override;
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
@@ -60,4 +79,7 @@ public:
 		FMovieSceneSequencePlaybackSettings PlaybackSettings;
 
 	FTimerHandle PeriodTimer;
+
+protected:
+	void UpdateAssetRegistryInfo();
 };

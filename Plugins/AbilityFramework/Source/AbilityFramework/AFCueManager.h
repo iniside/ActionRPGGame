@@ -47,4 +47,8 @@ public:
 		const FGAEffectCueParams& CueParams);
 	void HandleRemoveCue(const FGameplayTagContainer& Tags,
 		const FGAEffectCueParams& CueParams);
+protected:
+	void OnFinishedLoad(FGameplayTag InCueTag
+		, FPrimaryAssetId InPrimaryAssetId
+		, FGAEffectCueParams CueParams);
 };
