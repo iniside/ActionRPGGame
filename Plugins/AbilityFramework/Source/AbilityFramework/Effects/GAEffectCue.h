@@ -18,7 +18,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Cue")
 		FGameplayTag CueTag;
 	UPROPERTY(AssetRegistrySearchable)
-		FName AbilityTagSearch;
+		FName EffectCueTagSearch;
 	UPROPERTY()
 		FAssetBundleData AssetBundleData;
 public:	

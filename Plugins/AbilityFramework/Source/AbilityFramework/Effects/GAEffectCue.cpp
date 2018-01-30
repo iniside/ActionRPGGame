@@ -44,6 +44,7 @@ void AGAEffectCue::Serialize(FArchive& Ar)
 void AGAEffectCue::UpdateAssetBundleData()
 {
 	AssetBundleData.Reset();
+	UpdateAssetRegistryInfo();
 
 	// By default parse the metadata
 	if (UAssetManager::IsValid())
@@ -117,6 +118,10 @@ void AGAEffectCue::SetAnimation(class UGAEffectCueSequence* InSequence)
 // Called when the game starts or when spawned
 void AGAEffectCue::BeginPlay()
 {
+	if (!SequencePlayer)
+	{
+		SequencePlayer = NewObject<UActorSequencePlayer>(this, UActorSequencePlayer::StaticClass(), "SequencerPlayer");
+	}
 	SequencePlayer->Initialize(Sequence, PlaybackSettings);
 	
 	Super::BeginPlay();
@@ -161,5 +166,5 @@ void AGAEffectCue::NativeOnRemoved()
 
 void  AGAEffectCue::UpdateAssetRegistryInfo()
 {
-	AbilityTagSearch = CueTag.GetTagName();
+	EffectCueTagSearch = CueTag.GetTagName();
 }

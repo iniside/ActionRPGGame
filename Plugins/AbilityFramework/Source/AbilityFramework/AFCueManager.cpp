@@ -180,9 +180,9 @@ void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags,
 
 			TArray<FAssetData> AssetData;
 			FARFilter Filter;
-			Filter.TagsAndValues.Add("AbilityTagSearch", CueTag.ToString());
+			Filter.TagsAndValues.Add("EffectCueTagSearch", CueTag.ToString());
 			AssetRegistryModule.Get().GetAssets(Filter, AssetData);
-			FPrimaryAssetId PrimaryAssetId = FPrimaryAssetId(FPrimaryAssetType("Ability"), AssetData[0].AssetName);
+			FPrimaryAssetId PrimaryAssetId = FPrimaryAssetId(FPrimaryAssetType("EffectCue"), AssetData[0].AssetName);
 			FPrimaryAssetTypeInfo Info;
 			if (Manager->GetPrimaryAssetTypeInfo(PrimaryAssetId.PrimaryAssetType, Info))
 			{
@@ -300,10 +300,6 @@ void UAFCueManager::HandleRemoveCue(const FGameplayTagContainer& Tags,
 		CurrentWorld = CueParams.Instigator->GetWorld();
 	for (const FGameplayTag& Tag : CueParams.CueTags)
 	{
-		TSubclassOf<AGAEffectCue> CueClass = CueSet->Cues.FindRef(Tag);
-		if (!CueClass)
-			continue;
-
 		AGAEffectCue* actor = nullptr;
 		TUniquePtr<TQueue<AGAEffectCue*>>& Cues = InstancedCues.FindOrAdd(Tag);
 		if (!Cues.IsValid())
