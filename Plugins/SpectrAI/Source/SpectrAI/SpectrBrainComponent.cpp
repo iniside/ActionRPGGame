@@ -3,7 +3,8 @@
 #include "SpectrBrainComponent.h"
 #include "SpectrContext.h"
 #include "AIController.h"
-
+#include "Engine/World.h"
+#include "TimerManager.h"
 
 bool operator==(const FSpectrNode& Other, const USpectrAction*& Action)
 {
@@ -40,6 +41,12 @@ void USpectrBrainComponent::BeginPlay()
 }
 void USpectrBrainComponent::StarPlanning()
 {
+	//no point of running planner on clients.
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		return;
+	}
+
 	TArray<USpectrAction*> OutActionList;
 	if (AAIController* AIController = Cast<AAIController>(GetOwner()))
 	{
@@ -54,9 +61,37 @@ void USpectrBrainComponent::StarPlanning()
 
 		UE_LOG(LogTemp, Log, TEXT("Action Name: %s \n"), *name);
 	}
-	ExecutePlan(nullptr);
+	if (OutActionList.Num() == 0)
+	{
+		FTimerManager& Timer = GetWorld()->GetTimerManager();
+		FTimerDelegate del = FTimerDelegate::CreateUObject(this, &USpectrBrainComponent::NextPlan);
+		Timer.SetTimer(NextPlanTimerHandle, del, 0.2f, false, 0.2f);
+	}
+	else
+	{
+		ExecutePlan(nullptr);
+	}
+	
 }
-
+void USpectrBrainComponent::NextPlan()
+{
+	TArray<USpectrAction*> OutActionList;
+	if (AAIController* AIController = Cast<AAIController>(GetOwner()))
+	{
+		SpectrAI.Plan(Goal, CurrentState, OutActionList, Actions, CurrentContext, AIController);
+	}
+	if (OutActionList.Num() == 0)
+	{
+		FTimerManager& Timer = GetWorld()->GetTimerManager();
+		FTimerDelegate del = FTimerDelegate::CreateUObject(this, &USpectrBrainComponent::NextPlan);
+		Timer.SetTimer(NextPlanTimerHandle, del, 0.2f, false, 0.2f);
+	}
+	else
+	{
+		ExecutePlan(nullptr);
+	}
+	
+}
 void USpectrBrainComponent::SelectGoal()
 {
 

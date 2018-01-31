@@ -300,11 +300,15 @@ public:
 	//Map of pending move events.
 	FSimpleDelegate PendingMoveEvent;
 
+	FTimerHandle NextPlanTimerHandle;
+
 	USpectrBrainComponent(const FObjectInitializer& ObjectInitializer);
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 	UFUNCTION(BlueprintCallable)
 		void StarPlanning();
+	UFUNCTION()
+		void NextPlan();
 
 	void SelectGoal();
 	void ExecutePlan(class USpectrAction* PreviousAction);
@@ -314,4 +318,6 @@ public:
 
 	void MoveToLocation();
 	void MoveToActor(AActor* Target, float MinDistance);
+
+	
 };
