@@ -19,7 +19,6 @@
 #include "MessageEndpointBuilder.h"
 #include "Effects/GAEffectExtension.h"
 #include "Effects/GAEffectCue.h"
-#include "AFCueSet.h"
 #include "AFCueManager.h"
 #include "Effects/GABlueprintLibrary.h"
 #include "Async.h"
@@ -412,24 +411,7 @@ void UAFAbilityComponent::MulticastApplyEffectCue_Implementation( FGAEffectCuePa
 			*GetOwner()->GetName(),
 			*CueParams.Instigator->GetName()
 		);
-
-		//for (const FGameplayTag& Tag : CueParams.CueTags)
-		//{
-		//	TSubclassOf<AGAEffectCue> CueClass = TestCueSet->Cues.FindRef(Tag);
-		//	if (!CueClass)
-		//		continue;
-
-		//	FActorSpawnParameters SpawnParams;
-		//	FVector Location = CueParams.HitResult.Location;
-		//	FRotator Rotation = FRotator::ZeroRotator;
-		//	AGAEffectCue* actor = nullptr;
-		//	
-		//	actor = GetWorld()->SpawnActor<AGAEffectCue>(CueClass, Location, Rotation, SpawnParams);
-		//	actor->NativeBeginCue(CueParams.Instigator.Get(), CueParams.HitResult.Actor.Get(),
-		//		CueParams.Causer.Get(), CueParams.HitResult);
-
-		//}
-
+		
 		UAFCueManager::Get()->HandleCue(CueParams.CueTags, CueParams);
 	}
 }

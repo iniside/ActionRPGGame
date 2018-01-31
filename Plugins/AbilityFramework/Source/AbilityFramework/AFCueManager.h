@@ -20,11 +20,6 @@ protected:
 	//UPROPERTY()
 		static UAFCueManager* ManagerInstance;
 		UWorld* CurrentWorld;
-	UPROPERTY(config, EditAnywhere, Category = "Cue Set")
-		TAssetPtr<class UAFCueSet> DefaultCueSet;
-
-	UPROPERTY()
-		UAFCueSet* CueSet;
 	
 	//store per instigator ? Causer ? or global pool ?
 	//stores unused instanced cues.
@@ -34,7 +29,6 @@ protected:
 	TMap<FObjectKey, TMap<FGameplayTag, TUniquePtr<TQueue<AGAEffectCue*>>>> UsedCues;
 public:
 	void Initialize();
-	void LoadCueSet();
 #if WITH_EDITOR
 	//handle clearing up cache when PIE mode is ending.
 	void HandleOnPIEEnd(bool InVal);

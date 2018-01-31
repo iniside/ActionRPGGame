@@ -261,8 +261,6 @@ public:
 	
 	//FAFEffectTimerManager EffectTimerManager;
 
-	UPROPERTY(EditAnywhere)
-		class UAFCueSet* TestCueSet;
 	UPROPERTY(EditAnywhere, Category = "Test")
 		FGameplayTag TagTest;
 	/*

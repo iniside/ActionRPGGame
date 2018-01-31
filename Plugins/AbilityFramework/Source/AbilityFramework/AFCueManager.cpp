@@ -2,7 +2,6 @@
 
 #include "AbilityFramework.h"
 #include "Effects/GAEffectCue.h"
-#include "AFCueSet.h"
 #include "AFCueManager.h"
 //#if WITH_EDITOR
 //#include "Editor.H"
@@ -21,7 +20,6 @@ UAFCueManager* UAFCueManager::Get()
 		RF_MarkAsRootSet);
 	ManagerInstance->AddToRoot();
 	ManagerInstance->Initialize();
-	ManagerInstance->LoadCueSet();
 
 	return ManagerInstance;
 }
@@ -32,10 +30,6 @@ void UAFCueManager::Initialize()
 #endif //WITH_EDITORONLY_DATA
 	FCoreUObjectDelegates::PreLoadMap.AddUObject(this, &UAFCueManager::HandlePreLoadMap);
 	FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UAFCueManager::HandlePostLoadMap);
-}
-void UAFCueManager::LoadCueSet()
-{
-	CueSet = DefaultCueSet.LoadSynchronous();
 }
 #if WITH_EDITOR
 void UAFCueManager::HandleOnPIEEnd(bool InVal)
@@ -170,6 +164,10 @@ void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags,
 				{
 					Cues->Dequeue(actor);
 					UseCuesQueue->Enqueue(actor);
+				}
+				if (actor)
+				{
+					actor->NativeBeginCue(CueParams.Instigator.Get(), CueParams.HitResult.GetActor(), CueParams.Causer.Get(), CueParams.HitResult, CueParams);
 				}
 				return;//don't try to load asset, we already have pooled instance.
 			}
