@@ -6,7 +6,6 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "ARGlobals.h"
 #include "AFAbilityComponent.h"
-#include "ARUIAbilityManagerComponent.h"
 #include "Abilities/GAAbilityBase.h"
 
 
@@ -23,7 +22,7 @@ void UARAbilitySlotConfigWidget::NativeOnDragDetected(const FGeometry& InGeometr
 	UDragDropOperation* DragDropOp = NewObject<UDragDropOperation>(UDragDropOperation::StaticClass());
 	if (DragDropOp)
 	{
-		APlayerController* MyPC = Cast<APlayerController>(OwningComponent->GetOwner());
+		/*APlayerController* MyPC = Cast<APlayerController>(OwningComponent->GetOwner());
 		UARAbilityWidget* DragIcon = CreateWidget<UARAbilityWidget>(MyPC, OwningComponent->DragVisualClass);
 		DragIcon->AbilityIndex = AbilityIndex;
 		DragIcon->AbilitySetIndex = AbilitySetIndex;
@@ -32,15 +31,15 @@ void UARAbilitySlotConfigWidget::NativeOnDragDetected(const FGeometry& InGeometr
 		DragDropOp->Payload = this;
 		DragDropOp->DefaultDragVisual = DragIcon;
 
-		OutOperation = DragDropOp;
+		OutOperation = DragDropOp;*/
 	}
 }
 bool UARAbilitySlotConfigWidget::NativeOnDrop(const FGeometry& InGeometry
 	, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
-	UARAbilityWidget* Payload = Cast<UARAbilityWidget>(InOperation->Payload);
-	Setbility(Payload->AbilityTag);
+	//UARAbilityWidget* Payload = Cast<UARAbilityWidget>(InOperation->Payload);
+	//Setbility(Payload->AbilityTag);
 
-	OwningComponent->NativeEquipAbility(Payload->AbilityTag, AbilitySetIndex, AbilityIndex);
+	//OwningComponent->NativeEquipAbility(Payload->AbilityTag, AbilitySetIndex, AbilityIndex);
 	return false;
 }

@@ -3,6 +3,5 @@
 #include "ARAbilityInfoWidget.h"
 #include "AFAbilityInterface.h"
 #include "AFAbilityComponent.h"
-#include "ARUIAbilityManagerComponent.h"
 #include "Abilities/GAAbilityBase.h"
 #include "ARPlayerController.h"

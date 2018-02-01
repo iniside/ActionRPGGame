@@ -11,18 +11,18 @@
 #include "AMAbilityManagerComponent.h"
 #include "AFDAbilityGiveTrigger.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FAFDAbilityConfig
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, Category = "Config")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Config")
 		EAMGroup Group;
-	UPROPERTY(EditAnywhere, Category = "Config")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Config")
 		EAMSlot Slot;
-	UPROPERTY(EditAnywhere, Category = "Config")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Config")
 		FGameplayTag AbilityTag;
-	UPROPERTY(EditAnywhere, Category = "Config")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Config")
 		TArray<FGameplayTag> InputTag;
 };
 
@@ -46,7 +46,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		UShapeComponent* Trigger2;
 
-	UPROPERTY(EditAnywhere, Category = "Config")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Config")
 		FAFDAbilityConfig AbilityConfig;
 
 	UPROPERTY()

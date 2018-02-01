@@ -4,7 +4,9 @@
 #include "AFAbilityInterface.h"
 #include "AFAbilityComponent.h"
 #include "ARWeaponAbilityBase.h"
-#include "../Weapons/ARWeaponManagerComponent.h"
+#include "ARWeaponBase.h"
+#include "Engine/World.h"
+
 // Sets default values for this component's properties
 UARWeaponManagerComponent::UARWeaponManagerComponent()
 {
@@ -47,13 +49,6 @@ void UARWeaponManagerComponent::BeginPlay()
 	UAFAbilityComponent* AbilityComp = ABInt->GetAbilityComp();
 	if (!AbilityComp)
 		return;
-
-	//for (const FGameplayTag& Tag : AbilityInputs)
-	{
-		//AbilityComp->BP_BindAbilityToAction(InputSetup.GetInputs(EAMGroup::Group001, EAMSlot::Slot001)[0]);
-		//AbilityComp->BP_BindAbilityToAction(InputSetup.GetInputs(EAMGroup::Group001, EAMSlot::Slot001)[1]);
-	}
-	// ...
 	
 }
 
@@ -69,7 +64,30 @@ UGAAbilityBase* UARWeaponManagerComponent::GetCurrentWeapon()
 {
 	return GetAbility(ActiveGroup, EAMSlot::Slot001);
 }
+void UARWeaponManagerComponent::BP_EquipWeapon(EAMGroup Group, EAMSlot Slot)
+{
+	EquipWeapon(Group, Slot);
+}
+void UARWeaponManagerComponent::EquipWeapon(EAMGroup Group, EAMSlot Slot)
+{
+	if (WeaponClasses.Num() < 0)
+		return;
+	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
+	if (!MyPC)
+		return;
+	APawn* POwner = MyPC->GetPawn();
+	IAFAbilityInterface* ABInt = Cast<IAFAbilityInterface>(POwner);
+	if (!ABInt)
+		return;
 
+	UWorld* World = GetWorld();
+
+	FActorSpawnParameters SpawnParams;
+	AARWeaponBase* Weapon = World->SpawnActor<AARWeaponBase>(WeaponClasses[0], SpawnParams);
+	Weapon->Equip(Group, Slot, POwner, this);
+
+	Weapons.Add(Weapon);
+}
 void UARWeaponManagerComponent::NextWeapon()
 {
 	NextGroup();

@@ -9,6 +9,8 @@
 #include "Abilities/GAAbilityBase.h"
 #include "AMAbilityManagerComponent.generated.h"
 
+
+
 /*
 - Group
 - Set
@@ -89,6 +91,9 @@ protected:
 
 	TArray<TArray<FGameplayTag>> AbilityTagsSet;
 	TArray<TArray<TWeakObjectPtr<class UGAAbilityBase>>> AbilitySet;
+
+	TMap<FGameplayTag, FSimpleDelegate> AbilityReadyEvents;
+
 public:	
 	// Sets default values for this component's properties
 	UAMAbilityManagerComponent();
@@ -100,7 +105,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	
+	void BindInputs(UInputComponent* InputComponent, class UAFAbilityComponent* AbilityComponent);
 	UGAAbilityBase* GetAbility(EAMGroup InGroup, EAMSlot InSlot);
 	void SetAbility(EAMGroup InGroup, EAMSlot InSlot, UGAAbilityBase* InAbility);
 
@@ -113,7 +118,7 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Equip Ability"), Category = "Ability Manager")
 		void BP_EquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot);
 
-	void NativeEquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot);
+	void NativeEquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, AActor* InAvatar = nullptr);
 	UFUNCTION()
 		void OnAbilityReady(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput,
 			EAMGroup InGroup, EAMSlot InSlot);
@@ -146,4 +151,22 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void SelectGroup(EAMGroup InGroup);
+
+
+	void AddOnAbilityReadyEvent(const FGameplayTag& Ability, const FSimpleDelegate& Delegate)
+	{
+		if (!AbilityReadyEvents.Contains(Ability))
+		{
+			AbilityReadyEvents.Add(Ability, Delegate);
+		}
+	}
+
+	void ExecuteAbilityReadyEvent(const FGameplayTag& Ability)
+	{
+		if (FSimpleDelegate* Event = AbilityReadyEvents.Find(Ability))
+		{
+			Event->ExecuteIfBound();
+			AbilityReadyEvents.Remove(Ability);
+		}
+	}
 };

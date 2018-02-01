@@ -350,8 +350,11 @@ public:
 
 
 	/*
-		Called When activation effect expired.
-		In case of instant effects, called right after OnActivate.
+	* @call Order:
+	* Previous Function: UGAAbilityBase::StartActivation
+	* Next Function: (Blueprint) UGAAbilityBase::FinishAbility
+	*
+	* Called on both Client and Server to indicate that ability is finished.
 	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnActivationFinished();
@@ -448,10 +451,8 @@ public:
 	* @call Order:
 	* Previous Function: UGAAbilityBase::NativeFinishAbility
 	* Next Function: (Blueprint) Custom Functions
-	* Next Function: (Blueprint) UGAAbilityBase::FinishAbility - must be called at some point
-	* finish ability.
 	*
-	* Called to finish ability and start clean up.
+	* Called when ability is finished.
 	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnAbilityFinished();

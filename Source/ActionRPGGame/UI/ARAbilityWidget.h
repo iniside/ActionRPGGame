@@ -7,6 +7,7 @@
 #include "GameplayTags.h"
 #include "AssetRegistryModule.h"
 #include "Engine/AssetManager.h"
+#include "AMTypes.h"
 #include "ARAbilityWidget.generated.h"
 
 /**
@@ -17,11 +18,13 @@ class ACTIONRPGGAME_API UARAbilityWidget : public UARUMGWidgetBase
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY()
+		class UAMAbilityManagerComponent* AbilityManager;
 
 	UPROPERTY(EditAnywhere, Category = "Config")
-		int32 AbilitySetIndex;
+		EAMGroup Group;
 	UPROPERTY(EditAnywhere, Category = "Config")
-		int32 AbilityIndex;
+		EAMSlot AbilitySlot;
 	UPROPERTY(EditAnywhere, Category = "Config")
 		UTexture2D* Icon;
 	UPROPERTY(EditAnywhere, Category = "Config")
@@ -51,10 +54,4 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "ActionRPGGame|UI|Abilities")
 		UTexture2D* GetIcon();
-
-	UFUNCTION(BlueprintCallable, Category = "ActionRPGGame|UI|Abilities")
-		void Setbility(const FGameplayTag& InAbility);
-
-	UFUNCTION()
-		void OnFinishedLoad(FPrimaryAssetId PrimaryAssetId);
 };

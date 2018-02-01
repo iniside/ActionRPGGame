@@ -41,7 +41,16 @@ void UAMAbilityManagerComponent::TickComponent(float DeltaTime, ELevelTick TickT
 
 	// ...
 }
+void UAMAbilityManagerComponent::BindInputs(UInputComponent* InputComponent, class UAFAbilityComponent* AbilityComponent)
+{
+	if (!AbilityComponent)
+		return;
 
+	for (const FGameplayTag& Input : InputsToBind)
+	{
+		AbilityComponent->BindAbilityToAction(InputComponent, Input);
+	}
+}
 UGAAbilityBase* UAMAbilityManagerComponent::GetAbility(EAMGroup InGroup, EAMSlot InSlot)
 {
 	return AbilitySet.Num() >= MaxGroups ? AbilitySet[AMEnumToInt<EAMGroup>(InGroup)][AMEnumToInt<EAMSlot>(InSlot)].Get() : nullptr;
@@ -74,7 +83,7 @@ void UAMAbilityManagerComponent::SetAbilityTag(EAMGroup InGroup, EAMSlot InSlot,
 {
 	AbilityTagsSet[AMEnumToInt<EAMGroup>(InGroup)][AMEnumToInt<EAMSlot>(InSlot)] = InAbilityTag;
 }
-void UAMAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot)
+void UAMAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, AActor* InAvatar)
 {
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
 	if (!MyPC)
@@ -92,7 +101,7 @@ void UAMAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbilit
 		IAbilityInput, InGroup, InSlot);
 
 	AbilityComp->AddOnAbilityReadyDelegate(InAbilityTag, del);
-	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, nullptr, IAbilityInput);// , /*Input*/ ShootInput);
+	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, InAvatar, IAbilityInput);// , /*Input*/ ShootInput);
 }
 void UAMAbilityManagerComponent::OnAbilityReady(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput, 
 	EAMGroup InGroup, EAMSlot InSlot)
@@ -123,6 +132,7 @@ void UAMAbilityManagerComponent::OnAbilityReady(FGameplayTag InAbilityTag, TArra
 		SetAbilityTag(InGroup, InSlot, InAbilityTag);
 		SetInputTag(InGroup, InSlot, InAbilityInput);
 		AbilityComp->SetAbilityToAction(InAbilityTag, InAbilityInput, FAFOnAbilityReady());
+		ExecuteAbilityReadyEvent(InAbilityTag);
 	}
 }
 
@@ -143,6 +153,7 @@ void UAMAbilityManagerComponent::OnAbilityInputReady(FGameplayTag InAbilityTag, 
 	SetAbility(InGroup, InSlot, Ability);
 	SetAbilityTag(InGroup, InSlot, InAbilityTag);
 	SetInputTag(InGroup, InSlot, InAbilityInput);
+	ExecuteAbilityReadyEvent(InAbilityTag);
 }
 
 void UAMAbilityManagerComponent::NextGroup()

@@ -107,15 +107,6 @@ void FAbilityFrameworkEditor::StartupModule()
 
 	//BlueprintEditorTabBinding = MakeShared<FEffectCueSequenceEditorTabBinding>();
 	OnInitializeSequenceHandle = UGAEffectCueSequence::OnInitializeSequence().AddStatic(FAbilityFrameworkEditor::OnInitializeSequence);
-
-	if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
-	{
-		SettingsModule->RegisterSettings("Project", "Game", "Cue Manager",
-			FText::FromString("Cue Manager"),
-			FText::FromString("Cue Manager Settings"),
-			GetMutableDefault<UAFCueManager>()
-		);
-	}
 }
 void FAbilityFrameworkEditor::ShutdownModule()
 {

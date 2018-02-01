@@ -342,6 +342,7 @@ void UGAAbilityBase::NativeCancelActivation()
 		AbilityState = EAFAbilityState::Waiting;
 		ActivationEffectHandle.Reset();
 	}
+	OnActivationCancel();
 }
 
 bool UGAAbilityBase::IsWaitingForConfirm()

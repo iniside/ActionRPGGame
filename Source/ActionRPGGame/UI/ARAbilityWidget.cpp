@@ -3,7 +3,7 @@
 #include "ARAbilityWidget.h"
 #include "AFAbilityInterface.h"
 #include "AFAbilityComponent.h"
-#include "ARUIAbilityManagerComponent.h"
+#include "AMAbilityManagerComponent.h"
 #include "Abilities/GAAbilityBase.h"
 
 #include "ARAbilityBase.h"
@@ -15,73 +15,73 @@
 
 float UARAbilityWidget::GetActivationRemainingTime()
 {
-	if (!OwningComponent)
+	if (!AbilityManager)
 		return 0;
-	UARAbilityBase* Ability = OwningComponent->GetAbility(AbilitySetIndex, AbilityIndex);
+	UGAAbilityBase* Ability = AbilityManager->GetAbility(Group, AbilitySlot);
 	return Ability ? Ability->GetActivationRemainingTime() : 0;
 }
 float UARAbilityWidget::GetActivationRemainingTimeNormalized()
 {
-	if (!OwningComponent)
+	if (!AbilityManager)
 		return 0;
-	UARAbilityBase* Ability = OwningComponent->GetAbility(AbilitySetIndex, AbilityIndex);
+	UGAAbilityBase* Ability = AbilityManager->GetAbility(Group, AbilitySlot);
 	return Ability ? Ability->GetActivationRemainingTimeNormalized() : 0;
 }
 float UARAbilityWidget::GetActivationCurrentTime()
 {
-	if (!OwningComponent)
+	if (!AbilityManager)
 		return 0;
-	UARAbilityBase* Ability = OwningComponent->GetAbility(AbilitySetIndex, AbilityIndex);
+	UGAAbilityBase* Ability = AbilityManager->GetAbility(Group, AbilitySlot);
 	return Ability ? Ability->GetActivationCurrentTime() : 0;
 }
 float UARAbilityWidget::GetActivationCurrentTimeNormalized()
 {
-	if (!OwningComponent)
+	if (!AbilityManager)
 		return 0;
-	UARAbilityBase* Ability = OwningComponent->GetAbility(AbilitySetIndex, AbilityIndex);
+	UGAAbilityBase* Ability = AbilityManager->GetAbility(Group, AbilitySlot);
 	return Ability ? Ability->GetActivationCurrentTimeNormalized() : 0;
 }
 float UARAbilityWidget::GetActivationEndTime()
 {
-	if (!OwningComponent)
+	if (!AbilityManager)
 		return 0;
-	UARAbilityBase* Ability = OwningComponent->GetAbility(AbilitySetIndex, AbilityIndex);
+	UGAAbilityBase* Ability = AbilityManager->GetAbility(Group, AbilitySlot);
 	return Ability ? Ability->GetActivationEndTime() : 0;
 }
 
 float UARAbilityWidget::GetCooldownRemainingTime()
 {
-	if (!OwningComponent)
+	if (!AbilityManager)
 		return 0;
-	UARAbilityBase* Ability = OwningComponent->GetAbility(AbilitySetIndex, AbilityIndex);
+	UGAAbilityBase* Ability = AbilityManager->GetAbility(Group, AbilitySlot);
 	return Ability ? Ability->GetCooldownRemainingTime() : 0;
 }
 float UARAbilityWidget::GetCooldownRemainingTimeNormalized()
 {
-	if (!OwningComponent)
+	if (!AbilityManager)
 		return 0;
-	UARAbilityBase* Ability = OwningComponent->GetAbility(AbilitySetIndex, AbilityIndex);
+	UGAAbilityBase* Ability = AbilityManager->GetAbility(Group, AbilitySlot);
 	return Ability ? Ability->GetCooldownRemainingTimeNormalized() : 0;
 }
 float UARAbilityWidget::GetCooldownCurrentTime()
 {
-	if (!OwningComponent)
+	if (!AbilityManager)
 		return 0;
-	UARAbilityBase* Ability = OwningComponent->GetAbility(AbilitySetIndex, AbilityIndex);
+	UGAAbilityBase* Ability = AbilityManager->GetAbility(Group, AbilitySlot);
 	return Ability ? Ability->GetCooldownCurrentTime() : 0;
 }
 float UARAbilityWidget::GetCooldownCurrentTimeNormalized()
 {
-	if (!OwningComponent)
+	if (!AbilityManager)
 		return 0;
-	UARAbilityBase* Ability = OwningComponent->GetAbility(AbilitySetIndex, AbilityIndex);
+	UGAAbilityBase* Ability = AbilityManager->GetAbility(Group, AbilitySlot);
 	return Ability ? Ability->GetCooldownCurrentTimeNormalized() : 0;
 }
 float UARAbilityWidget::GetCooldownEndTime()
 {
-	if (!OwningComponent)
+	if (!AbilityManager)
 		return 0;
-	UARAbilityBase* Ability = OwningComponent->GetAbility(AbilitySetIndex, AbilityIndex);
+	UGAAbilityBase* Ability = AbilityManager->GetAbility(Group, AbilitySlot);
 	return Ability ? Ability->GetCooldownEndTime() : 0;
 }
 UTexture2D* UARAbilityWidget::GetIcon()
@@ -89,48 +89,10 @@ UTexture2D* UARAbilityWidget::GetIcon()
 	if (Icon)
 		return Icon;
 
-	if (!OwningComponent)
+	if (!AbilityManager)
 		return nullptr;
-	UARAbilityBase* Ability = OwningComponent->GetAbility(AbilitySetIndex, AbilityIndex);
-	return Ability ? Ability->UIData->Icon : nullptr;
-}
 
-void UARAbilityWidget::Setbility(const FGameplayTag& InAbility)
-{
-	AbilityTag = InAbility;
-	FAssetData AssetData = FARGlobals::GetAbilityAssetByTag(InAbility);
-	TSubclassOf<UARAbilityBase> cls;// = nullptr;
-	if (AssetData.IsValid())
-	{
-		if (UAssetManager* Manager = UAssetManager::GetIfValid())
-		{
-			FPrimaryAssetId PrimaryAssetId = FARGlobals::MakeAbilityAssetId(AssetData);
-			FPrimaryAssetTypeInfo Info;
-			if (Manager->GetPrimaryAssetTypeInfo(PrimaryAssetId.PrimaryAssetType, Info))// && !Info.bHasBlueprintClasses)
-			{
-				cls = Manager->GetPrimaryAssetObjectClass<UARAbilityBase>(PrimaryAssetId);
-				FStreamableDelegate del = FStreamableDelegate::CreateUObject(this, &UARAbilityWidget::OnFinishedLoad, PrimaryAssetId);
-				Manager->LoadPrimaryAsset(PrimaryAssetId,
-					TArray<FName>(),
-					del);
-			}
-		}
-	}
-}
-void UARAbilityWidget::OnFinishedLoad(FPrimaryAssetId PrimaryAssetId)
-{
-	if (UAssetManager* Manager = UAssetManager::GetIfValid())
-	{
-		UObject* loaded = Manager->GetPrimaryAssetObject(PrimaryAssetId);
-		TSubclassOf<UARAbilityBase> cls = Cast<UClass>(loaded);
-		if (cls)
-		{
-			UARAbilityBase* CDO = cls.GetDefaultObject();
-			Icon = CDO->UIData->Icon;
-		}
-
-		{
-			Manager->UnloadPrimaryAsset(PrimaryAssetId);
-		}
-	}
+	return nullptr;
+	/*UARAbilityBase* Ability = AbilityManager->GetAbility(Group, AbilitySlot);
+	return Ability ? Ability->UIData->Icon : nullptr;*/
 }

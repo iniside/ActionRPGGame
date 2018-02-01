@@ -8,7 +8,6 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "ARPlayerController.h"
-#include "ARUIAbilityManagerComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AARCharacter

@@ -18,8 +18,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
 		class UARUIComponent* UIComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
-		class UARUIAbilityManagerComponent* UIAbilityManagerComponent;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
 		class UARWeaponManagerComponent* WeaponManager;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
