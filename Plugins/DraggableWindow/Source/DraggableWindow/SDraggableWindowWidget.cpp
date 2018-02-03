@@ -23,7 +23,7 @@ FDWWWindowHandle FDWWWindowHandle::Make(TSharedPtr<class SDraggableWindowWidget>
 	FDWWWindowHandle Handle(NewHandle);
 	Handle.Window = InWindow;
 	InWindow->SetHandle(Handle);
-	return NewHandle;
+	return Handle;
 }
 void SDraggableDesktopWidget::Clean()
 {
@@ -430,9 +430,9 @@ void SDraggableWindowWidget::Tick(const FGeometry& AllottedGeometry, const doubl
 		
 		const float ApplicationScale = FSlateApplication::Get().GetApplicationScale();
 		FVector2D AbsSize = AllottedGeometry.LocalToAbsolute(FVector2D(CurrentWidth, CurrentHeight));
+		FVector2D GeomAbs = AllottedGeometry.GetAbsolutePosition();
 		FVector2D localSize = WindowSize + WindowPosition;
 		CurrentCursorPosition = CurrentPosition;
-		
 		if (CurrentPosition.X <= 0)
 		{
 			CurrentCursorPosition.X = 0;
@@ -443,11 +443,13 @@ void SDraggableWindowWidget::Tick(const FGeometry& AllottedGeometry, const doubl
 		}
 		if ((AbsPos.X + ((AbsSize.X - AbsDragPosition.X) * ApplicationScale)) >= localSize.X)
 		{
-			CurrentCursorPosition.X = localSize.X - CurrentWidth;
+			FVector2D localSize2 = AllottedGeometry.AbsoluteToLocal(WindowSize + WindowPosition);
+			CurrentCursorPosition.X = localSize2.X - CurrentWidth;
 		}
 		if ((AbsPos.Y + ((AbsSize.Y - AbsDragPosition.Y) * ApplicationScale)) >= localSize.Y)
 		{
-			CurrentCursorPosition.Y = localSize.Y - CurrentHeight;
+			FVector2D localSize2 = AllottedGeometry.AbsoluteToLocal(WindowSize + WindowPosition);
+			CurrentCursorPosition.Y = localSize2.Y - CurrentHeight;
 		}
 		break;
 	}
