@@ -39,7 +39,7 @@ public:
 	void SetupInputComponent();
 
 	void InputSwitchAbilitySet();
-
+	void InputShowHideAbilityManager();
 	UFUNCTION(BlueprintCallable, Category = "ActionRPGGame|Weapons")
 		void NextWeapon();
 	UFUNCTION(BlueprintCallable, Category = "ActionRPGGame|Weapons")

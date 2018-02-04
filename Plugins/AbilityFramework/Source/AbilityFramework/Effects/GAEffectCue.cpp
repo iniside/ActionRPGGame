@@ -147,7 +147,10 @@ void AGAEffectCue::NativeBeginCue(AActor* InstigatorOut, AActor* TargetOut, UObj
 		Timer.SetTimer(PeriodTimer, del, CueParams.Period, true);
 	}
 	BeginCue(InstigatorOut, TargetOut, Causer, HitInfo);
-	SequencePlayer->Play();
+	if (!SequencePlayer)
+	{
+		SequencePlayer->Play();
+	}
 }
 
 void AGAEffectCue::NativeOnExecuted()

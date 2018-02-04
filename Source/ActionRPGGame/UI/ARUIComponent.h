@@ -11,6 +11,13 @@ UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ACTIONRPGGAME_API UARUIComponent : public UActorComponent
 {
 	GENERATED_BODY()
+protected:
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+		TSubclassOf<class UUserWidget> CrosshairClass;
+
+	UPROPERTY()
+		UUserWidget* CrosshairWidget;
+
 
 public:	
 	// Sets default values for this component's properties

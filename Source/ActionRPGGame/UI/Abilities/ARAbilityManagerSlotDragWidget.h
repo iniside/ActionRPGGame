@@ -4,25 +4,28 @@
 
 #include "CoreMinimal.h"
 #include "UI/ARAbilityWidget.h"
-#include "ARAbilitySlotConfigWidget.generated.h"
+#include "AMTypes.h"
+#include "ARAbilityManagerSlotDragWidget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ACTIONRPGGAME_API UARAbilitySlotConfigWidget : public UARAbilityWidget
+class ACTIONRPGGAME_API UARAbilityManagerSlotDragWidget : public UARAbilityWidget
 {
 	GENERATED_BODY()
-public:
-
+protected:
 	UPROPERTY(EditAnywhere, Category = "Config")
-		FGameplayTag InputBinding;
+		FGameplayTag AbilityTag;
 public:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry
 			, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry
 		, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
-	virtual bool NativeOnDrop(const FGeometry& InGeometry
-		, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+
+	inline const FGameplayTag& GetAbilityTag() const
+	{
+		return AbilityTag;
+	}
 	
 };

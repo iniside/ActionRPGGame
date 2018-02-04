@@ -20,14 +20,6 @@
 */
 
 //all the inputs assigned to SINGLE ability;
-USTRUCT()
-struct FAMAbilityInputs
-{
-	GENERATED_BODY()
-public:
-	UPROPERTY(EditAnywhere)
-		TArray<FGameplayTag> Inputs;
-};
 
 USTRUCT()
 struct FAMAbilityInputSlot
@@ -35,11 +27,11 @@ struct FAMAbilityInputSlot
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere)
-		FAMAbilityInputs Inputs;
+		TArray<FGameplayTag> Inputs;
 
 	TArray<FGameplayTag> operator()()
 	{
-		return Inputs.Inputs;
+		return Inputs;
 	}
 };
 
@@ -69,6 +61,14 @@ public:
 	}
 };
 
+USTRUCT()
+struct FAMAbilitySlotConfig
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere)
+		uint8 SlotNum;
+};
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ABILITYMANAGER_API UAMAbilityManagerComponent : public UActorComponent
@@ -76,7 +76,7 @@ class ABILITYMANAGER_API UAMAbilityManagerComponent : public UActorComponent
 	GENERATED_BODY()
 protected:
 	UPROPERTY(EditAnywhere)
-		uint8 MaxGroups;
+		TArray<FAMAbilitySlotConfig> Groups;
 
 	//Map input bindings to particular slot and group.
 	UPROPERTY(EditAnywhere)
@@ -86,8 +86,6 @@ protected:
 		TArray<FGameplayTag> InputsToBind;
 
 	EAMGroup ActiveGroup;
-	//UPROPERTY(EditAnywhere, Category = "Input Config")
-	//	TArray<FARAbilityInputBinding> InputBindingsSet;
 
 	TArray<TArray<FGameplayTag>> AbilityTagsSet;
 	TArray<TArray<TWeakObjectPtr<class UGAAbilityBase>>> AbilitySet;
@@ -116,9 +114,9 @@ public:
 	void SetInputTag(EAMGroup InGroup, EAMSlot InSlot, TArray<FGameplayTag> InAbilityTag);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Equip Ability"), Category = "Ability Manager")
-		void BP_EquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot);
+		void BP_EquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, bool bBindInput = true);
 
-	void NativeEquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, AActor* InAvatar = nullptr);
+	void NativeEquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, AActor* InAvatar = nullptr, bool bBindInput = true);
 	UFUNCTION()
 		void OnAbilityReady(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput,
 			EAMGroup InGroup, EAMSlot InSlot);
@@ -128,9 +126,9 @@ public:
 			EAMGroup InGroup, EAMSlot InSlot);
 	
 	UFUNCTION(BlueprintCallable)
-		void NextGroup();
+		virtual void NextGroup();
 	UFUNCTION(BlueprintCallable)
-		void PreviousGroup();
+		virtual void PreviousGroup();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerNextGroup(int32 WeaponIndex);

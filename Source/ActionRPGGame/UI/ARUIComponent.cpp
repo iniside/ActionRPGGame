@@ -1,7 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ARUIComponent.h"
-
+#include "ARPlayerController.h"
+#include "Blueprint/UserWidget.h"
 
 // Sets default values for this component's properties
 UARUIComponent::UARUIComponent()
@@ -19,8 +20,14 @@ void UARUIComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	AARPlayerController* MyPC = Cast<AARPlayerController>(GetOwner());
 	// ...
-	
+	if (CrosshairClass)
+	{
+		CrosshairWidget = CreateWidget<UUserWidget>(MyPC, CrosshairClass);
+		CrosshairWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+		CrosshairWidget->AddToViewport();
+	}
 }
 
 

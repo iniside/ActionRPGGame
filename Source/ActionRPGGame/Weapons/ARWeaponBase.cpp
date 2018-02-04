@@ -27,7 +27,7 @@ void AARWeaponBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
-void AARWeaponBase::Equip(EAMGroup Group, EAMSlot Slot
+void AARWeaponBase::OnAddToWeaponManager(EAMGroup Group, EAMSlot Slot
 	, class APawn* InPOwner
 	, class UAMAbilityManagerComponent* WeaponManager)
 {
@@ -36,9 +36,24 @@ void AARWeaponBase::Equip(EAMGroup Group, EAMSlot Slot
 		return;
 	
 	POwner = InPOwner;
-	FSimpleDelegate Delegate = FSimpleDelegate::CreateUObject(this, &AARWeaponBase::NativeOnWeaponEquiped);
-	WManager->AddOnAbilityReadyEvent(WeaponAbility, Delegate);
-	WManager->NativeEquipAbility(WeaponAbility, Group, Slot, this);
+	//FSimpleDelegate Delegate = FSimpleDelegate::CreateUObject(this, &AARWeaponBase::NativeOnWeaponEquiped);
+	WManager->AddOnAbilityReadyEvent(WeaponAbility, FSimpleDelegate());
+	WManager->NativeEquipAbility(WeaponAbility, Group, Slot, this, false);
+}
+void AARWeaponBase::Equip()
+{
+	if (!POwner)
+		return;
+
+	AARCharacter* Character = Cast<AARCharacter>(POwner);
+	if (!Character)
+		return;
+
+	AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, SocketName);
+}
+void AARWeaponBase::UnEquip()
+{
+
 }
 void AARWeaponBase::NativeOnWeaponEquiped()
 {

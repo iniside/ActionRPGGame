@@ -28,6 +28,8 @@ protected:
 	//currently active weapons.
 	UPROPERTY(BlueprintReadOnly, Category = "Weapon Manager")
 		class AARWeaponBase* CurrentWeapon;
+
+	TMap<FGameplayTag, AARWeaponBase*> AbilityToWeapon;
 public:	
 	// Sets default values for this component's properties
 	UARWeaponManagerComponent();
@@ -43,12 +45,15 @@ public:
 	UGAAbilityBase* GetCurrentWeapon();
 
 	UFUNCTION(BlueprintCallable, meta=(DisplayName="Equip Weapon"), Category = "Weapon Manager")
-		void BP_EquipWeapon(EAMGroup Group, EAMSlot Slot);
+		void BP_EquipWeapon(EAMGroup Group, EAMSlot Slot, int32 Idx);
 
-	virtual void EquipWeapon(EAMGroup Group, EAMSlot Slot);
+	virtual void EquipWeapon(EAMGroup Group, EAMSlot Slot, int32 Idx);
 
 	UFUNCTION(BlueprintCallable)
 		void NextWeapon();
 	UFUNCTION(BlueprintCallable)
 		void PreviousWeapon();
+
+	UFUNCTION()
+	void OnWeaponInputRead(FGameplayTag WeaponAbilityTag, TArray<FGameplayTag> InInputTags);
 };

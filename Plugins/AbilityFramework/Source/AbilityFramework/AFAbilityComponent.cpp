@@ -689,10 +689,21 @@ void FGASAbilityContainer::RemoveAbilityFromAction(const FGameplayTag& InAbility
 		ActionToAbility.Remove(Action);
 	}
 
-	AbilitiesInputs.Remove(InAbilityTag);
+	//AbilitiesInputs.Remove(InAbilityTag);
 }
 void FGASAbilityContainer::SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
 {
+	if (ActionToAbility.Contains(InInputTag))
+	{
+		FGameplayTag AbilityTag = ActionToAbility.FindRef(InInputTag);
+		UE_LOG(AbilityFramework, Log, TEXT("FGASAbilityContainer: Input %s is already abount to Ability %s"),
+			*InInputTag.ToString(),
+			*AbilityTag.ToString()
+		);
+		
+		//return;
+	}
+
 	FGameplayTag& AbilityTag = ActionToAbility.FindOrAdd(InInputTag);
 	AbilityTag = InAbilityTag;
 
@@ -836,6 +847,14 @@ void UAFAbilityComponent::SetAbilityToAction(const FGameplayTag& InAbilityTag, c
 {
 	for (const FGameplayTag& Tag : InInputTag)
 	{
+		if (AbilityContainer.IsAbilityBoundToAction(Tag).IsValid())
+		{
+			RemoveAbilityFromAction(InAbilityTag, Tag);
+		}
+	}
+
+	for (const FGameplayTag& Tag : InInputTag)
+	{
 		SetAbilityToAction(InAbilityTag, Tag, InputDelegate);
 	}
 }
@@ -845,6 +864,8 @@ void UAFAbilityComponent::SetAbilityToAction(const FGameplayTag& InAbilityTag, c
 	//check if there is input under tag
 	//clear it
 	//then bind.
+	
+
 	AbilityContainer.SetAbilityToAction(InAbilityTag, InInputTag);
 	ENetRole role = GetOwnerRole();
 	
@@ -944,13 +965,20 @@ void UAFAbilityComponent::BP_AddAbilityFromTag(FGameplayTag InAbilityTag,
 void UAFAbilityComponent::NativeAddAbilityFromTag(FGameplayTag InAbilityTag,
 	AActor* InAvatar, const TArray<FGameplayTag>& InInputTag)
 {
+	FGameplayTag AlreadyBound = IsAbilityBoundToAction(InAbilityTag, InInputTag);
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
 		ServerNativeAddAbilityFromTag(InAbilityTag, InAvatar, InInputTag);
+		if (AlreadyBound.IsValid())
+		{
+			for (const FGameplayTag& Input : InInputTag)
+			{
+				AbilityContainer.RemoveAbilityFromAction(InAbilityTag, Input);
+			}
+		}
 	}
 	else
 	{
-		FGameplayTag AlreadyBound = IsAbilityBoundToAction(InAbilityTag, InInputTag);
 		if (AlreadyBound.IsValid())
 		{
 			NativeRemoveAbility(AlreadyBound);

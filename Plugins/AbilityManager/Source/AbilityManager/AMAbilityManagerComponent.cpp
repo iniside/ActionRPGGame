@@ -25,12 +25,14 @@ void UAMAbilityManagerComponent::BeginPlay()
 }
 void UAMAbilityManagerComponent::InitializeComponent()
 {
-	AbilitySet.SetNum(MaxGroups);
-	AbilityTagsSet.SetNum(MaxGroups);
-	for(int32 Idx = 0; Idx < MaxGroups; Idx++)
+	uint8 GroupNum = Groups.Num();
+	
+	AbilitySet.SetNum(GroupNum);
+	AbilityTagsSet.SetNum(GroupNum);
+	for(int32 Idx = 0; Idx < GroupNum; Idx++)
 	{
-		AbilitySet[Idx].SetNum(1);
-		AbilityTagsSet[Idx].SetNum(1);
+		AbilitySet[Idx].SetNum(Groups[Idx].SlotNum);
+		AbilityTagsSet[Idx].SetNum(Groups[Idx].SlotNum);
 	}
 }
 
@@ -53,11 +55,11 @@ void UAMAbilityManagerComponent::BindInputs(UInputComponent* InputComponent, cla
 }
 UGAAbilityBase* UAMAbilityManagerComponent::GetAbility(EAMGroup InGroup, EAMSlot InSlot)
 {
-	return AbilitySet.Num() >= MaxGroups ? AbilitySet[AMEnumToInt<EAMGroup>(InGroup)][AMEnumToInt<EAMSlot>(InSlot)].Get() : nullptr;
+	return AbilitySet.Num() >= Groups.Num() ? AbilitySet[AMEnumToInt<EAMGroup>(InGroup)][AMEnumToInt<EAMSlot>(InSlot)].Get() : nullptr;
 }
 void UAMAbilityManagerComponent::SetAbility(EAMGroup InGroup, EAMSlot InSlot, UGAAbilityBase* InAbility)
 {
-	if (AbilitySet.Num() < MaxGroups)
+	if (AbilitySet.Num() < Groups.Num())
 		return;
 
 	AbilitySet[AMEnumToInt<EAMGroup>(InGroup)][AMEnumToInt<EAMSlot>(InSlot)] = InAbility;
@@ -71,9 +73,9 @@ void UAMAbilityManagerComponent::SetInputTag(EAMGroup InGroup, EAMSlot InSlot, T
 {
 
 }
-void UAMAbilityManagerComponent::BP_EquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot)
+void UAMAbilityManagerComponent::BP_EquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, bool bBindInput)
 {
-	NativeEquipAbility(InAbilityTag, InGroup, InSlot);
+	NativeEquipAbility(InAbilityTag, InGroup, InSlot, nullptr, bBindInput);
 }
 FGameplayTag UAMAbilityManagerComponent::GetAbilityTag(EAMGroup InGroup, EAMSlot InSlot)
 {
@@ -83,7 +85,7 @@ void UAMAbilityManagerComponent::SetAbilityTag(EAMGroup InGroup, EAMSlot InSlot,
 {
 	AbilityTagsSet[AMEnumToInt<EAMGroup>(InGroup)][AMEnumToInt<EAMSlot>(InSlot)] = InAbilityTag;
 }
-void UAMAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, AActor* InAvatar)
+void UAMAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, AActor* InAvatar, bool bBindInput)
 {
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
 	if (!MyPC)
@@ -96,7 +98,11 @@ void UAMAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbilit
 	UAFAbilityComponent* AbilityComp = ABInt->GetAbilityComp();
 	if (!AbilityComp)
 		return;
-	TArray<FGameplayTag> IAbilityInput = GetInputTag(InGroup, InSlot);
+	TArray<FGameplayTag> IAbilityInput;
+	
+	if(bBindInput)
+		IAbilityInput = GetInputTag(InGroup, InSlot);
+
 	FAFOnAbilityReady del = FAFOnAbilityReady::CreateUObject(this, &UAMAbilityManagerComponent::OnAbilityReady, InAbilityTag,
 		IAbilityInput, InGroup, InSlot);
 
@@ -164,7 +170,7 @@ void UAMAbilityManagerComponent::NextGroup()
 	{
 		int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
 		CurrentIndex++;
-		if(CurrentIndex > MaxGroups)
+		if(CurrentIndex > Groups.Num())
 		{
 			ActiveGroup = EAMGroup::Group001;
 		}
@@ -173,7 +179,7 @@ void UAMAbilityManagerComponent::NextGroup()
 			ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
 		}
 		
-		if (ActiveGroup < AMIntToEnum<EAMGroup>(MaxGroups))
+		if (ActiveGroup < AMIntToEnum<EAMGroup>(Groups.Num()))
 		{
 		}
 		else
@@ -211,7 +217,7 @@ void UAMAbilityManagerComponent::ServerNextGroup_Implementation(int32 WeaponInde
 	int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
 	CurrentIndex++;
 	ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
-	if (CurrentIndex > MaxGroups)
+	if (CurrentIndex > Groups.Num())
 	{
 		ActiveGroup = EAMGroup::Group001;
 	}
@@ -219,7 +225,7 @@ void UAMAbilityManagerComponent::ServerNextGroup_Implementation(int32 WeaponInde
 	{
 		ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
 	}
-	if (ActiveGroup < AMIntToEnum<EAMGroup>(MaxGroups))
+	if (ActiveGroup < AMIntToEnum<EAMGroup>(Groups.Num()))
 	{
 	}
 	else

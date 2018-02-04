@@ -31,11 +31,18 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	virtual void Equip(EAMGroup Group, EAMSlot Slot
+	virtual void OnAddToWeaponManager(EAMGroup Group, EAMSlot Slot
 		, class APawn* InPOwner
 		, class UAMAbilityManagerComponent* WeaponManager);
+	virtual void Equip();
+	virtual void UnEquip();
 
 	UFUNCTION()
 	virtual void NativeOnWeaponEquiped();
 	
+
+	const inline FGameplayTag& GetWeaponAbility() const
+	{
+		return WeaponAbility;
+	}
 };
