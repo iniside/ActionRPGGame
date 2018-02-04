@@ -9,6 +9,17 @@
 #include "AFAbilityInterface.h"
 #include "ARCharacter.generated.h"
 
+USTRUCT(BlueprintType)
+struct FARCameraTransform
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(BlueprintReadOnly)
+		FVector ForwardVector;
+	UPROPERTY(BlueprintReadOnly)
+		FVector Location;
+};
+
 UCLASS(config=Game)
 class AARCharacter : public ACharacter, public IAFAbilityInterface
 {
@@ -28,6 +39,10 @@ class AARCharacter : public ACharacter, public IAFAbilityInterface
 	
 	UPROPERTY(EditAnywhere, Category = "Default Abilities")
 		TArray<FGameplayTag> AbilitiesToGive;
+public:
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Player Character Camera")
+		FARCameraTransform CameraTransform;
+
 public:
 	AARCharacter();
 
@@ -92,5 +107,11 @@ public:
 	virtual void RemoveTagContainer(const FGameplayTagContainer& TagsIn) override;
 
 	/* IAFAbilityInterface- END */
+
+	UFUNCTION(NetMulticast, Unreliable)
+		void Multicast_CameraTransform(FARCameraTransform InCameraTransform);
+	void Multicast_CameraTransform_Implementation(FARCameraTransform InCameraTransform);
+
+	void OnCameraTransformUpdate(USceneComponent* UpdatedComponent, EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport);
 };
 

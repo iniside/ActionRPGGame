@@ -6,10 +6,4 @@
 
 void UARWeaponAbilityBase::OnAbilityInited()
 {
-	UWorld* world = GetWorld();
-	if (!world)
-		return;
-
-	FActorSpawnParameters SpawnParams;
-	AvatarActor = world->SpawnActor<AARWeaponAvatar>(WeaponAvatar, SpawnParams);
 }

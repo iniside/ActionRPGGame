@@ -892,3 +892,8 @@ float UGAAbilityBase::BP_GetCooldownEndTime()
 {
 	return GetCooldownEndTime();
 }
+
+AActor*  UGAAbilityBase::BP_GetAvatar()
+{
+	return AvatarActor;
+}

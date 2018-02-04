@@ -1,9 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ARUIComponent.h"
-#include "ARPlayerController.h"
 #include "Blueprint/UserWidget.h"
 
+#include "ARPlayerController.h"
+#include "Inventory/ARInventoryManagerWidget.h"
 // Sets default values for this component's properties
 UARUIComponent::UARUIComponent()
 {
@@ -20,13 +21,23 @@ void UARUIComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AARPlayerController* MyPC = Cast<AARPlayerController>(GetOwner());
-	// ...
-	if (CrosshairClass)
+	if (GetOwner()->GetNetMode() == ENetMode::NM_Client
+		|| GetOwner()->GetNetMode() == ENetMode::NM_Standalone)
 	{
-		CrosshairWidget = CreateWidget<UUserWidget>(MyPC, CrosshairClass);
-		CrosshairWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
-		CrosshairWidget->AddToViewport();
+		AARPlayerController* MyPC = Cast<AARPlayerController>(GetOwner());
+		// ...
+		if (CrosshairClass)
+		{
+			CrosshairWidget = CreateWidget<UUserWidget>(MyPC, CrosshairClass);
+			CrosshairWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+			CrosshairWidget->AddToViewport();
+		}
+		if (InventoryManagerClass)
+		{
+			InventoryManagerWidget = CreateWidget<UARInventoryManagerWidget>(MyPC, InventoryManagerClass);
+			InventoryManagerWidget->SetVisibility(ESlateVisibility::Collapsed);
+			InventoryManagerWidget->AddToViewport();
+		}
 	}
 }
 
@@ -39,3 +50,14 @@ void UARUIComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	// ...
 }
 
+void UARUIComponent::ShowHideInventory()
+{
+	if (InventoryManagerWidget->GetVisibility() == ESlateVisibility::Collapsed)
+	{
+		InventoryManagerWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	}
+	else if (InventoryManagerWidget->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
+	{
+		InventoryManagerWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}

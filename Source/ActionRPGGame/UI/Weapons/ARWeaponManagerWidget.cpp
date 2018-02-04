@@ -1,13 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "ARWeaponBaseWidget.h"
+#include "ARWeaponManagerWidget.h"
 
 #include "../../ARPlayerController.h"
 #include "../../Weapons/ARWeaponManagerComponent.h"
 
 
 
-void UARWeaponBaseWidget::NativePreConstruct()
+void UARWeaponManagerWidget::NativePreConstruct()
 {
 	if (AARPlayerController* MyPC = Cast<AARPlayerController>(GetOwningPlayer()))
 	{
@@ -15,7 +15,7 @@ void UARWeaponBaseWidget::NativePreConstruct()
 	}
 	Super::NativePreConstruct();
 }
-void UARWeaponBaseWidget::NativeConstruct()
+void UARWeaponManagerWidget::NativeConstruct()
 {
 	if (AARPlayerController* MyPC = Cast<AARPlayerController>(GetOwningPlayer()))
 	{
@@ -23,5 +23,3 @@ void UARWeaponBaseWidget::NativeConstruct()
 	}
 	Super::NativeConstruct();
 }
-
-

@@ -49,11 +49,15 @@ void AARWeaponBase::Equip()
 	if (!Character)
 		return;
 
-	AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, SocketName);
+	AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
 }
 void AARWeaponBase::UnEquip()
 {
+	AARCharacter* Character = Cast<AARCharacter>(POwner);
+	if (!Character)
+		return;
 
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 }
 void AARWeaponBase::NativeOnWeaponEquiped()
 {

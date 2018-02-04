@@ -11,6 +11,7 @@ UAMAbilityManagerComponent::UAMAbilityManagerComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 	bWantsInitializeComponent = true;
+	SetIsReplicated(true);
 	// ...
 }
 
@@ -19,7 +20,7 @@ UAMAbilityManagerComponent::UAMAbilityManagerComponent()
 void UAMAbilityManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
+	//OnNextGroupDelegate = FGroupConfirmDelegate::(this, UAMAbilityManagerComponent::OnNextGroupConfirmed);
 	// ...
 	
 }
@@ -199,12 +200,9 @@ void UAMAbilityManagerComponent::PreviousGroup()
 	int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
 	CurrentIndex--;
 	ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
-	if (ActiveGroup >= EAMGroup::Group001)
+	if (CurrentIndex < 0)
 	{
-	}
-	else
-	{
-		ActiveGroup = EAMGroup::Group001;
+		ActiveGroup = AMIntToEnum<EAMGroup>(Groups.Num() - 1);
 	}
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
@@ -239,16 +237,21 @@ void UAMAbilityManagerComponent::ServerNextGroup_Implementation(int32 WeaponInde
 	//since it will be done trough ability.
 	if (ActiveGroup != AMIntToEnum<EAMGroup>(WeaponIndex))
 	{
-		ClientNextGroup(AMEnumToInt<EAMGroup>(ActiveGroup));
+		ClientNextGroup(AMEnumToInt<EAMGroup>(ActiveGroup), false);
+	}
+	else
+	{
+		ClientNextGroup(AMEnumToInt<EAMGroup>(ActiveGroup), true);
 	}
 }
 bool UAMAbilityManagerComponent::ServerNextGroup_Validate(int32 WeaponIndex)
 {
 	return true;
 }
-void UAMAbilityManagerComponent::ClientNextGroup_Implementation(int32 WeaponIndex)
+void UAMAbilityManagerComponent::ClientNextGroup_Implementation(int32 WeaponIndex, bool bPredictionSuccess)
 {
 	ActiveGroup = AMIntToEnum<EAMGroup>(WeaponIndex);
+	OnNextGroupConfirmed(ActiveGroup, bPredictionSuccess);
 }
 
 void UAMAbilityManagerComponent::ServerPreviousGroup_Implementation(int32 WeaponIndex)
@@ -256,28 +259,82 @@ void UAMAbilityManagerComponent::ServerPreviousGroup_Implementation(int32 Weapon
 	int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
 	CurrentIndex--;
 	ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
-	if (ActiveGroup >= EAMGroup::Group001)
+	if (CurrentIndex < 0)
 	{
-	}
-	else
-	{
-		ActiveGroup = EAMGroup::Group001;
+		ActiveGroup = AMIntToEnum<EAMGroup>(Groups.Num() -1);
 	}
 	if (ActiveGroup != AMIntToEnum<EAMGroup>(WeaponIndex))
 	{
-		ClientPreviousGroup(AMEnumToInt<EAMGroup>(ActiveGroup));
+		ClientPreviousGroup(AMEnumToInt<EAMGroup>(ActiveGroup), false);
+	}
+	else
+	{
+		ClientPreviousGroup(AMEnumToInt<EAMGroup>(ActiveGroup), true);
 	}
 }
 bool UAMAbilityManagerComponent::ServerPreviousGroup_Validate(int32 WeaponIndex)
 {
 	return true;
 }
-void UAMAbilityManagerComponent::ClientPreviousGroup_Implementation(int32 WeaponIndex)
+void UAMAbilityManagerComponent::ClientPreviousGroup_Implementation(int32 WeaponIndex, bool bPredictionSuccess)
 {
 	ActiveGroup = AMIntToEnum<EAMGroup>(WeaponIndex);
+	OnPreviousGroupConfirmed(ActiveGroup, bPredictionSuccess);
 }
 
 void UAMAbilityManagerComponent::SelectGroup(EAMGroup InGroup)
 {
+	if (AMEnumToInt<EAMGroup>(InGroup) > Groups.Num())
+	{
+		ActiveGroup = EAMGroup::Group001;
+		return;
+	}
+	ActiveGroup = InGroup;
+}
+
+class UAFAbilityComponent* UAMAbilityManagerComponent::GetAbilityComponent()
+{
+	UAFAbilityComponent* AbilityComponent = nullptr;
+	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
+	if (!MyPC)
+		return AbilityComponent;
+
+	IAFAbilityInterface* ABInt = Cast<IAFAbilityInterface>(MyPC->GetPawn());
+	if (!ABInt)
+		return AbilityComponent;
+
+	AbilityComponent = ABInt->GetAbilityComp();
 	
+	return AbilityComponent;
+}
+
+bool UAMAbilityManagerComponent::IsServerOrStandalone() const
+{
+	AActor* Owner = GetOwner();
+	if (Owner->GetNetMode() == ENetMode::NM_DedicatedServer
+		|| Owner->GetNetMode() == ENetMode::NM_Standalone)
+	{
+		return true;
+	}
+	return false;
+}
+bool UAMAbilityManagerComponent::IsClientOrStandalone() const
+{
+	AActor* Owner = GetOwner();
+	if (Owner->GetNetMode() == ENetMode::NM_Client
+		|| Owner->GetNetMode() == ENetMode::NM_Standalone)
+	{
+		return true;
+	}
+	return false;
+}
+bool UAMAbilityManagerComponent::IsClient() const
+{
+	AActor* Owner = GetOwner();
+	if (Owner->GetNetMode() == ENetMode::NM_Client
+		|| Owner->Role < ENetRole::ROLE_Authority)
+	{
+		return true;
+	}
+	return false;
 }

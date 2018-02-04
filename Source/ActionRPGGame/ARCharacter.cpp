@@ -7,6 +7,9 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "Engine/ActorChannel.h"
+
 #include "ARPlayerController.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -44,6 +47,8 @@ AARCharacter::AARCharacter()
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	Abilities = CreateDefaultSubobject<UAFAbilityComponent>(TEXT("Abilities"));
+
+	FollowCamera->TransformUpdated.AddUObject(this, &AARCharacter::OnCameraTransformUpdate);
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -166,3 +171,22 @@ void AARCharacter::RemoveTagContainer(const FGameplayTagContainer& TagsIn)
 	Abilities->RemoveTagContainer(TagsIn);
 }
 /* IAFAbilityInterface- END */
+
+void AARCharacter::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AARCharacter, CameraTransform);
+}
+
+void AARCharacter::Multicast_CameraTransform_Implementation(FARCameraTransform InCameraTransform)
+{
+	CameraTransform = InCameraTransform;
+}
+void AARCharacter::OnCameraTransformUpdate(USceneComponent* UpdatedComponent, EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport)
+{
+	FARCameraTransform CamTransform;
+	CameraTransform.ForwardVector = FollowCamera->GetForwardVector();
+	CameraTransform.Location = FollowCamera->GetComponentLocation();
+	//Multicast_CameraTransform(CamTransform);
+}

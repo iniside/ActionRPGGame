@@ -312,8 +312,8 @@ void UAFAbilityComponent::ExpireEffect(FGAEffectHandle HandleIn, FGAEffectProper
 		CueParams.Period = InProperty.Period;
 		CueParams.Duration = InProperty.Duration;
 		
-		if (mode == ENetMode::NM_Standalone
-			|| role >= ENetRole::ROLE_Authority)
+		//if (mode == ENetMode::NM_Standalone
+		//	|| role >= ENetRole::ROLE_Authority)
 		{
 			MulticastRemoveEffectCue(CueParams);
 		}
@@ -351,8 +351,8 @@ void UAFAbilityComponent::RemoveEffect(const FGAEffectProperty& InProperty,
 			RepInfo->OnExpired();
 		}
 	}
-	//if (GetOwnerRole() == ENetRole::ROLE_Authority
-	//	|| GetOwner()->GetNetMode() == ENetMode::NM_Standalone)
+	if (GetOwnerRole() == ENetRole::ROLE_Authority
+		|| GetOwner()->GetNetMode() == ENetMode::NM_Standalone)
 	{
 		InternalRemoveEffect(InProperty, InContext);
 	}
@@ -374,8 +374,8 @@ void UAFAbilityComponent::InternalRemoveEffect(const FGAEffectProperty& InProper
 		CueParams.Duration = InProperty.Duration;
 		ENetRole role = GetOwnerRole();
 		ENetMode mode = GetOwner()->GetNetMode();
-		//if (mode == ENetMode::NM_Standalone
-		//	|| role >= ENetRole::ROLE_Authority)
+		if (mode == ENetMode::NM_Standalone
+			|| role >= ENetRole::ROLE_Authority)
 		{
 			MulticastRemoveEffectCue(CueParams);
 		}
@@ -996,7 +996,7 @@ void UAFAbilityComponent::NativeAddAbilityFromTag(FGameplayTag InAbilityTag,
 			FPrimaryAssetTypeInfo Info;
 			if (Manager->GetPrimaryAssetTypeInfo(PrimaryAssetId.PrimaryAssetType, Info))
 			{
-				FStreamableDelegate del = FStreamableDelegate::CreateUObject(this, &UAFAbilityComponent::OnFinishedLoad, InAbilityTag, PrimaryAssetId);
+				FStreamableDelegate del = FStreamableDelegate::CreateUObject(this, &UAFAbilityComponent::OnFinishedLoad, InAbilityTag, PrimaryAssetId, InAvatar);
 
 				Manager->LoadPrimaryAsset(PrimaryAssetId,
 					TArray<FName>(),
@@ -1036,7 +1036,7 @@ bool UAFAbilityComponent::ServerNativeRemoveAbility_Validate(FGameplayTag InAbil
 	return true;
 }
 void UAFAbilityComponent::OnFinishedLoad(FGameplayTag InAbilityTag,
-	FPrimaryAssetId InPrimaryAssetId)
+	FPrimaryAssetId InPrimaryAssetId, AActor* InAvatar)
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
@@ -1048,7 +1048,7 @@ void UAFAbilityComponent::OnFinishedLoad(FGameplayTag InAbilityTag,
 		TSubclassOf<UGAAbilityBase> cls = Cast<UClass>(loaded);
 		if (cls)
 		{
-			InstanceAbility(cls, nullptr);
+			InstanceAbility(cls, InAvatar);
 		}
 
 		{

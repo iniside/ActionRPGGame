@@ -55,6 +55,7 @@ void AARPlayerController::SetPawn(APawn* InPawn)
 		AbilityComp->NativeAddAbilityFromTag(AbilitytPreviousWeapon, nullptr, PrevWeap);
 
 		InputComponent->BindAction("InputAbilityManager", IE_Pressed, this, &AARPlayerController::InputShowHideAbilityManager);
+		InputComponent->BindAction("InputInventory", IE_Pressed, this, &AARPlayerController::InputShowHideInventory);
 	}
 	//UIAbilityManagerComponent->BindInputs();
 }
@@ -73,6 +74,10 @@ void AARPlayerController::InputShowHideAbilityManager()
 {
 	AbilityManager->ShowHideAbilityManager();
 }
+void AARPlayerController::InputShowHideInventory()
+{
+	UIComponent->ShowHideInventory();
+}
 void AARPlayerController::OnInputAbilityReady(FGameplayTag InAbilityTag, FGameplayTag InInputTag)
 {
 	IAFAbilityInterface* ABInt = Cast<IAFAbilityInterface>(GetPawn());
@@ -86,14 +91,4 @@ void AARPlayerController::OnInputAbilityReady(FGameplayTag InAbilityTag, FGamepl
 	UARAbilityBase* Ability = Cast<UARAbilityBase>(AbilityComp->BP_GetAbilityByTag(InAbilityTag));
 	
 	AbilityComp->SetAbilityToAction(InAbilityTag, InInputTag, FAFOnAbilityReady());
-}
-
-void AARPlayerController::NextWeapon()
-{
-	//WeaponManager->NextWeapon();
-}
-
-void AARPlayerController::PreviousWeapon()
-{
-	//WeaponManager->PreviousWeapon();
 }

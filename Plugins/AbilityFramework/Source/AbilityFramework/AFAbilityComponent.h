@@ -792,7 +792,7 @@ public:
 
 	TMap<FGameplayTag, bool> BlockedInput;
 	//TSharedPtr<FStreamableHandle> AbilityLoadedHandle;
-	void OnFinishedLoad(FGameplayTag InAbilityTag, FPrimaryAssetId InPrimaryAssetId);
+	void OnFinishedLoad(FGameplayTag InAbilityTag, FPrimaryAssetId InPrimaryAssetId, AActor* InAvatar);
 	void SetBlockedInput(const FGameplayTag& InInput, bool bBlock);
 	void BindInputs(class UInputComponent* InputComponent);
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Bind Ability To Action"), Category = "AbilityFramework|Abilities")

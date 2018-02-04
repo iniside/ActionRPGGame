@@ -7,6 +7,7 @@
 
 #include "DWBPFunctionLibrary.h"
 #include "SDraggableWindowWidget.h"
+
 #include "../UI/Abilities/ARAbilityManagerWidget.h"
 
 // Sets default values for this component's properties
@@ -24,15 +25,19 @@ UARAbilityManagerComponent::UARAbilityManagerComponent()
 void UARAbilityManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	APlayerController* OwnerPC = Cast<APlayerController>(GetOwner());
-	// ...
-	if (ManagerWidgetClass)
+	if (GetOwner()->GetNetMode() == ENetMode::NM_Client
+		|| GetOwner()->GetNetMode() == ENetMode::NM_Standalone)
 	{
-		ManagerWidget = CreateWidget<UARAbilityManagerWidget>(OwnerPC, ManagerWidgetClass);
-		ManagerWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		ManagerWindowHandle = UDWBPFunctionLibrary::CreateWindowWithContent(ManagerWidget, "Ability Manager");
-		ManagerWindowHandle.Window.Pin()->SetVisibility(EVisibility::Collapsed);
-		//ManagerWidget->AddToViewport();
+		APlayerController* OwnerPC = Cast<APlayerController>(GetOwner());
+		// ...
+		if (ManagerWidgetClass)
+		{
+			ManagerWidget = CreateWidget<UARAbilityManagerWidget>(OwnerPC, ManagerWidgetClass);
+			ManagerWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			ManagerWindowHandle = UDWBPFunctionLibrary::CreateWindowWithContent(ManagerWidget, "Ability Manager");
+			ManagerWindowHandle.Window.Pin()->SetVisibility(EVisibility::Collapsed);
+			//ManagerWidget->AddToViewport();
+		}
 	}
 }
 

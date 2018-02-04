@@ -18,6 +18,10 @@ protected:
 	UPROPERTY()
 		UUserWidget* CrosshairWidget;
 
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+		TSubclassOf<class UARInventoryManagerWidget> InventoryManagerClass;
+	UPROPERTY()
+		class UARInventoryManagerWidget* InventoryManagerWidget;
 
 public:	
 	// Sets default values for this component's properties
@@ -32,5 +36,5 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 		
-	
+	void ShowHideInventory();
 };

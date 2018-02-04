@@ -636,4 +636,7 @@ public:
 		float  BP_GetCooldownCurrentTimeNormalized();
 	UFUNCTION(BlueprintPure, DisplayName = "GetCooldownEndTime", Category = "AbilityFramework|Abilities|Helpers")
 		float  BP_GetCooldownEndTime();
+
+	UFUNCTION(BlueprintCallable, DisplayName = "Get Avatar", Category = "AbilityFramework|Abilities|Helpers")
+		AActor*  BP_GetAvatar();
 };

@@ -40,10 +40,6 @@ public:
 
 	void InputSwitchAbilitySet();
 	void InputShowHideAbilityManager();
-	UFUNCTION(BlueprintCallable, Category = "ActionRPGGame|Weapons")
-		void NextWeapon();
-	UFUNCTION(BlueprintCallable, Category = "ActionRPGGame|Weapons")
-		void PreviousWeapon();
-
+	void InputShowHideInventory();
 	void OnInputAbilityReady(FGameplayTag InAbilityTag, FGameplayTag InInputTag);
 };

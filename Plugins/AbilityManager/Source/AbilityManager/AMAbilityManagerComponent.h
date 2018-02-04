@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "Engine/ActorChannel.h"
+
 #include "AMTypes.h"
 #include "GameplayTags.h"
 #include "Abilities/GAAbilityBase.h"
@@ -92,6 +95,11 @@ protected:
 
 	TMap<FGameplayTag, FSimpleDelegate> AbilityReadyEvents;
 
+	DECLARE_DELEGATE_TwoParams(FGroupConfirmDelegate, int32, bool)
+
+	FGroupConfirmDelegate OnNextGroupDelegate;
+	FGroupConfirmDelegate OnPreviousGroupDelegate;
+
 public:	
 	// Sets default values for this component's properties
 	UAMAbilityManagerComponent();
@@ -135,17 +143,20 @@ public:
 	void ServerNextGroup_Implementation(int32 WeaponIndex);
 	bool ServerNextGroup_Validate(int32 WeaponIndex);
 	UFUNCTION(Client, Reliable)
-		void ClientNextGroup(int32 WeaponIndex);
-	void ClientNextGroup_Implementation(int32 WeaponIndex);
+		void ClientNextGroup(int32 WeaponIndex, bool bPredictionSuccess);
+	void ClientNextGroup_Implementation(int32 WeaponIndex, bool bPredictionSuccess);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerPreviousGroup(int32 WeaponIndex);
 	void ServerPreviousGroup_Implementation(int32 WeaponIndex);
 	bool ServerPreviousGroup_Validate(int32 WeaponIndex);
 	UFUNCTION(Client, Reliable)
-		void ClientPreviousGroup(int32 WeaponIndex);
-	void ClientPreviousGroup_Implementation(int32 WeaponIndex);
+		void ClientPreviousGroup(int32 WeaponIndex, bool bPredictionSuccess);
+	void ClientPreviousGroup_Implementation(int32 WeaponIndex, bool bPredictionSuccess);
 
+
+	virtual void OnNextGroupConfirmed(EAMGroup ValidGroup, bool bPredictionSuccess) {};
+	virtual void OnPreviousGroupConfirmed(EAMGroup ValidGroup, bool bPredictionSuccess) {};
 
 	UFUNCTION(BlueprintCallable)
 		void SelectGroup(EAMGroup InGroup);
@@ -167,4 +178,10 @@ public:
 			AbilityReadyEvents.Remove(Ability);
 		}
 	}
+protected:
+	class UAFAbilityComponent* GetAbilityComponent();
+
+	bool IsServerOrStandalone() const;
+	bool IsClientOrStandalone() const;
+	bool IsClient() const;
 };

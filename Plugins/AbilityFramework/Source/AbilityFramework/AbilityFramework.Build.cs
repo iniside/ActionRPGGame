@@ -65,10 +65,10 @@ namespace UnrealBuildTool.Rules
 					// ... add any modules that your module loads dynamically here ...
 				}
 				);
-            //if (Target.Type == TargetRules.TargetType.Editor)
-            //{
-            //    PublicDependencyModuleNames.AddRange(new string[] { "UnrealEd", "PropertyEditor" });
-            //}
+            if (Target.Type == TargetRules.TargetType.Editor)
+            {
+                PublicDependencyModuleNames.AddRange(new string[] { "UnrealEd", "PropertyEditor" });
+            }
         }
 	}
 }

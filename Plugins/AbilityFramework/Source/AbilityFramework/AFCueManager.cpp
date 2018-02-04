@@ -3,9 +3,9 @@
 #include "AbilityFramework.h"
 #include "Effects/GAEffectCue.h"
 #include "AFCueManager.h"
-//#if WITH_EDITOR
-//#include "Editor.H"
-//#endif
+#if WITH_EDITOR
+#include "Editor.h"
+#endif
 
 UAFCueManager* UAFCueManager::ManagerInstance = nullptr;
 //UWorld* UAFCueManager::CurrentWorld = nullptr;
@@ -26,7 +26,7 @@ UAFCueManager* UAFCueManager::Get()
 void UAFCueManager::Initialize()
 {
 #if WITH_EDITORONLY_DATA
-//	FEditorDelegates::EndPIE.AddUObject(this, &UAFCueManager::HandleOnPIEEnd);
+	FEditorDelegates::EndPIE.AddUObject(this, &UAFCueManager::HandleOnPIEEnd);
 #endif //WITH_EDITORONLY_DATA
 	FCoreUObjectDelegates::PreLoadMap.AddUObject(this, &UAFCueManager::HandlePreLoadMap);
 	FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UAFCueManager::HandlePostLoadMap);
@@ -77,6 +77,9 @@ void UAFCueManager::HandleOnPIEEnd(bool InVal)
 		}
 
 	}
+
+	InstancedCues.Empty();
+	UsedCues.Empty();
 }
 #endif //WITH_EDITOR
 void UAFCueManager::HandlePreLoadMap(const FString& InMapName)
