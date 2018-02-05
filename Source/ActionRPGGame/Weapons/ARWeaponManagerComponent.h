@@ -66,6 +66,12 @@ public:
 
 	UFUNCTION()
 		void OnWeaponInputRead(FGameplayTag WeaponAbilityTag, TArray<FGameplayTag> InInputTags);
+
+	void OnWeaponAbilityReady(const FGameplayTag& WeaponAbility, EAMGroup InGroup);
+
+	UFUNCTION()
+		void ClientOnWeaponAbilityReady(FGameplayTag WeaponAbility, EAMGroup InGroup);
+
 protected:
 	virtual void OnNextGroupConfirmed(EAMGroup ValidGroup, bool bPredictionSuccess) override;
 	virtual void OnPreviousGroupConfirmed(EAMGroup ValidGroup, bool bPredictionSuccess) override;

@@ -19,7 +19,8 @@ protected:
 		FName SocketName;
 	UPROPERTY()
 		APawn* POwner;
-
+	UPROPERTY()
+		UARWeaponManagerComponent* WeaponManagerComponent;
 public:	
 	// Sets default values for this actor's properties
 	AARWeaponBase();
@@ -38,7 +39,7 @@ public:
 	virtual void UnEquip();
 
 	UFUNCTION()
-	virtual void NativeOnWeaponEquiped();
+	virtual void OnWeaponAbilityReady(EAMGroup Group);
 	
 
 	const inline FGameplayTag& GetWeaponAbility() const

@@ -356,6 +356,14 @@ void UAFAbilityComponent::RemoveEffect(const FGAEffectProperty& InProperty,
 	{
 		InternalRemoveEffect(InProperty, InContext);
 	}
+	FGAEffectCueParams CueParams;
+	CueParams.Instigator = InContext.Instigator;
+	CueParams.Causer = InContext.Causer;
+	CueParams.HitResult = InContext.HitResult;
+	CueParams.CueTags = InProperty.GetSpec()->Cues.CueTags;
+	CueParams.Period = InProperty.Period;
+	CueParams.Duration = InProperty.Duration;
+	MulticastRemoveEffectCue(CueParams);
 }
 void UAFAbilityComponent::InternalRemoveEffect(const FGAEffectProperty& InProperty, 
 	const FGAEffectContext& InContext)
@@ -377,7 +385,7 @@ void UAFAbilityComponent::InternalRemoveEffect(const FGAEffectProperty& InProper
 		if (mode == ENetMode::NM_Standalone
 			|| role >= ENetRole::ROLE_Authority)
 		{
-			MulticastRemoveEffectCue(CueParams);
+			//MulticastRemoveEffectCue(CueParams);
 		}
 	}
 	

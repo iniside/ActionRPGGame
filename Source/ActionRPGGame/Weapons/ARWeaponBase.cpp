@@ -32,12 +32,14 @@ void AARWeaponBase::OnAddToWeaponManager(EAMGroup Group, EAMSlot Slot
 	, class UAMAbilityManagerComponent* WeaponManager)
 {
 	UARWeaponManagerComponent* WManager = Cast<UARWeaponManagerComponent>(WeaponManager);
+	WeaponManagerComponent = WManager;
+
 	if (!WManager)
 		return;
 	
 	POwner = InPOwner;
-	//FSimpleDelegate Delegate = FSimpleDelegate::CreateUObject(this, &AARWeaponBase::NativeOnWeaponEquiped);
-	WManager->AddOnAbilityReadyEvent(WeaponAbility, FSimpleDelegate());
+	FSimpleDelegate Delegate = FSimpleDelegate::CreateUObject(this, &AARWeaponBase::OnWeaponAbilityReady, Group);
+	WManager->AddOnAbilityReadyEvent(WeaponAbility, Delegate);
 	WManager->NativeEquipAbility(WeaponAbility, Group, Slot, this, false);
 }
 void AARWeaponBase::Equip()
@@ -59,7 +61,7 @@ void AARWeaponBase::UnEquip()
 
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 }
-void AARWeaponBase::NativeOnWeaponEquiped()
+void AARWeaponBase::OnWeaponAbilityReady(EAMGroup Group)
 {
 	if (!POwner)
 		return;
@@ -67,7 +69,8 @@ void AARWeaponBase::NativeOnWeaponEquiped()
 	AARCharacter* Character = Cast<AARCharacter>(POwner);
 	if (!Character)
 		return;
+	if (!WeaponManagerComponent)
+		return;
 
-	AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, SocketName);
-	//Ability is ready, Attach to pawn.
+	WeaponManagerComponent->OnWeaponAbilityReady(WeaponAbility, Group);
 }

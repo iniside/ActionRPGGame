@@ -66,6 +66,11 @@ void UARWeaponManagerComponent::AddWeaponToManager(EAMGroup Group, EAMSlot Slot,
 		if (Group == EAMGroup::Group001)
 		{
 			UAFAbilityComponent* AbilityComp = GetAbilityComponent();
+			FAFOnAbilityReady ReadyDel = FAFOnAbilityReady::CreateUObject(this, &UARWeaponManagerComponent::ClientOnWeaponAbilityReady,
+				WeaponClasses[Idx].GetDefaultObject()->GetWeaponAbility(), Group);
+
+			AbilityComp->AddOnAbilityReadyDelegate(WeaponClasses[Idx].GetDefaultObject()->GetWeaponAbility(), ReadyDel);
+
 			TArray<FGameplayTag> WeaponInput = GetInputTag(EAMGroup::Group001, EAMSlot::Slot001);
 			//if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
 			{
@@ -259,4 +264,24 @@ void UARWeaponManagerComponent::OnRep_CurrentWeapon()
 	{
 		int sd = 0;
 	}
+}
+void UARWeaponManagerComponent::OnWeaponAbilityReady(const FGameplayTag& WeaponAbility, EAMGroup InGroup)
+{
+	UAFAbilityComponent* AbilityComponent = GetAbilityComponent();
+	if (!AbilityComponent)
+		return;
+
+	UGAAbilityBase* Ability = Cast<UGAAbilityBase>(AbilityComponent->BP_GetAbilityByTag(WeaponAbility));
+	SetAbility(InGroup, EAMSlot::Slot001, Ability);
+	SetAbilityTag(InGroup, EAMSlot::Slot001, WeaponAbility);
+}
+void UARWeaponManagerComponent::ClientOnWeaponAbilityReady(FGameplayTag WeaponAbility, EAMGroup InGroup)
+{
+	UAFAbilityComponent* AbilityComponent = GetAbilityComponent();
+	if (!AbilityComponent)
+		return;
+
+	UGAAbilityBase* Ability = Cast<UGAAbilityBase>(AbilityComponent->BP_GetAbilityByTag(WeaponAbility));
+	SetAbility(InGroup, EAMSlot::Slot001, Ability);
+	SetAbilityTag(InGroup, EAMSlot::Slot001, WeaponAbility);
 }
