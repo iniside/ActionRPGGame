@@ -164,10 +164,8 @@ public:
 	*/
 	/*
 	*/
-	UPROPERTY(VisibleAnywhere, Replicated, BlueprintReadOnly, Category = "AbilityFramework|Abilities")
+	UPROPERTY(BlueprintReadOnly, Replicated, BlueprintReadOnly, Category = "AbilityFramework|Abilities")
 		APawn* POwner;
-	UPROPERTY(VisibleAnywhere, Replicated, BlueprintReadOnly, Category = "AbilityFramework|Abilities")
-		ACharacter* Character;
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "AbilityFramework|Abilities")
 		APlayerController* PCOwner;
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "AbilityFramework|Abilities")
@@ -181,9 +179,9 @@ public:
 
 		It will need some common interfaces for getting data out.
 	*/
-	UPROPERTY(BlueprintReadOnly, Replicated, Category = "AbilityFramework|Abilities")
+	UPROPERTY(BlueprintReadOnly, Category = "AbilityFramework|Abilities")
 		class AActor* AvatarActor;
-
+	
 	UPROPERTY(BlueprintReadOnly, Category = "AbilityFramework|Abilities")
 		UCameraComponent* OwnerCamera;
 
@@ -307,6 +305,7 @@ public:
 		void PlayMontage(UAnimMontage* MontageIn, FName SectionName, float Speed = 1);
 
 	void InitAbility();
+public:
 	UFUNCTION()
 		void OnAttributeSetReplicated();
 	//called on both server and client after InitAbility();
@@ -639,4 +638,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, DisplayName = "Get Avatar", Category = "AbilityFramework|Abilities|Helpers")
 		AActor*  BP_GetAvatar();
+
+	virtual void OnAvatarReady() {};
 };

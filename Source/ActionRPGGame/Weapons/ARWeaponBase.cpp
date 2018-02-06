@@ -11,7 +11,8 @@ AARWeaponBase::AARWeaponBase()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	bReplicates = true;
+	SetReplicates(true);
 }
 
 // Called when the game starts or when spawned
@@ -51,7 +52,8 @@ void AARWeaponBase::Equip()
 	if (!Character)
 		return;
 
-	AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+	AttachToActor(Character, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+	//AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
 }
 void AARWeaponBase::UnEquip()
 {
@@ -60,6 +62,26 @@ void AARWeaponBase::UnEquip()
 		return;
 
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+}
+
+void AARWeaponBase::Holster(const FName& Socket)
+{
+	if (!POwner)
+		return;
+
+	AARCharacter* Character = Cast<AARCharacter>(POwner);
+	if (!Character)
+		return;
+	//AttachToActor(Character, FAttachmentTransformRules::SnapToTargetNotIncludingScale, Socket);
+	AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, Socket);
+}
+void AARWeaponBase::Multicast_Equip_Implementation()
+{
+	Equip();
+}
+void AARWeaponBase::Multicast_Holster_Implementation(const FName& Socket)
+{
+	Holster(Socket);
 }
 void AARWeaponBase::OnWeaponAbilityReady(EAMGroup Group)
 {
@@ -72,5 +94,18 @@ void AARWeaponBase::OnWeaponAbilityReady(EAMGroup Group)
 	if (!WeaponManagerComponent)
 		return;
 
-	WeaponManagerComponent->OnWeaponAbilityReady(WeaponAbility, Group);
+	WeaponManagerComponent->OnWeaponAbilityReady(WeaponAbility, this, Group);
+}
+
+void AARWeaponBase::OnRep_AttachmentReplication()
+{
+	Super::OnRep_AttachmentReplication();
+	if (!POwner)
+		return;
+
+	AARCharacter* Character = Cast<AARCharacter>(POwner);
+	if (!Character)
+		return;
+	//AttachToActor(Character, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+	AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, GetAttachmentReplication().AttachSocket);
 }

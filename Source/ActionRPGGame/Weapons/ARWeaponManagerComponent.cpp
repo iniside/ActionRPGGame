@@ -7,6 +7,32 @@
 #include "ARWeaponBase.h"
 #include "Engine/World.h"
 
+void FARWeaponItem::PreReplicatedRemove(const struct FARWeaponContainer& InArraySerializer)
+{
+
+}
+void FARWeaponItem::PostReplicatedAdd(const struct FARWeaponContainer& InArraySerializer)
+{
+	Weapon->OnAddToWeaponManager(Group
+		, EAMSlot::Slot001
+		, InArraySerializer.WeaponManager->POwner
+		, InArraySerializer.WeaponManager);
+}
+void FARWeaponItem::PostReplicatedChange(const struct FARWeaponContainer& InArraySerializer)
+{
+
+}
+void FARWeaponContainer::Initialize(class UARWeaponManagerComponent* InWeaponManager)
+{
+	WeaponManager = InWeaponManager;
+}
+void FARWeaponContainer::AddWeapon(const FARWeaponItem& InWeapon)
+{
+	MarkItemDirty(const_cast<FARWeaponItem&>(InWeapon));
+	Weapons.Add(InWeapon);
+	MarkArrayDirty();
+}
+
 // Sets default values for this component's properties
 UARWeaponManagerComponent::UARWeaponManagerComponent()
 {
@@ -20,6 +46,7 @@ UARWeaponManagerComponent::UARWeaponManagerComponent()
 // Called when the game starts
 void UARWeaponManagerComponent::BeginPlay()
 {
+	EquippedWeapons.Initialize(this);
 	Super::BeginPlay();
 
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
@@ -34,6 +61,7 @@ void UARWeaponManagerComponent::BeginPlay()
 	if (!AbilityComp)
 		return;
 	
+	//POwner = MyPC->GetPawn();
 }
 
 
@@ -63,23 +91,6 @@ void UARWeaponManagerComponent::AddWeaponToManager(EAMGroup Group, EAMSlot Slot,
 	if (IsClient())
 	{
 		ServerAddWeaponToManager(Group, Slot, Idx);
-		if (Group == EAMGroup::Group001)
-		{
-			UAFAbilityComponent* AbilityComp = GetAbilityComponent();
-			FAFOnAbilityReady ReadyDel = FAFOnAbilityReady::CreateUObject(this, &UARWeaponManagerComponent::ClientOnWeaponAbilityReady,
-				WeaponClasses[Idx].GetDefaultObject()->GetWeaponAbility(), Group);
-
-			AbilityComp->AddOnAbilityReadyDelegate(WeaponClasses[Idx].GetDefaultObject()->GetWeaponAbility(), ReadyDel);
-
-			TArray<FGameplayTag> WeaponInput = GetInputTag(EAMGroup::Group001, EAMSlot::Slot001);
-			//if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
-			{
-				FAFOnAbilityReady ReadyDelegate = FAFOnAbilityReady::CreateUObject(this, &UARWeaponManagerComponent::OnWeaponInputRead,
-					WeaponClasses[Idx].GetDefaultObject()->GetWeaponAbility(), WeaponInput);
-
-				AbilityComp->SetAbilityToAction(WeaponClasses[Idx].GetDefaultObject()->GetWeaponAbility(), WeaponInput, ReadyDelegate);
-			}
-		}
 	}
 	else
 	{
@@ -88,30 +99,24 @@ void UARWeaponManagerComponent::AddWeaponToManager(EAMGroup Group, EAMSlot Slot,
 		APlayerController* MyPC = Cast<APlayerController>(GetOwner());
 		if (!MyPC)
 			return;
-		APawn* POwner = MyPC->GetPawn();
+		//APawn* POwner = MyPC->GetPawn();
+		
 		IAFAbilityInterface* ABInt = Cast<IAFAbilityInterface>(POwner);
 		if (!ABInt)
 			return;
 
-		UWorld* World = GetWorld();
-
 		FActorSpawnParameters SpawnParams;
-		AARWeaponBase* Weapon = World->SpawnActor<AARWeaponBase>(WeaponClasses[Idx], SpawnParams);
-		Weapon->OnAddToWeaponManager(Group, Slot, POwner, this);
-		AbilityToWeapon.Add(Weapon->GetWeaponAbility(), Weapon);
-		if (Group == EAMGroup::Group001)
+		AARWeaponBase* Weapon = GetWorld()->SpawnActor<AARWeaponBase>(WeaponClasses[Idx], SpawnParams);
+		Weapon->SetPawn(POwner);
+		FARWeaponAttachment* Config = WeaponAttachment.FindByPredicate([&](const FARWeaponAttachment& Item)
 		{
-			CurrentWeapon = Weapon;
-			CurrentWeapon->Equip();
-			UAFAbilityComponent* AbilityComp = GetAbilityComponent();
-			TArray<FGameplayTag> WeaponInput = GetInputTag(EAMGroup::Group001, EAMSlot::Slot001);
-			
-			{
-				AbilityComp->SetAbilityToAction(Weapon->GetWeaponAbility(), WeaponInput, FAFOnAbilityReady());
-				ExecuteAbilityReadyEvent(Weapon->GetWeaponAbility());
-			}
-		}
-		Weapons.Add(Weapon);
+			return Item == Group;
+		});
+		if (Config)
+			Weapon->Multicast_Holster(Config->SocketName);
+
+		EquippedWeapons.AddWeapon(FARWeaponItem(Weapon, Group));
+
 	}
 
 }
@@ -255,33 +260,69 @@ void UARWeaponManagerComponent::GetLifetimeReplicatedProps(TArray< class FLifeti
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UARWeaponManagerComponent, CurrentWeapon);
+	DOREPLIFETIME(UARWeaponManagerComponent, EquippedWeapons);
 }
 
-void UARWeaponManagerComponent::OnRep_CurrentWeapon()
+void UARWeaponManagerComponent::OnWeaponAbilityReady(const FGameplayTag& WeaponAbility, AARWeaponBase* InWeapon, EAMGroup InGroup)
 {
-	if (CurrentWeapon)
+	UAFAbilityComponent* AbilityComponent = GetAbilityComponent();
+	if (!AbilityComponent)
+		return;
+
+	UGAAbilityBase* Ability = Cast<UGAAbilityBase>(AbilityComponent->BP_GetAbilityByTag(WeaponAbility));
+	/*AARWeaponBase* Weapon = AbilityToWeapon.FindRef(WeaponAbility);;*/
+	Ability->AvatarActor = InWeapon;
+
+	SetAbility(InGroup, EAMSlot::Slot001, Ability);
+	SetAbilityTag(InGroup, EAMSlot::Slot001, WeaponAbility);
+
+	//if (IsClient())
+	//{
+	//	Server_HolsterWeapon(InWeapon, InGroup);
+	//}
+	//else
+	//{
+	//	FARWeaponAttachment* Config = WeaponAttachment.FindByPredicate([&](const FARWeaponAttachment& Item)
+	//	{
+	//		return Item == InGroup;
+	//	});
+	//	if (Config)
+	//	{
+	//		InWeapon->Multicast_Holster(Config->SocketName);
+	//	}
+	//}
+}
+bool UARWeaponManagerComponent::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
+{
+	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+	
+	return WroteSomething;
+}
+void UARWeaponManagerComponent::OnAbilityReady(const FGameplayTag& InAbilityTag
+	, const TArray<FGameplayTag>& InAbilityInput
+	, EAMGroup InGroup, EAMSlot InSlot)
+{
+	/*UAFAbilityComponent* AbilityComponent = GetAbilityComponent();
+	if (!AbilityComponent)
+		return;
+
+	UGAAbilityBase* Ability = Cast<UGAAbilityBase>(AbilityComponent->BP_GetAbilityByTag(InAbilityTag));
+	SetAbility(InGroup, EAMSlot::Slot001, Ability);
+	SetAbilityTag(InGroup, EAMSlot::Slot001, InAbilityTag);*/
+}
+
+void UARWeaponManagerComponent::Server_HolsterWeapon_Implementation(AARWeaponBase* InWeapon, EAMGroup InGroup)
+{
+	FARWeaponAttachment* Config = WeaponAttachment.FindByPredicate([&](const FARWeaponAttachment& Item)
 	{
-		int sd = 0;
+		return Item == InGroup;
+	});
+	if (Config)
+	{
+		InWeapon->Multicast_Holster(Config->SocketName);
 	}
 }
-void UARWeaponManagerComponent::OnWeaponAbilityReady(const FGameplayTag& WeaponAbility, EAMGroup InGroup)
+bool UARWeaponManagerComponent::Server_HolsterWeapon_Validate(AARWeaponBase* InWeapon, EAMGroup InGroup)
 {
-	UAFAbilityComponent* AbilityComponent = GetAbilityComponent();
-	if (!AbilityComponent)
-		return;
-
-	UGAAbilityBase* Ability = Cast<UGAAbilityBase>(AbilityComponent->BP_GetAbilityByTag(WeaponAbility));
-	SetAbility(InGroup, EAMSlot::Slot001, Ability);
-	SetAbilityTag(InGroup, EAMSlot::Slot001, WeaponAbility);
-}
-void UARWeaponManagerComponent::ClientOnWeaponAbilityReady(FGameplayTag WeaponAbility, EAMGroup InGroup)
-{
-	UAFAbilityComponent* AbilityComponent = GetAbilityComponent();
-	if (!AbilityComponent)
-		return;
-
-	UGAAbilityBase* Ability = Cast<UGAAbilityBase>(AbilityComponent->BP_GetAbilityByTag(WeaponAbility));
-	SetAbility(InGroup, EAMSlot::Slot001, Ability);
-	SetAbilityTag(InGroup, EAMSlot::Slot001, WeaponAbility);
+	return true;
 }

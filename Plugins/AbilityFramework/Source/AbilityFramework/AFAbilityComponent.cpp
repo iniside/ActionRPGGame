@@ -585,7 +585,7 @@ void FGASAbilityItem::PreReplicatedRemove(const struct FGASAbilityContainer& InA
 		//UGAAttributesBase* attr = InArraySerializer.AbilitiesComp->RepAttributes.AttributeMap.FindRef(Ability->AbilityTag);
 		Ability->Attributes = nullptr;
 		FGameplayTag AbilityTag = Ability->AbilityTag;
-		InArraySerializerC.RemoveAbilityFromAction(AbilityTag, FGameplayTag());
+		InArraySerializerC.RemoveAbilityFromAction(AbilityTag);
 		InArraySerializerC.AbilitiesInputs.Remove(AbilityTag);
 	}
 }
@@ -672,7 +672,7 @@ void FGASAbilityContainer::RemoveAbility(const FGameplayTag& AbilityIn)
 	if (Index == INDEX_NONE)
 		return;
 	MarkItemDirty(AbilitiesItems[Index]);
-	RemoveAbilityFromAction(AbilityIn, FGameplayTag());
+	RemoveAbilityFromAction(AbilityIn);
 	AbilitiesItems.RemoveAt(Index);
 	MarkArrayDirty();
 }
@@ -687,15 +687,15 @@ FGameplayTag FGASAbilityContainer::IsAbilityBoundToAction(const FGameplayTag& In
 	
 	return Ability;
 }
-void FGASAbilityContainer::RemoveAbilityFromAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
+void FGASAbilityContainer::RemoveAbilityFromAction(const FGameplayTag& InAbilityTag)
 {
-	TArray<FGameplayTag> OutActions;
+	/*TArray<FGameplayTag> OutActions;
 	AbilityToAction.RemoveAndCopyValue(InAbilityTag, OutActions);
 
 	for(const FGameplayTag& Action : OutActions)
 	{
 		ActionToAbility.Remove(Action);
-	}
+	}*/
 
 	//AbilitiesInputs.Remove(InAbilityTag);
 }
@@ -857,7 +857,7 @@ void UAFAbilityComponent::SetAbilityToAction(const FGameplayTag& InAbilityTag, c
 	{
 		if (AbilityContainer.IsAbilityBoundToAction(Tag).IsValid())
 		{
-			RemoveAbilityFromAction(InAbilityTag, Tag);
+			RemoveAbilityFromAction(InAbilityTag, FGameplayTag());
 		}
 	}
 
@@ -898,7 +898,7 @@ FGameplayTag UAFAbilityComponent::IsAbilityBoundToAction(const FGameplayTag& InA
 }
 void UAFAbilityComponent::RemoveAbilityFromAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
 {
-	AbilityContainer.RemoveAbilityFromAction(InAbilityTag, InInputTag);
+	AbilityContainer.RemoveAbilityFromAction(InAbilityTag);
 }
 void UAFAbilityComponent::ServerSetAbilityToAction_Implementation(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
 {
@@ -981,7 +981,7 @@ void UAFAbilityComponent::NativeAddAbilityFromTag(FGameplayTag InAbilityTag,
 		{
 			for (const FGameplayTag& Input : InInputTag)
 			{
-				AbilityContainer.RemoveAbilityFromAction(InAbilityTag, Input);
+				AbilityContainer.RemoveAbilityFromAction(AlreadyBound);
 			}
 		}
 	}
@@ -989,7 +989,7 @@ void UAFAbilityComponent::NativeAddAbilityFromTag(FGameplayTag InAbilityTag,
 	{
 		if (AlreadyBound.IsValid())
 		{
-			NativeRemoveAbility(AlreadyBound);
+			AbilityContainer.RemoveAbilityFromAction(AlreadyBound);
 		}
 		if (UAssetManager* Manager = UAssetManager::GetIfValid())
 		{

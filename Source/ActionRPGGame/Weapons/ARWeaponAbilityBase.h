@@ -17,7 +17,8 @@ class ACTIONRPGGAME_API UARWeaponAbilityBase : public UARAbilityBase
 	
 public:
 	UPROPERTY(EditAnywhere, Category = "Configuration")
-		TSubclassOf<AARWeaponAvatar> WeaponAvatar;
+		TSubclassOf<class AARWeaponBase> WeaponAvatar;
 	
 	virtual void OnAbilityInited() override;
+	virtual void OnAvatarReady() override;
 };

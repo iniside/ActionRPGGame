@@ -156,6 +156,8 @@ public:
 	//abilityTag, Ability Ptr
 	TMap<FGameplayTag, UGAAbilityBase*> AbilitiesInputs;
 
+	TMap<FGameplayTag, UGAAbilityBase*> TagToAbility;
+
 	void SetBlockedInput(const FGameplayTag& InInput, bool bBlock);
 	UGAAbilityBase* AddAbility(TSubclassOf<class UGAAbilityBase> AbilityIn, 
 		AActor* InAvatar);
@@ -163,7 +165,7 @@ public:
 
 	void SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
 	FGameplayTag IsAbilityBoundToAction(const FGameplayTag& InInputTag);
-	void RemoveAbilityFromAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
+	void RemoveAbilityFromAction(const FGameplayTag& InAbilityTag);
 	
 	UGAAbilityBase* GetAbility(FGameplayTag TagIn);
 	
@@ -688,7 +690,8 @@ public:
 
 	void AddOnAbilityReadyDelegate(const FGameplayTag& InAbilityTag, FAFOnAbilityReady& InDelegate)
 	{
-		OnAbilityReadyMap.Add(InAbilityTag, InDelegate);
+		if(InDelegate.IsBound())
+			OnAbilityReadyMap.Add(InAbilityTag, InDelegate);
 	}
 
 	void NotifyOnAbilityReady(const FGameplayTag& InAbilityTag)
@@ -704,7 +707,8 @@ public:
 
 	void AddOnAbilityInputReadyDelegate(const FGameplayTag& InAbilityTag, const FAFOnAbilityReady& InDelegate)
 	{
-		OnAbilityInputReadyMap.Add(InAbilityTag, InDelegate);
+		if(InDelegate.IsBound())
+			OnAbilityInputReadyMap.Add(InAbilityTag, InDelegate);
 	}
 
 	void NotifyOnAbilityInputReady(const FGameplayTag& InAbilityTag)

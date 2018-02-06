@@ -125,10 +125,15 @@ public:
 		void BP_EquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, bool bBindInput = true);
 
 	void NativeEquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, AActor* InAvatar = nullptr, bool bBindInput = true);
+protected:
+	virtual void OnAbilityReady(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InAbilityInput,
+		EAMGroup InGroup, EAMSlot InSlot) {};
+private:
 	UFUNCTION()
-		void OnAbilityReady(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput,
+		void OnAbilityReadyInternal(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput,
 			EAMGroup InGroup, EAMSlot InSlot);
 
+public:
 	UFUNCTION()
 		void OnAbilityInputReady(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput,
 			EAMGroup InGroup, EAMSlot InSlot);
@@ -180,7 +185,8 @@ public:
 	}
 protected:
 	class UAFAbilityComponent* GetAbilityComponent();
-
+	void BindOnAbilityReadDelegate(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput,
+		EAMGroup InGroup, EAMSlot InSlot);
 	bool IsServerOrStandalone() const;
 	bool IsClientOrStandalone() const;
 	bool IsClient() const;

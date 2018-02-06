@@ -57,6 +57,7 @@ void AARPlayerController::SetPawn(APawn* InPawn)
 		InputComponent->BindAction("InputAbilityManager", IE_Pressed, this, &AARPlayerController::InputShowHideAbilityManager);
 		InputComponent->BindAction("InputInventory", IE_Pressed, this, &AARPlayerController::InputShowHideInventory);
 	}
+	WeaponManager->POwner = InPawn;
 	//UIAbilityManagerComponent->BindInputs();
 }
 

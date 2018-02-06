@@ -101,16 +101,20 @@ void UAMAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbilit
 		return;
 	TArray<FGameplayTag> IAbilityInput;
 	
-	if(bBindInput)
+	//if(bBindInput)
 		IAbilityInput = GetInputTag(InGroup, InSlot);
 
-	FAFOnAbilityReady del = FAFOnAbilityReady::CreateUObject(this, &UAMAbilityManagerComponent::OnAbilityReady, InAbilityTag,
-		IAbilityInput, InGroup, InSlot);
+	FAFOnAbilityReady del;
+	if (IsClient())
+	{
+		del = FAFOnAbilityReady::CreateUObject(this, &UAMAbilityManagerComponent::OnAbilityReadyInternal, InAbilityTag,
+			IAbilityInput, InGroup, InSlot);
+		AbilityComp->AddOnAbilityReadyDelegate(InAbilityTag, del);
+	}
 
-	AbilityComp->AddOnAbilityReadyDelegate(InAbilityTag, del);
 	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, InAvatar, IAbilityInput);// , /*Input*/ ShootInput);
 }
-void UAMAbilityManagerComponent::OnAbilityReady(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput, 
+void UAMAbilityManagerComponent::OnAbilityReadyInternal(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput,
 	EAMGroup InGroup, EAMSlot InSlot)
 {
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
@@ -132,6 +136,7 @@ void UAMAbilityManagerComponent::OnAbilityReady(FGameplayTag InAbilityTag, TArra
 			InAbilityTag, InAbilityInput, InGroup, InSlot);
 
 		AbilityComp->SetAbilityToAction(InAbilityTag, InAbilityInput, ReadyDelegate);
+		ExecuteAbilityReadyEvent(InAbilityTag);
 	}
 	else
 	{
@@ -141,6 +146,7 @@ void UAMAbilityManagerComponent::OnAbilityReady(FGameplayTag InAbilityTag, TArra
 		AbilityComp->SetAbilityToAction(InAbilityTag, InAbilityInput, FAFOnAbilityReady());
 		ExecuteAbilityReadyEvent(InAbilityTag);
 	}
+	OnAbilityReady(InAbilityTag, InAbilityInput, InGroup, InSlot);
 }
 
 void UAMAbilityManagerComponent::OnAbilityInputReady(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput,
@@ -160,7 +166,7 @@ void UAMAbilityManagerComponent::OnAbilityInputReady(FGameplayTag InAbilityTag, 
 	SetAbility(InGroup, InSlot, Ability);
 	SetAbilityTag(InGroup, InSlot, InAbilityTag);
 	SetInputTag(InGroup, InSlot, InAbilityInput);
-	ExecuteAbilityReadyEvent(InAbilityTag);
+	//ExecuteAbilityReadyEvent(InAbilityTag);
 }
 
 void UAMAbilityManagerComponent::NextGroup()
@@ -337,4 +343,10 @@ bool UAMAbilityManagerComponent::IsClient() const
 		return true;
 	}
 	return false;
+}
+
+void UAMAbilityManagerComponent::BindOnAbilityReadDelegate(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput,
+	EAMGroup InGroup, EAMSlot InSlot)
+{
+
 }

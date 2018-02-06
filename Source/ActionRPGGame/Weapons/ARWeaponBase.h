@@ -37,13 +37,26 @@ public:
 		, class UAMAbilityManagerComponent* WeaponManager);
 	virtual void Equip();
 	virtual void UnEquip();
+	virtual void Holster(const FName& Socket);
+	UFUNCTION(NetMulticast, Reliable)
+		void Multicast_Equip();
+	void Multicast_Equip_Implementation();
+
+	UFUNCTION(NetMulticast, Reliable)
+		void Multicast_Holster(const FName& Socket);
+	void Multicast_Holster_Implementation(const FName& Socket);
 
 	UFUNCTION()
 	virtual void OnWeaponAbilityReady(EAMGroup Group);
 	
-
+	inline void SetPawn(APawn* InPawn)
+	{
+		POwner = InPawn;
+	}
 	const inline FGameplayTag& GetWeaponAbility() const
 	{
 		return WeaponAbility;
 	}
+
+	virtual void OnRep_AttachmentReplication() override;
 };

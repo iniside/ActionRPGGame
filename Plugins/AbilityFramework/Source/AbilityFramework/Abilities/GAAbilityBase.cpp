@@ -209,7 +209,6 @@ void UGAAbilityBase::InitAbility()
 	TickFunction.SetTickFunctionEnable(true);
 	OnAbilityInited();
 }
-
 void UGAAbilityBase::OnAttributeSetReplicated()
 {
 	UGAAttributesBase* attributes = AbilityComponent->RepAttributes.AttributeMap.FindRef(AbilityTag);
@@ -675,12 +674,10 @@ void UGAAbilityBase::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty 
 	//possibly can be infered upon replication.
 	//does other players need info about this ?
 	DOREPLIFETIME(UGAAbilityBase, POwner);
-	DOREPLIFETIME(UGAAbilityBase, Character);
 	DOREPLIFETIME(UGAAbilityBase, PCOwner);
 	DOREPLIFETIME(UGAAbilityBase, AICOwner);
 	//probabaly should be SKIP_Owner, and I'm not really sure if Multicast wouldn't be better.
 
-	DOREPLIFETIME(UGAAbilityBase, AvatarActor)
 }
 int32 UGAAbilityBase::GetFunctionCallspace(UFunction* Function, void* Parameters, FFrame* Stack)
 {
