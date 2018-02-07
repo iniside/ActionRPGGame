@@ -90,6 +90,7 @@ void AARPlayerController::OnInputAbilityReady(FGameplayTag InAbilityTag, FGamepl
 		return;
 
 	UARAbilityBase* Ability = Cast<UARAbilityBase>(AbilityComp->BP_GetAbilityByTag(InAbilityTag));
-	
-	AbilityComp->SetAbilityToAction(InAbilityTag, InInputTag, FAFOnAbilityReady());
+	TArray<FGameplayTag> Inputs;
+	Inputs.Add(InInputTag);
+	AbilityComp->SetAbilityToAction(InAbilityTag, Inputs, FAFOnAbilityReady());
 }

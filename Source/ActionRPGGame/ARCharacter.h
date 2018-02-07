@@ -19,7 +19,13 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 		FVector Location;
 };
+struct WeaponSocket
+{
+	static const FName HolsteredRightWeapon;
+	static const FName HolsteredLeftWeapon;
 
+	static const FName EquipedMainWeapon;
+};
 UCLASS(config=Game)
 class AARCharacter : public ACharacter, public IAFAbilityInterface
 {
@@ -36,15 +42,33 @@ class AARCharacter : public ACharacter, public IAFAbilityInterface
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UAFAbilityComponent* Abilities;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class UARWeaponPawnManagerComponent* Weapons;
 	
 	UPROPERTY(EditAnywhere, Category = "Default Abilities")
 		TArray<FGameplayTag> AbilitiesToGive;
+
+	//Weapons
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons", meta = (AllowPrivateAccess = "true"))
+		USkeletalMeshComponent* HolsteredRightWeapon;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons", meta = (AllowPrivateAccess = "true"))
+		USkeletalMeshComponent* HolsteredLeftWeapon;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons", meta = (AllowPrivateAccess = "true"))
+		USkeletalMeshComponent* HolsteredBackDownWeapon;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons", meta = (AllowPrivateAccess = "true"))
+		USkeletalMeshComponent* HolsteredSideLeftWeapon;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons", meta = (AllowPrivateAccess = "true"))
+		USkeletalMeshComponent* EquipedMainWeapon;
+
 public:
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Player Character Camera")
 		FARCameraTransform CameraTransform;
 
 public:
 	AARCharacter();
+
+	virtual void BeginPlay() override;
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -113,5 +137,20 @@ public:
 	void Multicast_CameraTransform_Implementation(FARCameraTransform InCameraTransform);
 
 	void OnCameraTransformUpdate(USceneComponent* UpdatedComponent, EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport);
+
+	inline UARWeaponPawnManagerComponent* GetWeapons()
+	{
+		return Weapons;
+	}
+
+	inline USkeletalMeshComponent* GetHolsteredRightWeapon()
+	{
+		return HolsteredRightWeapon;
+	}
+
+	inline USkeletalMeshComponent* GetEquipedMainWeapon()
+	{
+		return EquipedMainWeapon;
+	}
 };
 

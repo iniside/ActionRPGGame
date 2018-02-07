@@ -699,25 +699,27 @@ void FGASAbilityContainer::RemoveAbilityFromAction(const FGameplayTag& InAbility
 
 	//AbilitiesInputs.Remove(InAbilityTag);
 }
-void FGASAbilityContainer::SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
+void FGASAbilityContainer::SetAbilityToAction(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag)
 {
-	if (ActionToAbility.Contains(InInputTag))
+	for (const FGameplayTag& InputTag : InInputTag)
 	{
-		FGameplayTag AbilityTag = ActionToAbility.FindRef(InInputTag);
-		UE_LOG(AbilityFramework, Log, TEXT("FGASAbilityContainer: Input %s is already abount to Ability %s"),
-			*InInputTag.ToString(),
-			*AbilityTag.ToString()
-		);
-		
-		//return;
+		if (ActionToAbility.Contains(InputTag))
+		{
+			FGameplayTag AbilityTag = ActionToAbility.FindRef(InputTag);
+			UE_LOG(AbilityFramework, Log, TEXT("FGASAbilityContainer: Input %s is already abount to Ability %s"),
+				*InputTag.ToString(),
+				*AbilityTag.ToString()
+			);
+
+			//return;
+		}
+
+		FGameplayTag& AbilityTag = ActionToAbility.FindOrAdd(InputTag);
+		AbilityTag = InAbilityTag;
+
+		TArray<FGameplayTag>& ActionTag = AbilityToAction.FindOrAdd(InputTag);
+		ActionTag.Add(InputTag);
 	}
-
-	FGameplayTag& AbilityTag = ActionToAbility.FindOrAdd(InInputTag);
-	AbilityTag = InAbilityTag;
-
-	TArray<FGameplayTag>& ActionTag = AbilityToAction.FindOrAdd(InAbilityTag);
-	ActionTag.Add(InInputTag);
-
 	if (!AbilitiesComp.IsValid())
 		return;
 	if (AbilitiesComp->GetOwner()->GetNetMode() == ENetMode::NM_DedicatedServer)
@@ -861,22 +863,9 @@ void UAFAbilityComponent::SetAbilityToAction(const FGameplayTag& InAbilityTag, c
 		}
 	}
 
-	for (const FGameplayTag& Tag : InInputTag)
-	{
-		SetAbilityToAction(InAbilityTag, Tag, InputDelegate);
-	}
-}
-void UAFAbilityComponent::SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag, 
-	const FAFOnAbilityReady& InputDelegate)
-{
-	//check if there is input under tag
-	//clear it
-	//then bind.
-	
-
 	AbilityContainer.SetAbilityToAction(InAbilityTag, InInputTag);
 	ENetRole role = GetOwnerRole();
-	
+
 	if (GetOwner()->GetNetMode() == ENetMode::NM_Client
 		&& role == ENetRole::ROLE_AutonomousProxy)
 	{
@@ -887,6 +876,7 @@ void UAFAbilityComponent::SetAbilityToAction(const FGameplayTag& InAbilityTag, c
 		ServerSetAbilityToAction(InAbilityTag, InInputTag);
 	}
 }
+
 FGameplayTag UAFAbilityComponent::IsAbilityBoundToAction(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag)
 {
 	for (const FGameplayTag& Tag : InInputTag)
@@ -900,14 +890,14 @@ void UAFAbilityComponent::RemoveAbilityFromAction(const FGameplayTag& InAbilityT
 {
 	AbilityContainer.RemoveAbilityFromAction(InAbilityTag);
 }
-void UAFAbilityComponent::ServerSetAbilityToAction_Implementation(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
+void UAFAbilityComponent::ServerSetAbilityToAction_Implementation(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag)
 {
 	if (GetOwner()->GetNetMode() == ENetMode::NM_DedicatedServer)
 	{
 		SetAbilityToAction(InAbilityTag, InInputTag, FAFOnAbilityReady());
 	}
 }
-bool UAFAbilityComponent::ServerSetAbilityToAction_Validate(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag)
+bool UAFAbilityComponent::ServerSetAbilityToAction_Validate(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag)
 {
 	return true;
 }

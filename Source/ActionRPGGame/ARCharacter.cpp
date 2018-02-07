@@ -10,10 +10,15 @@
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
 
+#include "Weapons/ARWeaponPawnManagerComponent.h"
 #include "ARPlayerController.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AARCharacter
+
+const FName WeaponSocket::HolsteredRightWeapon = TEXT("spine_RightWeaponSocket");
+const FName WeaponSocket::HolsteredLeftWeapon = TEXT("spine_LeftWeaponSocket");
+const FName WeaponSocket::EquipedMainWeapon = TEXT("hand_rSocket");
 
 AARCharacter::AARCharacter()
 {
@@ -50,8 +55,43 @@ AARCharacter::AARCharacter()
 
 	FollowCamera->TransformUpdated.AddUObject(this, &AARCharacter::OnCameraTransformUpdate);
 
+	Weapons = CreateDefaultSubobject<UARWeaponPawnManagerComponent>(TEXT("Weapons"));
+
+	HolsteredRightWeapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HolsteredRightWeapon"));
+	//HolsteredRightWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);
+	HolsteredRightWeapon->SetupAttachment(GetMesh(), WeaponSocket::HolsteredRightWeapon);
+	
+	
+	HolsteredLeftWeapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HolsteredLeftWeapon"));
+	//HolsteredLeftWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	HolsteredLeftWeapon->SetupAttachment(GetMesh(), WeaponSocket::HolsteredLeftWeapon);
+	
+	
+	HolsteredBackDownWeapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HolsteredBackDownWeapon"));
+	//HolsteredBackDownWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	HolsteredBackDownWeapon->SetupAttachment(GetMesh());
+	
+	
+	HolsteredSideLeftWeapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HolsteredSideLeftWeapon"));
+	//HolsteredSideLeftWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	HolsteredSideLeftWeapon->SetupAttachment(GetMesh());
+	
+	
+	EquipedMainWeapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("EquipedMainWeapon"));
+	//EquipedMainWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	EquipedMainWeapon->SetupAttachment(GetMesh(), WeaponSocket::EquipedMainWeapon);
+	
+
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+}
+
+void AARCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	Weapons->SetPOwner(this);
 }
 
 //////////////////////////////////////////////////////////////////////////

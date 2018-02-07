@@ -163,7 +163,7 @@ public:
 		AActor* InAvatar);
 	void RemoveAbility(const FGameplayTag& AbilityIn);
 
-	void SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
+	void SetAbilityToAction(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag);
 	FGameplayTag IsAbilityBoundToAction(const FGameplayTag& InInputTag);
 	void RemoveAbilityFromAction(const FGameplayTag& InAbilityTag);
 	
@@ -806,16 +806,15 @@ public:
 	//need to be called on both client and server.
 	//Change InInputTag To Array, clear previous binds on the same tag.
 	void SetAbilityToAction(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag, const FAFOnAbilityReady& InputDelegate);
-	void SetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag, const FAFOnAbilityReady& InputDelegate);
 
 	FGameplayTag IsAbilityBoundToAction(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag);
 	void RemoveAbilityFromAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
-
+protected:
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerSetAbilityToAction(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
-	void ServerSetAbilityToAction_Implementation(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
-	bool ServerSetAbilityToAction_Validate(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
-	
+		void ServerSetAbilityToAction(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag);
+	void ServerSetAbilityToAction_Implementation(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag);
+	bool ServerSetAbilityToAction_Validate(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InInputTag);
+public:
 	/* Called when ability action has been binded on server. */
 	UFUNCTION(Client, Reliable)
 		void ClientNotifyAbilityInputReady(FGameplayTag AbilityTag);
@@ -826,22 +825,24 @@ public:
 		void BP_InputPressed(FGameplayTag ActionName);
 
 	void NativeInputPressed(FGameplayTag ActionName);
+protected:
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerNativeInputPressed(FGameplayTag ActionName, FAFPredictionHandle InPredictionHandle);
 	virtual void ServerNativeInputPressed_Implementation(FGameplayTag ActionName, FAFPredictionHandle InPredictionHandle);
 	virtual bool ServerNativeInputPressed_Validate(FGameplayTag ActionName, FAFPredictionHandle InPredictionHandle);
 
 
-
+public:
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Input Released"), Category = "AbilityFramework|Abilities")
 		void BP_InputReleased(FGameplayTag ActionName);
 
 	void NativeInputReleased(FGameplayTag ActionName);
+protected:
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerNativeInputReleased(FGameplayTag ActionName);
 	virtual void ServerNativeInputReleased_Implementation(FGameplayTag ActionName);
 	virtual bool ServerNativeInputReleased_Validate(FGameplayTag ActionName);
-
+public:
 	/*
 		Finds ability using asset registry and then gives it to component.
 		Only valid on server.

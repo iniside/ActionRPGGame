@@ -11,68 +11,6 @@
 
 DECLARE_DELEGATE_OneParam(FAROnWeaponReady, class UARWeaponAbilityBase*);
 
-
-USTRUCT()
-struct FARWeaponItem : public FFastArraySerializerItem
-{
-	GENERATED_BODY()
-	UPROPERTY()
-		class AARWeaponBase* Weapon;
-	UPROPERTY()
-		EAMGroup Group;
-
-	FARWeaponItem()
-		: Weapon(nullptr)
-		, Group(EAMGroup::MAX)
-	{}
-
-	FARWeaponItem(AARWeaponBase* InWeapon, EAMGroup InGroup)
-		: Weapon(InWeapon)
-		, Group(InGroup)
-	{}
-
-public:
-	void PreReplicatedRemove(const struct FARWeaponContainer& InArraySerializer);
-	void PostReplicatedAdd(const struct FARWeaponContainer& InArraySerializer);
-	void PostReplicatedChange(const struct FARWeaponContainer& InArraySerializer);
-
-	bool operator==(const FARWeaponItem& Other) const
-	{
-		return Weapon == Other.Weapon;
-	}
-};
-
-USTRUCT()
-struct FARWeaponContainer : public FFastArraySerializer
-{
-	GENERATED_BODY()
-	
-	friend struct FARWeaponItem;
-public:
-	UPROPERTY()
-		TArray<FARWeaponItem> Weapons;
-protected:
-	UPROPERTY()
-		class UARWeaponManagerComponent* WeaponManager;
-
-public:
-	void Initialize(class UARWeaponManagerComponent* InWeaponManager);
-	void AddWeapon(const FARWeaponItem& InWeapon);
-	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
-	{
-		return FFastArraySerializer::FastArrayDeltaSerialize<FARWeaponItem, FARWeaponContainer>(Weapons, DeltaParms, *this);
-	}
-};
-
-template<>
-struct TStructOpsTypeTraits< FARWeaponContainer > : public TStructOpsTypeTraitsBase2<FARWeaponContainer>
-{
-	enum
-	{
-		WithNetDeltaSerializer = true,
-	};
-};
-
 USTRUCT(BlueprintType)
 struct FARWeaponAttachment
 {
@@ -106,25 +44,12 @@ class ACTIONRPGGAME_API UARWeaponManagerComponent : public UAMAbilityManagerComp
 	GENERATED_BODY()
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapons")
-		TArray<TSubclassOf<class AARWeaponBase>> WeaponClasses;
+		TArray<TSubclassOf<class UARItemWeapon>> WeaponClasses;
 
 	UPROPERTY(EditAnywhere, Category = "Attachment Config")
-		TArray<FARWeaponAttachment> WeaponAttachment;
-
-
-	//currently equipped weapons
-	UPROPERTY()
-		TArray<class AARWeaponBase*> Weapons;
-
-	//currently active weapons.
-	UPROPERTY(BlueprintReadOnly, Category = "Weapon Manager")
-		class AARWeaponBase* CurrentWeapon;
-
-	TMap<FGameplayTag, AARWeaponBase*> AbilityToWeapon;
-
-	UPROPERTY(Replicated)
-		FARWeaponContainer EquippedWeapons;
-
+		FName EquipSocketName;
+	UPROPERTY(EditAnywhere, Category = "Attachment Config")
+		TArray<FARWeaponAttachment> WeaponAttachment;	
 public:	
 	UPROPERTY()
 		class APawn* POwner;
@@ -142,7 +67,7 @@ public:
 	UGAAbilityBase* GetCurrentWeapon();
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon Manager")
-		void AddToWeaponInventory(TSubclassOf<class AARWeaponBase> InWeapon);
+		void AddToWeaponInventory(TSubclassOf<class UARItemWeapon> InWeapon);
 
 	UFUNCTION(BlueprintCallable, meta=(DisplayName="Add Weapon To Manager"), Category = "Weapon Manager")
 		void BP_AddWeaponToManager(EAMGroup Group, EAMSlot Slot, int32 Idx);
@@ -162,8 +87,6 @@ public:
 	UFUNCTION()
 		void OnWeaponInputRead(FGameplayTag WeaponAbilityTag, TArray<FGameplayTag> InInputTags);
 
-	void OnWeaponAbilityReady(const FGameplayTag& WeaponAbility, AARWeaponBase* InWeapon, EAMGroup InGroup);
-
 	bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags) override;
 protected:
 	virtual void OnAbilityReady(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InAbilityInput,
@@ -176,10 +99,4 @@ protected:
 
 	FGameplayTag FindNextValid();
 	FGameplayTag FindPreviousValid();
-
-	UFUNCTION(Server, Reliable, WithValidation)
-		void Server_HolsterWeapon(AARWeaponBase* InWeapon, EAMGroup InGroup);
-	void Server_HolsterWeapon_Implementation(AARWeaponBase* InWeapon, EAMGroup InGroup);
-	bool Server_HolsterWeapon_Validate(AARWeaponBase* InWeapon, EAMGroup InGroup);
-
 };
