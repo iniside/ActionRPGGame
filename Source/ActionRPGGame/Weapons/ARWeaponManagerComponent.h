@@ -47,6 +47,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapons")
 		TArray<TSubclassOf<class UARItemWeapon>> WeaponClasses;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapons")
+		TArray<UARItemWeapon*> EquipedWeapons;
+
 	UPROPERTY(EditAnywhere, Category = "Attachment Config")
 		FName EquipSocketName;
 	UPROPERTY(EditAnywhere, Category = "Attachment Config")
@@ -120,7 +123,7 @@ protected:
 	virtual void OnAbilityReady(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InAbilityInput,
 		EAMGroup InGroup, EAMSlot InSlot) override;
 
-	void EquipWeapon(const FGameplayTag& PreviousWeaponTag, const FGameplayTag& NextWeaponTag);
+	void EquipWeapon(const FGameplayTag& PreviousWeaponTag, const FGameplayTag& NextWeaponTag, EAMGroup OldGroup);
 
 	FGameplayTag FindNextValid();
 	FGameplayTag FindPreviousValid();

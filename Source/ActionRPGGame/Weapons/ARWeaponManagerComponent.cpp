@@ -22,7 +22,7 @@ UARWeaponManagerComponent::UARWeaponManagerComponent()
 void UARWeaponManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
+	EquipedWeapons.SetNum(MAX_WEAPONS+1);
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
 	if (!MyPC)
 		return;
@@ -66,6 +66,7 @@ void UARWeaponManagerComponent::AddWeaponToManager(EAMGroup Group, EAMSlot Slot,
 	if (Character)
 	{
 		Character->GetWeapons()->Holster(Group, WeaponClasses[Idx].GetDefaultObject());
+		EquipedWeapons[AMEnumToInt<EAMGroup>(Group)] = WeaponClasses[Idx].GetDefaultObject();
 		ActiveGroup = EAMGroup::Group005;
 	}
 	NativeEquipAbility(WeaponClasses[Idx].GetDefaultObject()->Ability,
@@ -86,6 +87,7 @@ void UARWeaponManagerComponent::AddWeaponToManager(EAMGroup Group, EAMSlot Slot,
 			return;
 
 		Character->GetWeapons()->Holster(Group, WeaponClasses[Idx].GetDefaultObject());
+		EquipedWeapons[AMEnumToInt<EAMGroup>(Group)] = WeaponClasses[Idx].GetDefaultObject();
 		ActiveGroup = EAMGroup::Group005;
 	}
 
@@ -101,6 +103,7 @@ bool UARWeaponManagerComponent::ServerAddWeaponToManager_Validate(EAMGroup Group
 
 void UARWeaponManagerComponent::NextWeapon()
 {
+	EAMGroup OldGroup = ActiveGroup;
 	FGameplayTag CurrentWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
 	ENetMode NetMode = GetOwner()->GetNetMode();
 	if (NetMode == ENetMode::NM_Client
@@ -108,7 +111,7 @@ void UARWeaponManagerComponent::NextWeapon()
 	{
 		int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
 		CurrentIndex++;
-		if (CurrentIndex > Groups.Num())
+		if (CurrentIndex > MAX_WEAPONS)
 		{
 			ActiveGroup = EAMGroup::Group001;
 		}
@@ -117,13 +120,6 @@ void UARWeaponManagerComponent::NextWeapon()
 			ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
 		}
 
-		if (ActiveGroup < AMIntToEnum<EAMGroup>(Groups.Num()))
-		{
-		}
-		else
-		{
-			ActiveGroup = EAMGroup::Group001;
-		}
 	}
 
 	FGameplayTag NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
@@ -136,10 +132,11 @@ void UARWeaponManagerComponent::NextWeapon()
 		ServerNextWeapon(AMEnumToInt<EAMGroup>(ActiveGroup));
 	}
 
-	EquipWeapon(CurrentWeaponAbility, NextWeaponAbility);
+	EquipWeapon(CurrentWeaponAbility, NextWeaponAbility, OldGroup);
 }
 void UARWeaponManagerComponent::PreviousWeapon()
 {
+	EAMGroup OldGroup = ActiveGroup;
 	FGameplayTag CurrentWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
 	int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
 	CurrentIndex--;
@@ -158,7 +155,7 @@ void UARWeaponManagerComponent::PreviousWeapon()
 		ServerPreviousWeapon(static_cast<int32>(ActiveGroup));
 	}
 	
-	EquipWeapon(CurrentWeaponAbility, NextWeaponAbility);
+	EquipWeapon(CurrentWeaponAbility, NextWeaponAbility, OldGroup);
 }
 
 void UARWeaponManagerComponent::HolsterWeapon()
@@ -176,30 +173,20 @@ void UARWeaponManagerComponent::HolsterWeapon()
 
 void UARWeaponManagerComponent::ServerNextWeapon_Implementation(int32 WeaponIndex)
 {
+	EAMGroup OldGroup = ActiveGroup;
 	FGameplayTag CurrentWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
-	ENetMode NetMode = GetOwner()->GetNetMode();
-	if (NetMode == ENetMode::NM_Client
-		|| NetMode == ENetMode::NM_Standalone)
-	{
-		int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
-		CurrentIndex++;
-		if (CurrentIndex > MAX_WEAPONS)
-		{
-			ActiveGroup = EAMGroup::Group001;
-		}
-		else
-		{
-			ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
-		}
 
-		if (ActiveGroup < AMIntToEnum<EAMGroup>(0))
-		{
-			ActiveGroup = EAMGroup::Group001;
-		}
-		else
-		{
-			ActiveGroup = EAMGroup::Group001;
-		}
+	int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
+	if(WeaponIndex > CurrentIndex)
+		CurrentIndex++;
+
+	if (CurrentIndex > MAX_WEAPONS)
+	{
+		ActiveGroup = EAMGroup::Group001;
+	}
+	else
+	{
+		ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
 	}
 
 	FGameplayTag NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
@@ -216,7 +203,7 @@ void UARWeaponManagerComponent::ServerNextWeapon_Implementation(int32 WeaponInde
 		ClientNextWeapon(AMEnumToInt<EAMGroup>(ActiveGroup), false);
 	}
 
-	EquipWeapon(CurrentWeaponAbility, NextWeaponAbility);
+	EquipWeapon(CurrentWeaponAbility, NextWeaponAbility, OldGroup);
 }
 bool UARWeaponManagerComponent::ServerNextWeapon_Validate(int32 WeaponIndex)
 {
@@ -231,12 +218,18 @@ void UARWeaponManagerComponent::ClientNextWeapon_Implementation(int32 WeaponInde
 void UARWeaponManagerComponent::ServerPreviousWeapon_Implementation(int32 WeaponIndex)
 {
 	int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
-	CurrentIndex--;
-	ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
+	if(CurrentIndex > WeaponIndex)
+		CurrentIndex--;
+
 	if (CurrentIndex < 0)
 	{
 		ActiveGroup = AMIntToEnum<EAMGroup>(MAX_WEAPONS - 1);
 	}
+	else
+	{
+		ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
+	}
+
 	FGameplayTag NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
 	if (!NextWeaponAbility.IsValid())
 	{
@@ -286,7 +279,7 @@ void UARWeaponManagerComponent::OnWeaponInputRead(FGameplayTag WeaponAbilityTag,
 	//AbilityComp->SetAbilityToAction(NextWeaponAbility, WeaponInput, FAFOnAbilityReady());
 }
 
-void UARWeaponManagerComponent::EquipWeapon(const FGameplayTag& PreviousWeaponTag, const FGameplayTag& NextWeaponTag)
+void UARWeaponManagerComponent::EquipWeapon(const FGameplayTag& PreviousWeaponTag, const FGameplayTag& NextWeaponTag, EAMGroup OldGroup)
 {
 	if (!NextWeaponTag.IsValid())
 	{
@@ -301,7 +294,9 @@ void UARWeaponManagerComponent::EquipWeapon(const FGameplayTag& PreviousWeaponTa
 	AARCharacter* Character = Cast<AARCharacter>(POwner);
 	if (Character)
 	{
-		Character->GetWeapons()->Equip(ActiveGroup, WeaponClasses[0].GetDefaultObject());
+		Character->GetWeapons()->EquipInactive(ActiveGroup, EquipedWeapons[AMEnumToInt<EAMGroup>(ActiveGroup)]	
+			, OldGroup
+			, EquipedWeapons[AMEnumToInt<EAMGroup>(OldGroup)]);
 	}
 	if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
 	{

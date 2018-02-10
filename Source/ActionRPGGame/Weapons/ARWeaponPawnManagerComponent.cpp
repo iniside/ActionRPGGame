@@ -45,8 +45,20 @@ void UARWeaponPawnManagerComponent::TickComponent(float DeltaTime, ELevelTick Ti
 
 void UARWeaponPawnManagerComponent::SetWeapon(const FARWeapon& InWeapon, UChildActorComponent* Component)
 {
-	FStreamableDelegate LoadFinished = FStreamableDelegate::CreateUObject(this, &UARWeaponPawnManagerComponent::AsynWeaponLoaded, Component, InWeapon);
-	UAssetManager::Get().GetStreamableManager().RequestAsyncLoad(InWeapon.Weapon.ToSoftObjectPath(), LoadFinished);
+	if (InWeapon.Weapon.IsValid() || InWeapon.Weapon.IsNull())
+	{
+		Component->SetChildActorClass(InWeapon.Weapon.Get());
+		Component->SetRelativeLocation(FVector(0, 0, 0));
+		Component->SetRelativeRotation(FRotator(0, 0, 0));
+
+		Component->SetRelativeLocation(InWeapon.Position);
+		Component->SetRelativeRotation(InWeapon.Rotation);
+	}
+	else
+	{
+		FStreamableDelegate LoadFinished = FStreamableDelegate::CreateUObject(this, &UARWeaponPawnManagerComponent::AsynWeaponLoaded, Component, InWeapon);
+		UAssetManager::Get().GetStreamableManager().RequestAsyncLoad(InWeapon.Weapon.ToSoftObjectPath(), LoadFinished);
+	}
 }
 
 void UARWeaponPawnManagerComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
@@ -75,7 +87,43 @@ void UARWeaponPawnManagerComponent::Equip(EAMGroup Group, class UARItemWeapon* I
 		GroupToComponent[Group]->SetChildActorClass(nullptr);
 	}
 }
+void UARWeaponPawnManagerComponent::EquipInactive(EAMGroup Group, UARItemWeapon* InWeapon, EAMGroup OldGroup, UARItemWeapon* InOldWeapon)
+{
+	if (InOldWeapon)
+	{
+		WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)]->Weapon = MainHandWeapon.Weapon;
+		WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)]->Position = InOldWeapon->HolsteredPosition;
+		WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)]->Rotation = InOldWeapon->HolsteredRotation;
+		WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)]->RepCounter++;
+		//GroupToComponent[OldGroup]->SetChildActorClass(WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)]->Weapon.Get());
+		SetWeapon(*WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)], GroupToComponent[OldGroup]);
+	}
 
+	MainHandWeapon.Weapon = WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Weapon;
+	MainHandWeapon.Position = InWeapon->EquipedPosition;
+	MainHandWeapon.Rotation = InWeapon->EquipedRotation;
+	MainHandWeapon.Group = Group;
+	MainHandWeapon.RepCounter++;
+
+	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Weapon.Reset();
+	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->RepCounter++;
+	//GroupToComponent[Group]->SetChildActorClass(WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Weapon.Get());
+	SetWeapon(*WeaponHelper[AMEnumToInt<EAMGroup>(Group)], GroupToComponent[Group]);
+
+	if(!InOldWeapon)
+	{
+		WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Weapon.Reset();
+		WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->RepCounter++;
+		//GroupToComponent[Group]->SetChildActorClass(WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Weapon.Get());
+		SetWeapon(*WeaponHelper[AMEnumToInt<EAMGroup>(Group)], GroupToComponent[Group]);
+	}
+	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+	{
+		
+		SetWeapon(MainHandWeapon, Character->GetEquipedMainWeapon());
+		//GroupToComponent[Group]->SetChildActorClass(nullptr);
+	}
+}
 void UARWeaponPawnManagerComponent::Holster(EAMGroup Group, class UARItemWeapon* InWeapon)
 {
 	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Weapon = InWeapon->Weapon;
@@ -140,8 +188,9 @@ void UARWeaponPawnManagerComponent::OnRep_MainHandWeapon(FARWeapon OldWeapon)
 {
 	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
 	{
+		//SetWeapon(OldWeapon, GroupToComponent[OldWeapon.Group]);
 		SetWeapon(MainHandWeapon, Character->GetEquipedMainWeapon());
-		GroupToComponent[MainHandWeapon.Group]->SetChildActorClass(nullptr);
+		//GroupToComponent[MainHandWeapon.Group]->SetChildActorClass(nullptr);
 	}
 }
 

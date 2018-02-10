@@ -70,6 +70,7 @@ public:
 
 	
 	void Equip(EAMGroup Group, class UARItemWeapon* InWeapon);
+	void EquipInactive(EAMGroup Group, UARItemWeapon* InWeapon, EAMGroup OldGroup, UARItemWeapon* InOldWeapon);
 	void Holster(EAMGroup Group, class UARItemWeapon* InWeapon);
 	void HolsterActive(EAMGroup Group);
 	inline void SetPOwner(APawn* InPawn)
