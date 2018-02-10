@@ -14,11 +14,11 @@ class ACTIONRPGGAME_API UARAbilityAttributes : public UGAAttributesBase
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, Category = "Base")
+	UPROPERTY(EditAnywhere, Replicated, Category = "Base")
 		FAFAttributeBase CastTime;
-	UPROPERTY(EditAnywhere, Category = "Base")
+	UPROPERTY(EditAnywhere, Replicated, Category = "Base")
 		FAFAttributeBase Cooldown;
-	UPROPERTY(EditAnywhere, Category = "Base")
+	UPROPERTY(EditAnywhere, Replicated, Category = "Base")
 		FAFAttributeBase BaseDamage;
 	
 	

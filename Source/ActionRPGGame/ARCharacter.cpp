@@ -10,6 +10,8 @@
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
 
+#include "Weapons/ARWeaponBase.h"
+
 #include "Weapons/ARWeaponPawnManagerComponent.h"
 #include "ARPlayerController.h"
 
@@ -57,29 +59,29 @@ AARCharacter::AARCharacter()
 
 	Weapons = CreateDefaultSubobject<UARWeaponPawnManagerComponent>(TEXT("Weapons"));
 
-	HolsteredRightWeapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HolsteredRightWeapon"));
+	WeaponHolsteredRight = CreateDefaultSubobject<UChildActorComponent>(TEXT("WeaponHolsteredRight"));
 	//HolsteredRightWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);
-	HolsteredRightWeapon->SetupAttachment(GetMesh(), WeaponSocket::HolsteredRightWeapon);
+	WeaponHolsteredRight->SetupAttachment(GetMesh(), WeaponSocket::HolsteredRightWeapon);
 	
 	
-	HolsteredLeftWeapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HolsteredLeftWeapon"));
+	WeaponHolsteredLeft = CreateDefaultSubobject<UChildActorComponent>(TEXT("WeaponHolsteredLeft"));
 	//HolsteredLeftWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	HolsteredLeftWeapon->SetupAttachment(GetMesh(), WeaponSocket::HolsteredLeftWeapon);
+	WeaponHolsteredLeft->SetupAttachment(GetMesh(), WeaponSocket::HolsteredLeftWeapon);
 	
 	
-	HolsteredBackDownWeapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HolsteredBackDownWeapon"));
+	HolsteredBackDown = CreateDefaultSubobject<UChildActorComponent>(TEXT("HolsteredBackDown"));
 	//HolsteredBackDownWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	HolsteredBackDownWeapon->SetupAttachment(GetMesh());
+	HolsteredBackDown->SetupAttachment(GetMesh());
 	
 	
-	HolsteredSideLeftWeapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HolsteredSideLeftWeapon"));
+	WeaponHolsteredSideLeft = CreateDefaultSubobject<UChildActorComponent>(TEXT("WeaponHolsteredSideLeft"));
 	//HolsteredSideLeftWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	HolsteredSideLeftWeapon->SetupAttachment(GetMesh());
+	WeaponHolsteredSideLeft->SetupAttachment(GetMesh());
 	
 	
-	EquipedMainWeapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("EquipedMainWeapon"));
+	WeaponEquipedMain = CreateDefaultSubobject<UChildActorComponent>(TEXT("WeaponEquipedMain"));
 	//EquipedMainWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	EquipedMainWeapon->SetupAttachment(GetMesh(), WeaponSocket::EquipedMainWeapon);
+	WeaponEquipedMain->SetupAttachment(GetMesh(), WeaponSocket::EquipedMainWeapon);
 	
 
 
@@ -229,4 +231,26 @@ void AARCharacter::OnCameraTransformUpdate(USceneComponent* UpdatedComponent, EU
 	CameraTransform.ForwardVector = FollowCamera->GetForwardVector();
 	CameraTransform.Location = FollowCamera->GetComponentLocation();
 	//Multicast_CameraTransform(CamTransform);
+}
+
+class AARWeaponBase* AARCharacter::GetMainWeapon() const
+{
+	return GetMainWeapon<AARWeaponBase>();
+}
+
+USkeletalMeshComponent* AARCharacter::GetMainWeaponMesh() const
+{
+	if (!GetEquipedMainWeapon()->GetChildActor())
+		return nullptr;
+
+	return GetMainWeapon<AARWeaponBase>()->GetMesh();
+}
+
+FVector AARCharacter::GetMainWeaponSocket(const FName& Socket) const
+{
+	USkeletalMeshComponent* Component = GetMainWeaponMesh();
+	if (!Component)
+		return GetMesh()->GetSocketLocation(TEXT("headSocket"));
+
+	return Component->GetSocketLocation(Socket);
 }

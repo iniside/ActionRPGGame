@@ -105,7 +105,7 @@ void UAMAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbilit
 		IAbilityInput = GetInputTag(InGroup, InSlot);
 
 	FAFOnAbilityReady del;
-	if (IsClient())
+	//if (IsClient())
 	{
 		del = FAFOnAbilityReady::CreateUObject(this, &UAMAbilityManagerComponent::OnAbilityReadyInternal, InAbilityTag,
 			IAbilityInput, InGroup, InSlot);

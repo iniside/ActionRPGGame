@@ -92,7 +92,7 @@ protected:
 
 	TArray<TArray<FGameplayTag>> AbilityTagsSet;
 	TArray<TArray<TWeakObjectPtr<class UGAAbilityBase>>> AbilitySet;
-
+	TArray<TArray<bool>> ValidGroups;
 	TMap<FGameplayTag, FSimpleDelegate> AbilityReadyEvents;
 
 	DECLARE_DELEGATE_TwoParams(FGroupConfirmDelegate, int32, bool)

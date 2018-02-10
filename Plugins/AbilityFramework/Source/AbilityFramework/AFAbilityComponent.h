@@ -173,7 +173,10 @@ public:
 	void HandleInputReleased(FGameplayTag ActionName);
 
 	void TriggerAbylityByTag(FGameplayTag InTag);
-
+	bool AbilityExists(const FGameplayTag& AbilityTag) const
+	{
+		return AbilitiesInputs.Contains(AbilityTag);
+	}
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
 	{
 		return FFastArraySerializer::FastArrayDeltaSerialize<FGASAbilityItem, FGASAbilityContainer>(AbilitiesItems, DeltaParms, *this);

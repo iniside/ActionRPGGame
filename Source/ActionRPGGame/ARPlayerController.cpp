@@ -20,6 +20,7 @@ AARPlayerController::AARPlayerController(const FObjectInitializer& ObjectInitial
 	AbilityManager = ObjectInitializer.CreateDefaultSubobject<UARAbilityManagerComponent>(this, "AbilityManager");
 
 	AbilityManager->ComponentTags.Add(TEXT("AbilityManager"));
+	bInputBount = false;
 }
 
 void AARPlayerController::SetPawn(APawn* InPawn)
@@ -37,10 +38,18 @@ void AARPlayerController::SetPawn(APawn* InPawn)
 		if (!AbilityComp)
 			return;
 
-		AbilityComp->BindAbilityToAction(InputComponent, InputNextWeapon);
-		AbilityComp->BindAbilityToAction(InputComponent, InputPreviousWeapon);
-		AbilityManager->BindInputs(InputComponent, AbilityComp);
-		WeaponManager->BindInputs(InputComponent, AbilityComp);
+		if (!bInputBount)
+		{
+			AbilityComp->BindAbilityToAction(InputComponent, InputNextWeapon);
+			AbilityComp->BindAbilityToAction(InputComponent, InputPreviousWeapon);
+			AbilityComp->BindAbilityToAction(InputComponent, InputHolsterWeapon);
+			InputComponent->BindAction("InputAbilityManager", IE_Pressed, this, &AARPlayerController::InputShowHideAbilityManager);
+			InputComponent->BindAction("InputInventory", IE_Pressed, this, &AARPlayerController::InputShowHideInventory);
+
+			AbilityManager->BindInputs(InputComponent, AbilityComp);
+			WeaponManager->BindInputs(InputComponent, AbilityComp);
+			bInputBount = true;
+		}
 		//doesn't matter. Internally ability component make sure abilities are instanced on server and replicated back.
 		FAFOnAbilityReady del1 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, AbilitytNextWeapon, InputNextWeapon);
 		AbilityComp->AddOnAbilityReadyDelegate(AbilitytNextWeapon, del1);
@@ -54,8 +63,13 @@ void AARPlayerController::SetPawn(APawn* InPawn)
 		PrevWeap.Add(InputPreviousWeapon);
 		AbilityComp->NativeAddAbilityFromTag(AbilitytPreviousWeapon, nullptr, PrevWeap);
 
-		InputComponent->BindAction("InputAbilityManager", IE_Pressed, this, &AARPlayerController::InputShowHideAbilityManager);
-		InputComponent->BindAction("InputInventory", IE_Pressed, this, &AARPlayerController::InputShowHideInventory);
+		FAFOnAbilityReady del3 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, AbilitytHolstersWeapon, InputHolsterWeapon);
+		AbilityComp->AddOnAbilityReadyDelegate(AbilitytHolstersWeapon, del3);
+		TArray<FGameplayTag> HolsterInput;
+		HolsterInput.Add(InputHolsterWeapon);
+		AbilityComp->NativeAddAbilityFromTag(AbilitytHolstersWeapon, nullptr, HolsterInput);
+
+		
 	}
 	WeaponManager->POwner = InPawn;
 	//UIAbilityManagerComponent->BindInputs();

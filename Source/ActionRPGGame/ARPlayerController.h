@@ -33,6 +33,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
 		FGameplayTag AbilitytPreviousWeapon;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
+		FGameplayTag InputHolsterWeapon;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
+		FGameplayTag AbilitytHolstersWeapon;
+
+	bool bInputBount;
 public:
 	AARPlayerController(const FObjectInitializer& ObjectInitializer);
 	virtual void SetPawn(APawn* InPawn) override;

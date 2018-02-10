@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Components/ChildActorComponent.h"
 #include "GameplayTags.h"
 #include "AFAbilityComponent.h"
 #include "AFAbilityInterface.h"
@@ -50,16 +51,16 @@ class AARCharacter : public ACharacter, public IAFAbilityInterface
 
 	//Weapons
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons", meta = (AllowPrivateAccess = "true"))
-		USkeletalMeshComponent* HolsteredRightWeapon;
+		UChildActorComponent* WeaponHolsteredRight;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons", meta = (AllowPrivateAccess = "true"))
-		USkeletalMeshComponent* HolsteredLeftWeapon;
+		UChildActorComponent* WeaponHolsteredLeft;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons", meta = (AllowPrivateAccess = "true"))
-		USkeletalMeshComponent* HolsteredBackDownWeapon;
+		UChildActorComponent* HolsteredBackDown;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons", meta = (AllowPrivateAccess = "true"))
-		USkeletalMeshComponent* HolsteredSideLeftWeapon;
+		UChildActorComponent* WeaponHolsteredSideLeft;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons", meta = (AllowPrivateAccess = "true"))
-		USkeletalMeshComponent* EquipedMainWeapon;
+		UChildActorComponent* WeaponEquipedMain;
 
 public:
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Player Character Camera")
@@ -143,14 +144,41 @@ public:
 		return Weapons;
 	}
 
-	inline USkeletalMeshComponent* GetHolsteredRightWeapon()
+	inline UChildActorComponent* GetHolsteredRightWeapon()
 	{
-		return HolsteredRightWeapon;
+		return WeaponHolsteredRight;
+	}
+	inline UChildActorComponent* GetHolsteredLeftWeapon()
+	{
+		return WeaponHolsteredLeft;
+	}
+	inline UChildActorComponent* GetHolsteredBackDownWeapon()
+	{
+		return HolsteredBackDown;
+	}
+	inline UChildActorComponent* GetHolsteredSideLeftWeapon()
+	{
+		return WeaponHolsteredSideLeft;
 	}
 
-	inline USkeletalMeshComponent* GetEquipedMainWeapon()
+	inline UChildActorComponent* GetEquipedMainWeapon() const
 	{
-		return EquipedMainWeapon;
+		return WeaponEquipedMain;
 	}
+
+	template<typename T>
+	T* GetMainWeapon() const
+	{
+		return Cast<T>(GetEquipedMainWeapon()->GetChildActor());
+	}
+
+	UFUNCTION(BlueprintPure, Category = "Character | Weapons")
+	class AARWeaponBase* GetMainWeapon() const;
+
+	UFUNCTION(BlueprintPure, Category = "Character | Weapons")
+		USkeletalMeshComponent* GetMainWeaponMesh() const;
+
+	UFUNCTION(BlueprintPure, Category = "Character | Weapons")
+		FVector GetMainWeaponSocket(const FName& Socket) const;
 };
 

@@ -5,6 +5,7 @@
 #include "AFAbilityComponent.h"
 #include "ARWeaponAbilityBase.h"
 #include "ARItemWeapon.h"
+#include "../ARCharacter.h"
 #include "Engine/World.h"
 
 // Sets default values for this component's properties
@@ -64,8 +65,12 @@ void UARWeaponManagerComponent::AddWeaponToManager(EAMGroup Group, EAMSlot Slot,
 	AARCharacter* Character = Cast<AARCharacter>(POwner);
 	if (Character)
 	{
-		Character->GetWeapons()->Holster(Group, WeaponClasses[Idx].GetDefaultObject()->WeaponMesh);
+		Character->GetWeapons()->Holster(Group, WeaponClasses[Idx].GetDefaultObject());
+		ActiveGroup = EAMGroup::Group005;
 	}
+	NativeEquipAbility(WeaponClasses[Idx].GetDefaultObject()->Ability,
+		Group, EAMSlot::Slot001, POwner);
+
 	if (IsClient())
 	{
 		ServerAddWeaponToManager(Group, Slot, Idx);
@@ -80,7 +85,8 @@ void UARWeaponManagerComponent::AddWeaponToManager(EAMGroup Group, EAMSlot Slot,
 		if (!ABInt)
 			return;
 
-		Character->GetWeapons()->Holster(Group, WeaponClasses[Idx].GetDefaultObject()->WeaponMesh);
+		Character->GetWeapons()->Holster(Group, WeaponClasses[Idx].GetDefaultObject());
+		ActiveGroup = EAMGroup::Group005;
 	}
 
 }
@@ -96,58 +102,188 @@ bool UARWeaponManagerComponent::ServerAddWeaponToManager_Validate(EAMGroup Group
 void UARWeaponManagerComponent::NextWeapon()
 {
 	FGameplayTag CurrentWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
-	NextGroup();
+	ENetMode NetMode = GetOwner()->GetNetMode();
+	if (NetMode == ENetMode::NM_Client
+		|| NetMode == ENetMode::NM_Standalone)
+	{
+		int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
+		CurrentIndex++;
+		if (CurrentIndex > Groups.Num())
+		{
+			ActiveGroup = EAMGroup::Group001;
+		}
+		else
+		{
+			ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
+		}
+
+		if (ActiveGroup < AMIntToEnum<EAMGroup>(Groups.Num()))
+		{
+		}
+		else
+		{
+			ActiveGroup = EAMGroup::Group001;
+		}
+	}
+
 	FGameplayTag NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
 	if (!NextWeaponAbility.IsValid())
 	{
 		NextWeaponAbility = FindNextValid();
 	}
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		ServerNextWeapon(AMEnumToInt<EAMGroup>(ActiveGroup));
+	}
+
 	EquipWeapon(CurrentWeaponAbility, NextWeaponAbility);
 }
 void UARWeaponManagerComponent::PreviousWeapon()
 {
 	FGameplayTag CurrentWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
-	PreviousGroup();
+	int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
+	CurrentIndex--;
+	ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
+	if (CurrentIndex < 0)
+	{
+		ActiveGroup = AMIntToEnum<EAMGroup>(Groups.Num() - 1);
+	}
 	FGameplayTag NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
 	if (!NextWeaponAbility.IsValid())
 	{
 		NextWeaponAbility = FindPreviousValid();
 	}
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		ServerPreviousWeapon(static_cast<int32>(ActiveGroup));
+	}
+	
 	EquipWeapon(CurrentWeaponAbility, NextWeaponAbility);
 }
 
+void UARWeaponManagerComponent::HolsterWeapon()
+{
+	ActiveGroup = EAMGroup::Group005;
+	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+	{
+		Character->GetWeapons()->HolsterActive(ActiveGroup);
+	}
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		ServerHolsterWeapon(static_cast<int32>(ActiveGroup));
+	}
+}
+
+void UARWeaponManagerComponent::ServerNextWeapon_Implementation(int32 WeaponIndex)
+{
+	FGameplayTag CurrentWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
+	ENetMode NetMode = GetOwner()->GetNetMode();
+	if (NetMode == ENetMode::NM_Client
+		|| NetMode == ENetMode::NM_Standalone)
+	{
+		int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
+		CurrentIndex++;
+		if (CurrentIndex > MAX_WEAPONS)
+		{
+			ActiveGroup = EAMGroup::Group001;
+		}
+		else
+		{
+			ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
+		}
+
+		if (ActiveGroup < AMIntToEnum<EAMGroup>(0))
+		{
+			ActiveGroup = EAMGroup::Group001;
+		}
+		else
+		{
+			ActiveGroup = EAMGroup::Group001;
+		}
+	}
+
+	FGameplayTag NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
+	if (!NextWeaponAbility.IsValid())
+	{
+		NextWeaponAbility = FindNextValid();
+	}
+	if (WeaponIndex == AMEnumToInt<EAMGroup>(ActiveGroup))
+	{
+		ClientNextWeapon(AMEnumToInt<EAMGroup>(ActiveGroup), true);
+	}
+	else
+	{
+		ClientNextWeapon(AMEnumToInt<EAMGroup>(ActiveGroup), false);
+	}
+
+	EquipWeapon(CurrentWeaponAbility, NextWeaponAbility);
+}
+bool UARWeaponManagerComponent::ServerNextWeapon_Validate(int32 WeaponIndex)
+{
+	return true;
+}
+void UARWeaponManagerComponent::ClientNextWeapon_Implementation(int32 WeaponIndex, bool bPredictionSuccess)
+{
+	if (bPredictionSuccess)
+		return;
+}
+
+void UARWeaponManagerComponent::ServerPreviousWeapon_Implementation(int32 WeaponIndex)
+{
+	int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
+	CurrentIndex--;
+	ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
+	if (CurrentIndex < 0)
+	{
+		ActiveGroup = AMIntToEnum<EAMGroup>(MAX_WEAPONS - 1);
+	}
+	FGameplayTag NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
+	if (!NextWeaponAbility.IsValid())
+	{
+		NextWeaponAbility = FindPreviousValid();
+	}
+	//so Server index is different. Client might tried to cheat
+	//or sometrhing. We will override it.
+	//situation where client can chage multiple weapons within second
+	//should not have place, as there is animation and/or internal cooldown on weapon change.
+	//since it will be done trough ability.
+	if (ActiveGroup != AMIntToEnum<EAMGroup>(WeaponIndex))
+	{
+		ClientNextGroup(AMEnumToInt<EAMGroup>(ActiveGroup), false);
+	}
+	else
+	{
+		ClientNextGroup(AMEnumToInt<EAMGroup>(ActiveGroup), true);
+	}
+}
+bool UARWeaponManagerComponent::ServerPreviousWeapon_Validate(int32 WeaponIndex)
+{
+	return true;
+}
+void UARWeaponManagerComponent::ClientPreviousWeapon_Implementation(int32 WeaponIndex, bool bPredictionSuccess)
+{
+	if (bPredictionSuccess)
+		return;
+}
+
+void UARWeaponManagerComponent::ServerHolsterWeapon_Implementation(int32 WeaponIndex)
+{
+	ActiveGroup = EAMGroup::Group005;
+	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+	{
+		Character->GetWeapons()->HolsterActive(ActiveGroup);
+	}
+}
+bool UARWeaponManagerComponent::ServerHolsterWeapon_Validate(int32 WeaponIndex)
+{
+	return true;
+}
 
 void UARWeaponManagerComponent::OnWeaponInputRead(FGameplayTag WeaponAbilityTag, TArray<FGameplayTag> InInputTags)
 {
 	UAFAbilityComponent* AbilityComp = GetAbilityComponent();
 
 	//AbilityComp->SetAbilityToAction(NextWeaponAbility, WeaponInput, FAFOnAbilityReady());
-}
-void UARWeaponManagerComponent::OnNextGroupConfirmed(EAMGroup ValidGroup, bool bPredictionSuccess)
-{
-	if (bPredictionSuccess)
-		return;
-
-	//something gone wrong.. we need to change weapon to correct one.
-	//we probabaly already changed. So just get current group.
-	FGameplayTag CurrentWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
-
-	//and then get correct one from server.
-	FGameplayTag NextWeaponAbility = GetAbilityTag(ValidGroup, EAMSlot::Slot001);
-	EquipWeapon(CurrentWeaponAbility, NextWeaponAbility);
-}
-void UARWeaponManagerComponent::OnPreviousGroupConfirmed(EAMGroup ValidGroup, bool bPredictionSuccess)
-{
-	if (bPredictionSuccess)
-		return;
-
-	//something gone wrong.. we need to change weapon to correct one.
-	//we probabaly already changed. So just get current group.
-	FGameplayTag CurrentWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
-
-	//and then get correct one from server.
-	FGameplayTag NextWeaponAbility = GetAbilityTag(ValidGroup, EAMSlot::Slot001);
-	EquipWeapon(CurrentWeaponAbility, NextWeaponAbility);
 }
 
 void UARWeaponManagerComponent::EquipWeapon(const FGameplayTag& PreviousWeaponTag, const FGameplayTag& NextWeaponTag)
@@ -165,7 +301,7 @@ void UARWeaponManagerComponent::EquipWeapon(const FGameplayTag& PreviousWeaponTa
 	AARCharacter* Character = Cast<AARCharacter>(POwner);
 	if (Character)
 	{
-		Character->GetWeapons()->Equip(ActiveGroup, WeaponClasses[0].GetDefaultObject()->WeaponMesh);
+		Character->GetWeapons()->Equip(ActiveGroup, WeaponClasses[0].GetDefaultObject());
 	}
 	if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
 	{

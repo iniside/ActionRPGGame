@@ -1,7 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ARWeaponPawnManagerComponent.h"
-
+#include "Engine/AssetManager.h"
+#include "ARItemWeapon.h"
 #include "../ARCharacter.h"
 
 // Sets default values for this component's properties
@@ -25,7 +26,13 @@ void UARWeaponPawnManagerComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	
+	if (AARCharacter* Character = Cast<AARCharacter>(GetOwner()))
+	{
+		GroupToComponent.Add(EAMGroup::Group001, Character->GetHolsteredRightWeapon());
+		GroupToComponent.Add(EAMGroup::Group002, Character->GetHolsteredLeftWeapon());
+		GroupToComponent.Add(EAMGroup::Group003, Character->GetHolsteredBackDownWeapon());
+		GroupToComponent.Add(EAMGroup::Group004, Character->GetHolsteredSideLeftWeapon());
+	}
 }
 
 
@@ -33,19 +40,13 @@ void UARWeaponPawnManagerComponent::BeginPlay()
 void UARWeaponPawnManagerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
 	// ...
 }
 
-void UARWeaponPawnManagerComponent::SetWeapon(TSoftObjectPtr<USkeletalMesh> InWeapon, USkeletalMeshComponent* Component)
+void UARWeaponPawnManagerComponent::SetWeapon(const FARWeapon& InWeapon, UChildActorComponent* Component)
 {
-	if (POwner)
-	{
-		if (AARCharacter* Character = Cast<AARCharacter>(POwner))
-		{
-			Component->SetSkeletalMesh(InWeapon.Get());
-		}
-	}
+	FStreamableDelegate LoadFinished = FStreamableDelegate::CreateUObject(this, &UARWeaponPawnManagerComponent::AsynWeaponLoaded, Component, InWeapon);
+	UAssetManager::Get().GetStreamableManager().RequestAsyncLoad(InWeapon.Weapon.ToSoftObjectPath(), LoadFinished);
 }
 
 void UARWeaponPawnManagerComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
@@ -59,59 +60,98 @@ void UARWeaponPawnManagerComponent::GetLifetimeReplicatedProps(TArray< class FLi
 	DOREPLIFETIME_CONDITION(UARWeaponPawnManagerComponent, MainHandWeapon, COND_SkipOwner);
 }
 
-void UARWeaponPawnManagerComponent::Equip(EAMGroup Group, TSoftObjectPtr<USkeletalMesh> InWeapon)
+void UARWeaponPawnManagerComponent::Equip(EAMGroup Group, class UARItemWeapon* InWeapon)
 {
-	MainHandWeapon.WeaponMesh = InWeapon;
+	MainHandWeapon.Weapon = InWeapon->Weapon;
+	MainHandWeapon.Position = InWeapon->EquipedPosition;
+	MainHandWeapon.Rotation = InWeapon->EquipedRotation;
+	MainHandWeapon.Group = Group;
 	MainHandWeapon.RepCounter++;
-	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
-	{
-		SetWeapon(InWeapon, Character->GetEquipedMainWeapon());
-	}
-}
-
-void UARWeaponPawnManagerComponent::Holster(EAMGroup Group, TSoftObjectPtr<USkeletalMesh> InWeapon)
-{
-	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->WeaponMesh = InWeapon;
+	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Weapon.Reset();
 	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->RepCounter++;
 	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
 	{
-		SetWeapon(InWeapon, Character->GetHolsteredRightWeapon());
+		SetWeapon(MainHandWeapon, Character->GetEquipedMainWeapon());
+		GroupToComponent[Group]->SetChildActorClass(nullptr);
 	}
 }
 
-void UARWeaponPawnManagerComponent::OnRep_Group001HolsteredAttachment()
+void UARWeaponPawnManagerComponent::Holster(EAMGroup Group, class UARItemWeapon* InWeapon)
 {
+	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Weapon = InWeapon->Weapon;
+	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Position = InWeapon->HolsteredPosition;
+	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Rotation = InWeapon->HolsteredRotation;
+	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Group = Group;
+	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->RepCounter++;
 	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
 	{
-		SetWeapon(Group001HolsteredAttachment.WeaponMesh, Character->GetHolsteredRightWeapon());
+		//Character->GetHolsteredRightWeapon()->SetSkeletalMesh(nullptr);
+		SetWeapon(*WeaponHelper[AMEnumToInt<EAMGroup>(Group)], GroupToComponent[Group]);
 	}
+}
+void UARWeaponPawnManagerComponent::HolsterActive(EAMGroup Group)
+{
+	WeaponHelper[AMEnumToInt<EAMGroup>(MainHandWeapon.Group)]->Weapon = MainHandWeapon.Weapon;
+	WeaponHelper[AMEnumToInt<EAMGroup>(MainHandWeapon.Group)]->Group = MainHandWeapon.Group;
+	WeaponHelper[AMEnumToInt<EAMGroup>(MainHandWeapon.Group)]->RepCounter++;
+
+	MainHandWeapon.Weapon.Reset();
+	MainHandWeapon.RepCounter++;
+
+	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+	{
+		Character->GetEquipedMainWeapon()->SetChildActorClass(nullptr);
+		SetWeapon(*WeaponHelper[AMEnumToInt<EAMGroup>(MainHandWeapon.Group)], GroupToComponent[MainHandWeapon.Group]);
+	}
+}
+void UARWeaponPawnManagerComponent::OnRep_Group001HolsteredAttachment()
+{
+	///if (Group001HolsteredAttachment.WeaponMesh.IsPending())
+	///{
+		if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+		{
+			SetWeapon(Group001HolsteredAttachment, Character->GetHolsteredRightWeapon());
+		}
+	///}
 }
 void UARWeaponPawnManagerComponent::OnRep_Group002HolsteredAttachment()
 {
 	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
 	{
-		SetWeapon(Group002HolsteredAttachment.WeaponMesh, Character->GetHolsteredRightWeapon());
+		SetWeapon(Group002HolsteredAttachment, Character->GetHolsteredLeftWeapon());
 	}
 }
 void UARWeaponPawnManagerComponent::OnRep_Group003HolsteredAttachment()
 {
 	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
 	{
-		SetWeapon(Group003HolsteredAttachment.WeaponMesh, Character->GetHolsteredRightWeapon());
+		SetWeapon(Group003HolsteredAttachment, Character->GetHolsteredRightWeapon());
 	}
 }
 void UARWeaponPawnManagerComponent::OnRep_Group004HolsteredAttachment()
 {
 	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
 	{
-		SetWeapon(Group004HolsteredAttachment.WeaponMesh, Character->GetHolsteredRightWeapon());
+		SetWeapon(Group004HolsteredAttachment, Character->GetHolsteredRightWeapon());
 	}
 }
 
-void UARWeaponPawnManagerComponent::OnRep_MainHandWeapon()
+void UARWeaponPawnManagerComponent::OnRep_MainHandWeapon(FARWeapon OldWeapon)
 {
 	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
 	{
-		SetWeapon(MainHandWeapon.WeaponMesh, Character->GetHolsteredRightWeapon());
+		SetWeapon(MainHandWeapon, Character->GetEquipedMainWeapon());
+		GroupToComponent[MainHandWeapon.Group]->SetChildActorClass(nullptr);
 	}
+}
+
+void UARWeaponPawnManagerComponent::AsynWeaponLoaded(UChildActorComponent* Component, FARWeapon InWeapon)
+{
+	Component->SetChildActorClass(InWeapon.Weapon.Get());
+	
+	Component->SetRelativeLocation(FVector(0,0,0));
+	Component->SetRelativeRotation(FRotator(0,0,0));
+
+	Component->SetRelativeLocation(InWeapon.Position);
+	Component->SetRelativeRotation(InWeapon.Rotation);
 }

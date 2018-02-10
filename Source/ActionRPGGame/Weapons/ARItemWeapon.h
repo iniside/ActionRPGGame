@@ -17,8 +17,17 @@ class ACTIONRPGGAME_API UARItemWeapon : public UObject
 public:
 	UPROPERTY(EditAnywhere, Category = "Ability")
 		FGameplayTag Ability;
+	
 	UPROPERTY(EditAnywhere, Category = "Visual")
-		TSoftObjectPtr<USkeletalMesh> WeaponMesh;
-	
-	
+		TSoftClassPtr<class AARWeaponBase> Weapon;
+
+	UPROPERTY(EditAnywhere, Category = "Transforms")
+		FVector HolsteredPosition;
+	UPROPERTY(EditAnywhere, Category = "Transforms")
+		FRotator HolsteredRotation;
+
+	UPROPERTY(EditAnywhere, Category = "Transforms")
+		FVector EquipedPosition;
+	UPROPERTY(EditAnywhere, Category = "Transforms")
+		FRotator EquipedRotation;
 };

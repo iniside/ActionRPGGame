@@ -18,9 +18,16 @@ struct FARWeapon
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, Category = "Attachment Test")
-		TSoftObjectPtr<USkeletalMesh> WeaponMesh;
+		TSoftClassPtr<class AARWeaponBase> Weapon;
 	UPROPERTY(EditAnywhere, Category = "Attachment Test")
 		FName SocketName;
+
+	UPROPERTY(EditAnywhere, Category = "Attachment Test")
+		FVector Position;
+	UPROPERTY(EditAnywhere, Category = "Attachment Test")
+		FRotator Rotation;
+	UPROPERTY(EditAnywhere, Category = "Attachment Test")
+		EAMGroup Group;
 
 	UPROPERTY(EditAnywhere, Category = "Attachment Test")
 		uint8 RepCounter;
@@ -45,7 +52,7 @@ protected:
 	UPROPERTY()
 		class APawn* POwner;
 
-	TMap<EAMGroup, USkeletalMeshComponent*> GroupToComponent;
+	TMap<EAMGroup, UChildActorComponent*> GroupToComponent;
 	
 	TArray<FARWeapon*> WeaponHelper;
 
@@ -62,15 +69,16 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	
-	void Equip(EAMGroup Group, TSoftObjectPtr<USkeletalMesh> InWeapon);
-	void Holster(EAMGroup Group, TSoftObjectPtr<USkeletalMesh> InWeapon);
+	void Equip(EAMGroup Group, class UARItemWeapon* InWeapon);
+	void Holster(EAMGroup Group, class UARItemWeapon* InWeapon);
+	void HolsterActive(EAMGroup Group);
 	inline void SetPOwner(APawn* InPawn)
 	{
 		POwner = InPawn;
 	}
 
 protected:
-	void SetWeapon(TSoftObjectPtr<USkeletalMesh> InWeapon, USkeletalMeshComponent* Component);
+	void SetWeapon(const FARWeapon& InWeapon, UChildActorComponent* Component);
 	UFUNCTION()
 		void OnRep_Group001HolsteredAttachment();
 	UFUNCTION()
@@ -81,5 +89,8 @@ protected:
 		void OnRep_Group004HolsteredAttachment();
 
 	UFUNCTION()
-		void OnRep_MainHandWeapon();
+		void OnRep_MainHandWeapon(FARWeapon OldWeapon);
+
+	UFUNCTION()
+		void AsynWeaponLoaded(UChildActorComponent* Component, FARWeapon InWeapon);
 };

@@ -1036,6 +1036,10 @@ bool UAFAbilityComponent::ServerNativeRemoveAbility_Validate(FGameplayTag InAbil
 void UAFAbilityComponent::OnFinishedLoad(FGameplayTag InAbilityTag,
 	FPrimaryAssetId InPrimaryAssetId, AActor* InAvatar)
 {
+	if (AbilityContainer.AbilityExists(InAbilityTag))
+	{
+		return;
+	}
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
 		return;
