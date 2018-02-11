@@ -333,3 +333,13 @@ bool FGACountedTagContainer::HasAllExact(const FGameplayTagContainer& TagsIn) co
 {
 	return AllTags.HasAllExact(TagsIn);
 }
+
+FAFCueHandle FAFCueHandle::GenerateHandle()
+{
+	static uint32 HandleIndex = 0;
+	HandleIndex++;
+
+	FAFCueHandle NewHandle(HandleIndex);
+
+	return NewHandle;
+}

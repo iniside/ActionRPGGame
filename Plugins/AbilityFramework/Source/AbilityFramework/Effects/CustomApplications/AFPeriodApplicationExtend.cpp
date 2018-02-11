@@ -32,13 +32,13 @@ bool UAFPeriodApplicationExtend::ApplyEffect(const FGAEffectHandle& InHandle, st
 
 		FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UAFAbilityComponent::ExpireEffect, InHandle, InProperty, InContext);
 		DurationTimer.SetTimer(InHandle.GetEffectPtr()->DurationTimerHandle, delDuration,
-			InProperty.Duration, false);
+			InProperty.GetDuration(), false);
 
 		FTimerManager& PeriodTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
 
 		FTimerDelegate PeriodDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UAFAbilityComponent::ExecuteEffect, InHandle, InProperty, Modifier, InContext);
 		PeriodTimer.SetTimer(InHandle.GetEffectPtr()->PeriodTimerHandle, PeriodDuration,
-			InProperty.Period, true);
+			InProperty.GetPeriod(), true);
 
 		InContainer->AddEffect(InProperty, InHandle);
 	}

@@ -319,11 +319,18 @@ FGameplayTag UARWeaponManagerComponent::FindNextValid()
 	while (!WeaponAbilityTag.IsValid())
 	{
 		Idx++;
-		if (Idx > Groups.Num() - 1)
+		if (Idx > MAX_WEAPONS - 1)
 		{
 			Idx = 0;
 		}
 		WeaponAbilityTag = GetAbilityTag(AMIntToEnum<EAMGroup>(Idx), EAMSlot::Slot001);
+
+		//no weapon at first index, just assume there is nothing equipped.
+		if ((Idx == 0) && !WeaponAbilityTag.IsValid())
+		{
+			SelectGroup(EAMGroup::Group005);
+			break;
+		}
 	}
 	if (WeaponAbilityTag.IsValid())
 	{
@@ -341,7 +348,14 @@ FGameplayTag UARWeaponManagerComponent::FindPreviousValid()
 		Idx--;
 		if (Idx < 0)
 		{
-			Idx = 0;
+			Idx = MAX_WEAPONS - 1;
+		}
+
+		//again no ability for weapon.
+		if ((Idx == (MAX_WEAPONS - 1) ) && !WeaponAbilityTag.IsValid())
+		{
+			SelectGroup(EAMGroup::Group005);
+			break;
 		}
 		WeaponAbilityTag = GetAbilityTag(AMIntToEnum<EAMGroup>(Idx), EAMSlot::Slot001);
 	}

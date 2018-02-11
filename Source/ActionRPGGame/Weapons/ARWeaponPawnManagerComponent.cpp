@@ -92,8 +92,8 @@ void UARWeaponPawnManagerComponent::EquipInactive(EAMGroup Group, UARItemWeapon*
 	if (InOldWeapon)
 	{
 		WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)]->Weapon = MainHandWeapon.Weapon;
-		WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)]->Position = InOldWeapon->HolsteredPosition;
-		WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)]->Rotation = InOldWeapon->HolsteredRotation;
+		//WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)]->Position = InOldWeapon->HolsteredPosition;
+		//WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)]->Rotation = InOldWeapon->HolsteredRotation;
 		WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)]->RepCounter++;
 		//GroupToComponent[OldGroup]->SetChildActorClass(WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)]->Weapon.Get());
 		SetWeapon(*WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)], GroupToComponent[OldGroup]);

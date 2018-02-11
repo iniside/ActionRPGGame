@@ -47,8 +47,8 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 		UE_LOG(GameAttributesEffects, Error, TEXT("UGABlueprintLibrary::ApplyEffect Effects must be applied trough Ability"));
 		return FGAEffectHandle();
 	}
-
-	InEffect.InitializeIfNotInitialized();
+	FGAEffectContext Context = MakeContext(Target, Instigator, nullptr, Causer, HitIn);
+	InEffect.InitializeIfNotInitialized(Context);
 
 	if (!InEffect.IsInitialized())
 	{
@@ -56,22 +56,8 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 		return FGAEffectHandle();
 	}
 
-	FGAEffectContext Context = MakeContext(Target, Instigator, nullptr, Causer, HitIn);
 	
-	//FAFQueueApplyEffect QueuedEffect;
-	//QueuedEffect.Effect = &InEffect;
-	//QueuedEffect.Target = Target;
-	//QueuedEffect.Causer = Causer;
-	//QueuedEffect.Instigator = Instigator;
-	//QueuedEffect.HitIn = HitIn;
-	//QueuedEffect.Modifier = Modifier;
-	//
-	//Context.InstigatorComp->QueuedEffects.Enqueue(QueuedEffect);
-	//return FGAEffectHandle();
-	/*if (!Context.IsValid())
-	{
-		return FGAEffectHandle();
-	}*/
+	
 	UAFAbilityComponent* Target2 = Context.TargetComp.Get();
 	if (!Target2->HaveEffectRquiredTags(InEffect.GetSpec()->RequiredTags))
 	{
@@ -82,13 +68,11 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 		return FGAEffectHandle();
 	}
 	UE_LOG(GameAttributesEffects, Log, TEXT("MakeOutgoingSpecObj: Created new Context: %s"), *Context.ToString());
-	InEffect.Duration = InEffect.GetSpec()->Duration.GetFloatValue(Context);
-	InEffect.Period = InEffect.GetSpec()->Period.GetFloatValue(Context);
 
 	FGAEffect* effect = nullptr;
-	if (InEffect.Duration <= 0 && InEffect.Period <= 0)
+	if (InEffect.GetDuration() <= 0 && InEffect.GetPeriod() <= 0)
 	{
-		if (!InEffect.Handle.IsValid())
+		if (!InEffect.IsHandleValid(Target))
 		{
 			effect = new FGAEffect(InEffect.GetSpec(), Context);
 			AddTagsToEffect(effect);
@@ -97,7 +81,7 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 		}
 		else
 		{
-			effect = InEffect.Handle.GetEffectPtr().Get();
+			effect = InEffect.GetHandle(Target).GetEffectPtr().Get();
 		}
 	}
 	else
@@ -116,7 +100,7 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 		}
 	}
 	FGAEffectHandle Handle = Context.InstigatorComp->ApplyEffectToTarget(effect, InEffect, Context, Modifier);
-	if (InEffect.Duration > 0 || InEffect.Period > 0)
+	if (InEffect.GetDuration() > 0 || InEffect.GetPeriod() > 0)
 	{
 		InEffect.AddHandle(Context.Target.Get(), Handle);
 	}
@@ -133,8 +117,9 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty* InEffect,
 		UE_LOG(GameAttributesEffects, Error, TEXT("UGABlueprintLibrary::ApplyEffect Effects must be applied trough Ability"));
 		return FGAEffectHandle();
 	}
-	
-	InEffect->InitializeIfNotInitialized();
+	FGAEffectContext Context = MakeContext(Target, Instigator, nullptr, Causer, HitIn);
+
+	InEffect->InitializeIfNotInitialized(Context);
 
 	if (!InEffect->IsInitialized())
 	{
@@ -142,7 +127,7 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty* InEffect,
 		return FGAEffectHandle();
 	}
 
-	FGAEffectContext Context = MakeContext(Target, Instigator, nullptr, Causer, HitIn);
+	
 	
 	/*if (!Context.IsValid())
 	{
@@ -158,13 +143,11 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty* InEffect,
 		return FGAEffectHandle();
 	}
 	UE_LOG(GameAttributesEffects, Log, TEXT("MakeOutgoingSpecObj: Created new Context: %s"), *Context.ToString());
-	InEffect->Duration = InEffect->GetSpec()->Duration.GetFloatValue(Context);
-	InEffect->Period = InEffect->GetSpec()->Period.GetFloatValue(Context);
 
 	FGAEffect* effect = nullptr;
-	if (InEffect->Duration <= 0 && InEffect->Period <= 0)
+	if (InEffect->GetDuration() <= 0 && InEffect->GetPeriod() <= 0)
 	{
-		if (!InEffect->Handle.IsValid())
+		if (!InEffect->IsHandleValid(Target))
 		{
 			effect = new FGAEffect(InEffect->GetSpec(), Context);
 			AddTagsToEffect(effect);
@@ -173,7 +156,7 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty* InEffect,
 		}
 		else
 		{
-			effect = InEffect->Handle.GetEffectPtr().Get();
+			effect = InEffect->GetHandle(Target).GetEffectPtr().Get();
 		}
 	}
 	else
@@ -192,7 +175,12 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty* InEffect,
 		}
 	}
 
-	return Context.InstigatorComp->ApplyEffectToTarget(effect, *InEffect, Context, Modifier);
+	FGAEffectHandle Handle = Context.InstigatorComp->ApplyEffectToTarget(effect, *InEffect, Context, Modifier);
+	if (InEffect->GetDuration() > 0 || InEffect->GetPeriod() > 0)
+	{
+		InEffect->AddHandle(Context.Target.Get(), Handle);
+	}
+	return Handle;
 }
 FGAEffectHandle UGABlueprintLibrary::ApplyEffectFromHit(FGAEffectProperty& InEffect,
 	const FHitResult& Target, class APawn* Instigator,

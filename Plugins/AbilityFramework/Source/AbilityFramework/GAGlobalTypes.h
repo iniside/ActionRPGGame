@@ -395,7 +395,6 @@ public:
 //	};
 //};
 
-
 USTRUCT()
 struct FAFPredictionHandle
 {
@@ -829,4 +828,33 @@ public:
 		Causer(CauserIn)
 	{};
 	//bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
+};
+
+USTRUCT()
+struct FAFCueHandle
+{
+	GENERATED_BODY();
+private:
+	UPROPERTY()
+		uint32 Handle;
+
+	FAFCueHandle(uint32 InHandle)
+		: Handle(InHandle)
+	{}
+public:
+	FAFCueHandle()
+		: Handle(0)
+	{}
+
+	static FAFCueHandle GenerateHandle();
+
+	bool operator==(const FAFCueHandle Other) const
+	{
+		return Handle == Other.Handle;
+	}
+
+	friend uint32 GetTypeHash(const FAFCueHandle& InHandle)
+	{
+		return InHandle.Handle;
+	}
 };

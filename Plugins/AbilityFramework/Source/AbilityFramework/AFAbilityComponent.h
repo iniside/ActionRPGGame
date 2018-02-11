@@ -339,6 +339,8 @@ public:
 	//Maps effect handles to Properties from which effect was created.
 	//usefull when all we have is handle or PredictionHandle.
 	TMap<FGAEffectHandle, FGAEffectProperty*> PropertyByHandle;
+	
+	TMap<FGAEffectHandle, FAFCueHandle> EffectToCue;
 
 	FAFEffectRepInfoDelegate OnEffectRepInfoApplied;
 	FAFEffectRepInfoDelegate OnEffectRepInfoRemoved;
@@ -484,14 +486,15 @@ public:
 
 	*/
 	UFUNCTION(NetMulticast, Unreliable)
-		void MulticastApplyEffectCue(FGAEffectCueParams CueParams);
-	virtual void MulticastApplyEffectCue_Implementation(FGAEffectCueParams CueParams);
+		void MulticastApplyEffectCue(FGAEffectCueParams CueParams, FAFCueHandle InHandle);
+	virtual void MulticastApplyEffectCue_Implementation(FGAEffectCueParams CueParams, FAFCueHandle InHandle);
 
 	UFUNCTION(NetMulticast, Unreliable)
-		void MulticastExecuteEffectCue(FGAEffectHandle EffectHandle);
+		void MulticastExecuteEffectCue(FGAEffectHandle EffectHandle, FAFCueHandle InHandle);
+	void MulticastRemoveEffectCue_Implementation(FGAEffectCueParams CueParams, FAFCueHandle InHandle);
 
 	UFUNCTION(NetMulticast, Unreliable)
-		void MulticastRemoveEffectCue(FGAEffectCueParams CueParams);
+		void MulticastRemoveEffectCue(FGAEffectCueParams CueParams, FAFCueHandle InHandle);
 
 	UFUNCTION(NetMulticast, Unreliable)
 		void MulticastUpdateDurationCue(FGAEffectHandle EffectHandle, float NewDurationIn);
@@ -678,6 +681,8 @@ public:
 		OnEffectEvent.Remove(InEventTag);
 	}
 
+	/*UFUNCTION(NetMulticast, Reliable)
+		MulticastExecuteEffect()*/
 	TMap<FGameplayTag, FAFEffectEvent> OnEffectApplyToSelf;
 
 	TMap<FGameplayTag, FAFEffectEvent> OnEffectApplyToTarget;

@@ -218,7 +218,7 @@ void AARCharacter::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > 
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AARCharacter, CameraTransform);
+	DOREPLIFETIME_CONDITION(AARCharacter, CameraTransform, COND_SkipOwner);
 }
 
 void AARCharacter::Multicast_CameraTransform_Implementation(FARCameraTransform InCameraTransform)
@@ -227,10 +227,14 @@ void AARCharacter::Multicast_CameraTransform_Implementation(FARCameraTransform I
 }
 void AARCharacter::OnCameraTransformUpdate(USceneComponent* UpdatedComponent, EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport)
 {
-	FARCameraTransform CamTransform;
-	CameraTransform.ForwardVector = FollowCamera->GetForwardVector();
-	CameraTransform.Location = FollowCamera->GetComponentLocation();
-	//Multicast_CameraTransform(CamTransform);
+	if (GetNetMode() == ENetMode::NM_Standalone
+		|| Role == ENetRole::ROLE_Authority
+		|| Role == ENetRole::ROLE_AutonomousProxy)
+	{
+		CameraTransform.ForwardVector = FollowCamera->GetForwardVector();
+		CameraTransform.Location = FollowCamera->GetComponentLocation();
+	}
+	//Multicast_CameraTransform(CameraTransform);
 }
 
 class AARWeaponBase* AARCharacter::GetMainWeapon() const

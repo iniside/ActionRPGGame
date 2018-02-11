@@ -19,6 +19,9 @@ public class AbilityManager : ModuleRules
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				"AbilityManager/Private",
+                "AbilityManager/Abilities",
+                "AbilityManager/Attributes",
+                "AbilityManager/Effects",
 				// ... add other private include paths required here ...
 			}
 			);

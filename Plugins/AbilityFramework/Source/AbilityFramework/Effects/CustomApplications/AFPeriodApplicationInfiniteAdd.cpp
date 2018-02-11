@@ -15,7 +15,7 @@ bool UAFPeriodApplicationInfiniteAdd::ApplyEffect(const FGAEffectHandle& InHandl
 
 	FTimerDelegate PeriodDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UAFAbilityComponent::ExecuteEffect, InHandle, InProperty, Modifier, InContext);
 	PeriodTimer.SetTimer(InHandle.GetEffectPtr()->PeriodTimerHandle, PeriodDuration,
-		InProperty.Period, true);
+		InProperty.GetPeriod(), true);
 	InContainer->AddEffect(InProperty, InHandle, true);
 	//EffectIn->Context.TargetComp->ExecuteEffect(InHandle, InProperty);
 	return true;

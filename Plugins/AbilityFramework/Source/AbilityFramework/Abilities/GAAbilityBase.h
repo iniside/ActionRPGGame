@@ -179,7 +179,7 @@ public:
 
 		It will need some common interfaces for getting data out.
 	*/
-	UPROPERTY(BlueprintReadOnly, Category = "AbilityFramework|Abilities")
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "AbilityFramework|Abilities")
 		class AActor* AvatarActor;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "AbilityFramework|Abilities")

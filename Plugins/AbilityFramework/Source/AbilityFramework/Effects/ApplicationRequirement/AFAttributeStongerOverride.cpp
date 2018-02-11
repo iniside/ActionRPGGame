@@ -14,7 +14,7 @@ bool UAFAttributeStongerOverride::CanApply(FGAEffect* EffectIn, FGAEffectPropert
 	const FGAEffectHandle& InHandle)
 {
 	bool bCanApply = true;
-	FGAAttribute Attribute = InProperty.Spec->AtributeModifier.Attribute;
+	FGAAttribute Attribute = InProperty.GetSpec()->AtributeModifier.Attribute;
 	FAFAttributeBase* AttributePtr = EffectIn->Context.TargetInterface->GetAttribute(Attribute);
 	if (AttributePtr)
 	{

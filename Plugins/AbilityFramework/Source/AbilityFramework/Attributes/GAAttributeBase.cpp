@@ -189,8 +189,8 @@ float FAFAttributeBase::Modify(const FGAEffectMod& ModIn, const FGAEffectHandle&
 		ExtensionClass.GetDefaultObject()->OnPreAttributeModify(CurrentValue);
 	}
 	float returnValue = -1;
-	bool isPeriod = InProperty.Period > 0;
-	bool IsDuration = InProperty.Duration > 0;
+	bool isPeriod = InProperty.GetPeriod() > 0;
+	bool IsDuration = InProperty.GetDuration() > 0;
 	if ( !isPeriod & IsDuration)
 	{
 		FGAModifier AttrMod(ModIn.AttributeMod, ModIn.Value, HandleIn);

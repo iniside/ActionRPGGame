@@ -140,12 +140,6 @@ void AGAEffectCue::Tick( float DeltaTime )
 void AGAEffectCue::NativeBeginCue(AActor* InstigatorOut, AActor* TargetOut, UObject* Causer,
 	const FHitResult& HitInfo, const FGAEffectCueParams& CueParams)
 {
-	if (CueParams.Period > 0)
-	{
-		FTimerDelegate del = FTimerDelegate::CreateUObject(this, &AGAEffectCue::NativeOnExecuted);
-		FTimerManager& Timer = GetWorld()->GetTimerManager();
-		Timer.SetTimer(PeriodTimer, del, CueParams.Period, true);
-	}
 	BeginCue(InstigatorOut, TargetOut, Causer, HitInfo);
 	if (!SequencePlayer)
 	{
@@ -159,11 +153,6 @@ void AGAEffectCue::NativeOnExecuted()
 }
 void AGAEffectCue::NativeOnRemoved()
 {
-	FTimerManager& Timer = GetWorld()->GetTimerManager();
-	Timer.ClearTimer(PeriodTimer);
-	SequencePlayer->JumpToPosition(0);
-	SequencePlayer->Stop();
-
 	OnRemoved();
 }
 

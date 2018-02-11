@@ -77,7 +77,7 @@ void UAFCueManager::HandleOnPIEEnd(bool InVal)
 		}
 
 	}
-
+	ActiveCues.Empty();
 	InstancedCues.Empty();
 	UsedCues.Empty();
 }
@@ -140,7 +140,7 @@ void UAFCueManager::HandlePostLoadMap(UWorld* InWorld)
 
 
 void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags, 
-	const FGAEffectCueParams& CueParams)
+	const FGAEffectCueParams& CueParams, FAFCueHandle InHandle)
 {
 	if (!CurrentWorld)
 		CurrentWorld = CueParams.Instigator->GetWorld();
@@ -152,7 +152,7 @@ void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags,
 		{
 
 			AGAEffectCue* actor = nullptr;
-
+			ENetRole mode = CueParams.Instigator->GetRemoteRole();
 			TUniquePtr<TQueue<AGAEffectCue*>>& Cues = InstancedCues.FindOrAdd(CueTag);
 			if (Cues.IsValid())
 			{
@@ -170,6 +170,7 @@ void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags,
 				}
 				if (actor)
 				{
+					ActiveCues.Add(InHandle, actor);
 					actor->NativeBeginCue(CueParams.Instigator.Get(), CueParams.HitResult.GetActor(), CueParams.Causer.Get(), CueParams.HitResult, CueParams);
 				}
 				return;//don't try to load asset, we already have pooled instance.
@@ -187,7 +188,7 @@ void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags,
 			FPrimaryAssetTypeInfo Info;
 			if (Manager->GetPrimaryAssetTypeInfo(PrimaryAssetId.PrimaryAssetType, Info))
 			{
-				FStreamableDelegate del = FStreamableDelegate::CreateUObject(this, &UAFCueManager::OnFinishedLoad, CueTag, PrimaryAssetId, CueParams);
+				FStreamableDelegate del = FStreamableDelegate::CreateUObject(this, &UAFCueManager::OnFinishedLoad, CueTag, PrimaryAssetId, CueParams, InHandle);
 
 				Manager->LoadPrimaryAsset(PrimaryAssetId,
 					TArray<FName>(),
@@ -196,10 +197,20 @@ void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags,
 		}
 	}
 }
+void UAFCueManager::HandleExecuteCue(FAFCueHandle InHandle)
+{
+	AGAEffectCue** Cue = ActiveCues.Find(InHandle);
+	if (Cue)
+	{
+		AGAEffectCue* cue = *Cue;
 
+		cue->NativeOnExecuted();
+	}
+}
 void UAFCueManager::OnFinishedLoad(FGameplayTag InCueTag
 	, FPrimaryAssetId InPrimaryAssetId
-	, FGAEffectCueParams CueParams)
+	, FGAEffectCueParams CueParams
+	, FAFCueHandle InHandle)
 {
 	if (UAssetManager* Manager = UAssetManager::GetIfValid())
 	{
@@ -283,6 +294,7 @@ void UAFCueManager::OnFinishedLoad(FGameplayTag InCueTag
 
 			if (actor)
 			{
+				ActiveCues.Add(InHandle, actor);
 				actor->NativeBeginCue(CueParams.Instigator.Get(), CueParams.HitResult.Actor.Get(),
 					CueParams.Causer.Get(), CueParams.HitResult, CueParams);
 			}
@@ -295,7 +307,7 @@ void UAFCueManager::OnFinishedLoad(FGameplayTag InCueTag
 }
 
 void UAFCueManager::HandleRemoveCue(const FGameplayTagContainer& Tags,
-	const FGAEffectCueParams& CueParams)
+	const FGAEffectCueParams& CueParams, FAFCueHandle InHandle)
 {
 	if (!CurrentWorld)
 		CurrentWorld = CueParams.Instigator->GetWorld();
@@ -321,6 +333,7 @@ void UAFCueManager::HandleRemoveCue(const FGameplayTagContainer& Tags,
 
 		if (actor)
 		{
+			ActiveCues.Remove(InHandle);
 			Cues->Enqueue(actor);
 			actor->NativeOnRemoved();
 		}

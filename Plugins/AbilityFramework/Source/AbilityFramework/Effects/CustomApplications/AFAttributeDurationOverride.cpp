@@ -32,7 +32,7 @@ bool UAFAttributeDurationOverride::ApplyEffect(const FGAEffectHandle& InHandle, 
 
 	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UAFAbilityComponent::ExpireEffect, InHandle, InProperty, InContext);
 	DurationTimer.SetTimer(InHandle.GetEffectPtr()->DurationTimerHandle, delDuration,
-		InProperty.Duration, false);
+		InProperty.GetDuration(), false);
 
 	InContainer->AddEffect(InProperty, InHandle);
 	//EffectIn->Context.TargetComp->ExecuteEffect(InHandle, InProperty);

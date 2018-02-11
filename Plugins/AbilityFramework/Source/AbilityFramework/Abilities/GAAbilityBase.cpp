@@ -159,11 +159,12 @@ void UGAAbilityBase::TickAbility(float DeltaSeconds, ELevelTick TickType, FGAAbi
 void UGAAbilityBase::InitAbility()
 {
 	//still want to initialize, as Spec is used in multiple places.
-	ActivationEffect.InitializeIfNotInitialized();
-	CooldownEffect.InitializeIfNotInitialized();
-	AttributeCost.InitializeIfNotInitialized();
-	AbilityAttributeCost.InitializeIfNotInitialized();
 	DefaultContext = UGABlueprintLibrary::MakeContext(this, POwner, AvatarActor, this, FHitResult(ForceInit));
+	ActivationEffect.InitializeIfNotInitialized(DefaultContext);
+	CooldownEffect.InitializeIfNotInitialized(DefaultContext);
+	AttributeCost.InitializeIfNotInitialized(DefaultContext);
+	AbilityAttributeCost.InitializeIfNotInitialized(DefaultContext);
+	
 	if (AbilityComponent)
 	{
 		World = AbilityComponent->GetWorld();
@@ -607,7 +608,7 @@ bool UGAAbilityBase::IsOnCooldown()
 bool UGAAbilityBase::IsActivating()
 {
 	bool bAbilityActivating = false;
-	bool bHaveEffect = AbilityComponent->IsEffectActive(ActivationEffect.Handle);
+	bool bHaveEffect = AbilityComponent->IsEffectActive(ActivationEffect.GetHandle(this));
 	bool bInActivatingState = AbilityState == EAFAbilityState::Activating;
 	UE_LOG(AbilityFramework, Log, TEXT("IsActivating Ability, Effect: %s, State: %s \n"), bHaveEffect ? TEXT("true") : TEXT("false"), bInActivatingState ? TEXT("true") : TEXT("false"));
 	bAbilityActivating = bHaveEffect || bInActivatingState;
@@ -676,6 +677,7 @@ void UGAAbilityBase::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty 
 	DOREPLIFETIME(UGAAbilityBase, POwner);
 	DOREPLIFETIME(UGAAbilityBase, PCOwner);
 	DOREPLIFETIME(UGAAbilityBase, AICOwner);
+	DOREPLIFETIME(UGAAbilityBase, AvatarActor);
 	//probabaly should be SKIP_Owner, and I'm not really sure if Multicast wouldn't be better.
 
 }

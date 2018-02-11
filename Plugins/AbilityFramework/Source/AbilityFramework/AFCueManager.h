@@ -27,6 +27,9 @@ protected:
 	//store per instigator ? Causer ?
 	//stores used cues.
 	TMap<FObjectKey, TMap<FGameplayTag, TUniquePtr<TQueue<AGAEffectCue*>>>> UsedCues;
+
+	TMap<FAFCueHandle, AGAEffectCue*> ActiveCues;
+
 public:
 	void Initialize();
 #if WITH_EDITOR
@@ -38,11 +41,13 @@ public:
 public:
 	static UAFCueManager* Get();
 	void HandleCue(const FGameplayTagContainer& Tags,
-		const FGAEffectCueParams& CueParams);
+		const FGAEffectCueParams& CueParams, FAFCueHandle InHandle);
+	void HandleExecuteCue(FAFCueHandle InHandle);
 	void HandleRemoveCue(const FGameplayTagContainer& Tags,
-		const FGAEffectCueParams& CueParams);
+		const FGAEffectCueParams& CueParams, FAFCueHandle InHandle);
 protected:
 	void OnFinishedLoad(FGameplayTag InCueTag
 		, FPrimaryAssetId InPrimaryAssetId
-		, FGAEffectCueParams CueParams);
+		, FGAEffectCueParams CueParams
+		, FAFCueHandle InHandle);
 };
