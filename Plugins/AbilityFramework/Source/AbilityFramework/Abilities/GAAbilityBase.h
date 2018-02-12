@@ -1,5 +1,4 @@
 #pragma once
-#include "GAGlobals.h"
 #include "../GAGlobalTypes.h"
 #include "../Effects/GAGameEffect.h"
 #include "GameplayTasksComponent.h"
@@ -496,6 +495,8 @@ public:
 	/** IAFAbilityInterface Begin */
 	virtual class UGAAttributesBase* GetAttributes() override;
 	virtual class UAFAbilityComponent* GetAbilityComp() override;
+	virtual class UAFEffectsComponent* GetEffectsComponent() override;
+	virtual class UAFEffectsComponent* NativeGetEffectsComponent() const override;
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities|Attributes")
 	virtual float GetAttributeValue(FGAAttribute AttributeIn) const override;
 	virtual float NativeGetAttributeValue(const FGAAttribute AttributeIn) const override;
@@ -503,9 +504,6 @@ public:
 	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) override { Attributes->RemoveBonus(AttributeIn, HandleIn, HandleIn.GetAttributeMod()); };
 	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn
 	, FGAEffectProperty& InProperty) override { Attributes->ModifyAttribute(ModIn, HandleIn, InProperty); };
-	virtual FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn,
-		FGAEffectProperty& InProperty, FGAEffectContext& InContext) override;
-	virtual void RemoveTagContainer(const FGameplayTagContainer& TagsIn) override;
 	virtual FAFPredictionHandle GetPredictionHandle() override;
 	/* IAFAbilityInterface End **/
 	UFUNCTION(BlueprintPure, Category = "AbilityFramework|Abilities|Attributes")

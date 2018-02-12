@@ -7,6 +7,7 @@
 #include "../GAGlobalTypes.h"
 #include "../Effects/GAEffectGlobalTypes.h"
 #include "../AFAbilityComponent.h"
+#include "AFEffectsComponent.h"
 
 #include "GameplayTagContainer.h"
 #include "Net/UnrealNetwork.h"
@@ -307,7 +308,7 @@ void UGAAbilityBase::FinishAbility()
 	OnAbilityFinished();
 	NativeFinishAbility();
 	AbilityState = EAFAbilityState::Waiting;
-	AbilityComponent->AppliedTags.RemoveTagContainer(ActivationAddedTags);
+	GetEffectsComponent()->AppliedTags.RemoveTagContainer(ActivationAddedTags);
 }
 void UGAAbilityBase::NativeFinishAbility()
 {
@@ -317,7 +318,7 @@ void UGAAbilityBase::NativeFinishAbility()
 	OnConfirmDelegate.RemoveAll(this);
 	if (!ActivationEffectHandle.IsValid())
 	{
-		AbilityComponent->RemoveEffect(ActivationEffect, DefaultContext, ActivationEffectHandle);
+		GetEffectsComponent()->RemoveEffect(ActivationEffect, DefaultContext, ActivationEffectHandle);
 		ActivationEffectHandle.Reset();
 	}
 	//remove effect.
@@ -336,9 +337,9 @@ void UGAAbilityBase::NativeCancelActivation()
 	AbilityComponent->ExecutingAbility = nullptr;
 	OnConfirmDelegate.Clear();
 	OnConfirmDelegate.RemoveAll(this);
-	if (AbilityComponent)
+	if (GetEffectsComponent())
 	{
-		AbilityComponent->RemoveEffect(ActivationEffect, DefaultContext, ActivationEffectHandle);
+		GetEffectsComponent()->RemoveEffect(ActivationEffect, DefaultContext, ActivationEffectHandle);
 		AbilityState = EAFAbilityState::Waiting;
 		ActivationEffectHandle.Reset();
 	}
@@ -369,7 +370,7 @@ bool UGAAbilityBase::ApplyCooldownEffect()
 	FAFFunctionModifier Modifier;
 
 	FSimpleDelegate PeriodDel = FSimpleDelegate::CreateUObject(this, &UGAAbilityBase::NativeOnCooldownEnd, CooldownEffectHandle);
-	AbilityComponent->AddEffectEvent(CooldownEffect.GetSpec()->OnExpiredEvent, PeriodDel);
+	GetEffectsComponent()->AddEffectEvent(CooldownEffect.GetSpec()->OnExpiredEvent, PeriodDel);
 
 	CooldownEffectHandle = UGABlueprintLibrary::ApplyGameEffectToObject(CooldownEffect,
 		this, POwner, this, Modifier);
@@ -415,7 +416,7 @@ bool UGAAbilityBase::ApplyActivationEffect(bool bApplyActivationEffect)
 			ActivationEffectHandle.Reset();
 
 		FSimpleDelegate AppliedDel = FSimpleDelegate::CreateUObject(this, &UGAAbilityBase::NativeOnAbilityActivationFinish, ActivationEffectHandle);
-		AbilityComponent->AddEffectEvent(ActivationEffect.GetSpec()->OnExpiredEvent, AppliedDel);
+		GetEffectsComponent()->AddEffectEvent(ActivationEffect.GetSpec()->OnExpiredEvent, AppliedDel);
 
 		FAFFunctionModifier Modifier;
 		ActivationEffectHandle = UGABlueprintLibrary::ApplyGameEffectToObject(ActivationEffect,
@@ -428,7 +429,7 @@ bool UGAAbilityBase::ApplyActivationEffect(bool bApplyActivationEffect)
 		if (PeriodCheck > 0)
 		{
 			FSimpleDelegate PeriodDel = FSimpleDelegate::CreateUObject(this, &UGAAbilityBase::OnActivationEffectPeriod, ActivationEffectHandle);
-			AbilityComponent->AddEffectEvent(ActivationEffect.GetSpec()->OnPeriodEvent, PeriodDel);
+			GetEffectsComponent()->AddEffectEvent(ActivationEffect.GetSpec()->OnPeriodEvent, PeriodDel);
 			//if (!ActivationEffectHandle.GetEffectRef().OnEffectPeriod.IsBound())
 		//	ActivationEffectHandle.GetEffectRef().OnEffectPeriod.AddUObject(this, &UGAAbilityBase::OnActivationEffectPeriod);
 		}
@@ -453,12 +454,12 @@ bool UGAAbilityBase::CanUseAbility()
 	//now Lets check tags
 	if (CanUse)
 	{
-		if (AbilityComponent->HasAll(ActivationRequiredTags))
+		if (GetEffectsComponent()->HasAll(ActivationRequiredTags))
 		{
 			CanUse = true;
 		}
 		//blocking takes precedence.
-		if (AbilityComponent->HasAny(ActivationBlockedTags))
+		if (GetEffectsComponent()->HasAny(ActivationBlockedTags))
 		{
 			CanUse = false;
 		}
@@ -532,6 +533,25 @@ UAFAbilityComponent* UGAAbilityBase::GetAbilityComp()
 	}
 	return nullptr;
 }
+
+UAFEffectsComponent* UGAAbilityBase::GetEffectsComponent()
+{
+	IAFAbilityInterface* OwnerAttributes = Cast<IAFAbilityInterface>(POwner);
+	if (OwnerAttributes)
+	{
+		return OwnerAttributes->GetEffectsComponent();
+	}
+	return nullptr;
+}
+UAFEffectsComponent* UGAAbilityBase::NativeGetEffectsComponent() const
+{
+	IAFAbilityInterface* OwnerAttributes = Cast<IAFAbilityInterface>(POwner);
+	if (OwnerAttributes)
+	{
+		return OwnerAttributes->NativeGetEffectsComponent();
+	}
+	return nullptr;
+}
 float UGAAbilityBase::GetAttributeValue(FGAAttribute AttributeIn) const
 {
 	return NativeGetAttributeValue(AttributeIn);
@@ -544,15 +564,6 @@ float UGAAbilityBase::GetAttributeVal(FGAAttribute AttributeIn) const
 {
 	return Attributes->GetCurrentAttributeValue(AttributeIn);
 }
-FGAEffectHandle UGAAbilityBase::ApplyEffectToTarget(FGAEffect* EffectIn,
-	FGAEffectProperty& InProperty, FGAEffectContext& InContext)
-{ 
-	return AbilityComponent->ApplyEffectToTarget(EffectIn, InProperty, InContext);
-};
-void UGAAbilityBase::RemoveTagContainer(const FGameplayTagContainer& TagsIn) 
-{
-	AbilityComponent->RemoveTagContainer(TagsIn);
-};
 
 bool UGAAbilityBase::ApplyAttributeCost()
 {
@@ -598,7 +609,7 @@ bool UGAAbilityBase::CheckAbilityAttributeCost()
 bool UGAAbilityBase::IsOnCooldown()
 {
 	bool bOnCooldown = false;
-	bOnCooldown = AbilityComponent->IsEffectActive(CooldownEffectHandle);
+	bOnCooldown = GetEffectsComponent()->IsEffectActive(CooldownEffectHandle);
 	if (bOnCooldown)
 	{
 		OnNotifyOnCooldown.Broadcast();
@@ -608,7 +619,7 @@ bool UGAAbilityBase::IsOnCooldown()
 bool UGAAbilityBase::IsActivating()
 {
 	bool bAbilityActivating = false;
-	bool bHaveEffect = AbilityComponent->IsEffectActive(ActivationEffect.GetHandle(this));
+	bool bHaveEffect = GetEffectsComponent()->IsEffectActive(ActivationEffect.GetHandle(this));
 	bool bInActivatingState = AbilityState == EAFAbilityState::Activating;
 	UE_LOG(AbilityFramework, Log, TEXT("IsActivating Ability, Effect: %s, State: %s \n"), bHaveEffect ? TEXT("true") : TEXT("false"), bInActivatingState ? TEXT("true") : TEXT("false"));
 	bAbilityActivating = bHaveEffect || bInActivatingState;
@@ -720,7 +731,7 @@ bool UGAAbilityBase::HaveGameplayTag(AActor* Target, const FGameplayTag& Tag)
 	bool bHaveTag = false;
 	if (IAFAbilityInterface* Interface = Cast<IAFAbilityInterface>(Target))
 	{
-		if (UAFAbilityComponent* Comp = Interface->GetAbilityComp())
+		if (UAFEffectsComponent* Comp = GetEffectsComponent())
 		{
 			if (Comp->HasTag(Tag))
 			{
@@ -735,7 +746,7 @@ bool UGAAbilityBase::HaveAnyGameplayTag(AActor* Target, const FGameplayTagContai
 	bool bHaveTag = false;
 	if (IAFAbilityInterface* Interface = Cast<IAFAbilityInterface>(Target))
 	{
-		if (UAFAbilityComponent* Comp = Interface->GetAbilityComp())
+		if (UAFEffectsComponent* Comp = GetEffectsComponent())
 		{
 			if (Comp->HasAny(Tag))
 			{
@@ -811,23 +822,23 @@ bool UGAAbilityBase::LineTraceSingleByChannelCorrected(FName SocketName, float R
 //Helpers
 float UGAAbilityBase::GetActivationRemainingTime() const
 {
-	return AbilityComponent->GameEffectContainer.GetRemainingTime(ActivationEffectHandle);
+	return NativeGetEffectsComponent()->GameEffectContainer.GetRemainingTime(ActivationEffectHandle);
 }
 float UGAAbilityBase::GetActivationRemainingTimeNormalized() const
 {
-	return AbilityComponent->GameEffectContainer.GetRemainingTimeNormalized(ActivationEffectHandle);
+	return NativeGetEffectsComponent()->GameEffectContainer.GetRemainingTimeNormalized(ActivationEffectHandle);
 }
 float UGAAbilityBase::GetActivationCurrentTime() const
 {
-	return AbilityComponent->GameEffectContainer.GetCurrentTime(ActivationEffectHandle);
+	return NativeGetEffectsComponent()->GameEffectContainer.GetCurrentTime(ActivationEffectHandle);
 }
 float UGAAbilityBase::GetActivationCurrentTimeNormalized() const
 {
-	return AbilityComponent->GameEffectContainer.GetCurrentTimeNormalized(ActivationEffectHandle);
+	return NativeGetEffectsComponent()->GameEffectContainer.GetCurrentTimeNormalized(ActivationEffectHandle);
 }
 float UGAAbilityBase::GetActivationEndTime() const
 {
-	return AbilityComponent->GameEffectContainer.GetEndTime(ActivationEffectHandle);
+	return NativeGetEffectsComponent()->GameEffectContainer.GetEndTime(ActivationEffectHandle);
 }
 float UGAAbilityBase::BP_GetActivationRemainingTime()
 {
@@ -853,23 +864,23 @@ float UGAAbilityBase::BP_GetActivationEndTime()
 
 float UGAAbilityBase::GetCooldownRemainingTime() const
 {
-	return AbilityComponent->GameEffectContainer.GetRemainingTime(CooldownEffectHandle);
+	return NativeGetEffectsComponent()->GameEffectContainer.GetRemainingTime(CooldownEffectHandle);
 }
 float UGAAbilityBase::GetCooldownRemainingTimeNormalized() const
 {
-	return AbilityComponent->GameEffectContainer.GetRemainingTimeNormalized(CooldownEffectHandle);
+	return NativeGetEffectsComponent()->GameEffectContainer.GetRemainingTimeNormalized(CooldownEffectHandle);
 }
 float UGAAbilityBase::GetCooldownCurrentTime() const
 {
-	return AbilityComponent->GameEffectContainer.GetCurrentTime(CooldownEffectHandle);
+	return NativeGetEffectsComponent()->GameEffectContainer.GetCurrentTime(CooldownEffectHandle);
 }
 float UGAAbilityBase::GetCooldownCurrentTimeNormalized() const
 {
-	return AbilityComponent->GameEffectContainer.GetCurrentTimeNormalized(CooldownEffectHandle);
+	return NativeGetEffectsComponent()->GameEffectContainer.GetCurrentTimeNormalized(CooldownEffectHandle);
 }
 float UGAAbilityBase::GetCooldownEndTime() const
 {
-	return AbilityComponent->GameEffectContainer.GetEndTime(CooldownEffectHandle);
+	return NativeGetEffectsComponent()->GameEffectContainer.GetEndTime(CooldownEffectHandle);
 }
 float UGAAbilityBase::BP_GetCooldownRemainingTime()
 {

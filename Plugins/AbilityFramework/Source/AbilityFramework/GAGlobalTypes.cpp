@@ -218,6 +218,26 @@ class UGAAttributesBase* FGAEffectContext::GetCauserAttributes() const
 	return nullptr;
 }
 
+class UAFEffectsComponent* FGAEffectContext::GetTargetEffectsComponent()
+{
+	IAFAbilityInterface* AttrInt = Cast<IAFAbilityInterface>(Target.Get());
+	if (AttrInt)
+	{
+		return AttrInt->GetEffectsComponent();
+	}
+	return nullptr;
+}
+
+class UAFEffectsComponent* FGAEffectContext::GetTargetEffectsComponent() const
+{
+	IAFAbilityInterface* AttrInt = Cast<IAFAbilityInterface>(Target.Get());
+	if (AttrInt)
+	{
+		return AttrInt->GetEffectsComponent();
+	}
+	return nullptr;
+}
+
 FGAEffectContext::~FGAEffectContext()
 {
 	Target.Reset();
@@ -343,3 +363,10 @@ FAFCueHandle FAFCueHandle::GenerateHandle()
 
 	return NewHandle;
 }
+
+FGAEffectCueParams::FGAEffectCueParams(const FGAEffectContext& InContext, const struct FGAEffectProperty& InProperty)
+	: HitResult(InContext.HitResult)
+	, Instigator(InContext.Instigator)
+	, Causer(InContext.Causer)
+	, CueTags(InProperty.GetSpec()->Cues.CueTags)
+{};

@@ -25,10 +25,10 @@ UAFEffectTask_AttributeChange* UAFEffectTask_AttributeChange::ListenAttributeCha
 
 void UAFEffectTask_AttributeChange::Activate()
 {
-	UAFAbilityComponent* ASC = GetTargetASC();
+	UAFEffectsComponent* ASC = GetTargetASC();
 	if (ASC)
 	{
-		MyHandle = ASC->AttributeChanged.FindOrAdd(Attribute).AddUObject(this, &UAFEffectTask_AttributeChange::AttributeChangedCallback);
+	//	MyHandle = ASC->AttributeChanged.FindOrAdd(Attribute).AddUObject(this, &UAFEffectTask_AttributeChange::AttributeChangedCallback);
 	}
 
 	Super::Activate();
@@ -53,28 +53,28 @@ void UAFEffectTask_AttributeChange::SetExternalTarget(AActor* Actor)
 		if (IAFAbilityInterface* interface = Cast<IAFAbilityInterface>(Actor))
 		{
 			UseExternalTarget = true;
-			OptionalExternalTarget = interface->GetAbilityComp();
+			OptionalExternalTarget = interface->GetEffectsComponent();
 		}
 
 	}
 }
 
-UAFAbilityComponent* UAFEffectTask_AttributeChange::GetTargetASC()
+UAFEffectsComponent* UAFEffectTask_AttributeChange::GetTargetASC()
 {
 	if (UseExternalTarget)
 	{
 		return OptionalExternalTarget;
 	}
 
-	return AbilityComponent;
+	return EffectsComponent;
 }
 
 void UAFEffectTask_AttributeChange::OnDestroy(bool AbilityEnding)
 {
-	UAFAbilityComponent* ASC = GetTargetASC();
+	UAFEffectsComponent* ASC = GetTargetASC();
 	if (ASC && MyHandle.IsValid())
 	{
-		ASC->AttributeChanged.FindOrAdd(Attribute).Remove(MyHandle);
+	//	ASC->AttributeChanged.FindOrAdd(Attribute).Remove(MyHandle);
 	}
 
 	Super::OnDestroy(AbilityEnding);

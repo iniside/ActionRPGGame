@@ -20,5 +20,5 @@ void UAFEffectCustomApplication::ExecuteEffect(const FGAEffectHandle& InHandle,
 	const FGAEffectContext& InContext,
 	const FAFFunctionModifier& Modifier)
 {
-	InHandle.GetContext().TargetComp->ExecuteEffect(InHandle, InProperty, Modifier, InContext);
+	InHandle.GetContext().GetTargetEffectsComponent()->ExecuteEffect(InHandle, InProperty, Modifier, InContext);
 }

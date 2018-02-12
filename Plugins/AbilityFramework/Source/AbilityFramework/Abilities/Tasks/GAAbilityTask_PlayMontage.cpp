@@ -36,15 +36,15 @@ void UGAAbilityTask_PlayMontage::Activate()
 	}
 }
 
-void UGAAbilityTask_PlayMontage::BroadcastStartNotifyState(const FAFAbilityNotifyData& DataIn, const FGameplayTag& InTag, const FName& InName)
+void UGAAbilityTask_PlayMontage::BroadcastStartNotifyState(const FGameplayTag& InTag, const FName& InName)
 {
-	NotifyBegin.Broadcast(DataIn, InTag, InName);
+	NotifyBegin.Broadcast(InTag, InName);
 }
-void UGAAbilityTask_PlayMontage::BroadcastEndNotifyState(const FAFAbilityNotifyData& DataIn, const FGameplayTag& InTag, const FName& InName)
+void UGAAbilityTask_PlayMontage::BroadcastEndNotifyState(const FGameplayTag& InTag, const FName& InName)
 {
-	NotifyTick.Broadcast(DataIn, InTag, InName);
+	NotifyTick.Broadcast(InTag, InName);
 }
-void UGAAbilityTask_PlayMontage::BroadcastTickNotifyState(const FAFAbilityNotifyData& DataIn, const FGameplayTag& InTag, const FName& InName)
+void UGAAbilityTask_PlayMontage::BroadcastTickNotifyState(const FGameplayTag& InTag, const FName& InName)
 {
-	NotifyEnd.Broadcast(DataIn, InTag, InName);
+	NotifyEnd.Broadcast(InTag, InName);
 }

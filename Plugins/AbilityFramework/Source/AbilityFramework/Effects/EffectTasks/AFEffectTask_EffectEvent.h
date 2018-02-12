@@ -27,7 +27,7 @@ public:
 
 	void SetExternalTarget(AActor* Actor);
 
-	class UAFAbilityComponent* GetTargetASC();
+	class UAFEffectsComponent* GetTargetASC();
 
 	virtual void Activate() override;
 
@@ -38,7 +38,7 @@ public:
 	FGameplayTag Tag;
 
 	UPROPERTY()
-		UAFAbilityComponent* OptionalExternalTarget;
+		UAFEffectsComponent* OptionalExternalTarget;
 
 	bool UseExternalTarget;
 	bool OnlyTriggerOnce;

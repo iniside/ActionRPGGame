@@ -725,7 +725,7 @@ public:
 	UPROPERTY(NotReplicated)
 		float LastPeriodTime;
 
-	class UAFAbilityComponent* OwningComoponent;
+	class UAFEffectsComponent* OwningComoponent;
 
 	UGAGameEffectSpec* GetSpec() const
 	{
@@ -788,7 +788,7 @@ public:
 	}
 
 	FAFEffectRepInfo(float AppliedTimeIn, float PeriodTimeIn, float DurationIn, float ReplicationTimeIn,
-		class UAFAbilityComponent* InComponent);
+		class UAFEffectsComponent* InComponent);
 };
 
 USTRUCT()
@@ -875,7 +875,7 @@ public:
 	TArray<class UGAEffectExtension*> TargetInstancedEffects;
 
 	UPROPERTY(NotReplicated)
-		class UAFAbilityComponent* OwningComponent;
+		class UAFEffectsComponent* OwningComponent;
 public:
 	//FGAEffectContainer();
 	/*
@@ -925,6 +925,7 @@ public:
 	void ApplyEffectsFromMods() {};
 	void DoesQualify() {};
 	bool IsEffectActive(const FGAEffectHandle& HandleIn);
+	bool IsEffectActive(const FGAEffectHandle& HandleIn) const;
 	bool ContainsEffectOfClass(const FGAEffectProperty& InProperty);
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
 	{

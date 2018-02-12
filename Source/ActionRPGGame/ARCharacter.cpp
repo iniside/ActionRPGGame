@@ -54,7 +54,10 @@ AARCharacter::AARCharacter()
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	Abilities = CreateDefaultSubobject<UAFAbilityComponent>(TEXT("Abilities"));
-
+	Abilities->SetIsReplicated(true);
+	EffectsComponent = CreateDefaultSubobject<UAFEffectsComponent>(TEXT("EffectsComponent"));
+	EffectsComponent->SetIsReplicated(true);
+	
 	FollowCamera->TransformUpdated.AddUObject(this, &AARCharacter::OnCameraTransformUpdate);
 
 	Weapons = CreateDefaultSubobject<UARWeaponPawnManagerComponent>(TEXT("Weapons"));
@@ -166,16 +169,19 @@ void AARCharacter::MoveRight(float Value)
 }
 /* IAFAbilityInterface- BEGIN */
 
-class UGAAttributesBase* AARCharacter::GetAttributes()
-{
-	return GetAbilityComp()->DefaultAttributes;
-}
-
 class UAFAbilityComponent* AARCharacter::GetAbilityComp() 
 { 
 	return Abilities;
 };
 
+class UAFEffectsComponent* AARCharacter::GetEffectsComponent()
+{
+	return EffectsComponent;
+}
+class UAFEffectsComponent* AARCharacter::NativeGetEffectsComponent() const
+{
+	return EffectsComponent;
+}
 float AARCharacter::GetAttributeValue(FGAAttribute AttributeIn) const
 {
 	return Abilities->GetAttributeValue(AttributeIn);
@@ -201,17 +207,6 @@ float AARCharacter::NativeGetAttributeValue(const FGAAttribute AttributeIn) cons
 {
 	return Abilities->NativeGetAttributeValue(AttributeIn);
 }
-
-FGAEffectHandle AARCharacter::ApplyEffectToTarget(FGAEffect* EffectIn,
-	FGAEffectProperty& InProperty, FGAEffectContext& InContext)
-{
-	return Abilities->ApplyEffectToTarget(EffectIn, InProperty, InContext);
-}
-
-void AARCharacter::RemoveTagContainer(const FGameplayTagContainer& TagsIn)
-{
-	Abilities->RemoveTagContainer(TagsIn);
-}
 /* IAFAbilityInterface- END */
 
 void AARCharacter::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
@@ -221,10 +216,6 @@ void AARCharacter::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > 
 	DOREPLIFETIME_CONDITION(AARCharacter, CameraTransform, COND_SkipOwner);
 }
 
-void AARCharacter::Multicast_CameraTransform_Implementation(FARCameraTransform InCameraTransform)
-{
-	CameraTransform = InCameraTransform;
-}
 void AARCharacter::OnCameraTransformUpdate(USceneComponent* UpdatedComponent, EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport)
 {
 	if (GetNetMode() == ENetMode::NM_Standalone
@@ -234,7 +225,6 @@ void AARCharacter::OnCameraTransformUpdate(USceneComponent* UpdatedComponent, EU
 		CameraTransform.ForwardVector = FollowCamera->GetForwardVector();
 		CameraTransform.Location = FollowCamera->GetComponentLocation();
 	}
-	//Multicast_CameraTransform(CameraTransform);
 }
 
 class AARWeaponBase* AARCharacter::GetMainWeapon() const

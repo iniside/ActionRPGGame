@@ -58,7 +58,7 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 
 	
 	
-	UAFAbilityComponent* Target2 = Context.TargetComp.Get();
+	UAFEffectsComponent* Target2 = Context.GetTargetEffectsComponent();
 	if (!Target2->HaveEffectRquiredTags(InEffect.GetSpec()->RequiredTags))
 	{
 		return FGAEffectHandle();
@@ -99,7 +99,9 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 			effect->PredictionHandle = Ability->GetPredictionHandle();
 		}
 	}
-	FGAEffectHandle Handle = Context.InstigatorComp->ApplyEffectToTarget(effect, InEffect, Context, Modifier);
+	IAFAbilityInterface* InstigatorInterface = Cast<IAFAbilityInterface>(Instigator); 
+
+	FGAEffectHandle Handle = InstigatorInterface->ApplyEffectToTarget(effect, InEffect, Context, Modifier);
 	if (InEffect.GetDuration() > 0 || InEffect.GetPeriod() > 0)
 	{
 		InEffect.AddHandle(Context.Target.Get(), Handle);
@@ -133,7 +135,7 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty* InEffect,
 	{
 	return FGAEffectHandle();
 	}*/
-	UAFAbilityComponent* Target2 = Context.TargetComp.Get();
+	UAFEffectsComponent* Target2 = Context.GetTargetEffectsComponent();
 	if (!Target2->HaveEffectRquiredTags(InEffect->GetSpec()->RequiredTags))
 	{
 		return FGAEffectHandle();
@@ -174,8 +176,8 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty* InEffect,
 			effect->PredictionHandle = Ability->GetPredictionHandle();
 		}
 	}
-
-	FGAEffectHandle Handle = Context.InstigatorComp->ApplyEffectToTarget(effect, *InEffect, Context, Modifier);
+	IAFAbilityInterface* InstigatorInterface = Cast<IAFAbilityInterface>(Instigator);
+	FGAEffectHandle Handle = InstigatorInterface->ApplyEffectToTarget(effect, *InEffect, Context, Modifier);
 	if (InEffect->GetDuration() > 0 || InEffect->GetPeriod() > 0)
 	{
 		InEffect->AddHandle(Context.Target.Get(), Handle);
@@ -312,6 +314,6 @@ void UGABlueprintLibrary::BroadcastEffectEvent(UObject* Target, FGameplayTag Eve
 	if (!TargetComp)
 		return;
 
-	FAFEventData EventData;
-	TargetComp->NativeTriggerTagEvent(EventTag, EventData);
+	//FAFEventData EventData;
+	//TargetComp->NativeTriggerTagEvent(EventTag, EventData);
 }

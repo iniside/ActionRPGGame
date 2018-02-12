@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "GAGlobals.h"
+#include "GameplayTags.h"
 #include "AFAnimNotify.generated.h"
 
 /**
@@ -15,9 +15,7 @@ class ABILITYFRAMEWORK_API UAFAnimNotify : public UAnimNotify
 	GENERATED_BODY()
 
 		virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
-	
-	UPROPERTY(EditAnywhere)
-		FAFAbilityNotifyData Data;
+
 	UPROPERTY(EditAnywhere)
 		FGameplayTag Tag;
 	UPROPERTY(EditAnywhere)

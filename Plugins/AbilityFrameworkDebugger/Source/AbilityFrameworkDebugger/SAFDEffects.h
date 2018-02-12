@@ -21,14 +21,14 @@ struct FAFDEffectRow : public TSharedFromThis<FAFDEffectRow>
 
 	FText GetTimeRemaining() const
 	{
-		//return FText::AsNumber(0);
-		return FText::AsNumber(AbilityComponent->GameEffectContainer.GetRemainingTime(Handle));
+		return FText::AsNumber(0);
+		//return FText::AsNumber(AbilityComponent->GameEffectContainer.GetRemainingTime(Handle));
 	}
 
 	FText GetPeriodTime() const
 	{
-		//return FText::AsNumber(0);
-		return FText::AsNumber(RepInfo->GetPeriodTime(static_cast<float>(FPlatformTime::Seconds())));
+		return FText::AsNumber(0);
+		//return FText::AsNumber(RepInfo->GetPeriodTime(static_cast<float>(FPlatformTime::Seconds())));
 	}
 
 	const bool operator==(const FAFDEffectRow& Other) const

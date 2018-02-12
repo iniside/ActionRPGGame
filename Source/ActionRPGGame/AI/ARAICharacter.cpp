@@ -9,6 +9,7 @@ AARAICharacter::AARAICharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	Abilities = CreateDefaultSubobject<UAFAbilityComponent>(TEXT("Abilities"));
+	EffectsComponent = CreateDefaultSubobject<UAFEffectsComponent>(TEXT("EffectsComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -33,17 +34,18 @@ void AARAICharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 }
 
 /* IAFAbilityInterface- BEGIN */
-
-class UGAAttributesBase* AARAICharacter::GetAttributes()
-{
-	return GetAbilityComp()->DefaultAttributes;
-}
-
 class UAFAbilityComponent* AARAICharacter::GetAbilityComp()
 {
 	return Abilities;
 };
-
+class UAFEffectsComponent* AARAICharacter::GetEffectsComponent()
+{
+	return EffectsComponent;
+}
+class UAFEffectsComponent* AARAICharacter::NativeGetEffectsComponent() const
+{
+	return EffectsComponent;
+}
 float AARAICharacter::GetAttributeValue(FGAAttribute AttributeIn) const
 {
 	return Abilities->GetAttributeValue(AttributeIn);
@@ -68,16 +70,5 @@ void AARAICharacter::RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle
 float AARAICharacter::NativeGetAttributeValue(const FGAAttribute AttributeIn) const
 {
 	return Abilities->NativeGetAttributeValue(AttributeIn);
-}
-
-FGAEffectHandle AARAICharacter::ApplyEffectToTarget(FGAEffect* EffectIn,
-	FGAEffectProperty& InProperty, FGAEffectContext& InContext)
-{
-	return Abilities->ApplyEffectToTarget(EffectIn, InProperty, InContext);
-}
-
-void AARAICharacter::RemoveTagContainer(const FGameplayTagContainer& TagsIn)
-{
-	Abilities->RemoveTagContainer(TagsIn);
 }
 /* IAFAbilityInterface- END */

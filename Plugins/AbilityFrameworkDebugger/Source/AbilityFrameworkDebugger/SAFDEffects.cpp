@@ -9,10 +9,6 @@ void SAFDEffects::Construct(const FArguments& InArgs)
 	AFInterface = InArgs._AbilityInterface;
 	AbilityComponent = AFInterface->GetAbilityComp();
 
-	OnEffectAppliedHandle = AbilityComponent->OnEffectAppliedToTarget.AddSP(this, &SAFDEffects::OnEffectApplied);
-	OnEffectRemovedHandle = AbilityComponent->OnEffectRemoved.AddSP(this, &SAFDEffects::OnEffectRemoved);
-	OnEffectExpiredHandle = AbilityComponent->OnEffectExpired.AddSP(this, &SAFDEffects::OnEffectRemoved);
-
 	InitializeEffects();
 	ChildSlot
 	[
@@ -31,9 +27,7 @@ void SAFDEffects::Construct(const FArguments& InArgs)
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 SAFDEffects::~SAFDEffects()
 {
-	AbilityComponent->OnEffectAppliedToTarget.Remove(OnEffectAppliedHandle);
-	AbilityComponent->OnEffectRemoved.Remove(OnEffectRemovedHandle);
-	AbilityComponent->OnEffectExpired.Remove(OnEffectExpiredHandle);
+
 }
 
 void SAFDEffects::InitializeEffects()
@@ -41,17 +35,6 @@ void SAFDEffects::InitializeEffects()
 	if (!AbilityComponent.IsValid())
 		return;
 
-	for(const FAFEffectRepInfo& RepInfo : AbilityComponent->GetAllEffectsInfo())
-	{
-		TSharedPtr<FAFDEffectRow> Row = MakeShareable(new FAFDEffectRow);
-		Row->Handle = RepInfo.Handle;
-		Row->RepInfo = const_cast<FAFEffectRepInfo*>(&RepInfo);
-		Row->AbilityComponent = AbilityComponent;
-		Row->EffectClassName = RepInfo.Handle.GetEffectSpec()->GetName();
-		Row->TimeRemaining = TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateSP(Row.Get(), &FAFDEffectRow::GetTimeRemaining));
-		Row->PeriodTime = TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateSP(Row.Get(), &FAFDEffectRow::GetPeriodTime));
-		Effects.Add(Row);
-	}
 	//ListView->RebuildList();
 }
 
@@ -89,12 +72,6 @@ TSharedRef<ITableRow> SAFDEffects::GenerateListRow(TSharedPtr<FAFDEffectRow> Eff
 void SAFDEffects::OnEffectApplied(FGAEffectHandle InHandle)
 {
 	TSharedPtr<FAFDEffectRow> Row = MakeShareable(new FAFDEffectRow);
-	Row->Handle = InHandle;
-	Row->RepInfo = AbilityComponent->GameEffectContainer.GetReplicationInfo(InHandle);
-	Row->AbilityComponent = AbilityComponent;
-	Row->EffectClassName = InHandle.GetEffectSpec()->GetName();
-	Row->TimeRemaining = TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateSP(Row.Get(), &FAFDEffectRow::GetTimeRemaining));
-	Row->PeriodTime = TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateSP(Row.Get(), &FAFDEffectRow::GetPeriodTime));
 	UE_LOG(LogTemp, Warning, TEXT("SAFDEffects::OnEffectAppliede"));
 	Effects.Add(Row);
 	

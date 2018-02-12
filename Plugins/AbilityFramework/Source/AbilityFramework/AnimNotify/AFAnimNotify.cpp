@@ -15,5 +15,5 @@ void UAFAnimNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* 
 		return;
 
 	UAFAbilityComponent* Comp = IAbilities->GetAbilityComp();
-	Comp->OnAbilityNotifyBegin.ExecuteIfBound(Data, Tag, Name);
+	Comp->OnAbilityNotifyBegin.ExecuteIfBound(Tag, Name);
 }

@@ -2,7 +2,7 @@
 
 #include "AbilityFramework.h"
 #include "../GAGameEffect.h"
-#include "../../AFAbilityComponent.h"
+#include "AFEffectsComponent.h"
 #include "AFPeriodApplicationExtend.h"
 
 
@@ -22,7 +22,7 @@ bool UAFPeriodApplicationExtend::ApplyEffect(const FGAEffectHandle& InHandle, st
 		float NewDuration = RemainingTime + Effect.GetDurationTime();
 		DurationTimer.ClearTimer(handle.GetEffectPtr()->DurationTimerHandle);
 
-		FTimerDelegate delDuration = FTimerDelegate::CreateUObject(handle.GetContext().TargetComp.Get(), &UAFAbilityComponent::ExpireEffect, InHandle, InProperty, InContext);
+		FTimerDelegate delDuration = FTimerDelegate::CreateUObject(handle.GetContext().GetTargetEffectsComponent(), &UAFEffectsComponent::ExpireEffect, InHandle, InProperty, InContext);
 		DurationTimer.SetTimer(handle.GetEffectPtr()->DurationTimerHandle, delDuration,
 			NewDuration, false);
 	}
@@ -30,13 +30,13 @@ bool UAFPeriodApplicationExtend::ApplyEffect(const FGAEffectHandle& InHandle, st
 	{
 		FTimerManager& DurationTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
 
-		FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UAFAbilityComponent::ExpireEffect, InHandle, InProperty, InContext);
+		FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().GetTargetEffectsComponent(), &UAFEffectsComponent::ExpireEffect, InHandle, InProperty, InContext);
 		DurationTimer.SetTimer(InHandle.GetEffectPtr()->DurationTimerHandle, delDuration,
 			InProperty.GetDuration(), false);
 
 		FTimerManager& PeriodTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
 
-		FTimerDelegate PeriodDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UAFAbilityComponent::ExecuteEffect, InHandle, InProperty, Modifier, InContext);
+		FTimerDelegate PeriodDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().GetTargetEffectsComponent(), &UAFEffectsComponent::ExecuteEffect, InHandle, InProperty, Modifier, InContext);
 		PeriodTimer.SetTimer(InHandle.GetEffectPtr()->PeriodTimerHandle, PeriodDuration,
 			InProperty.GetPeriod(), true);
 

@@ -282,6 +282,8 @@ public:
 	class UGAAttributesBase* GetInstigatorAttributes() const;
 	class UGAAttributesBase* GetCauserAttributes() const;
 
+	class UAFEffectsComponent* GetTargetEffectsComponent();
+	class UAFEffectsComponent* GetTargetEffectsComponent() const;
 	FGAEffectContext()
 	{}
 
@@ -808,18 +810,10 @@ public:
 	/** The physical actor that actually did the damage, can be a weapon or projectile */
 	UPROPERTY(BlueprintReadWrite, Category = "Gameplay Cue")
 		TWeakObjectPtr<UObject> Causer;
-	/* Which ability spawned (if applicable)  */
-	UPROPERTY(BlueprintReadWrite, Category = "Gameplay Cue")
-		TWeakObjectPtr<class UGAAbilityBase> Ability;
-
-	/* Tick interval for periodic effects */
-	UPROPERTY(BlueprintReadOnly, Category = "GameplayCue")
-		float Period;
-	UPROPERTY(BlueprintReadOnly, Category = "GameplayCue")
-		float Duration;
 
 	UPROPERTY(BlueprintReadOnly)
 		FGameplayTagContainer CueTags;
+
 	FGAEffectCueParams()
 	{};
 	FGAEffectCueParams(const FHitResult& InHitResult, AActor* InstigatorIn, UObject* CauserIn)
@@ -827,6 +821,7 @@ public:
 		Instigator(InstigatorIn),
 		Causer(CauserIn)
 	{};
+	FGAEffectCueParams(const FGAEffectContext& InContext, const struct FGAEffectProperty& InProperty);
 	//bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
 };
 

@@ -19,7 +19,8 @@ public:
 	UPROPERTY()
 		class UGAEffectExtension* Effect;
 	UPROPERTY()
-		class UAFAbilityComponent* AbilityComponent;
+		class UAFEffectsComponent* EffectsComponent;
+
 public:
 	template <class T>
 	static T* NewEffectTask(UObject* WorldContextObject, FName InTaskName = FName(), FName InstanceName = FName())
@@ -32,10 +33,10 @@ public:
 		{
 			return Cast<T>(CachedTask);
 		}*/
-		MyObj->Effect = ThisAbility;
-		MyObj->AbilityComponent = ThisAbility->OwningComponent;
-		MyObj->InitTask(*ThisAbility, ThisAbility->GetGameplayTaskDefaultPriority());
-		MyObj->InstanceName = InstanceName;
+		//MyObj->Effect = ThisAbility;
+		//MyObj->EffectsComponent = ThisAbility->OwningComponent;
+		//MyObj->InitTask(*ThisAbility, ThisAbility->GetGameplayTaskDefaultPriority());
+		//MyObj->InstanceName = InstanceName;
 		//ThisAbility->AddAbilityTask(InTaskName, MyObj);
 		return MyObj;
 	}

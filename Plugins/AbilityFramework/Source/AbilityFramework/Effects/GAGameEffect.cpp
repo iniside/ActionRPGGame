@@ -69,7 +69,7 @@ void FGAEffectProperty::EffectExecution(const FGAEffectHandle& HandleIn
 }
 
 FAFEffectRepInfo::FAFEffectRepInfo(float AppliedTimeIn, float PeriodTimeIn, float DurationIn, float ReplicationTimeIn,
-	class UAFAbilityComponent* InComponent)
+	class UAFEffectsComponent* InComponent)
 	: AppliedTime(AppliedTimeIn),
 	PeriodTime(PeriodTimeIn),
 	Duration(DurationIn),
@@ -101,7 +101,6 @@ void FAFEffectRepInfo::PostReplicatedAdd(const struct FGAEffectContainer& InArra
 	OwningComoponent = InArraySerializer.OwningComponent;
 	AppliedTime = OwningComoponent->GetWorld()->GetTimeSeconds();
 	InArraySerializer.EffectInfos.Add(Handle, this);
-	InArraySerializer.OwningComponent->OnEffectRepInfoApplied.Broadcast(this);
 	Type = ERepInfoType::RemotePredicted;
 
 }
@@ -144,7 +143,7 @@ FGAEffect::FGAEffect(class UGAGameEffectSpec* GameEffectIn,
 	if (GameEffect->Extension)
 	{
 		Extension = NewObject<UGAEffectExtension>(Context.Target.Get(), GameEffect->Extension);
-		Extension->OwningComponent = Context.TargetComp.Get();
+		Extension->OwningComponent = Context.GetTargetEffectsComponent();
 	}
 	if (ContextIn.TargetComp.IsValid())
 	{
@@ -420,7 +419,7 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 	EffectIn->OnApplied();
 	
 	if (InProperty.GetSpec()->IfHaveTagEffect.RequiredTag.IsValid()
-		&& InContext.TargetComp->HasTag(InProperty.GetSpec()->IfHaveTagEffect.RequiredTag))
+		&& InContext.GetTargetEffectsComponent()->HasTag(InProperty.GetSpec()->IfHaveTagEffect.RequiredTag))
 	{
 		for (TSubclassOf<class UGAGameEffectSpec>& Effect : InProperty.GetSpec()->IfHaveTagEffect.Effects)
 		{
@@ -540,7 +539,7 @@ void FGAEffectContainer::AddEffectByClass(const FGAEffectHandle& HandleIn)
 	EGAEffectAggregation Aggregation = Spec->EffectAggregation;
 	UClass* EffectClass = Spec->GetClass();
 	TSet<FGAEffectHandle> Handles;
-	UAFAbilityComponent* Target = HandleIn.GetContextRef().TargetComp.Get();
+	UAFEffectsComponent* Target = HandleIn.GetContextRef().GetTargetEffectsComponent();
 	switch (Aggregation)
 	{
 	case EGAEffectAggregation::AggregateByInstigator:
@@ -768,6 +767,14 @@ void FGAEffectContainer::ApplyEffectInstance(class UGAEffectExtension* EffectIn)
 
 
 bool FGAEffectContainer::IsEffectActive(const FGAEffectHandle& HandleIn)
+{
+	if (ActiveEffectHandles.Contains(HandleIn))
+	{
+		return true;
+	}
+	return false;
+}
+bool FGAEffectContainer::IsEffectActive(const FGAEffectHandle& HandleIn) const
 {
 	if (ActiveEffectHandles.Contains(HandleIn))
 	{

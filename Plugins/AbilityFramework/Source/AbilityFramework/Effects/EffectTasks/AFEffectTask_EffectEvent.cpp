@@ -25,7 +25,7 @@ UAFEffectTask_EffectEvent* UAFEffectTask_EffectEvent::ListenEffectEvent(UObject*
 
 void UAFEffectTask_EffectEvent::Activate()
 {
-	UAFAbilityComponent* ASC = GetTargetASC();
+	UAFEffectsComponent* ASC = GetTargetASC();
 	if (ASC)
 	{
 		MyHandle = ASC->EffectEvents.FindOrAdd(Tag).AddUObject(this, &UAFEffectTask_EffectEvent::GameplayEventCallback);
@@ -54,25 +54,25 @@ void UAFEffectTask_EffectEvent::SetExternalTarget(AActor* Actor)
 		if (IAFAbilityInterface* interface = Cast<IAFAbilityInterface>(Actor))
 		{
 			UseExternalTarget = true;
-			OptionalExternalTarget = interface->GetAbilityComp();
+			OptionalExternalTarget = interface->GetEffectsComponent();
 		}
 		
 	}
 }
 
-UAFAbilityComponent* UAFEffectTask_EffectEvent::GetTargetASC()
+UAFEffectsComponent* UAFEffectTask_EffectEvent::GetTargetASC()
 {
 	if (UseExternalTarget)
 	{
 		return OptionalExternalTarget;
 	}
 
-	return AbilityComponent;
+	return EffectsComponent;
 }
 
 void UAFEffectTask_EffectEvent::OnDestroy(bool AbilityEnding)
 {
-	UAFAbilityComponent* ASC = GetTargetASC();
+	UAFEffectsComponent* ASC = GetTargetASC();
 	if (ASC && MyHandle.IsValid())
 	{
 		ASC->EffectEvents.FindOrAdd(Tag).Remove(MyHandle);

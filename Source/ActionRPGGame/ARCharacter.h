@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Components/ChildActorComponent.h"
 #include "GameplayTags.h"
+#include "AFEffectsComponent.h"
 #include "AFAbilityComponent.h"
 #include "AFAbilityInterface.h"
 #include "ARCharacter.generated.h"
@@ -42,6 +43,8 @@ class AARCharacter : public ACharacter, public IAFAbilityInterface
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UAFAbilityComponent* Abilities;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class UAFEffectsComponent* EffectsComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UARWeaponPawnManagerComponent* Weapons;
@@ -111,11 +114,12 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 	/* IAFAbilityInterface- BEGIN */
-	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
-		virtual class UGAAttributesBase* GetAttributes() override;
 
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
 		virtual class UAFAbilityComponent* GetAbilityComp() override;
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
+		virtual class UAFEffectsComponent* GetEffectsComponent() override;
+	virtual class UAFEffectsComponent* NativeGetEffectsComponent() const override;
 
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
 		virtual float GetAttributeValue(FGAAttribute AttributeIn) const override;
@@ -126,16 +130,7 @@ public:
 	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) override;
 
 	virtual float NativeGetAttributeValue(const FGAAttribute AttributeIn) const override;
-
-	virtual FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn,
-		FGAEffectProperty& InProperty, FGAEffectContext& InContext) override;
-	virtual void RemoveTagContainer(const FGameplayTagContainer& TagsIn) override;
-
 	/* IAFAbilityInterface- END */
-
-	UFUNCTION(NetMulticast, Unreliable)
-		void Multicast_CameraTransform(FARCameraTransform InCameraTransform);
-	void Multicast_CameraTransform_Implementation(FARCameraTransform InCameraTransform);
 
 	void OnCameraTransformUpdate(USceneComponent* UpdatedComponent, EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport);
 

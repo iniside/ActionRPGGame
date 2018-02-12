@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Animation/AnimNotifies/AnimNotifyState.h"
-#include "GAGlobals.h"
+#include "GameplayTags.h"
 #include "AFAbilityNotifyState.generated.h"
 
 /**
@@ -14,8 +14,6 @@ class ABILITYFRAMEWORK_API UAFAbilityNotifyState : public UAnimNotifyState
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(EditAnywhere, Category = "Data")
-		FAFAbilityNotifyData Data;
 	UPROPERTY(EditAnywhere)
 		FGameplayTag Tag;
 	UPROPERTY(EditAnywhere)

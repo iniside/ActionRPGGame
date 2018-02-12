@@ -3,10 +3,10 @@
 #pragma once
 
 #include "GAAbilityTask.h"
-#include "GAGlobals.h"
+#include "AFAbilityTypes.h"
 #include "GAAbilityTask_PlayMontage.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FGASGenericMontageDelegate, FAFAbilityNotifyData, Data, FGameplayTag, Tag, FName, NotifyName);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGASGenericMontageDelegate, FGameplayTag, Tag, FName, NotifyName);
 
 /**
  *
@@ -39,7 +39,7 @@ public:
 
 	virtual void Activate() override;
 
-	void BroadcastStartNotifyState(const FAFAbilityNotifyData& DataIn, const FGameplayTag& InTag, const FName& InName);
-	void BroadcastEndNotifyState(const FAFAbilityNotifyData& DataIn, const FGameplayTag& InTag, const FName& InName);
-	void BroadcastTickNotifyState(const FAFAbilityNotifyData& DataIn, const FGameplayTag& InTag, const FName& InName);
+	void BroadcastStartNotifyState(const FGameplayTag& InTag, const FName& InName);
+	void BroadcastEndNotifyState(const FGameplayTag& InTag, const FName& InName);
+	void BroadcastTickNotifyState(const FGameplayTag& InTag, const FName& InName);
 };

@@ -3,7 +3,7 @@
 #include "Effects/GAGameEffect.h"
 #include "Attributes/GAAttributeGlobals.h"
 #include "GAGlobalTypes.h"
-//#include "Messaging.h"
+#include "AFAbilityComponent.h"
 #include "AFAbilityInterface.generated.h"
 
 
@@ -21,11 +21,15 @@ class IAFAbilityInterface
 public:
 	virtual FVector GetSocketLocation(FName SocketNameIn){ return FVector::ZeroVector; };
 
-	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
-		virtual class UGAAttributesBase* GetAttributes() = 0;
+		
 
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
-		virtual class UAFAbilityComponent* GetAbilityComp() { return nullptr; };
+		virtual class UAFAbilityComponent* GetAbilityComp() = 0;
+
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
+		virtual class UAFEffectsComponent* GetEffectsComponent() = 0;
+
+		virtual class UAFEffectsComponent* NativeGetEffectsComponent() const = 0;
 
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
 		virtual float GetAttributeValue(FGAAttribute AttributeIn) const { return 0; };
@@ -37,14 +41,20 @@ public:
 
 	virtual float NativeGetAttributeValue(const FGAAttribute AttributeIn) const { return 0; };
 
-	virtual FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn,
-		FGAEffectProperty& InProperty, FGAEffectContext& InContext) { return FGAEffectHandle(); };
 	virtual void RemoveTagContainer(const FGameplayTagContainer& TagsIn) {};
 	//override to allow gathering tags from causer
 	//those tags will be merged into effect owned tags.
 	virtual FGameplayTagContainer GetCauserTags() { return FGameplayTagContainer(); }
 
 	virtual FAFPredictionHandle GetPredictionHandle() { return FAFPredictionHandle(); }
+
+
+	FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn
+		, FGAEffectProperty& InProperty
+		, FGAEffectContext& InContext
+		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
+
+	virtual class UGAAttributesBase* GetAttributes() { return GetAbilityComp()->DefaultAttributes; };
 
 	template<class T>
 	T* GetAttributesTyped()

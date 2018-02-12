@@ -2,7 +2,7 @@
 
 #include "AbilityFramework.h"
 #include "../GAGameEffect.h"
-#include "../../AFAbilityComponent.h"
+#include "AFEffectsComponent.h"
 #include "AFPeriodApplicationInfiniteAdd.h"
 
 
@@ -13,7 +13,7 @@ bool UAFPeriodApplicationInfiniteAdd::ApplyEffect(const FGAEffectHandle& InHandl
 {
 	FTimerManager& PeriodTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
 
-	FTimerDelegate PeriodDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UAFAbilityComponent::ExecuteEffect, InHandle, InProperty, Modifier, InContext);
+	FTimerDelegate PeriodDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().GetTargetEffectsComponent(), &UAFEffectsComponent::ExecuteEffect, InHandle, InProperty, Modifier, InContext);
 	PeriodTimer.SetTimer(InHandle.GetEffectPtr()->PeriodTimerHandle, PeriodDuration,
 		InProperty.GetPeriod(), true);
 	InContainer->AddEffect(InProperty, InHandle, true);

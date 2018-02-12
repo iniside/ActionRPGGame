@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "GameplayTags.h"
 #include "AFAbilityComponent.h"
+#include "AFEffectsComponent.h"
+
 #include "AFAbilityInterface.h"
 
 #include "ARAICharacter.generated.h"
@@ -17,6 +19,8 @@ class ACTIONRPGGAME_API AARAICharacter : public ACharacter, public IAFAbilityInt
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UAFAbilityComponent* Abilities;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class UAFEffectsComponent* EffectsComponent;
 public:
 	// Sets default values for this character's properties
 	AARAICharacter();
@@ -35,10 +39,12 @@ public:
 	
 	/* IAFAbilityInterface- BEGIN */
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
-		virtual class UGAAttributesBase* GetAttributes() override;
+		virtual class UAFAbilityComponent* GetAbilityComp() override;
 
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
-		virtual class UAFAbilityComponent* GetAbilityComp() override;
+		virtual class UAFEffectsComponent* GetEffectsComponent() override;
+	
+	virtual class UAFEffectsComponent* NativeGetEffectsComponent() const override;
 
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
 		virtual float GetAttributeValue(FGAAttribute AttributeIn) const override;
@@ -50,9 +56,6 @@ public:
 
 	virtual float NativeGetAttributeValue(const FGAAttribute AttributeIn) const override;
 
-	virtual FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn,
-		FGAEffectProperty& InProperty, FGAEffectContext& InContext) override;
-	virtual void RemoveTagContainer(const FGameplayTagContainer& TagsIn) override;
 
 	/* IAFAbilityInterface- END */
 };

@@ -2,7 +2,7 @@
 
 #include "AbilityFramework.h"
 #include "../GAGameEffect.h"
-#include "../../AFAbilityComponent.h"
+#include "AFEffectsComponent.h"
 #include "AFAtributeDurationAdd.h"
 
 
@@ -15,7 +15,7 @@ bool UAFAtributeDurationAdd::ApplyEffect(const FGAEffectHandle& InHandle, struct
 {
 	FTimerManager& DurationTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
 
-	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().TargetComp.Get(), &UAFAbilityComponent::ExpireEffect, InHandle, InProperty, InContext);
+	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().GetTargetEffectsComponent(), &UAFEffectsComponent::ExpireEffect, InHandle, InProperty, InContext);
 	DurationTimer.SetTimer(InHandle.GetEffectPtr()->DurationTimerHandle, delDuration,
 		InProperty.GetDuration(), false);
 

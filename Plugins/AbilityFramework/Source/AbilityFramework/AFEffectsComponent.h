@@ -1,0 +1,198 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "GameplayTags.h"
+#include "GameplayTagAssetInterface.h"
+
+#include "Attributes/GAAttributeBase.h"
+#include "Attributes/GAAttributesBase.h"
+#include "Effects/GAEffectCueGlobals.h"
+#include "Effects/GAGameEffect.h"
+#include "GAGlobalTypes.h"
+
+#include "AFEffectsComponent.generated.h"
+
+DECLARE_DELEGATE(FAFEffectEvent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FAFEventDelegate, FAFEventData);
+
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+class ABILITYFRAMEWORK_API UAFEffectsComponent : public UActorComponent
+{
+	GENERATED_BODY()
+public:
+	friend class UGAAbilityBase;
+	friend class IAFAbilityInterface;
+	friend class UAFAbilityComponent;
+	friend class UAFEffectTask_EffectEvent;
+
+private:
+	UPROPERTY(EditAnywhere, Category = "Tags")
+		FGameplayTagContainer DefaultTags;
+
+	UPROPERTY()
+		FGACountedTagContainer AppliedTags;
+
+	UPROPERTY()
+		FGACountedTagContainer ImmunityTags;
+
+	UPROPERTY(ReplicatedUsing = OnRep_GameEffectContainer)
+		FGAEffectContainer GameEffectContainer;
+
+	TMap<FGameplayTag, FAFEffectEvent> OnEffectApplyToTarget;
+	TMap<FGameplayTag, FAFEffectEvent> OnEffectApplyToSelf;
+	TMap<FGameplayTag, FAFEventDelegate> EffectEvents;
+
+	TMap<FGAEffectHandle, FGAEffectProperty*> PropertyByHandle;
+	TMap<FGAEffectHandle, FAFCueHandle> EffectToCue;
+	
+TMap<FGameplayTag, FSimpleDelegate> OnEffectEvent;
+
+public:	
+	// Sets default values for this component's properties
+	UAFEffectsComponent();
+
+protected:
+	// Called when the game starts
+	virtual void BeginPlay() override;
+
+	/** UActorComponent Interface - Begin */
+	virtual void InitializeComponent() override;
+	/* UActorComponent Interface - End **/
+
+public:	
+	// Called every frame
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+protected:
+
+	/*
+	* @call Order:
+	* Previous Function: UAFAbilityComponent::ApplyEffectToTarget
+	* Next Function: FGAEffectContainer::ApplyEffect
+	* Apply target to Me. Try to apply effect to container and launch Events in:
+	* TMap<FGameplayTag, FSimpleDelegate> OnEffectEvent - event is called before application;
+	* TMap<FGameplayTag, FAFEffectEvent> OnEffectApplyToSelf - event is called before application;
+	*
+	* @param EffectIn* - Effect to apply
+	* @param InProperty - cached effect information
+	* @param InContext - Context about effect application. Target, instigator, causer.
+	* @param Modifier - optional modifier which can be applied to effect.
+	* @return Handle to Effect;
+	*/
+	FGAEffectHandle ApplyEffectToSelf(FGAEffect* EffectIn
+		, FGAEffectProperty& InProperty
+		, FGAEffectContext& InContext
+		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
+
+	/*
+	* @call Order:
+	* Previous Function: UGABlueprintLibrary::ApplyEffect
+	* Next Function: UAFAbilityComponent::ApplyEffectToSelf
+	* Apply effect to target provided inside Context.
+	* Try launch events:
+	* TMap<FGameplayTag, FAFEffectEvent> OnEffectApplyToTarget - event is called before application
+	*
+	* @param EffectIn* - Effect to apply
+	* @param InProperty - cached effect information
+	* @param InContext - Context about effect application. Target, instigator, causer.
+	* @param Modifier - optional modifier which can be applied to effect.
+	* @return Handle to Effect;
+	*/
+	FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn
+		, FGAEffectProperty& InProperty
+		, FGAEffectContext& InContext
+		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
+
+public:
+	/* Have to to copy handle around, because timer delegates do not support references. */
+	void ExecuteEffect(FGAEffectHandle HandleIn
+		, FGAEffectProperty InProperty
+		, FAFFunctionModifier Modifier
+		, FGAEffectContext InContext);
+	
+	virtual void PostExecuteEffect();
+	/* ExpireEffect is used to remove existing effect naturally when their time expires. */
+public:
+	void ExpireEffect(FGAEffectHandle HandleIn
+		, FGAEffectProperty InProperty
+		, FGAEffectContext InContext);
+protected:
+	UFUNCTION(Client, Reliable)
+		void ClientExpireEffect(FAFPredictionHandle PredictionHandle);
+	void ClientExpireEffect_Implementation(FAFPredictionHandle PredictionHandle);
+
+	/* RemoveEffect is used to remove effect by force. */
+	void RemoveEffect(const FGAEffectProperty& InProperty
+		, const FGAEffectContext& InContext
+		, const FGAEffectHandle& InHandle);
+	void InternalRemoveEffect(const FGAEffectProperty& InProperty, const FGAEffectContext& InContext);
+
+	const TSet<FGAEffectHandle>& GetAllEffectsHandles() const;
+
+	void AddEffectEvent(const FGameplayTag& InEventTag, const FSimpleDelegate& InEvent);
+	void ExecuteEffectEvent(const FGameplayTag& InEventTag);
+	void RemoveEffectEvent(const FGameplayTag& InEventTag);
+	bool IsEffectActive(const FGAEffectHandle& InHandle) const;
+
+	FAFEventDelegate& GetTagEvent(FGameplayTag TagIn);
+	void NativeTriggerTagEvent(FGameplayTag TagIn, const FAFEventData& InEventData);
+public:
+	bool DenyEffectApplication(const FGameplayTagContainer& InTags);
+	bool HaveEffectRquiredTags(const FGameplayTagContainer& InTags);
+protected:
+	/*
+
+	*/
+	UFUNCTION(NetMulticast, Unreliable)
+		void MulticastApplyEffectCue(FGAEffectCueParams CueParams, FAFCueHandle InHandle);
+	virtual void MulticastApplyEffectCue_Implementation(FGAEffectCueParams CueParams, FAFCueHandle InHandle);
+
+	UFUNCTION(NetMulticast, Unreliable)
+		void MulticastExecuteEffectCue(FAFCueHandle InHandle);
+	void MulticastExecuteEffectCue_Implementation(FAFCueHandle InHandle);
+
+	UFUNCTION(NetMulticast, Unreliable)
+		void MulticastRemoveEffectCue(FGAEffectCueParams CueParams, FAFCueHandle InHandle);
+	void MulticastRemoveEffectCue_Implementation(FGAEffectCueParams CueParams, FAFCueHandle InHandle);
+
+	UFUNCTION(NetMulticast, Unreliable)
+		void MulticastUpdateDurationCue(FGAEffectHandle EffectHandle, float NewDurationIn);
+	void MulticastUpdateDurationCue_Implementation(FGAEffectHandle EffectHandle, float NewDurationIn);
+
+	UFUNCTION(NetMulticast, Unreliable)
+		void MulticastUpdatePeriodCue(FGAEffectHandle EffectHandle, float NewPeriodIn);
+	void MulticastUpdatePeriodCue_Implementation(FGAEffectHandle EffectHandle, float NewPeriodIn);
+
+	UFUNCTION(NetMulticast, Unreliable)
+		void MulticastUpdateTimersCue(FGAEffectHandle EffectHandle, float NewDurationIn, float NewPeriodIn);
+	void MulticastUpdateTimersCue_Implementation(FGAEffectHandle EffectHandle, float NewDurationIn, float NewPeriodIn);
+
+	UFUNCTION(NetMulticast, Unreliable)
+		void MulticastExtendDurationCue(FGAEffectHandle EffectHandle, float NewDurationIn);
+	void MulticastExtendDurationCue_Implementation(FGAEffectHandle EffectHandle, float NewDurationIn);
+public:
+	/* Counted Tag Container Wrapper Start */
+	inline void AddTag(const FGameplayTag& TagIn) { AppliedTags.AddTag(TagIn); };
+	inline void AddTagContainer(const FGameplayTagContainer& TagsIn) { AppliedTags.AddTagContainer(TagsIn); };
+	inline void RemoveTag(const FGameplayTag& TagIn) { AppliedTags.RemoveTag(TagIn); };
+	inline void RemoveTagContainer(const FGameplayTagContainer& TagsIn) { AppliedTags.RemoveTagContainer(TagsIn); };
+	inline bool HasTag(const FGameplayTag& TagIn) const { return AppliedTags.HasTag(TagIn); }
+	inline bool HasTagExact(const FGameplayTag TagIn) const { return AppliedTags.HasTagExact(TagIn); };
+	inline bool HasAny(const FGameplayTagContainer& TagsIn) const { return AppliedTags.HasAny(TagsIn); };
+	inline bool HasAnyExact(const FGameplayTagContainer& TagsIn) const { return AppliedTags.HasAnyExact(TagsIn); };
+	inline bool HasAll(const FGameplayTagContainer& TagsIn) const { return AppliedTags.HasAll(TagsIn); };
+	inline bool HasAllExact(const FGameplayTagContainer& TagsIn) const { return AppliedTags.HasAllExact(TagsIn); };
+	inline int32 GetTagCount(const FGameplayTag& TagIn) const { return AppliedTags.GetTagCount(TagIn); }
+	/* Counted Tag Container Wrapper Start */
+
+
+	/*Network Functions - BEGIN */
+protected:
+	UFUNCTION()
+		void OnRep_GameEffectContainer();
+
+	/*Network Functions - END */
+};
