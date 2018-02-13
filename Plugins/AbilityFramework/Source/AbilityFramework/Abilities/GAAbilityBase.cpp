@@ -639,7 +639,7 @@ float UGAAbilityBase::GetCurrentActivationTime()
 {
 	if (ActivationEffectHandle.IsValid())
 	{
-		return ActivationEffectHandle.GetEffectPtr()->GetCurrentActivationTime();
+		return ActivationEffectHandle.GetEffectPtr()->GetCurrentDuration();
 	}
 	return 0;
 }

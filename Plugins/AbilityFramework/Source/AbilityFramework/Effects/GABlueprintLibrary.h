@@ -58,7 +58,7 @@ public:
 	/*
 		Create Effect but does not apply it.
 	*/
-	static FGAEffectHandle MakeEffect(UGAGameEffectSpec* SpecIn,
+	static FGAEffectHandle MakeEffect(TSubclassOf<UGAGameEffectSpec> SpecIn,
 		FGAEffectHandle HandleIn, class UObject* Target, class APawn* Instigator,
 		UObject* Causer, const FHitResult& HitIn);
 

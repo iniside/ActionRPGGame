@@ -48,8 +48,8 @@ FGAEffectHandle::~FGAEffectHandle()
 FGAEffectContext& FGAEffectHandle::GetContextRef() { return EffectPtr->Context; }
 FGAEffectContext& FGAEffectHandle::GetContextRef() const { return EffectPtr->Context; }
 
-UGAGameEffectSpec* FGAEffectHandle::GetEffectSpec() { return EffectPtr->GameEffect; }
-UGAGameEffectSpec* FGAEffectHandle::GetEffectSpec() const { return EffectPtr->GameEffect; }
+UGAGameEffectSpec* FGAEffectHandle::GetEffectSpec() { return EffectPtr->GetEffect(); }
+UGAGameEffectSpec* FGAEffectHandle::GetEffectSpec() const { return EffectPtr->GetEffect(); }
 
 uint32 FGAEffectHandle::GetHandle() const { return Handle; }
 

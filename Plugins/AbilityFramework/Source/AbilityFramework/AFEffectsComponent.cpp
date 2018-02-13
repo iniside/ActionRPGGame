@@ -221,7 +221,19 @@ void UAFEffectsComponent::RemoveEffect(const FGAEffectProperty& InProperty
 	, const FGAEffectContext& InContext
 	, const FGAEffectHandle& InHandle)
 {
+	//if (GetOwnerRole() == ENetRole::ROLE_Authority
+	//	|| GetOwner()->GetNetMode() == ENetMode::NM_Standalone)
+	{
+		InternalRemoveEffect(InProperty, InContext);
+	}
+	ExecuteEffectEvent(InProperty.GetSpec()->OnRemovedEvent);
+	FGAEffectCueParams CueParams(InContext, InProperty);
 
+	FAFCueHandle* CueHandle = EffectToCue.Find(InHandle);
+	if (CueHandle)
+	{
+		MulticastRemoveEffectCue(CueParams, *CueHandle);
+	}
 }
 void UAFEffectsComponent::InternalRemoveEffect(const FGAEffectProperty& InProperty, const FGAEffectContext& InContext)
 {

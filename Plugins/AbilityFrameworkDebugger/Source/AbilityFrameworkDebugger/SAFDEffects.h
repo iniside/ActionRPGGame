@@ -14,7 +14,6 @@ struct FAFDEffectRow : public TSharedFromThis<FAFDEffectRow>
 {
 	FString EffectClassName;
 	FGAEffectHandle Handle;
-	FAFEffectRepInfo* RepInfo;
 	TAttribute<FText> TimeRemaining;
 	TAttribute<FText> PeriodTime;
 	TWeakObjectPtr<UAFAbilityComponent> AbilityComponent;

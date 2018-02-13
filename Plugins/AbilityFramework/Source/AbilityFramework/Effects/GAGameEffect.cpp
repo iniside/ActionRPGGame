@@ -1,14 +1,15 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
-#include "../AbilityFramework.h"
+#include "AbilityFramework.h"
 #include "GameplayTagContainer.h"
-#include "../AFAbilityComponent.h"
-#include "../Attributes/GAAttributesBase.h"
-#include "../AFAbilityInterface.h"
+#include "AFEffectsComponent.h"
+#include "Attributes/GAAttributesBase.h"
+#include "AFAbilityInterface.h"
 
 #include "GAEffectExecution.h"
 #include "GAEffectExtension.h"
-#include "../GAGlobalTypes.h"
+#include "GAGlobalTypes.h"
+
 #include "AFEffectApplicationRequirement.h"
 #include "AFEffectCustomApplication.h"
 #include "GAGameEffect.h"
@@ -68,43 +69,18 @@ void FGAEffectProperty::EffectExecution(const FGAEffectHandle& HandleIn
 	Execution->ExecuteEffect(HandleIn, ModIn, Context, *this, Modifier);
 }
 
-FAFEffectRepInfo::FAFEffectRepInfo(float AppliedTimeIn, float PeriodTimeIn, float DurationIn, float ReplicationTimeIn,
-	class UAFEffectsComponent* InComponent)
-	: AppliedTime(AppliedTimeIn),
-	PeriodTime(PeriodTimeIn),
-	Duration(DurationIn),
-	ReplicationTime(ReplicationTimeIn),
-	OwningComoponent(InComponent)
+void FGAEffect::PreReplicatedRemove(const struct FGAEffectContainer& InArraySerializer)
 {
-
-};
-
-void FAFEffectRepInfo::PreReplicatedRemove(const struct FGAEffectContainer& InArraySerializer)
-{
-	InArraySerializer.EffectInfos.Remove(Handle);
-}
-void FAFEffectRepInfo::PostReplicatedAdd(const struct FGAEffectContainer& InArraySerializer)
-{
-	if (PredictionHandle.IsValid() && InArraySerializer.PredictedEffectInfos.Contains(PredictionHandle))
-	{
-		//remove predicted effect and move on.
-		FGAEffectContainer& cont = const_cast<FGAEffectContainer&>(InArraySerializer);
-		auto RemovePredicate = [&](const FAFEffectRepInfo& EmitterHandle) { return EmitterHandle.Handle == Handle; };
-		//cont.ActiveEffectInfos.Remove(*this);
-		cont.ActiveEffectInfos.RemoveAll(RemovePredicate);
-		return;
-	}
-	else
-	{
-		//remove predicted effect.
-	}
-	OwningComoponent = InArraySerializer.OwningComponent;
-	AppliedTime = OwningComoponent->GetWorld()->GetTimeSeconds();
-	InArraySerializer.EffectInfos.Add(Handle, this);
-	Type = ERepInfoType::RemotePredicted;
 
 }
-void FAFEffectRepInfo::PostReplicatedChange(const struct FGAEffectContainer& InArraySerializer)
+void FGAEffect::PostReplicatedAdd(const struct FGAEffectContainer& InArraySerializer)
+{
+	AppliedTime = InArraySerializer.OwningComponent->GetWorld()->TimeSeconds;
+	LastTickTime = InArraySerializer.OwningComponent->GetWorld()->TimeSeconds;
+	Handle = FGAEffectHandle::GenerateHandle(this);
+	const_cast<FGAEffectContainer&>(InArraySerializer).ApplyFromPrediction(Handle, PredictionHandle);
+}
+void FGAEffect::PostReplicatedChange(const struct FGAEffectContainer& InArraySerializer)
 {
 
 }
@@ -133,31 +109,6 @@ float FGAMagnitude::GetFloatValue(const FGAEffectContext& Context)
 	}
 
 	return 0;
-}
-FGAEffect::FGAEffect(class UGAGameEffectSpec* GameEffectIn,
-	const FGAEffectContext& ContextIn)
-	: GameEffect(GameEffectIn),
-	Context(ContextIn)
-{
-	OwnedTags = GameEffectIn->OwnedTags;
-	if (GameEffect->Extension)
-	{
-		Extension = NewObject<UGAEffectExtension>(Context.Target.Get(), GameEffect->Extension);
-		Extension->OwningComponent = Context.GetTargetEffectsComponent();
-	}
-	if (ContextIn.TargetComp.IsValid())
-	{
-		TargetWorld = ContextIn.TargetComp->GetWorld();
-		AppliedTime = TargetWorld->TimeSeconds;
-		LastTickTime = TargetWorld->TimeSeconds;
-	}
-	else if (ContextIn.InstigatorComp.IsValid())
-	{
-		TargetWorld = ContextIn.InstigatorComp->GetWorld();
-		AppliedTime = TargetWorld->TimeSeconds;
-		LastTickTime = TargetWorld->TimeSeconds;
-	}
-	IsActive = false;
 }
 
 float FAFStatics::GetFloatFromAttributeMagnitude(const FGAMagnitude& AttributeIn
@@ -227,12 +178,36 @@ FGAEffectMod FAFStatics::GetAttributeModifier(FGAAttributeModifier& ModInfoIn
 	}
 	return ModOut;
 }
+FGAEffect::FGAEffect(TSubclassOf<class UGAGameEffectSpec> GameEffectIn,
+	const FGAEffectContext& ContextIn)
+	: GameEffectClass(GameEffectIn),
+	Context(ContextIn)
+{
+	OwnedTags = GetEffect()->OwnedTags;
+	if (GetEffect()->Extension)
+	{
+		Extension = NewObject<UGAEffectExtension>(Context.Target.Get(), GetEffect()->Extension);
+		Extension->OwningComponent = Context.GetTargetEffectsComponent();
+	}
+	if (ContextIn.TargetComp.IsValid())
+	{
+		TargetWorld = ContextIn.TargetComp->GetWorld();
+		AppliedTime = TargetWorld->TimeSeconds;
+		LastTickTime = TargetWorld->TimeSeconds;
+	}
+	else if (ContextIn.InstigatorComp.IsValid())
+	{
+		TargetWorld = ContextIn.InstigatorComp->GetWorld();
+		AppliedTime = TargetWorld->TimeSeconds;
+		LastTickTime = TargetWorld->TimeSeconds;
+	}
+}
+
 FGAEffect::~FGAEffect()
 {
-	if (Extension.IsValid())
+	if (Extension)
 	{
 		Extension->MarkPendingKill();
-		Extension.Reset();
 	}
 }
 void FGAEffect::SetContext(const FGAEffectContext& ContextIn)
@@ -242,55 +217,41 @@ void FGAEffect::SetContext(const FGAEffectContext& ContextIn)
 
 void FGAEffect::OnApplied()
 {
-	IsActive = true;
 	AppliedTime = TargetWorld->TimeSeconds;
-	if (Extension.IsValid())
+	if (Extension)
 	{
 		Extension->NativeOnEffectApplied();
 	}
 }
-void FGAEffect::OnDuration()
-{
-	
-}
 void FGAEffect::OnExecuted()
 {
-	OnEffectPeriod.Broadcast(Handle);
-	if (Extension.IsValid())
+	if (Extension)
 	{
 		Extension->NativeOnEffectExecuted();
 	}
 }
 void FGAEffect::OnExpired()
 {
-	OnEffectExpired.Broadcast(Handle);
-	IsActive = false;
-	if (Extension.IsValid())
+	if (Extension)
 	{
 		Extension->NativeOnEffectExpired();
 	}
 }
 void FGAEffect::OnRemoved()
 {
-	OnEffectRemoved.Broadcast(Handle);
-	IsActive = false;
-	if (Extension.IsValid())
+	if (Extension)
 	{
 		Extension->NativeOnEffectRemoved();
 	}
 }
-void FGAEffect::DurationExpired()
-{
-
-}
 
 float FGAEffect::GetDurationTime() const
 {
-	return GetFloatFromAttributeMagnitude(GameEffect->Duration);
+	return GetFloatFromAttributeMagnitude(GetEffect()->Duration);
 }
 float FGAEffect::GetPeriodTime() const
 {
-	return GetFloatFromAttributeMagnitude(GameEffect->Period);
+	return GetFloatFromAttributeMagnitude(GetEffect()->Period);
 }
 float FGAEffect::GetFloatFromAttributeMagnitude(const FGAMagnitude& AttributeIn) const
 {
@@ -318,22 +279,11 @@ float FGAEffect::GetFloatFromAttributeMagnitude(const FGAMagnitude& AttributeIn)
 
 	return 0;
 }
-float FGAEffect::GetCurrentActivationTime()
+
+float FGAEffect::GetCurrentDuration() const
 {
 	float CurrentTime = TargetWorld->TimeSeconds;
 	return CurrentTime - AppliedTime;
-}
-
-float FGAEffect::GetCurrentActivationTime() const
-{
-	float CurrentTime = TargetWorld->TimeSeconds;
-	return CurrentTime - AppliedTime;
-}
-
-float FGAEffect::GetCurrentTickTime()
-{
-	float CurrentTime = TargetWorld->TimeSeconds;
-	return CurrentTime - LastTickTime;
 }
 
 void FGameCueContainer::AddCue(FGAEffectHandle EffectHandle, FGAEffectCueParams CueParams)
@@ -405,18 +355,24 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 				//we probabaly don't need to unwind attribute changes, since next replication from
 				//server will overridem them anyway.
 				
-				ApplyReplicationInfo(Handle, InProperty);
 				bool bIsServer = GEngine->GetNetMode(OwningComponent->GetWorld()) == ENetMode::NM_DedicatedServer;
 				UE_LOG(AbilityFramework, Log, TEXT("%s :: FGAEffectContainer::EffectApplied %s"), bIsServer ? TEXT("Server") : TEXT("Client"),  *Handle.GetEffectSpec()->GetName() );
 			}
 		}
 		
 	}
-	
-	HandleByPrediction.Add(InProperty.GetPredictionHandle(), Handle);
-	PredictionByHandle.Add(Handle, InProperty.GetPredictionHandle());
+	if (bHasDuration || bHasPeriod)
+	{
+		EffectIn->PredictionHandle = InProperty.GetPredictionHandle();
+		EffectIn->AppliedTime = OwningComponent->GetWorld()->TimeSeconds;
+		EffectIn->LastTickTime = OwningComponent->GetWorld()->TimeSeconds;
+		MarkItemDirty(*EffectIn);
+		ActiveEffectInfos.Add(*EffectIn);
+		MarkArrayDirty();
 
-	EffectIn->OnApplied();
+		HandleByPrediction.Add(InProperty.GetPredictionHandle(), Handle);
+		PredictionByHandle.Add(Handle, InProperty.GetPredictionHandle());
+	}
 	
 	if (InProperty.GetSpec()->IfHaveTagEffect.RequiredTag.IsValid()
 		&& InContext.GetTargetEffectsComponent()->HasTag(InProperty.GetSpec()->IfHaveTagEffect.RequiredTag))
@@ -430,37 +386,6 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(FGAEffect* EffectIn, FGAEffectPr
 
 	return Handle;
 	
-}
-void FGAEffectContainer::ApplyReplicationInfo(const FGAEffectHandle& InHandle, const FGAEffectProperty& InProperty)
-{
-	ENetMode mode = OwningComponent->GetNetMode();
-	ENetRole role = OwningComponent->GetOwnerRole();
-
-	bool bIsServer = GEngine->GetNetMode(OwningComponent->GetWorld()) == ENetMode::NM_DedicatedServer;
-	UE_LOG(AbilityFramework, Log, TEXT("%s :: FGAEffectContainer::ApplyReplicationInfo"), bIsServer ? TEXT("Server") : TEXT("Client"));
-
-	//add replication handle (and send it to server ?)
-	const UWorld* World = OwningComponent->GetWorld();
-	FAFEffectRepInfo* RepInfo = new FAFEffectRepInfo(World->GetTimeSeconds(), InProperty.GetPeriod(), InProperty.GetDuration(), 0, OwningComponent);
-	if(bIsServer)
-	{
-		RepInfo->Type = ERepInfoType::Server;
-	}
-	else
-	{
-		RepInfo->Type = ERepInfoType::LocallyPredicted;
-	}
-	RepInfo->Spec = InProperty.GetClass();
-	RepInfo->Context = InHandle.GetContext();
-	RepInfo->Handle = InHandle;
-	RepInfo->PredictionHandle = InProperty.GetPredictionHandle();
-	MarkItemDirty(*RepInfo);
-	ActiveEffectInfos.Add(*RepInfo);
-	MarkArrayDirty();
-	//predictevily add effect info ?
-		
-	PredictedEffectInfos.Add(InProperty.GetPredictionHandle(), RepInfo);
-	EffectInfos.Add(InHandle, RepInfo);
 }
 
 EGAEffectAggregation FGAEffectContainer::GetEffectAggregation(const FGAEffectHandle& HandleIn) const
@@ -594,7 +519,8 @@ void FGAEffectContainer::RemoveEffectProtected(const FGAEffectHandle& HandleIn
 	
 	const_cast<FGAEffectProperty&>(InProperty).RemoveHandle(HandleIn);
 
-	ActiveEffectHandles.Remove(HandleIn);
+	
+	
 	InfiniteEffects.Remove(HandleIn);
 	TArray<FGAEffectHandle>* handles = EffectByClass.Find(FObjectKey(InProperty.GetClass()));
 	if (handles && handles->Num() > 0)
@@ -605,18 +531,18 @@ void FGAEffectContainer::RemoveEffectProtected(const FGAEffectHandle& HandleIn
 			EffectByClass.Remove(FObjectKey(InProperty.GetClass()));
 		}
 	}
-	FAFEffectRepInfo* Out = nullptr;
-	EffectInfos.RemoveAndCopyValue(HandleIn, Out);
+	FGAEffectHandle* Out = ActiveEffectHandles.Find(HandleIn);
 	if (Out)
 	{
-		FString EffectInfoLog(TEXT("FGAEffectContainer::RemoveEffect "));
-		EffectInfoLog += Out->GetEffectTag().ToString();
-		AddLogDebugInfo(EffectInfoLog, OwningComponent->GetWorld());
-		MarkItemDirty(*Out);
-		ActiveEffectInfos.Remove(*Out);
+		//FString EffectInfoLog(TEXT("FGAEffectContainer::RemoveEffect "));
+		//EffectInfoLog += Out->GetEffectTag().ToString();
+		//AddLogDebugInfo(EffectInfoLog, OwningComponent->GetWorld());
+		FGAEffect* Effect = Out->GetEffectPtr().Get();
+		MarkItemDirty(*Effect);
+		ActiveEffectInfos.Remove(Out->GetEffect());
 		MarkArrayDirty();
-		delete Out;
 	}
+	ActiveEffectHandles.Remove(HandleIn);
 	FAFPredictionHandle* PredHandle = PredictionByHandle.Find(HandleIn);
 	if(PredHandle)
 	{
@@ -644,7 +570,6 @@ void FGAEffectContainer::RemoveInstigatorEffect(const FGAEffectHandle& HandleIn
 	}
 	if (Effect.IsValid())
 	{
-		Effect->OnEffectRemoved.Broadcast(Effect->Handle);
 		Target->RemoveTagContainer(Effect->ApplyTags);
 		FTimerManager& DurationTimer = Effect->Context.TargetComp->GetWorld()->GetTimerManager();
 		DurationTimer.ClearTimer(Effect->DurationTimerHandle);
@@ -703,7 +628,6 @@ void FGAEffectContainer::RemoveTargetEffect(const FGAEffectHandle& HandleIn
 	RemoveEffectProtected(HandleIn, InProperty);
 	if (Effect.IsValid())
 	{
-		Effect->OnEffectRemoved.Broadcast(Effect->Handle);
 		Target->RemoveTagContainer(Effect->ApplyTags);
 		FTimerManager& DurationTimer = Effect->Context.TargetComp->GetWorld()->GetTimerManager();
 		DurationTimer.ClearTimer(Effect->DurationTimerHandle);
@@ -717,7 +641,6 @@ TArray<FGAEffectHandle> FGAEffectContainer::RemoveEffect(const FGAEffectProperty
 	EGAEffectAggregation Aggregation = Spec->EffectAggregation;
 	FObjectKey key(HandleIn.GetClass());
 	TArray<FGAEffectHandle>* handles = EffectByClass.Find(key);//GetHandlesByClass(HandleIn, InContext);
-	FAFEffectRepInfo* Out = nullptr;
 	
 	if (!handles)
 		return TArray<FGAEffectHandle>();
@@ -756,16 +679,6 @@ TArray<FGAEffectHandle> FGAEffectContainer::RemoveEffect(const FGAEffectProperty
 	return copy;
 }
 
-//FGAEffectContainer::FGAEffectContainer()
-//{
-//}
-
-void FGAEffectContainer::ApplyEffectInstance(class UGAEffectExtension* EffectIn)
-{
-
-}
-
-
 bool FGAEffectContainer::IsEffectActive(const FGAEffectHandle& HandleIn)
 {
 	if (ActiveEffectHandles.Contains(HandleIn))
@@ -791,10 +704,12 @@ bool FGAEffectContainer::ContainsEffectOfClass(const FGAEffectProperty& InProper
 	}
 	return false;
 }
-//TSharedPtr<FGAEffect> FGAEffectContainer::GetEffectByHandle(const FGAEffectHandle& HandleIn)
-//{
-//	return ActiveEffects.FindRef(HandleIn);
-//}
+
+void FGAEffectContainer::ApplyFromPrediction(const FGAEffectHandle& InHandle, const FAFPredictionHandle& InPredHandle)
+{
+
+}
+
 UWorld* FGAEffectContainer::GetWorld() const
 {
 	if (OwningComponent)

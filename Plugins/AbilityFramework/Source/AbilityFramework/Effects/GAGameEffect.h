@@ -550,48 +550,58 @@ struct FAFStatics
 	Final effect which then is used to apply custom calculations and attribute changes.
 */
 DECLARE_MULTICAST_DELEGATE_OneParam(FAFEffectMulicastDelegate, const FGAEffectHandle&);
-
-struct ABILITYFRAMEWORK_API FGAEffect : public TSharedFromThis<FGAEffect>
+UENUM()
+enum class ERepInfoType : uint8
 {
+	LocallyPredicted,
+	RemotePredicted,
+	Server
+};
+USTRUCT()
+struct ABILITYFRAMEWORK_API FGAEffect : public FFastArraySerializerItem//, public TSharedFromThis<FGAEffect>
+{
+
+	GENERATED_BODY()
 	/* Cached pointer to original effect spec. */
 	
-	TWeakObjectPtr<class UGAEffectExtension> Extension;
+	UPROPERTY(NotReplicated)
+		class UGAEffectExtension* Extension;
+
 	UWorld* TargetWorld;
 	/* 
 		Calculated mods ready to be applied. 
 		These are perlimenarly calculcated mods, 
 		which can be furhter modified by Calculation object.
 	*/
-
-	
-	/* Contains all tags gathered on the way to application ? */
-
-	bool IsActive;
 public:
-	//pointer ? Acces trough handle ?
-	class UGAGameEffectSpec* GameEffect;
-	FGAEffectContext Context;
+	
+	//Spec from which this effect originated.
+	UPROPERTY()
+		TSubclassOf<UGAGameEffectSpec> GameEffectClass;
+	UPROPERTY()
+		FAFPredictionHandle PredictionHandle;
+	UPROPERTY()
+		FGAEffectContext Context;
+	
 	FGameplayTagContainer OwnedTags;
 	FGameplayTagContainer ApplyTags;
 	FGameplayTagContainer RequiredTags;
 
 	FGAEffectHandle Handle;
-	FAFPredictionHandle PredictionHandle;
 
 	mutable FTimerHandle PeriodTimerHandle;
 	mutable FTimerHandle DurationTimerHandle;
 
-	FGAEffectMod AttributeMod;
+	//FGAEffectMod AttributeMod;
 //because I'm fancy like that and like to make spearate public for fields and functions.
 public:
-	//Simple delegates to make sure they are bound only to one object.
-	FAFEffectMulicastDelegate OnEffectPeriod;
-	FAFEffectMulicastDelegate OnEffectExpired;
-	FAFEffectMulicastDelegate OnEffectRemoved;
-
 	float AppliedTime;
 	float LastTickTime;
 public:
+	void PreReplicatedRemove(const struct FGAEffectContainer& InArraySerializer);
+	void PostReplicatedAdd(const struct FGAEffectContainer& InArraySerializer);
+	void PostReplicatedChange(const struct FGAEffectContainer& InArraySerializer);
+
 	void SetContext(const FGAEffectContext& ContextIn);
 
 	class UAFAbilityComponent* GetInstigatorComp() { return Context.InstigatorComp.Get(); }
@@ -599,37 +609,48 @@ public:
 	inline void AddOwnedTags(const FGameplayTagContainer& TagsIn) { OwnedTags.AppendTags(TagsIn); }
 	inline void AddApplyTags(const FGameplayTagContainer& TagsIn) { ApplyTags.AppendTags(TagsIn); }
 	void OnApplied();
-	void OnDuration();
 	void OnExpired();
 	void OnRemoved();
 	void OnExecuted();
-	void DurationExpired();
 
 	float GetDurationTime() const;
 	float GetPeriodTime() const;
-	float GetCurrentActivationTime();
-	float GetCurrentActivationTime() const;
-	float GetCurrentTickTime();
+	float GetCurrentDuration() const;
 	float GetFloatFromAttributeMagnitude(const FGAMagnitude& AttributeIn) const;
+
+	UGAGameEffectSpec* GetEffect()
+	{
+		return GameEffectClass.GetDefaultObject();
+	}
+	UGAGameEffectSpec* GetEffect() const
+	{
+		return GameEffectClass.GetDefaultObject();
+	}
 	bool IsValid() const
 	{
-		return GameEffect != nullptr;
+		return GameEffectClass != nullptr;
 	}
 	FString ToString()
 	{
-		if (GameEffect)
+		if (GameEffectClass)
 		{
-			return GameEffect->GetName();
+			return GameEffectClass->GetName();
 		}
 		return FString();
 	}
 	FGAEffect()
-		: GameEffect(nullptr)
+		: GameEffectClass(nullptr)
 	{}
-	FGAEffect(class UGAGameEffectSpec* GameEffectIn, 
+	FGAEffect(TSubclassOf<class UGAGameEffectSpec> GameEffectIn, 
 		const FGAEffectContext& ContextIn);
 
 	~FGAEffect();
+
+
+	bool operator==(const FGAEffect& Other) const
+	{
+		return Handle == Other.Handle;
+	}
 };
 
 /*
@@ -682,115 +703,6 @@ struct ABILITYFRAMEWORK_API FGAInstigatorInstancedEffectContainer
 			TArray<class UGAEffectExtension*> Effects;
 };
 
-/*
-	Simplified and minimal version of game effect replicated back to clients.
-*/
-UENUM()
-enum class ERepInfoType : uint8
-{
-	LocallyPredicted,
-	RemotePredicted,
-	Server
-};
-USTRUCT(BlueprintType)
-struct ABILITYFRAMEWORK_API FAFEffectRepInfo : public FFastArraySerializerItem
-{
-	GENERATED_USTRUCT_BODY()
-
-public:
-	UPROPERTY()
-	ERepInfoType Type;
-
-	UPROPERTY()
-		TSubclassOf<UGAGameEffectSpec> Spec;
-
-	UPROPERTY()
-		FGAEffectContext Context;
-
-	//Handle to effect, which is using this info.
-	UPROPERTY()
-		FGAEffectHandle Handle;
-	
-	UPROPERTY()
-		FAFPredictionHandle PredictionHandle;
-
-	UPROPERTY(NotReplicated)
-		float AppliedTime;
-	UPROPERTY()
-		float PeriodTime;
-	UPROPERTY()
-		float Duration;
-	UPROPERTY()
-		float ReplicationTime;
-	UPROPERTY(NotReplicated)
-		float LastPeriodTime;
-
-	class UAFEffectsComponent* OwningComoponent;
-
-	UGAGameEffectSpec* GetSpec() const
-	{
-		return Spec.GetDefaultObject();
-	}
-
-
-	void PreReplicatedRemove(const struct FGAEffectContainer& InArraySerializer);
-	void PostReplicatedAdd(const struct FGAEffectContainer& InArraySerializer);
-	void PostReplicatedChange(const struct FGAEffectContainer& InArraySerializer);
-
-	FGameplayTag GetEffectTag()
-	{
-		return GetSpec()->EffectTag;
-	}
-
-	float GetPeriodTime(float InWorldTime)
-	{
-		if (InWorldTime > (LastPeriodTime + PeriodTime))
-			LastPeriodTime = InWorldTime;
-		return InWorldTime - LastPeriodTime;
-	}
-
-	float GetRemainingTime(float InWorldTime) const
-	{
-		return Duration - (InWorldTime - AppliedTime);
-	}
-	float GetRemainingTimeNormalized(float InWorldTime) const
-	{
-		float Time = Duration - (InWorldTime - AppliedTime);
-		//1,0 ?
-		float Normalized = FMath::GetMappedRangeValueClamped(FVector2D(Duration, 0), FVector2D(1, 0), Time);
-		return Normalized;
-	}
-	/* Get Current effect ime clamped to max duration */
-	float GetCurrentTime(float InWorldTime) const
-	{
-		return FMath::Clamp<float>(InWorldTime - AppliedTime, 0, Duration);
-	}
-	float GetCurrentTimeNormalized(float InWorldTime) const
-	{
-		float Time = FMath::Clamp<float>(InWorldTime - AppliedTime, 0, Duration);
-		float Normalized = FMath::GetMappedRangeValueClamped(FVector2D(0, Duration), FVector2D(0, 1), Time);
-		return Normalized;
-	}
-	float GetEndTime() const
-	{
-		return AppliedTime + Duration;
-	}
-	FAFEffectRepInfo()
-	{};
-
-	const bool operator==(const FAFEffectRepInfo& Other) const
-	{
-		return Handle == Other.Handle;
-	}
-	friend uint32 GetTypeHash(const FAFEffectRepInfo& InHandle)
-	{
-		return GetTypeHash(InHandle.Handle);
-	}
-
-	FAFEffectRepInfo(float AppliedTimeIn, float PeriodTimeIn, float DurationIn, float ReplicationTimeIn,
-		class UAFEffectsComponent* InComponent);
-};
-
 USTRUCT()
 struct ABILITYFRAMEWORK_API FGAGameCue
 {
@@ -819,12 +731,7 @@ struct ABILITYFRAMEWORK_API FGAEffectContainer : public FFastArraySerializer
 	GENERATED_USTRUCT_BODY()
 public:
 	UPROPERTY()
-		TArray<FAFEffectRepInfo> ActiveEffectInfos;
-	//IDK might be actually easier to map Handles to active effects on clients
-	//as Handle should be synced between client and server.
-	//that's why handle should only be created on server (and by that, effects).
-	//change to SharedPtr ?
-	mutable TMap<FGAEffectHandle, FAFEffectRepInfo*> EffectInfos;
+		TArray<FGAEffect> ActiveEffectInfos;
 	
 	UPROPERTY()
 	TMap<FAFPredictionHandle, FGAEffectHandle> HandleByPrediction;
@@ -833,7 +740,7 @@ public:
 	TMap<FGAEffectHandle, FAFPredictionHandle> PredictionByHandle;
 
 	
-	TMap<FAFPredictionHandle, FAFEffectRepInfo*> PredictedEffectInfos;
+	TMap<FAFPredictionHandle, FGAEffect*> PredictedEffectInfos;
 
 	
 	TMap<FGAAttribute, TSet<FGAEffectHandle>> EffectByAttribute;
@@ -870,14 +777,10 @@ public:
 	
 	TMap<UClass*, TSet<FGAEffectHandle>> TargetEffectByClass;
 
-	/* Keeps effects instanced per target actor. */
-	UPROPERTY(NotReplicated)
-	TArray<class UGAEffectExtension*> TargetInstancedEffects;
-
 	UPROPERTY(NotReplicated)
 		class UAFEffectsComponent* OwningComponent;
 public:
-	//FGAEffectContainer();
+	
 	/*
 	* @call Order:
 	* Previous Function: UAFAbilityComponent::ApplyEffectToSelf 
@@ -898,7 +801,6 @@ public:
 		, const FGAEffectContext& InContext
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
-	void ApplyReplicationInfo(const FGAEffectHandle& InHandle, const FGAEffectProperty& InProperty);
 	/* Removesgiven number of effects of the same type. If Num == 0 Removes all effects */
 	TArray<FGAEffectHandle> RemoveEffect(const FGAEffectProperty& HandleIn, int32 Num = 1);
 	/* Removesgiven number of effects of the same type. If Num == 0 Removes all effects */
@@ -920,17 +822,19 @@ public:
 	void RemoveEffectProtected(const FGAEffectHandle& HandleIn, const FGAEffectProperty& InProperty);
 	void RemoveInstigatorEffect(const FGAEffectHandle& HandleIn, const FGAEffectProperty& InProperty);
 	void RemoveTargetEffect(const FGAEffectHandle& HandleIn, const FGAEffectProperty& InProperty);
-	void ApplyEffectInstance(class UGAEffectExtension* EffectIn);
 	//modifiers
 	void ApplyEffectsFromMods() {};
 	void DoesQualify() {};
 	bool IsEffectActive(const FGAEffectHandle& HandleIn);
 	bool IsEffectActive(const FGAEffectHandle& HandleIn) const;
 	bool ContainsEffectOfClass(const FGAEffectProperty& InProperty);
+
+	void ApplyFromPrediction(const FGAEffectHandle& InHandle, const FAFPredictionHandle& InPredHandle);
+
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
 	{
 		//return FastArrayDeltaSerialize<FGAEffectRepInfo>(ActiveEffectInfos, DeltaParms, *this);
-		return FFastArraySerializer::FastArrayDeltaSerialize<FAFEffectRepInfo, FGAEffectContainer>(ActiveEffectInfos, DeltaParms, *this);
+		return FFastArraySerializer::FastArrayDeltaSerialize<FGAEffect, FGAEffectContainer>(ActiveEffectInfos, DeltaParms, *this);
 	}
 
 	const TSet<FGAEffectHandle>& GetAllEffectHandles() const
@@ -938,55 +842,48 @@ public:
 		return ActiveEffectHandles;
 	}
 
-	const TArray<FAFEffectRepInfo>& GetAllEffectsInfo() const
-	{
-		return ActiveEffectInfos;
-	}
-
 	UWorld* GetWorld() const;
-	
-	FAFEffectRepInfo* GetReplicationInfo(const FGAEffectHandle& InHandle)
-	{
-		return EffectInfos.FindRef(InHandle);
-	}
 
 	///Helpers
 	float GetRemainingTime(const FGAEffectHandle& InHandle) const
 	{
-		FAFEffectRepInfo* Info = EffectInfos.FindRef(InHandle);
-		if (!Info)
-			return 0;
-		//lets assume value is always valid...
-		return Info->GetRemainingTime(GetWorld()->GetTimeSeconds());
+		if (InHandle.GetEffectPtr().IsValid())
+		{
+			float Duration = InHandle.GetEffectPtr()->GetDurationTime();
+			return FMath::Clamp<float>(Duration - InHandle.GetEffectPtr()->GetCurrentDuration(), 0, Duration);
+		}
+		return 0;
 	}
 	float GetRemainingTimeNormalized(const FGAEffectHandle& InHandle) const
 	{
-		FAFEffectRepInfo* Info = EffectInfos.FindRef(InHandle);
-		if (!Info)
-			return 0;
-		return Info->GetRemainingTimeNormalized(GetWorld()->GetTimeSeconds());
+		if (InHandle.GetEffectPtr().IsValid())
+		{
+			float CurrentDuration = InHandle.GetEffectPtr()->GetCurrentDuration();
+			float MaxDuration = InHandle.GetEffectPtr()->GetDurationTime();
+			return FMath::Clamp<float>(CurrentDuration * 1 / MaxDuration, 0, 1);
+		}
+		return 0;
 	}
 	/* Get Current effect ime clamped to max duration */
 	float GetCurrentTime(const FGAEffectHandle& InHandle) const
 	{
-		FAFEffectRepInfo* Info = EffectInfos.FindRef(InHandle);
-		if (!Info)
-			return 0;
-		return Info->GetCurrentTime(GetWorld()->GetTimeSeconds());
+		if(InHandle.GetEffectPtr().IsValid())
+			return InHandle.GetEffectPtr()->GetCurrentDuration();
+		return 0;
 	}
 	float GetCurrentTimeNormalized(const FGAEffectHandle& InHandle) const
 	{
-		FAFEffectRepInfo* Info = EffectInfos.FindRef(InHandle);
-		if (!Info)
-			return 0;
-		return Info->GetCurrentTimeNormalized(GetWorld()->GetTimeSeconds());
+		if (InHandle.GetEffectPtr().IsValid())
+		{
+			float CurrentDuration = InHandle.GetEffectPtr()->GetCurrentDuration();
+			float MaxDuration = InHandle.GetEffectPtr()->GetDurationTime();
+			return CurrentDuration * 1 / MaxDuration;
+		}
+		return 0;
 	}
 	float GetEndTime(const FGAEffectHandle& InHandle) const
 	{
-		FAFEffectRepInfo* Info = EffectInfos.FindRef(InHandle);
-		if (!Info)
-			return 0;
-		return Info->GetEndTime();
+		return 0;
 	}
 };
 template<>

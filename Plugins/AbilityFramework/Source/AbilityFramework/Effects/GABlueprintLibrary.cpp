@@ -74,10 +74,9 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 	{
 		if (!InEffect.IsHandleValid(Target))
 		{
-			effect = new FGAEffect(InEffect.GetSpec(), Context);
+			effect = new FGAEffect(InEffect.GetClass(), Context);
 			AddTagsToEffect(effect);
 			effect->Context = Context;
-			effect->GameEffect = InEffect.GetSpec();
 		}
 		else
 		{
@@ -86,10 +85,9 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 	}
 	else
 	{
-		effect = new FGAEffect(InEffect.GetSpec(), Context);
+		effect = new FGAEffect(InEffect.GetClass(), Context);
 		AddTagsToEffect(effect);
 		effect->Context = Context;
-		effect->GameEffect = InEffect.GetSpec();
 	}
 	if (Ability)
 	{
@@ -151,10 +149,9 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty* InEffect,
 	{
 		if (!InEffect->IsHandleValid(Target))
 		{
-			effect = new FGAEffect(InEffect->GetSpec(), Context);
+			effect = new FGAEffect(InEffect->GetClass(), Context);
 			AddTagsToEffect(effect);
 			effect->Context = Context;
-			effect->GameEffect = InEffect->GetSpec();
 		}
 		else
 		{
@@ -163,10 +160,9 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty* InEffect,
 	}
 	else
 	{
-		effect = new FGAEffect(InEffect->GetSpec(), Context);
+		effect = new FGAEffect(InEffect->GetClass(), Context);
 		AddTagsToEffect(effect);
 		effect->Context = Context;
-		effect->GameEffect = InEffect->GetSpec();
 	}
 	if (Ability)
 	{
@@ -206,7 +202,7 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffectToObject(FGAEffectProperty& InEf
 	FHitResult Hit(ForceInit);
 	return ApplyEffect(InEffect, Target, Instigator, Causer, Hit, Modifier);
 }
-FGAEffectHandle UGABlueprintLibrary::MakeEffect(UGAGameEffectSpec* SpecIn,
+FGAEffectHandle UGABlueprintLibrary::MakeEffect(TSubclassOf<UGAGameEffectSpec> SpecIn,
 	FGAEffectHandle HandleIn, class UObject* Target, class APawn* Instigator,
 	UObject* Causer, const FHitResult& HitIn)
 {
@@ -284,8 +280,8 @@ void UGABlueprintLibrary::AddTagsToEffect(FGAEffect* EffectIn)
 {
 	if (EffectIn)
 	{
-		EffectIn->OwnedTags.AppendTags(EffectIn->GameEffect->OwnedTags);
-		EffectIn->ApplyTags.AppendTags(EffectIn->GameEffect->ApplyTags);
+		EffectIn->OwnedTags.AppendTags(EffectIn->GetEffect()->OwnedTags);
+		EffectIn->ApplyTags.AppendTags(EffectIn->GetEffect()->ApplyTags);
 	}
 }
 
