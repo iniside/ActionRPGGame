@@ -2,7 +2,6 @@
 //#include "GAGlobalTypes.h"
 #include "GAEffectGlobalTypes.h"
 #include "GameplayTagContainer.h"
-//#include "NetSerialization.h"
 #include "GAGameEffect.generated.h"
 
 DECLARE_STATS_GROUP(TEXT("GameEffect"), STATGROUP_GameEffect, STATCAT_Advanced);
@@ -558,7 +557,7 @@ enum class ERepInfoType : uint8
 	Server
 };
 USTRUCT()
-struct ABILITYFRAMEWORK_API FGAEffect : public FFastArraySerializerItem//, public TSharedFromThis<FGAEffect>
+struct ABILITYFRAMEWORK_API FGAEffect : public FFastArraySerializerItem//, TSharedFromThis<FGAEffect>
 {
 
 	GENERATED_BODY()
@@ -626,6 +625,15 @@ public:
 	{
 		return GameEffectClass.GetDefaultObject();
 	}
+	FGAEffectContext& GetContext()
+	{
+		return Context;
+	}
+	const FGAEffectContext& GetContext() const
+	{
+		return Context;
+	}
+
 	bool IsValid() const
 	{
 		return GameEffectClass != nullptr;
@@ -724,15 +732,16 @@ public:
 	void AddCue(FGAEffectHandle EffectHandle, FGAEffectCueParams CueParams);
 };
 
-
 USTRUCT(BlueprintType)
 struct ABILITYFRAMEWORK_API FGAEffectContainer : public FFastArraySerializer
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 public:
 	UPROPERTY()
 		TArray<FGAEffect> ActiveEffectInfos;
 	
+	TMap<FGAEffectHandle, TSharedPtr<FGAEffect>> HandleToEffect;
+
 	UPROPERTY()
 	TMap<FAFPredictionHandle, FGAEffectHandle> HandleByPrediction;
 	
@@ -845,46 +854,14 @@ public:
 	UWorld* GetWorld() const;
 
 	///Helpers
-	float GetRemainingTime(const FGAEffectHandle& InHandle) const
-	{
-		if (InHandle.GetEffectPtr().IsValid())
-		{
-			float Duration = InHandle.GetEffectPtr()->GetDurationTime();
-			return FMath::Clamp<float>(Duration - InHandle.GetEffectPtr()->GetCurrentDuration(), 0, Duration);
-		}
-		return 0;
-	}
-	float GetRemainingTimeNormalized(const FGAEffectHandle& InHandle) const
-	{
-		if (InHandle.GetEffectPtr().IsValid())
-		{
-			float CurrentDuration = InHandle.GetEffectPtr()->GetCurrentDuration();
-			float MaxDuration = InHandle.GetEffectPtr()->GetDurationTime();
-			return FMath::Clamp<float>(CurrentDuration * 1 / MaxDuration, 0, 1);
-		}
-		return 0;
-	}
+	float GetRemainingTime(const FGAEffectHandle& InHandle) const;
+	float GetRemainingTimeNormalized(const FGAEffectHandle& InHandle) const;
 	/* Get Current effect ime clamped to max duration */
-	float GetCurrentTime(const FGAEffectHandle& InHandle) const
-	{
-		if(InHandle.GetEffectPtr().IsValid())
-			return InHandle.GetEffectPtr()->GetCurrentDuration();
-		return 0;
-	}
-	float GetCurrentTimeNormalized(const FGAEffectHandle& InHandle) const
-	{
-		if (InHandle.GetEffectPtr().IsValid())
-		{
-			float CurrentDuration = InHandle.GetEffectPtr()->GetCurrentDuration();
-			float MaxDuration = InHandle.GetEffectPtr()->GetDurationTime();
-			return CurrentDuration * 1 / MaxDuration;
-		}
-		return 0;
-	}
-	float GetEndTime(const FGAEffectHandle& InHandle) const
-	{
-		return 0;
-	}
+	float GetCurrentTime(const FGAEffectHandle& InHandle) const;
+	float GetCurrentTimeNormalized(const FGAEffectHandle& InHandle) const;
+	float GetEndTime(const FGAEffectHandle& InHandle) const;
+
+	TSharedPtr<FGAEffect> GetEffect(const FGAEffectHandle& InHandle) { return HandleToEffect[InHandle]; }
 };
 template<>
 struct TStructOpsTypeTraits< FGAEffectContainer > : public TStructOpsTypeTraitsBase2<FGAEffectContainer>

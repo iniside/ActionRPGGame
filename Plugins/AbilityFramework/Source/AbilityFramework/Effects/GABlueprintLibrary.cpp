@@ -80,7 +80,7 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty& InEffect,
 		}
 		else
 		{
-			effect = InEffect.GetHandle(Target).GetEffectPtr().Get();
+			effect = InEffect.GetHandle(Target).GetEffectPtr();
 		}
 	}
 	else
@@ -155,7 +155,7 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(FGAEffectProperty* InEffect,
 		}
 		else
 		{
-			effect = InEffect->GetHandle(Target).GetEffectPtr().Get();
+			effect = InEffect->GetHandle(Target).GetEffectPtr();
 		}
 	}
 	else

@@ -390,6 +390,7 @@ void UGAAbilityBase::NativeOnCooldownEnd(FGAEffectHandle InHandle)
 {
 	//AbilityComponent->RemoveEffect(CooldownEffect, DefaultContext);
 	OnCooldownEnd(InHandle);
+	ActiveCooldownHandle.Reset();
 }
 void UGAAbilityBase::ClientSetCooldownHandle_Implementation(FGAEffectHandle InCooldownHandle)
 {

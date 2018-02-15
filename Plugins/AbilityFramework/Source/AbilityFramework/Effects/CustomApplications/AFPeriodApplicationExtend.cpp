@@ -15,8 +15,8 @@ bool UAFPeriodApplicationExtend::ApplyEffect(const FGAEffectHandle& InHandle, st
 	TSet<FGAEffectHandle> handles = InContainer->GetHandlesByClass(InProperty, EffectIn->Context);
 	for (const FGAEffectHandle& handle : handles)
 	{
-		FGAEffect& ExtEffect = handle.GetEffectRef();
-		FGAEffect& Effect = InHandle.GetEffectRef();
+		FGAEffect& ExtEffect = handle.GetEffect();
+		FGAEffect& Effect = InHandle.GetEffect();
 		FTimerManager& DurationTimer = handle.GetContext().TargetComp->GetWorld()->GetTimerManager();
 		float RemainingTime = DurationTimer.GetTimerRemaining(handle.GetEffectPtr()->DurationTimerHandle);
 		float NewDuration = RemainingTime + Effect.GetDurationTime();

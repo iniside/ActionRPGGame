@@ -159,7 +159,7 @@ void UAFEffectsComponent::ExecuteEffect(FGAEffectHandle HandleIn
 
 	//OnEffectExecuted.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
 	UE_LOG(GameAttributesEffects, Log, TEXT("UAFAbilityComponent:: Effect %s executed"), *HandleIn.GetEffectSpec()->GetName());
-	FGAEffect& Effect = HandleIn.GetEffectRef();
+	FGAEffect& Effect = HandleIn.GetEffect();
 	FGAEffectMod Mod = FAFStatics::GetAttributeModifier(InProperty.GetAttributeModifier()
 		, InProperty.GetSpec()
 		, InContext

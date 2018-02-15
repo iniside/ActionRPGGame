@@ -311,7 +311,7 @@ protected:
 	UPROPERTY()
 		uint32 Handle; //Fname Guid ?
 
-	TSharedPtr<FGAEffect> EffectPtr;
+	FGAEffect* EffectPtr;
 public:
 
 	FGAEffectContext& GetContextRef();
@@ -322,14 +322,14 @@ public:
 
 	uint32 GetHandle() const;
 
-	FGAEffect GetEffect();
-	FGAEffect GetEffect() const;
+	FGAEffect& GetEffect();
+	FGAEffect& GetEffect() const;
 
-	FGAEffect& GetEffectRef();
-	FGAEffect& GetEffectRef() const;
+	//FGAEffect& GetEffectRef();
+	//FGAEffect& GetEffectRef() const;
 
-	TSharedPtr<FGAEffect> GetEffectPtr();
-	TSharedPtr<FGAEffect> GetEffectPtr() const;
+	FGAEffect* GetEffectPtr();
+	FGAEffect* GetEffectPtr() const;
 
 	void SetContext(const FGAEffectContext& ContextIn);
 	void SetContext(const FGAEffectContext& ContextIn) const;
@@ -379,6 +379,7 @@ public:
 
 	FGAEffectHandle()
 		: Handle(INDEX_NONE)
+		, EffectPtr(nullptr)
 	{}
 
 	FGAEffectHandle(uint32 HandleIn, FGAEffect* EffectIn);

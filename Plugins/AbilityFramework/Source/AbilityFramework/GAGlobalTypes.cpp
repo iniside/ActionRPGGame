@@ -53,14 +53,14 @@ UGAGameEffectSpec* FGAEffectHandle::GetEffectSpec() const { return EffectPtr->Ge
 
 uint32 FGAEffectHandle::GetHandle() const { return Handle; }
 
-FGAEffect FGAEffectHandle::GetEffect() { return *EffectPtr.Get(); }
-FGAEffect FGAEffectHandle::GetEffect() const { return *EffectPtr.Get(); }
+FGAEffect& FGAEffectHandle::GetEffect() { return *EffectPtr; }
+FGAEffect& FGAEffectHandle::GetEffect() const { return *EffectPtr; }
 
-FGAEffect& FGAEffectHandle::GetEffectRef() { return EffectPtr.ToSharedRef().Get(); }
-FGAEffect& FGAEffectHandle::GetEffectRef() const { return EffectPtr.ToSharedRef().Get(); };
+//FGAEffect& FGAEffectHandle::GetEffectRef() { return *EffectPtr; }
+//FGAEffect& FGAEffectHandle::GetEffectRef() const { return *EffectPtr; };
 
-TSharedPtr<FGAEffect> FGAEffectHandle::GetEffectPtr() { return EffectPtr; };
-TSharedPtr<FGAEffect> FGAEffectHandle::GetEffectPtr() const { return EffectPtr; };
+FGAEffect* FGAEffectHandle::GetEffectPtr() { return EffectPtr; };
+FGAEffect* FGAEffectHandle::GetEffectPtr() const { return EffectPtr; };
 
 void FGAEffectHandle::SetContext(const FGAEffectContext& ContextIn) { EffectPtr->SetContext(ContextIn); }
 void FGAEffectHandle::SetContext(const FGAEffectContext& ContextIn) const { EffectPtr->SetContext(ContextIn); }
@@ -121,7 +121,7 @@ EGAAttributeMod FGAEffectHandle::GetAttributeMod() const
 
 bool FGAEffectHandle::IsValid() const
 {
-	return (Handle != INDEX_NONE) && EffectPtr.IsValid();// && EffectPtr->Context.IsValid();
+	return (Handle != INDEX_NONE) && EffectPtr != nullptr;// && EffectPtr->Context.IsValid();
 }
 //void FGAEffectHandle::operator=(const FGAEffectHandle& Other)
 //{
@@ -131,7 +131,7 @@ bool FGAEffectHandle::IsValid() const
 void FGAEffectHandle::Reset()
 {
 	Handle = INDEX_NONE;
-	EffectPtr.Reset();
+	EffectPtr = nullptr;
 }
 
 FAFPredictionHandle FAFPredictionHandle::GenerateClientHandle(UAFAbilityComponent* InComponent)
