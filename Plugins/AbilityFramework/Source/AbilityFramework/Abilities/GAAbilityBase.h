@@ -54,32 +54,7 @@
 DECLARE_MULTICAST_DELEGATE(FGASSimpleAbilityDynamicDelegate);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGASGenericAbilityDelegate);
-USTRUCT()
-struct FGAAbilityTick : public FTickFunction
-{
-	GENERATED_USTRUCT_BODY()
-	/**  AActor  that is the target of this tick **/
-	class UGAAbilityBase* Target;
 
-	/**
-	* Abstract function actually execute the tick.
-	* @param DeltaTime - frame time to advance, in seconds
-	* @param TickType - kind of tick for this frame
-	* @param CurrentThread - thread we are executing on, useful to pass along as new tasks are created
-	* @param MyCompletionGraphEvent - completion event for this task. Useful for holding the completetion of this task until certain child tasks are complete.
-	**/
-	virtual void ExecuteTick(float DeltaTime, ELevelTick TickType, ENamedThreads::Type CurrentThread, const FGraphEventRef& MyCompletionGraphEvent) override;
-	/** Abstract function to describe this tick. Used to print messages about illegal cycles in the dependency graph **/
-	virtual FString DiagnosticMessage() override;
-};
-template<>
-struct TStructOpsTypeTraits<FGAAbilityTick> : public TStructOpsTypeTraitsBase2<FGAAbilityTick>
-{
-	enum
-	{
-		WithCopy = false
-	};
-};
 USTRUCT()
 struct FGAActiationInfo
 {
@@ -120,7 +95,6 @@ class ABILITYFRAMEWORK_API UGAAbilityBase : public UObject, public IGameplayTask
 {
 	GENERATED_BODY()
 public:
-	FGAAbilityTick TickFunction;
 
 	/*
 		Since each ability is instanced per owner, and cannot be activated multiple times (ie, to run in background),
@@ -191,7 +165,7 @@ public:
 		Duration of this effect equals cooldown of ability.
 	*/
 	UPROPERTY(EditAnywhere, meta=(AllowedClass="AFAbilityCooldownSpec"), Category = "Config")
-		FGAEffectProperty CooldownEffect;
+		FAFPropertytHandle CooldownEffect;
 	FGAEffectHandle CooldownEffectHandle;
 	/*
 		Tags applied to the time of activation ability.
@@ -205,7 +179,7 @@ public:
 		Add Periodic Effect ? (For abilities with period).
 	*/
 	UPROPERTY(EditAnywhere, meta = (AllowedClass = "AFAbilityActivationSpec,AFAbilityPeriodSpec,AFAbilityInfiniteDurationSpec,AFAbilityPeriodicInfiniteSpec"), Category = "Config")
-		FGAEffectProperty ActivationEffect;
+		FAFPropertytHandle ActivationEffect;
 	FGAEffectHandle ActivationEffectHandle;
 
 	/*
@@ -213,12 +187,12 @@ public:
 		Attribute cost from Ability Owner attributes
 	*/
 	UPROPERTY(EditAnywhere, Category = "Config")
-		FGAEffectProperty AttributeCost;
+		FAFPropertytHandle AttributeCost;
 	/*
 		Attribute cost from ability own attributes
 	*/
 	UPROPERTY(EditAnywhere, Category = "Config")
-		FGAEffectProperty AbilityAttributeCost;
+		FAFPropertytHandle AbilityAttributeCost;
 	FGAEffectHandle AbilityAttributeCostHandle;
 
 	UPROPERTY(AssetRegistrySearchable)
@@ -246,7 +220,6 @@ public:
 		FGameplayTagContainer ActivationBlockedTags;
 
 public: //because I'm to lazy to write all those friend states..
-	virtual void TickAbility(float DeltaSeconds, ELevelTick TickType, FGAAbilityTick& ThisTickFunction);
 	UFUNCTION()
 		void OnActivationEffectPeriod(FGAEffectHandle InHandle);
 
@@ -501,7 +474,7 @@ public:
 	virtual float GetAttributeValue(FGAAttribute AttributeIn) const override;
 	virtual float NativeGetAttributeValue(const FGAAttribute AttributeIn) const override;
 	virtual FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn) override { return Attributes->GetAttribute(AttributeIn); };
-	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) override { Attributes->RemoveBonus(AttributeIn, HandleIn, HandleIn.GetAttributeMod()); };
+	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) override { Attributes->RemoveBonus(AttributeIn, HandleIn, InMod); };
 	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn
 	, FGAEffectProperty& InProperty) override { Attributes->ModifyAttribute(ModIn, HandleIn, InProperty); };
 	virtual FAFPredictionHandle GetPredictionHandle() override;

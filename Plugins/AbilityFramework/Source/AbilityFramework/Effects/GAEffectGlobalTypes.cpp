@@ -125,19 +125,19 @@ float FGACurveBasedModifier::GetValue(const FGAEffectContext& ContextIn) const
 	Result = CurveTable.Eval(attr->GetFinalValue(), ContextString);
 	return Result;
 }
-float FGACustomCalculationModifier::GetValue(const struct FGAEffectHandle& HandleIn)
+float FGACustomCalculationModifier::GetValue(const FGAEffectContext& ContextIn)
 {
 	if (CustomCalculation)
 	{
-		return CustomCalculation->NativeCalculateMagnitude(HandleIn);
+		return CustomCalculation->NativeCalculateMagnitude(ContextIn);
 	}
 	return 0;
 }
-float FGACustomCalculationModifier::GetValue(const struct FGAEffectHandle& HandleIn) const
+float FGACustomCalculationModifier::GetValue(const FGAEffectContext& ContextIn) const
 {
 	if (CustomCalculation)
 	{
-		return CustomCalculation->NativeCalculateMagnitude(HandleIn);
+		return CustomCalculation->NativeCalculateMagnitude(ContextIn);
 	}
 	return 0;
 }

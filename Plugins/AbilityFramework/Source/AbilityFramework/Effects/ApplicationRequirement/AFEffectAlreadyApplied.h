@@ -14,10 +14,11 @@ class ABILITYFRAMEWORK_API UAFEffectAlreadyApplied : public UAFEffectApplication
 {
 	GENERATED_BODY()
 public:
-	virtual bool CanApply(FGAEffect* EffectIn, FGAEffectProperty& InProperty,
-		struct FGAEffectContainer* InContainer,
-		const FGAEffectContext& InContext,
-		const FGAEffectHandle& InHandle) override;
+	virtual bool CanApply(
+		const FGAEffect& EffectIn
+		, const FAFEffectParams& Params
+		, const FGAEffectHandle& InHandle
+		, struct FGAEffectContainer* InContainer) override;
 
 
 	

@@ -276,7 +276,7 @@ public:
 	Base effect class to extend from when creating effect blueprints.
 */
 UCLASS(Blueprintable, BlueprintType, Abstract)
-class ABILITYFRAMEWORK_API UAFEffectSpec : public UGAGameEffectSpec
+class ABILITYFRAMEWORK_API UAFEffectSpecBase : public UGAGameEffectSpec
 {
 	GENERATED_BODY()
 public:
@@ -317,92 +317,272 @@ public:
 	}
 };
 
+USTRUCT(BlueprintType)
+struct FAFContextHandle
+{
+	GENERATED_BODY()
+private:
+	TSharedPtr<FGAEffectContext> DataPtr;
+	uint32 ID;
+public:
+	static FAFContextHandle Generate(FGAEffectContext* InContext)
+	{
+		static uint32 id = 0;
+		id++;
+
+		TSharedPtr<FGAEffectContext> PropPtr = MakeShareable<FGAEffectContext>(InContext);
+		FAFContextHandle Handle(PropPtr, id);
+
+		return Handle;
+	}
+
+	FAFContextHandle()
+		: ID(0)
+	{};
+protected:
+	FAFContextHandle(TSharedPtr<FGAEffectContext> InProperty, uint32 InID)
+		: DataPtr(InProperty)
+		, ID(InID)
+	{};
+
+public:
+	bool IsValid()
+	{
+		return DataPtr.IsValid();
+	}
+
+	FGAEffectContext& GetRef()
+	{
+		return DataPtr.ToSharedRef().Get();
+	}
+	FGAEffectContext& GetRef() const
+	{
+		return DataPtr.ToSharedRef().Get();
+	}
+	FGAEffectContext* GetPtr()
+	{
+		return DataPtr.Get();
+	}
+	FGAEffectContext* GetPtr() const
+	{
+		return DataPtr.Get();
+	}
+
+	void SetTarget(UObject* NewTarget)
+	{
+		DataPtr->SetTarget(NewTarget);
+	}
+
+	bool operator==(const FAFContextHandle& Other) const
+	{
+		return ID == Other.ID;
+	}
+
+	bool operator==(const FObjectKey& Other) const
+	{
+		return *DataPtr.Get() == Other;
+	}
+	bool operator==(UObject* Other) const
+	{
+		return *DataPtr.Get() == Other;
+	}
+
+	friend uint32 GetTypeHash(const FAFContextHandle& InHandle)
+	{
+		return InHandle.ID;
+	}
+};
+
+template<>
+struct TStructOpsTypeTraits< FAFContextHandle > : public TStructOpsTypeTraitsBase2<FAFContextHandle>
+{
+	enum
+	{
+		WithCopy = true,
+	};
+};
+
+
+USTRUCT(BlueprintType)
+struct ABILITYFRAMEWORK_API FAFEffectSpec
+{
+	GENERATED_BODY()
+private:
+	UPROPERTY()
+		class UGAEffectExtension* Extension;
+
+	TSubclassOf<UGAGameEffectSpec> SpecClass;
+public:
+
+	FGameplayTagContainer OwnedTags;
+	FGameplayTagContainer ApplyTags;
+	FGameplayTagContainer RequiredTags;
+
+public:
+	FAFEffectSpec()
+		: Extension(nullptr)
+	{}
+
+	FAFEffectSpec(TSubclassOf<UGAGameEffectSpec> InSpecClass)
+		: Extension(nullptr)
+		, SpecClass(InSpecClass)
+	{}
+
+	void OnApplied();
+	void OnExpired();
+	void OnRemoved();
+	void OnExecuted();
+
+	void AddOwnedTags(const FGameplayTagContainer& InTags)
+	{
+		OwnedTags.AppendTags(InTags);
+	}
+	void AddApplyTags(const FGameplayTagContainer& InTags)
+	{
+		ApplyTags.AppendTags(InTags);
+	}
+
+	UGAGameEffectSpec* GetSpec()
+	{
+		return SpecClass.GetDefaultObject();
+	}
+
+	float GetFloatFromAttributeMagnitude(
+		  const FGAMagnitude& AttributeIn
+		, const FGAEffectContext& InContext) const;
+
+	float GetDuration(const FGAEffectContext& InContext);
+	float GetPeriod(const FGAEffectContext& InContext);
+
+};
+USTRUCT(BlueprintType)
+struct FAFEffectSpecHandle
+{
+	GENERATED_BODY()
+public:
+	TSharedPtr<FAFEffectSpec> SpecPtr;
+	uint32 ID;
+
+public:
+	static FAFEffectSpecHandle Generate(FAFEffectSpec* Effect)
+	{
+		static uint32 id = 0;
+		id++;
+
+		TSharedPtr<FAFEffectSpec> PropPtr = MakeShareable<FAFEffectSpec>(Effect);
+		FAFEffectSpecHandle Handle(PropPtr, id);
+
+		return Handle;
+	}
+
+	FAFEffectSpecHandle()
+		: ID(0)
+	{}
+	FAFEffectSpecHandle(TSharedPtr<FAFEffectSpec> Ptr, uint32 InID)
+		: SpecPtr(Ptr)
+		, ID(InID)
+	{}
+
+	bool IsValid()
+	{
+		return SpecPtr.IsValid();
+	}
+
+	FAFEffectSpec& GetRef()
+	{
+		return SpecPtr.ToSharedRef().Get();
+	}
+	FAFEffectSpec& GetRef() const
+	{
+		return SpecPtr.ToSharedRef().Get();
+	}
+};
+template<>
+struct TStructOpsTypeTraits< FAFEffectSpecHandle > : public TStructOpsTypeTraitsBase2<FAFEffectSpecHandle>
+{
+	enum
+	{
+		WithCopy = true,
+	};
+};
+
+
+
 /*
-	Special effect container, which contains Effect class and Handle to already instanced effect
-	from this class.
+	Container for:
+	1. Effect handles applied from this property, sorted per target.
+	2. Their contexts (each effect have it's own context).
+	3. Targets affected by effect from this container (and which effect).
+
+	Also contains hard pointers to base classes/assets used by effect (Execution, Application, Specification).
 */
+
+struct FAFEffectParams;
 USTRUCT(BlueprintType)
 struct ABILITYFRAMEWORK_API FGAEffectProperty
 {
 	GENERATED_BODY()
-protected:
-	UPROPERTY(EditAnywhere, Category = "Effect")
-		FGAEffectClass SpecClass;
 
-	UPROPERTY()
-		class UAFEffectApplicationRequirement* ApplicationRequirement;
-	UPROPERTY()
-		class UAFEffectCustomApplication* Application;
-	UPROPERTY()
-		class UGAEffectExecution* Execution;
-	UPROPERTY()
-		class UGAGameEffectSpec* Spec;
-	UPROPERTY()
-		FAFPredictionHandle PredictionHandle;
 protected:
-	UPROPERTY()
-		float Duration;
-	UPROPERTY()
-		float Period;
+	
+	TWeakObjectPtr<class UAFEffectApplicationRequirement> ApplicationRequirement;
+	TWeakObjectPtr<class UAFEffectCustomApplication> Application;
+	TWeakObjectPtr<class UGAEffectExecution> Execution;
+	TWeakObjectPtr<class UGAGameEffectSpec> Spec;
+	FAFPredictionHandle PredictionHandle;
 
-	/* 
-		Handle to effect created from SpecClass 
-		This handle is only created and kept for instant effects,
-		so we don't create new object every time instant effect is created
-		as potentially there can be quite a lot of allocations.
+	float Duration;
+	float Period;
+	bool bInstant;
+	/*
+	Handle to effect created from SpecClass
+	This handle is only created and kept for instant effects,
+	so we don't create new object every time instant effect is created
+	as potentially there can be quite a lot of allocations.
 	*/
 	/*
-		Holds handle to duration/infinite effects. Since there can be multiple effects active on multiple targets.
+	Holds handle to duration/infinite effects. Since there can be multiple effects active on multiple targets.
 
 	*/
-protected:
+
+	FAFContextHandle InstantContext;
+	FAFEffectSpecHandle InstantEffectSpec;
+
+	TMap<FGAEffectHandle, FAFEffectSpecHandle> EffectSpecs;
+	//Cached context per created effect.
+	TMap<FGAEffectHandle, FAFContextHandle> Contexts;
 	//possibly multiple handles per target ?
 	TMap<FObjectKey, FGAEffectHandle> Handles;
 	TMap<FGAEffectHandle, UObject*> HandleToTarget;
-	TMap<FGAEffectHandle, FGAEffectContext*> Contexts;
 	TMap<FGAEffectHandle, FAFCueHandle> EffectCues;
 public:
-	FGAEffectProperty()
-		: ApplicationRequirement(nullptr),
-		Application(nullptr),
-		Execution(nullptr),
-		Spec(nullptr),
-		Duration(0),
-		Period(0)
-	{};
+	FGAEffectProperty();
 
-	FGAEffectProperty(TSubclassOf<UGAGameEffectSpec> InClass)
-		: SpecClass(InClass),
-		ApplicationRequirement(nullptr),
-		Application(nullptr),
-		Execution(nullptr),
-		Spec(nullptr),
-		Duration(0),
-		Period(0)
-	{};
+	FGAEffectProperty(TSubclassOf<UGAGameEffectSpec> InClass);
+	void PostScriptConstruct();
 
-	TSubclassOf<UGAGameEffectSpec> GetClass() const { return SpecClass.SpecClass; }
-	const TSubclassOf<UGAGameEffectSpec>& GetClassRef() { return SpecClass.SpecClass; }
-	UGAGameEffectSpec* GetSpec() const { return Spec; }
-
-	bool CanApply(FGAEffect* EffectIn
+	UGAGameEffectSpec* GetSpec() { return Spec.Get(); }
+	UGAGameEffectSpec* GetSpec() const { return Spec.Get(); }
+	
+	bool CanApply(
+		  const struct FGAEffect& EffectIn
 		, struct FGAEffectContainer* InContainer
-		, const FGAEffectContext& InContext
+		, const FAFEffectParams& InParams
 		, const FGAEffectHandle& InHandle);
 
 	bool ApplyEffect(const FGAEffectHandle& InHandle
-		, struct FGAEffect* EffectIn
+		, const struct FGAEffect& EffectIn
 		, struct FGAEffectContainer* InContainer
-		, const FGAEffectContext& InContext
+		, const FAFEffectParams& InParams
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
-	void ExecuteEffect(const FGAEffectHandle& InHandle
-		, const FGAEffectContext& InContext
+	void ApplyExecute(const FGAEffectHandle& InHandle
+		, const FAFEffectParams& InParams
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
 	void EffectExecution(const FGAEffectHandle& HandleIn
 		, FGAEffectMod& ModIn
-		, FGAEffectContext& Context
+		, const FAFEffectParams& InParams
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
 	//intentionally non const.
@@ -410,8 +590,10 @@ public:
 	//void SetHandle(const FGAEffectHandle& InHandle) { Handle = InHandle; };
 	void OnEffectRemoved(UObject* InTarget, const FGAEffectHandle& InHandle) {}
 
-	void Initialize();
-	void InitializeIfNotInitialized(const FGAEffectContext& InContext);
+	void Initialize(TSubclassOf<UGAGameEffectSpec> EffectClass);
+	void InitializeIfNotInitialized(const FGAEffectContext& InContext
+	, TSubclassOf<UGAGameEffectSpec> EffectClass);
+
 
 	inline float GetPeriod() const
 	{
@@ -421,6 +603,30 @@ public:
 	{
 		return Duration;
 	}
+	
+	void RegisterHandle(
+		UObject* Target
+		, const FGAEffectHandle& InHandle
+		, const FAFContextHandle& Context
+		, const FAFEffectSpecHandle& Spec)
+	{
+		if (bInstant)
+		{
+			InstantContext = Context;
+			InstantEffectSpec = Spec;
+			return;
+		}
+		if (HandleToTarget.Contains(InHandle))
+		{
+			UE_LOG(GameAttributes, Log, TEXT("FGAEffectProperty::RegisterHandle Handle already registered \n"));
+			return;
+		}
+
+		AddHandle(Target, InHandle);
+		AddContext(InHandle, Context);
+		AddEffectSpec(InHandle, Spec);
+	}
+
 	void AddHandle(UObject* Target, const FGAEffectHandle& InHandle)
 	{
 		FObjectKey key(Target);
@@ -443,6 +649,80 @@ public:
 			return *handle;
 
 		return FGAEffectHandle();
+	}
+
+	FAFContextHandle& GetContext(const FGAEffectHandle& InHandle)
+	{
+		if (bInstant)
+		{
+			return InstantContext;
+		}
+		FAFContextHandle* Ctx = Contexts.Find(InHandle);
+		if (Ctx)
+		{
+			return *Ctx;
+		}
+		return InstantContext;
+	}
+	const FAFContextHandle& GetContext(const FGAEffectHandle& InHandle) const
+	{
+		if (bInstant)
+		{
+			return InstantContext;
+		}
+		const FAFContextHandle* Ctx = Contexts.Find(InHandle);
+		if (Ctx)
+		{
+			return *Ctx;
+		}
+		return InstantContext;
+	}
+
+	void AddContext(const FGAEffectHandle& InHandle, const FAFContextHandle& ContextHandle)
+	{
+		Contexts.Add(InHandle, ContextHandle);
+	}
+
+	void RemoveContext(const FGAEffectHandle& InHandle)
+	{
+		Contexts.Remove(InHandle);
+	}
+
+	FAFEffectSpecHandle& GetEffectSpec(const FGAEffectHandle& InHandle)
+	{
+		if (bInstant)
+		{
+			return InstantEffectSpec;
+		}
+		FAFEffectSpecHandle* Spec = EffectSpecs.Find(InHandle);
+		if (Spec)
+		{
+			return *Spec;
+		}
+		return InstantEffectSpec;
+	}
+	const FAFEffectSpecHandle& GetEffectSpec(const FGAEffectHandle& InHandle) const
+	{
+		if (bInstant)
+		{
+			return InstantEffectSpec;
+		}
+		const FAFEffectSpecHandle* Spec = EffectSpecs.Find(InHandle);
+		if (Spec)
+		{
+			return *Spec;
+		}
+		return InstantEffectSpec;
+	}
+
+	void AddEffectSpec(const FGAEffectHandle& InHandle, const FAFEffectSpecHandle& ContextHandle)
+	{
+		EffectSpecs.Add(InHandle, ContextHandle);
+	}
+
+	void RemoveEffectSpec(const FGAEffectHandle& InHandle)
+	{
+		EffectSpecs.Remove(InHandle);
 	}
 
 	inline FAFPredictionHandle GetPredictionHandle() const
@@ -478,8 +758,15 @@ public:
 		{
 			FObjectKey key(Target);
 			Handles.Remove(key);
-			Contexts.Remove(InHandle);
 		}
+	}
+
+	void CleanUp(const FGAEffectHandle& InHandle)
+	{
+		RemoveContext(InHandle);
+		EffectCues.Remove(InHandle);
+		RemoveHandle(InHandle);
+		RemoveEffectSpec(InHandle);
 	}
 
 	void SetPredictionHandle(const FAFPredictionHandle& InHandle)
@@ -492,24 +779,140 @@ public:
 		return Spec->AtributeModifier;
 	}
 
-	FObjectKey GetClassKey() const
-	{
-		return FObjectKey(GetClass());
-	}
-
-	const bool IsValid() const
-	{
-		return SpecClass.SpecClass ? true : false;
-	}
+	
 	const bool IsInitialized() const
 	{
-		return ApplicationRequirement && Application && Execution && Spec;
+		return ApplicationRequirement.IsValid() && Application.IsValid() && Execution.IsValid() && Spec.IsValid();
 	}
 	/*const bool IsValidHandle() const
 	{
 		return Handle.IsValid();
 	}*/
-	const bool operator==(const FGAEffectProperty& Other) const
+
+};
+template<>
+struct TStructOpsTypeTraits< FGAEffectProperty > : public TStructOpsTypeTraitsBase2<FGAEffectProperty>
+{
+	enum
+	{
+		WithCopy = true,
+		WithPostScriptConstruct = true,
+	};
+};
+
+USTRUCT(BlueprintType)
+struct FAFPropertytHandle
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, Category = "Effect")
+		FGAEffectClass SpecClass;
+
+	TSharedPtr<FGAEffectProperty> DataPtr;
+	//TSharedRef<FGAEffectProperty> Test;
+
+	uint32 ID;
+public:
+	FAFPropertytHandle()
+		: ID(0)
+	{
+		if (!DataPtr.IsValid())
+		{
+			DataPtr = MakeShareable<FGAEffectProperty>(new FGAEffectProperty());
+		}
+	};
+
+	FAFPropertytHandle(const FAFPropertytHandle& Other)
+	{
+		SpecClass = Other.SpecClass;
+		DataPtr = Other.DataPtr;
+	};
+
+	
+
+	void PostScriptConstruct()
+	{
+	}
+	/*FAFPropertytHandle(TSharedRef<FGAEffectProperty>  InPtr, uint32 InID)
+		: Test(InPtr)
+		, ID(InID)
+	{}*/
+	
+	TSubclassOf<UGAGameEffectSpec> GetClass() const { return SpecClass.SpecClass; }
+	const TSubclassOf<UGAGameEffectSpec>& GetClassRef() { return SpecClass.SpecClass; }
+public:
+
+	void InitializeIfNotInitialized(const FGAEffectContext& InContext)
+	{
+		DataPtr->InitializeIfNotInitialized(InContext, SpecClass.SpecClass);
+	}
+	FGAEffectProperty & GetRef()
+	{
+		return DataPtr.ToSharedRef().Get();
+	}
+	FGAEffectProperty& GetRef() const
+	{
+		return DataPtr.ToSharedRef().Get();
+	}
+	FGAEffectProperty* GetPtr() const
+	{
+		return DataPtr.Get();
+	}
+
+	FObjectKey GetClassKey() const
+	{
+		return FObjectKey(GetClass());
+	}
+	inline float GetPeriod() const
+	{
+		return DataPtr->GetPeriod();
+	}
+	inline float GetDuration() const
+	{
+		return DataPtr->GetDuration();
+	}
+	
+	UGAGameEffectSpec* GetSpec()
+	{
+		return DataPtr->GetSpec();
+	}
+	UGAGameEffectSpec* GetSpec() const
+	{
+		return DataPtr->GetSpec();
+	}
+	FGAEffectHandle GetHandle(UObject* From)
+	{
+		return DataPtr->GetHandle(From);
+	}
+	FAFContextHandle& GetContext(const FGAEffectHandle& InHandle)
+	{
+		return DataPtr->GetContext(InHandle);
+	}
+	const FAFContextHandle& GetContext(const FGAEffectHandle& InHandle) const
+	{
+		return DataPtr->GetContext(InHandle);
+	}
+	FAFEffectSpecHandle& GetEffectSpec(const FGAEffectHandle& InHandle)
+	{
+		return DataPtr->GetEffectSpec(InHandle);
+	}
+	const FAFEffectSpecHandle& GetEffectSpec(const FGAEffectHandle& InHandle) const
+	{
+		return DataPtr->GetEffectSpec(InHandle);
+	}
+	void CleanUp(const FGAEffectHandle& InHandle)
+	{
+		DataPtr->CleanUp(InHandle);
+	}
+	const bool IsInitialized() const
+	{
+		return DataPtr->IsInitialized();
+	}
+	const bool IsValid() const
+	{
+		return SpecClass.SpecClass ? true : false;
+	}
+	const bool operator==(const FAFPropertytHandle& Other) const
 	{
 		return SpecClass == Other.SpecClass;
 	}
@@ -517,10 +920,13 @@ public:
 	{
 		return SpecClass == OtherClass;
 	}
-	void operator=(const FGAEffectProperty& Other)
+	FAFPropertytHandle& operator=(const FAFPropertytHandle& Rhs)
 	{
-		SpecClass = Other.SpecClass;
-		//Handle = Other.Handle;
+		if (this == &Rhs)
+			return *this;
+		DataPtr = Rhs.DataPtr;
+		SpecClass = Rhs.SpecClass;
+		return *this;
 	}
 	void operator=(const TSubclassOf<UGAGameEffectSpec>& Other)
 	{
@@ -532,6 +938,58 @@ public:
 	}
 };
 
+template<>
+struct TStructOpsTypeTraits< FAFPropertytHandle > : public TStructOpsTypeTraitsBase2<FAFPropertytHandle>
+{
+	enum
+	{
+		WithCopy = true,
+		WithPostScriptConstruct = true,
+	};
+};
+
+struct FAFEffectParams
+{
+	//make this private and allow assign only trough constructr.
+	FAFContextHandle Context;
+	FAFPropertytHandle Property;
+	FAFEffectSpecHandle EffectSpec;
+	bool bRecreated;
+	bool bPeriodicEffect;
+public:
+	FAFEffectParams(FAFPropertytHandle InProperty)
+		: bRecreated(false)
+		, Property(InProperty)
+	{};
+
+	FGAEffectContext & GetContext()
+	{
+		return Context.GetRef();
+	}
+	FGAEffectContext& GetContext() const
+	{
+		return Context.GetRef();
+	}
+
+	FGAEffectProperty& GetProperty() const
+	{
+		return Property.GetRef();
+	}
+
+	FAFEffectSpec& GetSpec()
+	{
+		return EffectSpec.SpecPtr.ToSharedRef().Get();
+	}
+	FAFEffectSpec& GetSpec() const
+	{
+		return EffectSpec.SpecPtr.ToSharedRef().Get();
+	}
+	FTimerManager& GetTargetTimerManager();
+
+	UAFEffectsComponent* GetTargetEffectsComponent();
+	UAFEffectsComponent* GetTargetEffectsComponent() const;
+
+};
 
 struct FAFStatics
 {
@@ -556,101 +1014,43 @@ enum class ERepInfoType : uint8
 	RemotePredicted,
 	Server
 };
+
 USTRUCT()
 struct ABILITYFRAMEWORK_API FGAEffect : public FFastArraySerializerItem//, TSharedFromThis<FGAEffect>
 {
-
 	GENERATED_BODY()
-	/* Cached pointer to original effect spec. */
-	
-	UPROPERTY(NotReplicated)
-		class UGAEffectExtension* Extension;
-
-	UWorld* TargetWorld;
-	/* 
-		Calculated mods ready to be applied. 
-		These are perlimenarly calculcated mods, 
-		which can be furhter modified by Calculation object.
-	*/
-public:
-	
-	//Spec from which this effect originated.
-	UPROPERTY()
-		TSubclassOf<UGAGameEffectSpec> GameEffectClass;
-	UPROPERTY()
-		FAFPredictionHandle PredictionHandle;
-	UPROPERTY()
-		FGAEffectContext Context;
-	
-	FGameplayTagContainer OwnedTags;
-	FGameplayTagContainer ApplyTags;
-	FGameplayTagContainer RequiredTags;
 
 	FGAEffectHandle Handle;
+	UPROPERTY()
+		FAFPredictionHandle PredictionHandle;
 
 	mutable FTimerHandle PeriodTimerHandle;
 	mutable FTimerHandle DurationTimerHandle;
 
-	//FGAEffectMod AttributeMod;
-//because I'm fancy like that and like to make spearate public for fields and functions.
+	UWorld* World;
+
 public:
 	float AppliedTime;
 	float LastTickTime;
+	float Period;
+	float Duration;
 public:
 	void PreReplicatedRemove(const struct FGAEffectContainer& InArraySerializer);
 	void PostReplicatedAdd(const struct FGAEffectContainer& InArraySerializer);
 	void PostReplicatedChange(const struct FGAEffectContainer& InArraySerializer);
 
-	void SetContext(const FGAEffectContext& ContextIn);
-
-	class UAFAbilityComponent* GetInstigatorComp() { return Context.InstigatorComp.Get(); }
-	class UAFAbilityComponent* GetTargetComp() { return Context.TargetComp.Get(); }
-	inline void AddOwnedTags(const FGameplayTagContainer& TagsIn) { OwnedTags.AppendTags(TagsIn); }
-	inline void AddApplyTags(const FGameplayTagContainer& TagsIn) { ApplyTags.AppendTags(TagsIn); }
-	void OnApplied();
-	void OnExpired();
-	void OnRemoved();
-	void OnExecuted();
-
+	inline void SetHandle(const FGAEffectHandle& InHandle)
+	{
+		Handle = InHandle;
+	}
+	
 	float GetDurationTime() const;
 	float GetPeriodTime() const;
 	float GetCurrentDuration() const;
-	float GetFloatFromAttributeMagnitude(const FGAMagnitude& AttributeIn) const;
+	//float GetFloatFromAttributeMagnitude(const FGAMagnitude& AttributeIn) const;
 
-	UGAGameEffectSpec* GetEffect()
-	{
-		return GameEffectClass.GetDefaultObject();
-	}
-	UGAGameEffectSpec* GetEffect() const
-	{
-		return GameEffectClass.GetDefaultObject();
-	}
-	FGAEffectContext& GetContext()
-	{
-		return Context;
-	}
-	const FGAEffectContext& GetContext() const
-	{
-		return Context;
-	}
-
-	bool IsValid() const
-	{
-		return GameEffectClass != nullptr;
-	}
-	FString ToString()
-	{
-		if (GameEffectClass)
-		{
-			return GameEffectClass->GetName();
-		}
-		return FString();
-	}
 	FGAEffect()
-		: GameEffectClass(nullptr)
 	{}
-	FGAEffect(TSubclassOf<class UGAGameEffectSpec> GameEffectIn, 
-		const FGAEffectContext& ContextIn);
 
 	~FGAEffect();
 
@@ -711,10 +1111,11 @@ struct ABILITYFRAMEWORK_API FGAInstigatorInstancedEffectContainer
 			TArray<class UGAEffectExtension*> Effects;
 };
 
+
 USTRUCT()
 struct ABILITYFRAMEWORK_API FGAGameCue
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 
 	//Handle to effect, which spawned this cue.
@@ -740,8 +1141,6 @@ public:
 	UPROPERTY()
 		TArray<FGAEffect> ActiveEffectInfos;
 	
-	TMap<FGAEffectHandle, TSharedPtr<FGAEffect>> HandleToEffect;
-
 	UPROPERTY()
 	TMap<FAFPredictionHandle, FGAEffectHandle> HandleByPrediction;
 	
@@ -757,10 +1156,7 @@ public:
 	
 	TMap<FObjectKey, TArray<FGAEffectHandle>> EffectByClass;
 
-	//TQueue<FGAEffectHandle> dupa;
-	/* All effects. */
-	UPROPERTY()
-	TSet<FGAEffectHandle> ActiveEffectHandles;
+	TMap<FGAEffectHandle, FGAEffect*> ActiveEffects;
 	/* 
 		Contains effects with infinite duration.
 		Infinite effects are considred to be special case, where they can only be self spplied
@@ -806,49 +1202,43 @@ public:
 	* @param Modifier - optional modifier which can be applied to effect.
 	* @return Handle to Effect @ UAFAbilityComponent::ApplyEffectToSelf 
 	*/
-	FGAEffectHandle ApplyEffect(FGAEffect* EffectIn, FGAEffectProperty& InProperty
-		, const FGAEffectContext& InContext
+	FGAEffectHandle ApplyEffect(
+		const FGAEffect& EffectIn
+		, const FGAEffectHandle& InHandle
+		, const FAFEffectParams& Params
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
 	/* Removesgiven number of effects of the same type. If Num == 0 Removes all effects */
-	TArray<FGAEffectHandle> RemoveEffect(const FGAEffectProperty& HandleIn, int32 Num = 1);
+	TArray<FGAEffectHandle> RemoveEffect(const FAFPropertytHandle& HandleIn, int32 Num = 1);
 	/* Removesgiven number of effects of the same type. If Num == 0 Removes all effects */
-	void RemoveEffectByHandle(const FGAEffectHandle& InHandle, const FGAEffectProperty& InProperty);
+	void RemoveEffectByHandle(const FGAEffectHandle& InHandle, const FAFPropertytHandle& InProperty);
 
-	inline int32 GetEffectsNum() const { return ActiveEffectHandles.Num(); };
-
-	EGAEffectAggregation GetEffectAggregation(const FGAEffectHandle& HandleIn) const;
-
-	TSet<FGAEffectHandle> GetHandlesByAttribute(const FGAEffectHandle& HandleIn);
+	inline int32 GetEffectsNum() const { return ActiveEffectInfos.Num(); };
 
 	TSet<FGAEffectHandle> GetHandlesByClass(const FGAEffectProperty& InProperty,
 		const FGAEffectContext& InContext);
 
-	void AddEffect(FGAEffectProperty& InProperty, const FGAEffectHandle& HandleIn, bool bInfinite = false);
-	void AddEffectByClass(const FGAEffectHandle& HandleIn);
+	void AddEffect(
+		const FGAEffectHandle& InHandle
+		, const FAFPredictionHandle& InPredHandle
+		, FGAEffect* InEffect
+		, const FGAEffectProperty& InProperty
+		, bool bInfinite = false);
 
-	void RemoveFromAttribute(const FGAEffectHandle& HandleIn);
-	void RemoveEffectProtected(const FGAEffectHandle& HandleIn, const FGAEffectProperty& InProperty);
-	void RemoveInstigatorEffect(const FGAEffectHandle& HandleIn, const FGAEffectProperty& InProperty);
-	void RemoveTargetEffect(const FGAEffectHandle& HandleIn, const FGAEffectProperty& InProperty);
 	//modifiers
 	void ApplyEffectsFromMods() {};
 	void DoesQualify() {};
 	bool IsEffectActive(const FGAEffectHandle& HandleIn);
 	bool IsEffectActive(const FGAEffectHandle& HandleIn) const;
-	bool ContainsEffectOfClass(const FGAEffectProperty& InProperty);
+	bool ContainsEffectOfClass(const FAFPropertytHandle& InProperty);
 
-	void ApplyFromPrediction(const FGAEffectHandle& InHandle, const FAFPredictionHandle& InPredHandle);
+	void ApplyFromReplication(const FGAEffectHandle& InHandle, const FAFPredictionHandle& InPredHandle, FGAEffect* InEffect);
+	void RemoveFromReplication(const FGAEffectHandle& InHandle, const FAFPredictionHandle& InPredHandle);
 
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
 	{
 		//return FastArrayDeltaSerialize<FGAEffectRepInfo>(ActiveEffectInfos, DeltaParms, *this);
 		return FFastArraySerializer::FastArrayDeltaSerialize<FGAEffect, FGAEffectContainer>(ActiveEffectInfos, DeltaParms, *this);
-	}
-
-	const TSet<FGAEffectHandle>& GetAllEffectHandles() const
-	{
-		return ActiveEffectHandles;
 	}
 
 	UWorld* GetWorld() const;
@@ -861,7 +1251,12 @@ public:
 	float GetCurrentTimeNormalized(const FGAEffectHandle& InHandle) const;
 	float GetEndTime(const FGAEffectHandle& InHandle) const;
 
-	TSharedPtr<FGAEffect> GetEffect(const FGAEffectHandle& InHandle) { return HandleToEffect[InHandle]; }
+	FGAEffect* GetEffect(const FGAEffectHandle& InHandle)
+	{
+		return ActiveEffects[InHandle];
+	}
+private:
+	void RemoveEffectInternal(const FAFPropertytHandle& InProperty, const FGAEffectHandle& InHandle);
 };
 template<>
 struct TStructOpsTypeTraits< FGAEffectContainer > : public TStructOpsTypeTraitsBase2<FGAEffectContainer>

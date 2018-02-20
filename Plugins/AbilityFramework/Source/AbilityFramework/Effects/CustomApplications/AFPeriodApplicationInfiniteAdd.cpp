@@ -6,18 +6,19 @@
 #include "AFPeriodApplicationInfiniteAdd.h"
 
 
-bool UAFPeriodApplicationInfiniteAdd::ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
-	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer,
-	const FGAEffectContext& InContext,
-	const FAFFunctionModifier& Modifier)
+bool UAFPeriodApplicationInfiniteAdd::ApplyEffect(
+	const FGAEffectHandle& InHandle
+	, const FGAEffect& EffectIn
+	, struct FGAEffectContainer* InContainer
+	, const FAFEffectParams& Params
+	, const FAFFunctionModifier& Modifier)
 {
-	FTimerManager& PeriodTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
+	FTimerManager& PeriodTimer = const_cast<FAFEffectParams&>(Params).GetTargetTimerManager();
 
-	FTimerDelegate PeriodDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().GetTargetEffectsComponent(), &UAFEffectsComponent::ExecuteEffect, InHandle, InProperty, Modifier, InContext);
-	PeriodTimer.SetTimer(InHandle.GetEffectPtr()->PeriodTimerHandle, PeriodDuration,
-		InProperty.GetPeriod(), true);
-	InContainer->AddEffect(InProperty, InHandle, true);
-	//EffectIn->Context.TargetComp->ExecuteEffect(InHandle, InProperty);
+	FTimerDelegate PeriodDuration = FTimerDelegate::CreateUObject(Params.GetTargetEffectsComponent(), &UAFEffectsComponent::ExecuteEffect, InHandle, Params, Modifier);
+	PeriodTimer.SetTimer(const_cast<FGAEffect&>(EffectIn).PeriodTimerHandle, PeriodDuration,
+		Params.GetProperty().GetPeriod(), true);
+	
 	return true;
 }
 

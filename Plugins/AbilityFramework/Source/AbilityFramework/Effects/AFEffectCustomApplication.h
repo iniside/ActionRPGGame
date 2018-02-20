@@ -16,14 +16,17 @@ class ABILITYFRAMEWORK_API UAFEffectCustomApplication : public UObject
 {
 	GENERATED_BODY()
 public:
-	virtual bool ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
-		FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer,
-		const FGAEffectContext& InContext, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
+	virtual bool ApplyEffect(
+		  const FGAEffectHandle& InHandle
+		, const FGAEffect& EffectIn
+		, struct FGAEffectContainer* InContainer
+		, const FAFEffectParams& Params
+		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 	
-	virtual void ExecuteEffect(const FGAEffectHandle& InHandle,
-		FGAEffectProperty& InProperty, 
-		const FGAEffectContext& InContext,
-		const FAFFunctionModifier& Modifier = FAFFunctionModifier());
+	virtual void ApplyExecute(
+		  const FGAEffectHandle& InHandle
+		, const FAFEffectParams& Params
+		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
 	virtual bool ShowPeriod()
 	{

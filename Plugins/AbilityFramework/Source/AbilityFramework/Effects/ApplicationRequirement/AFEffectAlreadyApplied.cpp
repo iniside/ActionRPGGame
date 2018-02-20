@@ -6,12 +6,13 @@
 
 
 
-bool UAFEffectAlreadyApplied::CanApply(FGAEffect* EffectIn, FGAEffectProperty& InProperty,
-	struct FGAEffectContainer* InContainer,
-	const FGAEffectContext& InContext,
-	const FGAEffectHandle& InHandle)
+bool UAFEffectAlreadyApplied::CanApply(
+	const FGAEffect& EffectIn
+	, const FAFEffectParams& Params
+	, const FGAEffectHandle& InHandle
+	, struct FGAEffectContainer* InContainer)
 {
-	if (InContainer->ContainsEffectOfClass(InProperty))
+	if (InContainer->ContainsEffectOfClass(Params.Property))
 	{
 		return false;
 	}

@@ -18,34 +18,12 @@
 
 #include "GAAbilityBase.h"
 FAFPredictionHandle UGAAbilityBase::GetPredictionHandle() { return PredictionHandle; }
-void FGAAbilityTick::ExecuteTick(float DeltaTime, ELevelTick TickType, ENamedThreads::Type CurrentThread, const FGraphEventRef& MyCompletionGraphEvent)
-{
-	if (Target && !Target->IsPendingKillOrUnreachable())
-	{
-		FScopeCycleCounterUObject ActorScope(Target);
-		Target->TickAbility(DeltaTime, TickType, *this);
-	}
-}
-
-FString FGAAbilityTick::DiagnosticMessage()
-{
-	return Target->GetFullName() + TEXT("[TickAction]");
-}
 
 UGAAbilityBase::UGAAbilityBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	bReplicate = true;
 	bIsNameStable = false;
-
-	TickFunction.TickGroup = TG_PrePhysics;
-	// Default to no tick function, but if we set 'never ticks' to false (so there is a tick function) it is enabled by default
-	TickFunction.bCanEverTick = true;
-	TickFunction.bStartWithTickEnabled = true;
-	TickFunction.bAllowTickOnDedicatedServer = true;
-	TickFunction.bRunOnAnyThread = true;
-
-	TickFunction.SetTickFunctionEnable(true);
 }
 
 void UGAAbilityBase::PostInitProperties()
@@ -152,15 +130,11 @@ void UGAAbilityBase::UpdateAssetRegistryInfo()
 {
 	AbilityTagSearch = AbilityTag.GetTagName();
 }
-void UGAAbilityBase::TickAbility(float DeltaSeconds, ELevelTick TickType, FGAAbilityTick& ThisTickFunction)
-{
-
-}
 
 void UGAAbilityBase::InitAbility()
 {
 	//still want to initialize, as Spec is used in multiple places.
-	DefaultContext = UGABlueprintLibrary::MakeContext(this, POwner, AvatarActor, this, FHitResult(ForceInit));
+	DefaultContext = UGABlueprintLibrary::MakeContext(this, POwner, AvatarActor, this, FHitResult(ForceInit)).GetRef();
 	ActivationEffect.InitializeIfNotInitialized(DefaultContext);
 	CooldownEffect.InitializeIfNotInitialized(DefaultContext);
 	AttributeCost.InitializeIfNotInitialized(DefaultContext);
@@ -206,9 +180,7 @@ void UGAAbilityBase::InitAbility()
 	{
 		OwnerCamera = POwner->FindComponentByClass<UCameraComponent>();
 	}
-	TickFunction.Target = this;
-	TickFunction.RegisterTickFunction(AbilityComponent->GetWorld()->GetCurrentLevel());
-	TickFunction.SetTickFunctionEnable(true);
+
 	OnAbilityInited();
 }
 void UGAAbilityBase::OnAttributeSetReplicated()
@@ -333,7 +305,7 @@ void UGAAbilityBase::NativeCancelActivation()
 	if (!ActivationEffectHandle.IsValid())
 		return;
 
-	UAFAbilityComponent* AttrComp = ActivationEffectHandle.GetContext().InstigatorComp.Get();
+	UAFAbilityComponent* AttrComp = DefaultContext.InstigatorComp.Get();
 	AbilityComponent->ExecutingAbility = nullptr;
 	OnConfirmDelegate.Clear();
 	OnConfirmDelegate.RemoveAll(this);
@@ -372,8 +344,13 @@ bool UGAAbilityBase::ApplyCooldownEffect()
 	FSimpleDelegate PeriodDel = FSimpleDelegate::CreateUObject(this, &UGAAbilityBase::NativeOnCooldownEnd, CooldownEffectHandle);
 	GetEffectsComponent()->AddEffectEvent(CooldownEffect.GetSpec()->OnExpiredEvent, PeriodDel);
 
-	CooldownEffectHandle = UGABlueprintLibrary::ApplyGameEffectToObject(CooldownEffect,
-		this, POwner, this, Modifier);
+	CooldownEffectHandle = UGABlueprintLibrary::ApplyGameEffectToObject(
+		CooldownEffect
+		, CooldownEffectHandle
+		, this
+		, POwner
+		, this
+		, Modifier);
 	ENetMode nm = AbilityComponent->GetOwner()->GetNetMode();
 	ENetRole role = AbilityComponent->GetOwnerRole();
 
@@ -390,7 +367,7 @@ void UGAAbilityBase::NativeOnCooldownEnd(FGAEffectHandle InHandle)
 {
 	//AbilityComponent->RemoveEffect(CooldownEffect, DefaultContext);
 	OnCooldownEnd(InHandle);
-	ActiveCooldownHandle.Reset();
+	CooldownEffectHandle.Reset();
 }
 void UGAAbilityBase::ClientSetCooldownHandle_Implementation(FGAEffectHandle InCooldownHandle)
 {
@@ -420,8 +397,13 @@ bool UGAAbilityBase::ApplyActivationEffect(bool bApplyActivationEffect)
 		GetEffectsComponent()->AddEffectEvent(ActivationEffect.GetSpec()->OnExpiredEvent, AppliedDel);
 
 		FAFFunctionModifier Modifier;
-		ActivationEffectHandle = UGABlueprintLibrary::ApplyGameEffectToObject(ActivationEffect,
-			this, POwner, this, Modifier);
+		ActivationEffectHandle = UGABlueprintLibrary::ApplyGameEffectToObject(
+			ActivationEffect
+			, ActivationEffectHandle
+			, this
+			, POwner
+			, this
+			, Modifier);
 		
 		//if(!ActivationEffectHandle.GetEffectRef().OnEffectExpired.)
 		//	ActivationEffectHandle.GetEffectRef().OnEffectExpired.AddUObject(this, &UGAAbilityBase::NativeOnAbilityActivationFinish);
@@ -578,8 +560,13 @@ bool UGAAbilityBase::ApplyAbilityAttributeCost()
 	
 	if (CheckAbilityAttributeCost())
 	{
-		AbilityAttributeCostHandle = UGABlueprintLibrary::ApplyGameEffectToObject(AbilityAttributeCost,
-			this, POwner, this, Modifier);
+		AbilityAttributeCostHandle = UGABlueprintLibrary::ApplyGameEffectToObject(
+			AbilityAttributeCost
+			, AbilityAttributeCostHandle
+			, this
+			, POwner
+			, this
+			, Modifier);
 
 		return true;
 	}
@@ -640,7 +627,15 @@ float UGAAbilityBase::GetCurrentActivationTime()
 {
 	if (ActivationEffectHandle.IsValid())
 	{
-		return ActivationEffectHandle.GetEffectPtr()->GetCurrentDuration();
+		if (IAFAbilityInterface* Interface = DefaultContext.TargetInterface)
+		{
+			FGAEffect* Effect = Interface->GetEffectsComponent()->GetEffect(ActivationEffectHandle);
+			if (Effect)
+			{
+				return Effect->GetCurrentDuration();
+			}
+		}
+		//return ActivationEffectHandle.GetEffectPtr()->GetCurrentDuration();
 	}
 	return 0;
 }

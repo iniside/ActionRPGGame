@@ -22,7 +22,7 @@ UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ABILITYFRAMEWORK_API UAFEffectsComponent : public UActorComponent
 {
 	GENERATED_BODY()
-public:
+private:
 	friend class UGAAbilityBase;
 	friend class IAFAbilityInterface;
 	friend class UAFAbilityComponent;
@@ -32,10 +32,10 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Tags")
 		FGameplayTagContainer DefaultTags;
 
-	UPROPERTY()
+	UPROPERTY(Replicated)
 		FGACountedTagContainer AppliedTags;
 
-	UPROPERTY()
+	UPROPERTY(Replicated)
 		FGACountedTagContainer ImmunityTags;
 
 	UPROPERTY(ReplicatedUsing = OnRep_GameEffectContainer)
@@ -48,7 +48,7 @@ private:
 	TMap<FGAEffectHandle, FGAEffectProperty*> PropertyByHandle;
 	TMap<FGAEffectHandle, FAFCueHandle> EffectToCue;
 	
-TMap<FGameplayTag, FSimpleDelegate> OnEffectEvent;
+	TMap<FGameplayTag, FSimpleDelegate> OnEffectEvent;
 
 public:	
 	// Sets default values for this component's properties
@@ -82,9 +82,10 @@ protected:
 	* @param Modifier - optional modifier which can be applied to effect.
 	* @return Handle to Effect;
 	*/
-	FGAEffectHandle ApplyEffectToSelf(FGAEffect* EffectIn
-		, FGAEffectProperty& InProperty
-		, FGAEffectContext& InContext
+	FGAEffectHandle ApplyEffectToSelf(
+		const FGAEffect& EffectIn
+		, const FGAEffectHandle& InHandle
+		, const FAFEffectParams& Params
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
 	/*
@@ -101,37 +102,35 @@ protected:
 	* @param Modifier - optional modifier which can be applied to effect.
 	* @return Handle to Effect;
 	*/
-	FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn
-		, FGAEffectProperty& InProperty
-		, FGAEffectContext& InContext
+	FGAEffectHandle ApplyEffectToTarget(
+		const FGAEffect& EffectIn
+		, const FGAEffectHandle& InHandle
+		, const FAFEffectParams& Params
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
 public:
 	/* Have to to copy handle around, because timer delegates do not support references. */
 	void ExecuteEffect(FGAEffectHandle HandleIn
-		, FGAEffectProperty InProperty
-		, FAFFunctionModifier Modifier
-		, FGAEffectContext InContext);
+		, FAFEffectParams Params
+		, FAFFunctionModifier Modifier);
 	
 	virtual void PostExecuteEffect();
 	/* ExpireEffect is used to remove existing effect naturally when their time expires. */
 public:
 	void ExpireEffect(FGAEffectHandle HandleIn
-		, FGAEffectProperty InProperty
-		, FGAEffectContext InContext);
+		, FAFEffectParams Params);
+
 protected:
 	UFUNCTION(Client, Reliable)
 		void ClientExpireEffect(FAFPredictionHandle PredictionHandle);
 	void ClientExpireEffect_Implementation(FAFPredictionHandle PredictionHandle);
 
 	/* RemoveEffect is used to remove effect by force. */
-	void RemoveEffect(const FGAEffectProperty& InProperty
+	void RemoveEffect(const FAFPropertytHandle& InProperty
 		, const FGAEffectContext& InContext
 		, const FGAEffectHandle& InHandle);
-	void InternalRemoveEffect(const FGAEffectProperty& InProperty, const FGAEffectContext& InContext);
-
-	const TSet<FGAEffectHandle>& GetAllEffectsHandles() const;
-
+	void InternalRemoveEffect(const FAFPropertytHandle& InProperty, const FGAEffectContext& InContext);
+	
 	void AddEffectEvent(const FGameplayTag& InEventTag, const FSimpleDelegate& InEvent);
 	void ExecuteEffectEvent(const FGameplayTag& InEventTag);
 	void RemoveEffectEvent(const FGameplayTag& InEventTag);
@@ -174,6 +173,8 @@ protected:
 		void MulticastExtendDurationCue(FGAEffectHandle EffectHandle, float NewDurationIn);
 	void MulticastExtendDurationCue_Implementation(FGAEffectHandle EffectHandle, float NewDurationIn);
 public:
+	FGAEffect* GetEffect(const FGAEffectHandle& InHandle);
+
 	/* Counted Tag Container Wrapper Start */
 	inline void AddTag(const FGameplayTag& TagIn) { AppliedTags.AddTag(TagIn); };
 	inline void AddTagContainer(const FGameplayTagContainer& TagsIn) { AppliedTags.AddTagContainer(TagsIn); };
@@ -188,6 +189,7 @@ public:
 	inline int32 GetTagCount(const FGameplayTag& TagIn) const { return AppliedTags.GetTagCount(TagIn); }
 	/* Counted Tag Container Wrapper Start */
 
+	
 
 	/*Network Functions - BEGIN */
 protected:

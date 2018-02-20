@@ -46,7 +46,13 @@ public:
 	 *  @return value of attribute from actor.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
-		static void ExchangeAttributesValues(APawn* Instigator, UObject* Causer,
-			UPARAM(ref) FGAEffectProperty& From, UObject* FromTarget,
-			UPARAM(ref) FGAEffectProperty& To, UObject* ToTarget);
+		static void ExchangeAttributesValues(
+			APawn* Instigator
+			, UObject* Causer
+			, FAFPropertytHandle From
+			, FGAEffectHandle FromHandle
+			, UObject* FromTarget
+			, FAFPropertytHandle To
+			, FGAEffectHandle ToHandle
+			, UObject* ToTarget);
 };

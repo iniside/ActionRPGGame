@@ -49,9 +49,10 @@ public:
 	virtual FAFPredictionHandle GetPredictionHandle() { return FAFPredictionHandle(); }
 
 
-	FGAEffectHandle ApplyEffectToTarget(FGAEffect* EffectIn
-		, FGAEffectProperty& InProperty
-		, FGAEffectContext& InContext
+	FGAEffectHandle ApplyEffectToTarget(
+		const FGAEffect& EffectIn
+		, const FGAEffectHandle& InHandle
+		, const FAFEffectParams& Params
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
 	virtual class UGAAttributesBase* GetAttributes() { return GetAbilityComp()->DefaultAttributes; };

@@ -15,10 +15,12 @@ class ABILITYFRAMEWORK_API UAFPeriodicApplInfiniteOverride : public UAFEffectCus
 	GENERATED_BODY()
 	
 	
-		virtual void ExecuteEffect(const FGAEffectHandle& InHandle,
-			FGAEffectProperty& InProperty,
-			const FGAEffectContext& InContext,
-			const FAFFunctionModifier& Modifier = FAFFunctionModifier())
+		virtual void ExecuteEffect(
+			const FGAEffectHandle& InHandle
+			, const FGAEffect& EffectIn
+			, struct FGAEffectContainer* InContainer
+			, const FAFEffectParams& Params
+			, const FAFFunctionModifier& Modifier = FAFFunctionModifier())
 	{};
 	
 };

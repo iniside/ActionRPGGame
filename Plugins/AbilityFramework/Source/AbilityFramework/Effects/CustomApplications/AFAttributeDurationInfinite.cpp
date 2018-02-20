@@ -6,12 +6,12 @@
 
 
 
-bool UAFAttributeDurationInfinite::ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
-	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer,
-	const FGAEffectContext& InContext,
-	const FAFFunctionModifier& Modifier)
+bool UAFAttributeDurationInfinite::ApplyEffect(
+	const FGAEffectHandle& InHandle
+	, const FGAEffect& EffectIn
+	, struct FGAEffectContainer* InContainer
+	, const FAFEffectParams& Params
+	, const FAFFunctionModifier& Modifier)
 {
-	InContainer->AddEffect(InProperty, InHandle, true);
-	//EffectIn->Context.TargetComp->ExecuteEffect(InHandle, InProperty);
 	return true;
 }

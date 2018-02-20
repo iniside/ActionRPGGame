@@ -91,9 +91,13 @@ void UAFAbilityComponent::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHa
 { 
 	//OnAttributePreModifed.Broadcast(ModIn, 0);
 	//Add log.
+	if (!DefaultAttributes)
+	{
+		return;
+	}
 	float NewValue = DefaultAttributes->ModifyAttribute(ModIn, HandleIn, InProperty);
 	FAFAttributeChangedData Data;
-	FGAEffectContext& Context = HandleIn.GetContextRef();
+	FGAEffectContext& Context = InProperty.GetContext(HandleIn).GetRef();
 	Data.Mod = ModIn;
 	Data.Target = Context.Target;
 	Data.Location = Context.HitResult.Location;

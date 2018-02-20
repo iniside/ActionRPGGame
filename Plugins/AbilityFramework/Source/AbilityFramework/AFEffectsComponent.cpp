@@ -48,12 +48,15 @@ void UAFEffectsComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	// ...
 }
 
-FGAEffectHandle UAFEffectsComponent::ApplyEffectToSelf(FGAEffect* EffectIn
-	, FGAEffectProperty& InProperty
-	, FGAEffectContext& InContext
+FGAEffectHandle UAFEffectsComponent::ApplyEffectToSelf(
+	const FGAEffect& EffectIn
+	, const FGAEffectHandle& InHandle
+	, const FAFEffectParams& Params
 	, const FAFFunctionModifier& Modifier)
 {
+	FGAEffectProperty& InProperty = Params.GetProperty();
 	const FGameplayTagContainer& AppliedEventTags = InProperty.GetSpec()->AppliedEventTags;
+	
 	FAFEventData Data;
 
 	for (const FGameplayTag& Tag : AppliedEventTags)
@@ -68,16 +71,19 @@ FGAEffectHandle UAFEffectsComponent::ApplyEffectToSelf(FGAEffect* EffectIn
 		Delegate->ExecuteIfBound();
 	}
 
-	FGAEffectHandle Handle = GameEffectContainer.ApplyEffect(EffectIn, InProperty, InContext, Modifier);
+	FGAEffectHandle Handle = GameEffectContainer.ApplyEffect(EffectIn, InHandle, Params, Modifier);
 	GameEffectContainer.MarkArrayDirty();
 	return Handle;
 }
 
-FGAEffectHandle UAFEffectsComponent::ApplyEffectToTarget(FGAEffect* EffectIn
-	, FGAEffectProperty& InProperty
-	, FGAEffectContext& InContext
+FGAEffectHandle UAFEffectsComponent::ApplyEffectToTarget(
+	const FGAEffect& EffectIn
+	, const FGAEffectHandle& InHandle
+	, const FAFEffectParams& Params
 	, const FAFFunctionModifier& Modifier)
 {
+	FGAEffectProperty& InProperty = Params.GetProperty();
+	FGAEffectContext& InContext = Params.GetContext();
 	if (FAFEffectEvent* Delegate = OnEffectApplyToTarget.Find(InProperty.GetSpec()->EffectTag))
 	{
 		Delegate->ExecuteIfBound();
@@ -92,28 +98,11 @@ FGAEffectHandle UAFEffectsComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 		FGAEffectCueParams CueParams(InContext, InProperty);
 		MulticastApplyEffectCue(CueParams, CueHandle);
 	}
-	FString prefix = "";
-	if (mode == ENetMode::NM_Client)
-	{
-		prefix = FString::Printf(TEXT("Client %d: "), GPlayInEditorID - 1);
-	}
-	else if (mode == ENetMode::NM_DedicatedServer)
-	{
-		prefix = FString::Printf(TEXT("DedicatedServer: "));
-	}
-	UE_LOG(AbilityFramework, Log, TEXT("%s : ApplyEffectToTarget Owner: %s, Instigator: %s"),
-		*prefix,
-		*GetOwner()->GetName(),
-		*InContext.Instigator->GetName()
-	);
-	//here, we should start attribute change prediction
-	//either change attribute or apply effect which will do so
 
-	//execute cue from effect regardless if we have target object or not.
 	if (InContext.TargetComp.IsValid())
 	{
 		FGAEffectHandle Handle;
-		Handle = InContext.GetTargetEffectsComponent()->ApplyEffectToSelf(EffectIn, InProperty, InContext, Modifier);
+		Handle = InContext.GetTargetEffectsComponent()->ApplyEffectToSelf(EffectIn, InHandle, Params, Modifier);
 		if (!PropertyByHandle.Contains(Handle))
 			PropertyByHandle.Add(Handle, &InProperty);
 
@@ -127,27 +116,29 @@ FGAEffectHandle UAFEffectsComponent::ApplyEffectToTarget(FGAEffect* EffectIn
 
 /* Have to to copy handle around, because timer delegates do not support references. */
 void UAFEffectsComponent::ExecuteEffect(FGAEffectHandle HandleIn
-	, FGAEffectProperty InProperty
-	, FAFFunctionModifier Modifier
-	, FGAEffectContext InContext)
+	, FAFEffectParams Params
+	, FAFFunctionModifier Modifier)
 {
+	FGAEffectContext& Context = Params.Context.GetRef();
+	FGAEffectProperty& Property = Params.Property.GetRef();
+	FAFEffectSpec& EffectSpec = Params.GetSpec();
 	/*
 	this patth will give effects chance to do any replicated events, like applying cues.
 	WE do not make any replication at the ApplyEffect because some effect might want to apply cues
 	on periods on expiration etc, and all those will go trouch ExecuteEffect path.
 	*/
-	const FGameplayTagContainer& RequiredTags = InProperty.GetSpec()->RequiredTags;
+	const FGameplayTagContainer& RequiredTags = Property.GetSpec()->RequiredTags;
 	if (RequiredTags.Num() > 0)
 	{
 		if (!HasAll(RequiredTags))
 		{
-			UE_LOG(GameAttributesEffects, Log, TEXT("UAFAbilityComponent:: Effect %s not executed, require tags: %s"), *HandleIn.GetEffectSpec()->GetName(), *RequiredTags.ToString());
+			UE_LOG(GameAttributesEffects, Log, TEXT("UAFAbilityComponent:: Effect %s not executed, require tags: %s"), *Property.GetSpec()->GetName(), *RequiredTags.ToString());
 			return;
 		}
 	}
 
 	//apply execution events:
-	const FGameplayTagContainer& ExecuteEventTags = InProperty.GetSpec()->ExecuteEventTags;
+	const FGameplayTagContainer& ExecuteEventTags = Property.GetSpec()->ExecuteEventTags;
 	FAFEventData Data;
 	for (const FGameplayTag& Tag : ExecuteEventTags)
 	{
@@ -158,23 +149,23 @@ void UAFEffectsComponent::ExecuteEffect(FGAEffectHandle HandleIn
 	}
 
 	//OnEffectExecuted.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
-	UE_LOG(GameAttributesEffects, Log, TEXT("UAFAbilityComponent:: Effect %s executed"), *HandleIn.GetEffectSpec()->GetName());
-	FGAEffect& Effect = HandleIn.GetEffect();
-	FGAEffectMod Mod = FAFStatics::GetAttributeModifier(InProperty.GetAttributeModifier()
-		, InProperty.GetSpec()
-		, InContext
+	UE_LOG(GameAttributesEffects, Log, TEXT("UAFAbilityComponent:: Effect %s executed"), *Property.GetSpec()->GetName());
+	
+	FGAEffectMod Mod = FAFStatics::GetAttributeModifier(Property.GetAttributeModifier()
+		, Property.GetSpec()
+		, Context
 		, HandleIn);
 
 	//execute period regardless if this periodic effect ? Or maybe change name OnEffectExecuted ?
 
-	Effect.OnExecuted();
-	ExecuteEffectEvent(InProperty.GetSpec()->OnPeriodEvent);
+	EffectSpec.OnExecuted();
+	ExecuteEffectEvent(Property.GetSpec()->OnPeriodEvent);
 
 	FAFCueHandle* CueHandle = EffectToCue.Find(HandleIn);
 	if (CueHandle)
 		MulticastExecuteEffectCue(*CueHandle);
 
-	InProperty.EffectExecution(HandleIn, Mod, HandleIn.GetContextRef(), Modifier);
+	Property.EffectExecution(HandleIn, Mod, Params, Modifier);
 	PostExecuteEffect();
 }
 
@@ -184,11 +175,14 @@ void UAFEffectsComponent::PostExecuteEffect()
 }
 /* ExpireEffect is used to remove existing effect naturally when their time expires. */
 void UAFEffectsComponent::ExpireEffect(FGAEffectHandle HandleIn
-	, FGAEffectProperty InProperty
-	, FGAEffectContext InContext)
+	, FAFEffectParams Params)
 {
 	//call effect internal delegate:
-	HandleIn.GetEffectPtr()->OnExpired();
+	FGAEffectProperty& InProperty = Params.GetProperty();
+	FGAEffectContext& InContext = Params.GetContext();
+	FAFEffectSpec& EffectSpec = Params.GetSpec();
+	FGAEffect* Effect = GameEffectContainer.GetEffect(HandleIn);
+	EffectSpec.OnExpired();
 	ENetRole role = GetOwnerRole();
 	ENetMode mode = GetOwner()->GetNetMode();
 	ExecuteEffectEvent(InProperty.GetSpec()->OnExpiredEvent);
@@ -209,7 +203,7 @@ void UAFEffectsComponent::ExpireEffect(FGAEffectHandle HandleIn
 		}
 	}
 
-	TArray<FGAEffectHandle> handles = GameEffectContainer.RemoveEffect(InProperty);
+	TArray<FGAEffectHandle> handles = GameEffectContainer.RemoveEffect(Params.Property);
 }
 
 void UAFEffectsComponent::ClientExpireEffect_Implementation(FAFPredictionHandle PredictionHandle)
@@ -217,7 +211,7 @@ void UAFEffectsComponent::ClientExpireEffect_Implementation(FAFPredictionHandle 
 
 }
 
-void UAFEffectsComponent::RemoveEffect(const FGAEffectProperty& InProperty
+void UAFEffectsComponent::RemoveEffect(const FAFPropertytHandle& InProperty
 	, const FGAEffectContext& InContext
 	, const FGAEffectHandle& InHandle)
 {
@@ -227,7 +221,7 @@ void UAFEffectsComponent::RemoveEffect(const FGAEffectProperty& InProperty
 		InternalRemoveEffect(InProperty, InContext);
 	}
 	ExecuteEffectEvent(InProperty.GetSpec()->OnRemovedEvent);
-	FGAEffectCueParams CueParams(InContext, InProperty);
+	FGAEffectCueParams CueParams(InContext, InProperty.GetRef());
 
 	FAFCueHandle* CueHandle = EffectToCue.Find(InHandle);
 	if (CueHandle)
@@ -235,14 +229,14 @@ void UAFEffectsComponent::RemoveEffect(const FGAEffectProperty& InProperty
 		MulticastRemoveEffectCue(CueParams, *CueHandle);
 	}
 }
-void UAFEffectsComponent::InternalRemoveEffect(const FGAEffectProperty& InProperty, const FGAEffectContext& InContext)
+void UAFEffectsComponent::InternalRemoveEffect(const FAFPropertytHandle& InProperty, const FGAEffectContext& InContext)
 {
 	UE_LOG(GameAttributesEffects, Log, TEXT("UAFAbilityComponent:: Reset Timers and Remove Effect"));
 
 	//MulticastRemoveEffectCue(HandleIn);
 	if (InProperty.GetSpec()->Cues.CueTags.Num() > 0)
 	{
-		FGAEffectCueParams CueParams(InContext, InProperty);
+		FGAEffectCueParams CueParams(InContext, InProperty.GetRef());
 		ENetRole role = GetOwnerRole();
 		ENetMode mode = GetOwner()->GetNetMode();
 		if (mode == ENetMode::NM_Standalone
@@ -253,11 +247,6 @@ void UAFEffectsComponent::InternalRemoveEffect(const FGAEffectProperty& InProper
 	}
 
 	TArray<FGAEffectHandle> handles = GameEffectContainer.RemoveEffect(InProperty);
-}
-
-const TSet<FGAEffectHandle>& UAFEffectsComponent::GetAllEffectsHandles() const
-{
-	return GameEffectContainer.GetAllEffectHandles();
 }
 
 void UAFEffectsComponent::AddEffectEvent(const FGameplayTag& InEventTag, const FSimpleDelegate& InEvent)
@@ -331,6 +320,11 @@ bool UAFEffectsComponent::HaveEffectRquiredTags(const FGameplayTagContainer& InT
 	return bAllowApplication;
 }
 
+FGAEffect* UAFEffectsComponent::GetEffect(const FGAEffectHandle& InHandle)
+{
+	return *GameEffectContainer.ActiveEffects.Find(InHandle);
+}
+
 /*
 Need prediction for spawning effects on client,
 and then on updateing them predicitvely on all other clients.
@@ -345,22 +339,6 @@ void UAFEffectsComponent::MulticastApplyEffectCue_Implementation(FGAEffectCuePar
 	if (mode == ENetMode::NM_Standalone
 		|| role != ENetRole::ROLE_Authority)
 	{
-		FString prefix = "";
-		if (mode == ENetMode::NM_Client)
-		{
-			int32 client = GPlayInEditorID - 1;
-			if (client == 2)
-			{
-				float dupa = 0;
-			}
-			prefix = FString::Printf(TEXT("Client %d: "), client);
-		}
-		UE_LOG(AbilityFramework, Log, TEXT("%s : MulticastApplyEffectCue Owner: %s, Instigator: %s"),
-			*prefix,
-			*GetOwner()->GetName(),
-			*CueParams.Instigator->GetName()
-		);
-
 		UAFCueManager::Get()->HandleCue(CueParams.CueTags, CueParams, InHandle);
 	}
 }
@@ -414,6 +392,8 @@ void UAFEffectsComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProp
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(UAFEffectsComponent, GameEffectContainer);
+	DOREPLIFETIME(UAFEffectsComponent, AppliedTags);
+	DOREPLIFETIME(UAFEffectsComponent, ImmunityTags);
 }
 
 void UAFEffectsComponent::OnRep_GameEffectContainer()

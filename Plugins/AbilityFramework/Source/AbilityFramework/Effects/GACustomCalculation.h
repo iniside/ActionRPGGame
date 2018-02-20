@@ -26,5 +26,5 @@ public:
 	//	float CalculateMagnitude(const FGAEffectContext& ContextIn);
 	
 
-	virtual float NativeCalculateMagnitude(const FGAEffectHandle& HandleIn) { return 0; }
+	virtual float NativeCalculateMagnitude(const FGAEffectContext& ContextIn) { return 0; }
 };

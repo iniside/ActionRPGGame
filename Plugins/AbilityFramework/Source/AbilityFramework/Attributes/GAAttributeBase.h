@@ -98,7 +98,6 @@ public:
 	};
 	inline float GetCurrentValue() { return CurrentValue; };
 	void CalculateBonus();
-	bool CheckIfModsMatch(const FGAEffectHandle& InHandle, const FGAEffectMod& InMod);
 	bool CheckIfStronger(const FGAEffectMod& InMod);
 	float Modify(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);
 	void AddBonus(const FGAEffectMod& ModIn, const FGAEffectHandle& Handle);

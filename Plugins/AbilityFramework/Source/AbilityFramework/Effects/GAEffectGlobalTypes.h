@@ -150,6 +150,6 @@ public:
 		: CustomCalculation(nullptr)
 	{};
 
-	float GetValue(const struct FGAEffectHandle& HandleIn);
-	float GetValue(const struct FGAEffectHandle& HandleIn) const;
+	float GetValue(const FGAEffectContext& ContextIn);
+	float GetValue(const FGAEffectContext& ContextIn) const;
 };

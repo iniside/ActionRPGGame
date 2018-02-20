@@ -146,23 +146,7 @@ void FAFAttributeBase::CalculateBonus()
 	CurrentValue = CurrentValue + (50); ??
 	*/
 }
-//check for tags.
-bool FAFAttributeBase::CheckIfModsMatch(const FGAEffectHandle& InHandle, const FGAEffectMod& InMod)
-{
-	TMap<FGAEffectHandle, FGAEffectMod>& mods = Modifiers[static_cast<int32>(InMod.AttributeMod)];
-	auto It = mods.CreateConstIterator();
-	for (; It; ++It)
-	{
-		if (It->Key.HasAllAttributeTags(InHandle)) //or maybe the other way around ?
-		{
-			return true;
-		}
-	}
-	
-	if (mods.Num() <= 0)
-		return true;
-	return false; 
-}
+
 bool FAFAttributeBase::CheckIfStronger(const FGAEffectMod& InMod)
 {
 	TMap<FGAEffectHandle, FGAEffectMod>& mods = Modifiers[static_cast<int32>(InMod.AttributeMod)];
@@ -194,7 +178,7 @@ float FAFAttributeBase::Modify(const FGAEffectMod& ModIn, const FGAEffectHandle&
 	if ( !isPeriod & IsDuration)
 	{
 		FGAModifier AttrMod(ModIn.AttributeMod, ModIn.Value, HandleIn);
-		AttrMod.Tags.AppendTags(HandleIn.GetEffectSpec()->AttributeTags);
+		AttrMod.Tags.AppendTags(InProperty.GetSpec()->AttributeTags);
 		AddBonus(ModIn, HandleIn);
 		return ModIn.Value;
 	}

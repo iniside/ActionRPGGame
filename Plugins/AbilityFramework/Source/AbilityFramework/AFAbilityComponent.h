@@ -413,7 +413,7 @@ public:
 	void NotifyInstigatorTargetAttributeChanged(const FAFAttributeChangedData& InData, 
 		const FGAEffectContext& InContext);
 	FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn) { return DefaultAttributes->GetAttribute(AttributeIn); };
-	void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) { DefaultAttributes->RemoveBonus(AttributeIn, HandleIn, HandleIn.GetAttributeMod());  };
+	void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) { DefaultAttributes->RemoveBonus(AttributeIn, HandleIn, InMod);  };
 	float NativeGetAttributeValue(const FGAAttribute AttributeIn) const { return 0; };
 
 private:

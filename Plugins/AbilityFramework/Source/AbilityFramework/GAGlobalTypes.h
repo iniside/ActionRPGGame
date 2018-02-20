@@ -230,6 +230,8 @@ public:
 
 	class IAFAbilityInterface* TargetInterface;
 	class IAFAbilityInterface* InstigatorInterface;
+
+	void SetTarget(UObject* NewTarget);
 	template<class T>
 	inline T* GetTarget()
 	{
@@ -270,7 +272,15 @@ public:
 		return ret;
 	}
 
+	bool operator==(UObject* Other) const
+	{
+		return FObjectKey(Target.Get()) == FObjectKey(Other);
+	}
 
+	bool operator==(const FObjectKey& Other) const
+	{
+		return FObjectKey(Target.Get()) == Other;
+	}
 
 	void Reset();
 
@@ -284,8 +294,11 @@ public:
 
 	class UAFEffectsComponent* GetTargetEffectsComponent();
 	class UAFEffectsComponent* GetTargetEffectsComponent() const;
+	void operator=(const FGAEffectContext& Other);
 	FGAEffectContext()
 	{}
+
+	FGAEffectContext(const FGAEffectContext& Other);
 
 	FGAEffectContext(TWeakObjectPtr<class UGAAttributesBase> TargetAttributesIn, TWeakObjectPtr<class UGAAttributesBase> InstigatorAttributesIn,
 		const FVector& TargetHitLocationIn, TWeakObjectPtr<UObject> TargetIn,
@@ -296,6 +309,7 @@ public:
 
 	~FGAEffectContext();
 };
+
 
 struct FGAEffect;
 class UGAGameEffectSpec;
@@ -308,47 +322,14 @@ struct ABILITYFRAMEWORK_API FGAEffectHandle
 	GENERATED_BODY()
 protected:
 	//just to be safe we don't run out of numbers..
-	UPROPERTY()
-		uint32 Handle; //Fname Guid ?
-
-	FGAEffect* EffectPtr;
+	UPROPERTY(VisibleAnywhere, Transient)
+		int32 Handle; //Fname Guid ?
 public:
-
-	FGAEffectContext& GetContextRef();
-	FGAEffectContext& GetContextRef() const;
-
-	UGAGameEffectSpec* GetEffectSpec();
-	UGAGameEffectSpec* GetEffectSpec() const;
-
-	uint32 GetHandle() const;
-
-	FGAEffect& GetEffect();
-	FGAEffect& GetEffect() const;
-
-	//FGAEffect& GetEffectRef();
-	//FGAEffect& GetEffectRef() const;
-
-	FGAEffect* GetEffectPtr();
-	FGAEffect* GetEffectPtr() const;
-
-	void SetContext(const FGAEffectContext& ContextIn);
-	void SetContext(const FGAEffectContext& ContextIn) const;
-
-	FGAEffectContext& GetContext();
-	FGAEffectContext& GetContext() const;
-
-	void AppendOwnedTags(const FGameplayTagContainer& TagsIn);
-	void AppendOwnedTags(const FGameplayTagContainer& TagsIn) const;
-	struct FGAEffectMod GetAttributeModifier() const;
-	FGAAttribute GetAttribute() const;
-	EGAAttributeMod GetAttributeMod() const;
-
-	static FGAEffectHandle GenerateHandle(FGAEffect* EffectIn);
-	bool HasAllTags(const FGameplayTagContainer& TagsIn) const;
-	bool HasAllTagsExact(const FGameplayTagContainer& TagsIn) const;
-	bool HasAllAttributeTags(const FGAEffectHandle& HandleIn) const;
-	bool HasAllAttributeTagsExact(const FGAEffectHandle& HandleIn) const;
-	FGameplayTagContainer& GetOwnedTags() const;
+	int32 GetHandle() const
+	{
+		return Handle;
+	}
+	static FGAEffectHandle GenerateHandle();
 	bool operator==(const FGAEffectHandle& Other) const
 	{
 		return Handle == Other.Handle;
@@ -356,11 +337,6 @@ public:
 	bool operator!=(const FGAEffectHandle& Other) const
 	{
 		return Handle != Other.Handle;
-	}
-	void operator=(const FGAEffectHandle& Other)
-	{
-		Handle = Other.Handle;
-		EffectPtr = Other.EffectPtr;
 	}
 
 	//FGAEffectHandle& operator=(const FGAEffectHandle& Other)
@@ -377,24 +353,22 @@ public:
 		return InHandle.Handle;
 	}
 
-	FGAEffectHandle()
-		: Handle(INDEX_NONE)
-		, EffectPtr(nullptr)
-	{}
+	FGAEffectHandle();
 
-	FGAEffectHandle(uint32 HandleIn, FGAEffect* EffectIn);
+	FGAEffectHandle(uint32 HandleIn);
+	void PostScriptConstruct();
 public:
 	~FGAEffectHandle();
 };
 //
-//template<>
-//struct TStructOpsTypeTraits< FGAEffectHandle > : public TStructOpsTypeTraitsBase2<FGAEffectHandle>
-//{
-//	enum
-//	{
-//		WithCopy = true,
-//	};
-//};
+template<>
+struct TStructOpsTypeTraits< FGAEffectHandle > : public TStructOpsTypeTraitsBase2<FGAEffectHandle>
+{
+	enum
+	{
+		WithPostScriptConstruct = true,
+	};
+};
 
 USTRUCT()
 struct FAFPredictionHandle
@@ -780,19 +754,6 @@ public:
 	}
 };
 
-
-USTRUCT(BlueprintType)
-struct ABILITYFRAMEWORK_API FAFContextHandle
-{
-	GENERATED_BODY()
-protected:
-	TSharedPtr<FGAEffectContext> Data;
-public:
-	FAFContextHandle()
-	{
-
-	}
-};
 
 USTRUCT(BlueprintType)
 struct ABILITYFRAMEWORK_API FGAEffectCueParams

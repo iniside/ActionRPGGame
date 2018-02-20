@@ -35,103 +35,52 @@ FGAEffectContext::FGAEffectContext(TWeakObjectPtr<class UGAAttributesBase> Targe
 	InstigatorInterface = Cast<IAFAbilityInterface>(Instigator.Get());
 	IAFAbilityInterface* CauserInterface = Cast<IAFAbilityInterface>(Causer.Get());
 }
-FGAEffectHandle::FGAEffectHandle(uint32 HandleIn, FGAEffect* EffectIn)
-	: Handle(HandleIn),
-	EffectPtr(EffectIn)
+void FGAEffectContext::SetTarget(UObject* NewTarget)
+{
+	IAFAbilityInterface* ATI = Cast<IAFAbilityInterface>(NewTarget);
+	if (!ATI)
+	{
+		return;
+	}
+
+	TargetComp = ATI->GetAbilityComp();
+	Target = NewTarget;
+	TargetInterface = ATI;
+	TargetAttributes = ATI->GetAttributes();
+}
+FGAEffectHandle::FGAEffectHandle()
+	: Handle(0)
+{
+	Handle = 0;
+}
+FGAEffectHandle::FGAEffectHandle(uint32 HandleIn)
+	: Handle(HandleIn)
 {
 }
-
+void FGAEffectHandle::PostScriptConstruct()
+{
+	Handle = 0;
+}
 FGAEffectHandle::~FGAEffectHandle()
 {
-	Reset();
 }
-FGAEffectContext& FGAEffectHandle::GetContextRef() { return EffectPtr->Context; }
-FGAEffectContext& FGAEffectHandle::GetContextRef() const { return EffectPtr->Context; }
-
-UGAGameEffectSpec* FGAEffectHandle::GetEffectSpec() { return EffectPtr->GetEffect(); }
-UGAGameEffectSpec* FGAEffectHandle::GetEffectSpec() const { return EffectPtr->GetEffect(); }
-
-uint32 FGAEffectHandle::GetHandle() const { return Handle; }
-
-FGAEffect& FGAEffectHandle::GetEffect() { return *EffectPtr; }
-FGAEffect& FGAEffectHandle::GetEffect() const { return *EffectPtr; }
-
-//FGAEffect& FGAEffectHandle::GetEffectRef() { return *EffectPtr; }
-//FGAEffect& FGAEffectHandle::GetEffectRef() const { return *EffectPtr; };
-
-FGAEffect* FGAEffectHandle::GetEffectPtr() { return EffectPtr; };
-FGAEffect* FGAEffectHandle::GetEffectPtr() const { return EffectPtr; };
-
-void FGAEffectHandle::SetContext(const FGAEffectContext& ContextIn) { EffectPtr->SetContext(ContextIn); }
-void FGAEffectHandle::SetContext(const FGAEffectContext& ContextIn) const { EffectPtr->SetContext(ContextIn); }
-
-FGAEffectContext& FGAEffectHandle::GetContext() { return EffectPtr->Context; }
-FGAEffectContext& FGAEffectHandle::GetContext() const { return EffectPtr->Context; }
 
 /* Executes effect trough provided execution class. */
 
-FGAEffectHandle FGAEffectHandle::GenerateHandle(FGAEffect* EffectIn)
+FGAEffectHandle FGAEffectHandle::GenerateHandle()
 {
-	static uint32 Handle;
+	static int32 Handle;
 	Handle++;
-	return FGAEffectHandle(Handle, EffectIn);
-}
-void FGAEffectHandle::AppendOwnedTags(const FGameplayTagContainer& TagsIn)
-{
-	GetEffectPtr()->OwnedTags.AppendTags(TagsIn);
-}
-void FGAEffectHandle::AppendOwnedTags(const FGameplayTagContainer& TagsIn) const
-{
-	GetEffectPtr()->OwnedTags.AppendTags(TagsIn);
-}
-
-bool FGAEffectHandle::HasAllTags(const FGameplayTagContainer& TagsIn) const
-{
-	return EffectPtr->OwnedTags.HasAll(TagsIn);
-}
-bool FGAEffectHandle::HasAllTagsExact(const FGameplayTagContainer& TagsIn) const
-{
-	return EffectPtr->OwnedTags.HasAllExact(TagsIn);
-}
-bool FGAEffectHandle::HasAllAttributeTags(const FGAEffectHandle& HandleIn) const
-{
-	return GetEffectSpec()->AttributeTags.HasAll(HandleIn.GetEffectSpec()->AttributeTags);
-}
-bool FGAEffectHandle::HasAllAttributeTagsExact(const FGAEffectHandle& HandleIn) const
-{
-	return GetEffectSpec()->AttributeTags.HasAllExact(HandleIn.GetEffectSpec()->AttributeTags);
-}
-FGameplayTagContainer& FGAEffectHandle::GetOwnedTags() const
-{
-	return EffectPtr->OwnedTags;
-}
-FGAEffectMod FGAEffectHandle::GetAttributeModifier() const
-{
-	return FGAEffectMod();// EffectPtr->GetAttributeModifier();
-}
-
-FGAAttribute FGAEffectHandle::GetAttribute() const
-{
-	return GetEffectSpec()->AtributeModifier.Attribute;
-}
-EGAAttributeMod FGAEffectHandle::GetAttributeMod() const
-{
-	return GetEffectSpec()->AtributeModifier.AttributeMod;
+	return FGAEffectHandle(Handle);
 }
 
 bool FGAEffectHandle::IsValid() const
 {
-	return (Handle != INDEX_NONE) && EffectPtr != nullptr;// && EffectPtr->Context.IsValid();
+	return (Handle > 0);// && EffectPtr->Context.IsValid();
 }
-//void FGAEffectHandle::operator=(const FGAEffectHandle& Other)
-//{
-//	Handle = Other.Handle;
-//	//EffectPtr = Other.EffectPtr;
-//}
 void FGAEffectHandle::Reset()
 {
-	Handle = INDEX_NONE;
-	EffectPtr = nullptr;
+	Handle = 0;
 }
 
 FAFPredictionHandle FAFPredictionHandle::GenerateClientHandle(UAFAbilityComponent* InComponent)
@@ -164,6 +113,36 @@ void FGAHashedGameplayTagContainer::GenerateFNameKey()
 	Key = *RetString;
 }
 
+void FGAEffectContext::operator=(const FGAEffectContext& Other)
+{
+	HitResult			=	Other.HitResult;
+	TargetHitLocation	=	Other.TargetHitLocation;
+	TargetAttributes = Other.TargetAttributes;
+	InstigatorAttributes = Other.InstigatorAttributes;
+	Target = Other.Target;
+	Causer = Other.Causer;
+	Instigator = Other.Instigator;
+	Avatar = Other.Avatar;
+	TargetComp = Other.TargetComp;
+	InstigatorComp = Other.InstigatorComp;
+	TargetInterface = Other.TargetInterface;
+	InstigatorInterface = Other.InstigatorInterface;
+}
+FGAEffectContext::FGAEffectContext(const FGAEffectContext& Other)
+{
+	HitResult = Other.HitResult;
+	TargetHitLocation = Other.TargetHitLocation;
+	TargetAttributes = Other.TargetAttributes;
+	InstigatorAttributes = Other.InstigatorAttributes;
+	Target = Other.Target;
+	Causer = Other.Causer;
+	Instigator = Other.Instigator;
+	Avatar = Other.Avatar;
+	TargetComp = Other.TargetComp;
+	InstigatorComp = Other.InstigatorComp;
+	TargetInterface = Other.TargetInterface;
+	InstigatorInterface = Other.InstigatorInterface;
+}
 void FGAEffectContext::Reset()
 {
 	Target.Reset();
@@ -171,6 +150,8 @@ void FGAEffectContext::Reset()
 	Instigator.Reset();
 	TargetComp.Reset();
 	InstigatorComp.Reset();
+	TargetInterface = nullptr;
+	InstigatorInterface = nullptr;
 }
 class UGAAttributesBase* FGAEffectContext::GetTargetAttributes()
 { 

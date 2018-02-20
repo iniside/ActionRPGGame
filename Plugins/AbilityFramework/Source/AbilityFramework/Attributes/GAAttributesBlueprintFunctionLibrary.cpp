@@ -50,9 +50,15 @@ float UGAAttributesBlueprintFunctionLibrary::GetAttributeFloat(AActor* Target, F
 	return  attributeInt->GetAttributes()->GetFloatValue(AttributeIn);
 }
 
-void UGAAttributesBlueprintFunctionLibrary::ExchangeAttributesValues(APawn* Instigator, UObject* Causer,
-	UPARAM(ref) FGAEffectProperty& From, UObject* FromTarget,
-	UPARAM(ref) FGAEffectProperty& To, UObject* ToTarget)
+void UGAAttributesBlueprintFunctionLibrary::ExchangeAttributesValues(
+	APawn* Instigator
+	, UObject* Causer
+	, FAFPropertytHandle From
+	, FGAEffectHandle FromHandle
+	, UObject* FromTarget
+	, FAFPropertytHandle To
+	, FGAEffectHandle ToHandle
+	, UObject* ToTarget)
 {
 	IAFAbilityInterface* FromInterface = Cast<IAFAbilityInterface>(FromTarget);
 	IAFAbilityInterface* ToInterface = Cast<IAFAbilityInterface>(ToTarget);
@@ -61,6 +67,6 @@ void UGAAttributesBlueprintFunctionLibrary::ExchangeAttributesValues(APawn* Inst
 		return;
 
 	FAFFunctionModifier ModF;
-	UGABlueprintLibrary::ApplyGameEffectToObject(From, FromTarget, Instigator, Causer, ModF);
-	UGABlueprintLibrary::ApplyGameEffectToObject(To, ToTarget, Instigator, Causer, ModF);
+	UGABlueprintLibrary::ApplyGameEffectToObject(From, FromHandle, FromTarget, Instigator, Causer, ModF);
+	UGABlueprintLibrary::ApplyGameEffectToObject(To, ToHandle, ToTarget, Instigator, Causer, ModF);
 }

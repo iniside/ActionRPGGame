@@ -8,19 +8,22 @@
 
 
 
-bool UAFAttributeStongerOverride::CanApply(FGAEffect* EffectIn, FGAEffectProperty& InProperty,
-	struct FGAEffectContainer* InContainer,
-	const FGAEffectContext& InContext,
-	const FGAEffectHandle& InHandle)
+bool UAFAttributeStongerOverride::CanApply(
+	const FGAEffect& EffectIn
+	, const FAFEffectParams& Params
+	, const FGAEffectHandle& InHandle
+	, struct FGAEffectContainer* InContainer)
 {
 	bool bCanApply = true;
-	FGAAttribute Attribute = InProperty.GetSpec()->AtributeModifier.Attribute;
-	FAFAttributeBase* AttributePtr = EffectIn->Context.TargetInterface->GetAttribute(Attribute);
+	FGAAttribute Attribute = Params.GetProperty().GetSpec()->AtributeModifier.Attribute;
+	FAFAttributeBase* AttributePtr = Params.GetContext().TargetInterface->GetAttribute(Attribute);
+	FGAEffectProperty& InProperty = Params.GetProperty();
+
 	if (AttributePtr)
 	{
 		FGAEffectMod mod = FAFStatics::GetAttributeModifier(InProperty.GetAttributeModifier()
 			, InProperty.GetSpec()
-			, InContext
+			, Params.GetContext()
 			, InHandle);
 
 		if (AttributePtr->CheckIfStronger(mod))

@@ -42,7 +42,7 @@ void FGAEffectDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 
 	for (TWeakObjectPtr<UObject> obj : Objects)
 	{
-		if (UAFEffectSpec* Spec = Cast<UAFEffectSpec>(obj.Get()))
+		if (UAFEffectSpecBase* Spec = Cast<UAFEffectSpecBase>(obj.Get()))
 		{
 			/*if (!Spec->IsA(UAFAbilityActivationSpec::StaticClass())
 				&& !Spec->IsA(UAFAbilityPeriodSpec::StaticClass())

@@ -177,7 +177,7 @@ private:
 		TSharedPtr<FEffectBlueprintParentFilter> Filter = MakeShareable(new FEffectBlueprintParentFilter);
 
 		// All child child classes of UGameplayAbility are valid.
-		Filter->AllowedChildrenOfClasses.Add(UAFEffectSpec::StaticClass());
+		Filter->AllowedChildrenOfClasses.Add(UAFEffectSpecBase::StaticClass());
 		Filter->AllowedChildrenOfClasses.Add(UAFAbilityActivationSpec::StaticClass());
 		Filter->AllowedChildrenOfClasses.Add(UAFAbilityCooldownSpec::StaticClass());
 		Filter->AllowedChildrenOfClasses.Add(UAFAbilityPeriodSpec::StaticClass());

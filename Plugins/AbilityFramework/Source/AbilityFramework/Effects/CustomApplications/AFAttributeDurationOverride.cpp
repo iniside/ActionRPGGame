@@ -8,19 +8,20 @@
 
 
 
-bool UAFAttributeDurationOverride::ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
-	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer,
-	const FGAEffectContext& InContext,
-	const FAFFunctionModifier& Modifier)
+bool UAFAttributeDurationOverride::ApplyEffect(
+	const FGAEffectHandle& InHandle
+	, const FGAEffect& EffectIn
+	, struct FGAEffectContainer* InContainer
+	, const FAFEffectParams& Params
+	, const FAFFunctionModifier& Modifier)
 {
-	InContainer->RemoveEffect(InProperty);
+	InContainer->RemoveEffect(Params.Property);
 
-	FTimerManager& DurationTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
+	FTimerManager& DurationTimer = const_cast<FAFEffectParams&>(Params).GetTargetTimerManager();
 
-	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().GetTargetEffectsComponent(), &UAFEffectsComponent::ExpireEffect, InHandle, InProperty, InContext);
-	DurationTimer.SetTimer(InHandle.GetEffectPtr()->DurationTimerHandle, delDuration,
-		InProperty.GetDuration(), false);
+	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(Params.GetTargetEffectsComponent(), &UAFEffectsComponent::ExpireEffect, InHandle, Params);
+	DurationTimer.SetTimer(const_cast<FGAEffect&>(EffectIn).DurationTimerHandle, delDuration,
+		Params.GetProperty().GetDuration(), false);
 
-	InContainer->AddEffect(InProperty, InHandle);
 	return true;
 }

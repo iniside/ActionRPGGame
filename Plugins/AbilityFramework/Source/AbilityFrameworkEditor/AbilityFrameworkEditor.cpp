@@ -83,12 +83,13 @@ void FAbilityFrameworkEditor::StartupModule()
 
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	PropertyModule.RegisterCustomPropertyTypeLayout("GAAttribute", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGAAttributeDetailCustomization::MakeInstance));
-	PropertyModule.RegisterCustomPropertyTypeLayout("GAEffectProperty", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGAEffectPropertyStructCustomization::MakeInstance));
+	//PropertyModule.RegisterCustomPropertyTypeLayout("GAEffectProperty", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGAEffectPropertyStructCustomization::MakeInstance));
+	PropertyModule.RegisterCustomPropertyTypeLayout("AFPropertytHandle", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGAEffectPropertyStructCustomization::MakeInstance));
 
 	TSharedPtr<FGAAttributePanelGraphPinFactory> GAAttributePanelGraphPinFactory = MakeShareable(new FGAAttributePanelGraphPinFactory());
 	FEdGraphUtilities::RegisterVisualPinFactory(GAAttributePanelGraphPinFactory);
 
-	PropertyModule.RegisterCustomClassLayout("AFEffectSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FGAEffectDetails::MakeInstance));
+	PropertyModule.RegisterCustomClassLayout("AFEffectSpecBase", FOnGetDetailCustomizationInstance::CreateStatic(&FGAEffectDetails::MakeInstance));
 	PropertyModule.RegisterCustomClassLayout("AFAbilityActivationSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityActivationSpecDetails::MakeInstance));
 	PropertyModule.RegisterCustomClassLayout("AFAbilityPeriodSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityPeriodSpecDetails::MakeInstance));
 	PropertyModule.RegisterCustomClassLayout("AFAbilityCooldownSpec", FOnGetDetailCustomizationInstance::CreateStatic(&FAFAbilityCooldownSpecDetails::MakeInstance));
@@ -112,7 +113,7 @@ void FAbilityFrameworkEditor::ShutdownModule()
 {
 	BlueprintEditorTabBinding = nullptr;
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	PropertyModule.UnregisterCustomClassLayout("AFEffectSpec");
+	PropertyModule.UnregisterCustomClassLayout("AFEffectSpecBase");
 	PropertyModule.UnregisterCustomClassLayout("AFAbilityActivationSpec");
 	PropertyModule.UnregisterCustomClassLayout("AFAbilityPeriodSpec");
 	PropertyModule.UnregisterCustomClassLayout("AFAbilityCooldownSpec");
@@ -120,7 +121,8 @@ void FAbilityFrameworkEditor::ShutdownModule()
 	PropertyModule.UnregisterCustomClassLayout("AFAbilityInfiniteDurationSpec");
 
 	PropertyModule.UnregisterCustomPropertyTypeLayout("GAAttribute");
-	PropertyModule.UnregisterCustomPropertyTypeLayout("GAEffectProperty");
+	//PropertyModule.UnregisterCustomPropertyTypeLayout("GAEffectProperty");
+	PropertyModule.UnregisterCustomPropertyTypeLayout("AFPropertytHandle");
 
 	UGAEffectCueSequence::OnInitializeSequence().Remove(OnInitializeSequenceHandle);
 	BlueprintEditorTabBinding = nullptr;

@@ -15,10 +15,11 @@ UAFAbilityInterface::UAFAbilityInterface(const FObjectInitializer& ObjectInitial
 //	return nullptr;// GetAbilityComp()->DefaultAttributes;
 //}
 
-FGAEffectHandle IAFAbilityInterface::ApplyEffectToTarget(FGAEffect* EffectIn
-	, FGAEffectProperty& InProperty
-	, FGAEffectContext& InContext
+FGAEffectHandle IAFAbilityInterface::ApplyEffectToTarget(
+	const FGAEffect& EffectIn
+	, const FGAEffectHandle& InHandle
+	, const FAFEffectParams& Params
 	, const FAFFunctionModifier& Modifier)
 {
-	return GetEffectsComponent()->ApplyEffectToTarget(EffectIn, InProperty, InContext, Modifier);
+	return GetEffectsComponent()->ApplyEffectToTarget(EffectIn, InHandle, Params, Modifier);
 }

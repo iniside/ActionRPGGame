@@ -6,25 +6,27 @@
 #include "AFPeriodApplicationAdd.h"
 
 
-bool UAFPeriodApplicationAdd::ApplyEffect(const FGAEffectHandle& InHandle, struct FGAEffect* EffectIn,
-	FGAEffectProperty& InProperty, struct FGAEffectContainer* InContainer,
-	const FGAEffectContext& InContext,
-	const FAFFunctionModifier& Modifier)
+bool UAFPeriodApplicationAdd::ApplyEffect(
+	const FGAEffectHandle& InHandle
+	, const FGAEffect& EffectIn
+	, struct FGAEffectContainer* InContainer
+	, const FAFEffectParams& Params
+	, const FAFFunctionModifier& Modifier)
 {
-	FTimerManager& DurationTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
+	FTimerManager& DurationTimer = const_cast<FAFEffectParams&>(Params).GetTargetTimerManager();
 
-	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().GetTargetEffectsComponent(), &UAFEffectsComponent::ExpireEffect, InHandle, InProperty, InContext);
-	DurationTimer.SetTimer(InHandle.GetEffectPtr()->DurationTimerHandle, delDuration,
-		InProperty.GetDuration(), false);
+	FTimerDelegate delDuration = FTimerDelegate::CreateUObject(Params.GetTargetEffectsComponent(), &UAFEffectsComponent::ExpireEffect, InHandle, Params);
+	DurationTimer.SetTimer(const_cast<FGAEffect&>(EffectIn).DurationTimerHandle, delDuration,
+		Params.GetProperty().GetDuration(), false);
 
-	FTimerManager& PeriodTimer = InHandle.GetContext().TargetComp->GetWorld()->GetTimerManager();
+	FTimerManager& PeriodTimer = const_cast<FAFEffectParams&>(Params).GetTargetTimerManager();
 
-	FTimerDelegate PeriodDuration = FTimerDelegate::CreateUObject(InHandle.GetContext().GetTargetEffectsComponent(), &UAFEffectsComponent::ExecuteEffect, InHandle, InProperty, Modifier, InContext);
-	PeriodTimer.SetTimer(InHandle.GetEffectPtr()->PeriodTimerHandle, PeriodDuration,
-		InProperty.GetPeriod(), true);
+	FTimerDelegate PeriodDuration = FTimerDelegate::CreateUObject(Params.GetTargetEffectsComponent(), &UAFEffectsComponent::ExecuteEffect, InHandle, Params, Modifier);
+	PeriodTimer.SetTimer(const_cast<FGAEffect&>(EffectIn).PeriodTimerHandle, PeriodDuration,
+		Params.GetProperty().GetPeriod(), true);
 
-	InContainer->AddEffect(InProperty, InHandle);
-	//EffectIn.Context.TargetComp->ExecuteEffect(InHandle, InProperty);
+	//InContainer->AddEffect(InProperty, InHandle);
+	
 	return true;
 }
 
