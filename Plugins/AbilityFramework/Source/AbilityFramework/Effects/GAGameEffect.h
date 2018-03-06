@@ -1159,7 +1159,7 @@ public:
 	
 	TMap<FObjectKey, TArray<FGAEffectHandle>> EffectByClass;
 
-	TMap<FGAEffectHandle, TSharedPtr<FGAEffect>> ActiveEffects;
+	TMap<FGAEffectHandle, FGAEffect*> ActiveEffects;
 	/* 
 		Contains effects with infinite duration.
 		Infinite effects are considred to be special case, where they can only be self spplied
@@ -1254,7 +1254,7 @@ public:
 	float GetCurrentTimeNormalized(const FGAEffectHandle& InHandle) const;
 	float GetEndTime(const FGAEffectHandle& InHandle) const;
 
-	TSharedPtr<FGAEffect> GetEffect(const FGAEffectHandle& InHandle)
+	FGAEffect* GetEffect(const FGAEffectHandle& InHandle)
 	{
 		return ActiveEffects[InHandle];
 	}

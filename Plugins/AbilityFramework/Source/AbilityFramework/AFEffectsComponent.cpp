@@ -181,7 +181,7 @@ void UAFEffectsComponent::ExpireEffect(FGAEffectHandle HandleIn
 	FGAEffectProperty& InProperty = Params.GetProperty();
 	FGAEffectContext& InContext = Params.GetContext();
 	FAFEffectSpec& EffectSpec = Params.GetSpec();
-	TSharedPtr<FGAEffect> Effect = GameEffectContainer.GetEffect(HandleIn);
+	FGAEffect* Effect = GameEffectContainer.GetEffect(HandleIn);
 	EffectSpec.OnExpired();
 	ENetRole role = GetOwnerRole();
 	ENetMode mode = GetOwner()->GetNetMode();
@@ -320,7 +320,7 @@ bool UAFEffectsComponent::HaveEffectRquiredTags(const FGameplayTagContainer& InT
 	return bAllowApplication;
 }
 
-TSharedPtr<FGAEffect> UAFEffectsComponent::GetEffect(const FGAEffectHandle& InHandle)
+FGAEffect* UAFEffectsComponent::GetEffect(const FGAEffectHandle& InHandle)
 {
 	return *GameEffectContainer.ActiveEffects.Find(InHandle);
 }

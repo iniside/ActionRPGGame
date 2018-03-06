@@ -173,7 +173,7 @@ protected:
 		void MulticastExtendDurationCue(FGAEffectHandle EffectHandle, float NewDurationIn);
 	void MulticastExtendDurationCue_Implementation(FGAEffectHandle EffectHandle, float NewDurationIn);
 public:
-	TSharedPtr<FGAEffect> GetEffect(const FGAEffectHandle& InHandle);
+	FGAEffect* GetEffect(const FGAEffectHandle& InHandle);
 
 	/* Counted Tag Container Wrapper Start */
 	inline void AddTag(const FGameplayTag& TagIn) { AppliedTags.AddTag(TagIn); };

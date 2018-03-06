@@ -520,7 +520,7 @@ void FGAEffectContainer::AddEffect(
 	}
 	}
 
-	ActiveEffects.Add(InHandle, MakeShareable(InEffect));
+	ActiveEffects.Add(InHandle, InEffect);
 	FGAEffectContainer* sss = this;
 	int dbg = 0;
 }
@@ -676,10 +676,10 @@ UGAGameEffectSpec::UGAGameEffectSpec()
 
 float FGAEffectContainer::GetRemainingTime(const FGAEffectHandle& InHandle) const
 {
-	const TSharedPtr<FGAEffect>* Effect = ActiveEffects.Find(InHandle);
+	const FGAEffect* const * Effect = ActiveEffects.Find(InHandle);
 	if (Effect)
 	{
-		const FGAEffect* Ptr = (*Effect).Get();
+		const FGAEffect* Ptr = *Effect;
 		float Duration = Ptr->GetDurationTime();
 		return FMath::Clamp<float>(Duration - Ptr->GetCurrentDuration(), 0, Duration);
 	}
@@ -687,10 +687,10 @@ float FGAEffectContainer::GetRemainingTime(const FGAEffectHandle& InHandle) cons
 }
 float FGAEffectContainer::GetRemainingTimeNormalized(const FGAEffectHandle& InHandle) const
 {
-	const TSharedPtr<FGAEffect>* Effect = ActiveEffects.Find(InHandle);
+	const FGAEffect* const * Effect = ActiveEffects.Find(InHandle);
 	if (Effect)
 	{
-		const FGAEffect* Ptr = (*Effect).Get();
+		const FGAEffect* Ptr = *Effect;
 		float CurrentDuration = Ptr->GetCurrentDuration();
 		float MaxDuration = Ptr->GetDurationTime();
 
@@ -702,20 +702,20 @@ float FGAEffectContainer::GetRemainingTimeNormalized(const FGAEffectHandle& InHa
 }
 float FGAEffectContainer::GetCurrentTime(const FGAEffectHandle& InHandle) const
 {
-	const TSharedPtr<FGAEffect>* Effect = ActiveEffects.Find(InHandle);
+	const FGAEffect* const * Effect = ActiveEffects.Find(InHandle);
 	if (Effect)
 	{
-		const FGAEffect* Ptr = (*Effect).Get();
+		const FGAEffect* Ptr = *Effect;
 		return Ptr->GetCurrentDuration();
 	}
 	return 0;
 }
 float FGAEffectContainer::GetCurrentTimeNormalized(const FGAEffectHandle& InHandle) const
 {
-	const TSharedPtr<FGAEffect>* Effect = ActiveEffects.Find(InHandle);
+	const FGAEffect* const * Effect = ActiveEffects.Find(InHandle);
 	if (Effect)
 	{
-		const FGAEffect* Ptr = (*Effect).Get();
+		const FGAEffect* Ptr = *Effect;
 		float CurrentDuration = Ptr->GetCurrentDuration();
 		float MaxDuration = Ptr->GetDurationTime();
 		return CurrentDuration * 1 / MaxDuration;
@@ -729,7 +729,7 @@ float FGAEffectContainer::GetEndTime(const FGAEffectHandle& InHandle) const
 
 void FGAEffectContainer::RemoveEffectInternal(const FAFPropertytHandle& InProperty, const FGAEffectHandle& InHandle)
 {
-	TSharedPtr<FGAEffect> Effect = ActiveEffects[InHandle];
+	FGAEffect* Effect = ActiveEffects[InHandle];
 	UGAGameEffectSpec* Spec = InProperty.GetSpec();
 	UClass* SpecClass = Spec->GetClass();
 	FGAEffectContext& Context = InProperty.GetContext(InHandle).GetRef();
