@@ -10,6 +10,9 @@ public class ActionRPGGame : ModuleRules
         PublicIncludePaths.AddRange(
         new string[] {
                 "AbilityFramework",
+                "OrionAnimation",
+                "OrionAnimation/Private",
+                "OrionAnimation/Public",
                 "AbilityFramework/Abilities",
                 "AbilityFramework/Attributes",
                 "AbilityFramework/Effects",
@@ -26,6 +29,9 @@ public class ActionRPGGame : ModuleRules
             PrivateIncludePaths.AddRange(
             new string[] {
                     "AbilityFramework",
+                    "OrionAnimation",
+                    "OrionAnimation/Private",
+                "OrionAnimation/Public",
                     "AbilityFramework/Abilities",
                     "AbilityFramework/Attributes",
                     "AbilityFramework/Effects",
@@ -49,6 +55,7 @@ public class ActionRPGGame : ModuleRules
             "GameplayTags",
             "AbilityFramework",
             "AssetRegistry",
+            "OrionAnimation",
             //"Sockets",
             //"OnlineSubsystemUtils",
             "ActorSequence",

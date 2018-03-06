@@ -104,6 +104,11 @@ UStructProperty* UGAAttributesBase::GetStructAttribute(const FGAAttribute& Name)
 }
 FAFAttributeBase* UGAAttributesBase::GetAttribute(const FGAAttribute& Name)
 {
+	if (!Name.IsValid())
+	{
+		UE_LOG(GameAttributesEffects, Log, TEXT("GetAttribute INVALID NAME"));
+		return nullptr;
+	}
 	UStructProperty* tempStruct = FindField<UStructProperty>(this->GetClass(), Name.AttributeName);
 
 	FAFAttributeBase* attr = nullptr;

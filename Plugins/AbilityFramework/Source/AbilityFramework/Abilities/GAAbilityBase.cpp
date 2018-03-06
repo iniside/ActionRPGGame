@@ -629,8 +629,8 @@ float UGAAbilityBase::GetCurrentActivationTime()
 	{
 		if (IAFAbilityInterface* Interface = DefaultContext.TargetInterface)
 		{
-			FGAEffect* Effect = Interface->GetEffectsComponent()->GetEffect(ActivationEffectHandle);
-			if (Effect)
+			TSharedPtr<FGAEffect> Effect = Interface->GetEffectsComponent()->GetEffect(ActivationEffectHandle);
+			if (Effect.IsValid())
 			{
 				return Effect->GetCurrentDuration();
 			}

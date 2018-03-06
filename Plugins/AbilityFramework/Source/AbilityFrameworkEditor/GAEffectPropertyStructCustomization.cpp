@@ -46,6 +46,12 @@ FGAEffectPropertyStructCustomization::~FGAEffectPropertyStructCustomization()
 
 void FGAEffectPropertyStructCustomization::CustomizeHeader(TSharedRef<IPropertyHandle> InStructPropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& StructCustomizationUtils)
 {
+	const TArray<TWeakObjectPtr<UObject>>& objs = StructCustomizationUtils.GetPropertyUtilities()->GetSelectedObjects();
+	UObject* Owner = nullptr;
+	if (objs.Num() > 0)
+	{
+		Owner = objs[0].Get();
+	}
 	StructPropertyHandle = InStructPropertyHandle;
 	TAttribute<FText> EffectName;// ();
 	EffectName.Create(TAttribute<FText>::FGetter::CreateRaw(this, &FGAEffectPropertyStructCustomization::GetClassName));
@@ -59,6 +65,7 @@ void FGAEffectPropertyStructCustomization::CustomizeHeader(TSharedRef<IPropertyH
 	TSharedPtr<IPropertyHandle> ClassInStruct = EffectPropertyHandle->GetChildHandle(TEXT("SpecClass"));
 	EffectClassWidget = MakeShareable(new FGAEffectClassStructWidget());
 	EffectClassWidget->SetHandles(EffectPropertyHandle, ClassInStruct);
+	
 	HeaderRow
 		.NameContent()
 		[
@@ -71,7 +78,7 @@ void FGAEffectPropertyStructCustomization::CustomizeHeader(TSharedRef<IPropertyH
 			+SHorizontalBox::Slot()
 			.AutoWidth()
 			[
-				EffectClassWidget->CreateEffectClassWidget()
+				EffectClassWidget->CreateEffectClassWidget(Owner)
 			]
 		];
 }

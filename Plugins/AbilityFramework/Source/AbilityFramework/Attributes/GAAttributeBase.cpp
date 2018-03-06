@@ -175,7 +175,7 @@ float FAFAttributeBase::Modify(const FGAEffectMod& ModIn, const FGAEffectHandle&
 	float returnValue = -1;
 	bool isPeriod = InProperty.GetPeriod() > 0;
 	bool IsDuration = InProperty.GetDuration() > 0;
-	if ( !isPeriod & IsDuration)
+	if ( !InProperty.GetIsInstant())
 	{
 		FGAModifier AttrMod(ModIn.AttributeMod, ModIn.Value, HandleIn);
 		AttrMod.Tags.AppendTags(InProperty.GetSpec()->AttributeTags);
@@ -237,38 +237,6 @@ void FAFAttributeBase::AddBonus(const FGAEffectMod& ModIn, const FGAEffectHandle
 	TMap<FGAEffectHandle, FGAEffectMod>& mods = Modifiers[static_cast<int32>(ModIn.AttributeMod)];
 	FGAEffectMod& modsTemp = mods.FindOrAdd(Handle);
 	modsTemp = ModIn;
-	//switch (Stacking)
-	//{
-	//	case EAFAttributeStacking::Add:
-	//	{
-	//		TMap<FGAEffectHandle, FGAEffectMod>& mods = Modifiers[static_cast<int32>(ModIn.AttributeMod)];
-	//		FGAEffectMod& modsTemp = mods.FindOrAdd(Handle);
-	//		modsTemp = ModIn;
-	//		break;
-	//	}
-	//	case EAFAttributeStacking::Override:
-	//	{
-	//		if (CheckIfModsMatch(Handle, ModIn))
-	//		{
-	//			RemoveBonus(Handle, ModIn.AttributeMod);
-	//			TMap<FGAEffectHandle, FGAEffectMod>& mods = Modifiers[static_cast<int32>(ModIn.AttributeMod)];
-	//			FGAEffectMod& modsTemp = mods.FindOrAdd(Handle);
-	//			modsTemp = ModIn;
-	//		}
-	//		break;
-	//	}
-	//	case EAFAttributeStacking::StrongerOverride:
-	//	{
-	//		if (CheckIfStronger(ModIn))
-	//		{
-	//			RemoveBonus(Handle, ModIn.AttributeMod);
-	//			TMap<FGAEffectHandle, FGAEffectMod>& mods = Modifiers[static_cast<int32>(ModIn.AttributeMod)];
-	//			FGAEffectMod& modsTemp = mods.FindOrAdd(Handle);
-	//			modsTemp = ModIn;
-	//		}
-	//		break;
-	//	}
-	//}
 	CalculateBonus();
 }
 void FAFAttributeBase::RemoveBonus(const FGAEffectHandle& Handle, EGAAttributeMod InMod)

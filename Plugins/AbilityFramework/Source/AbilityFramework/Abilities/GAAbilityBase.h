@@ -476,7 +476,15 @@ public:
 	virtual FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn) override { return Attributes->GetAttribute(AttributeIn); };
 	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) override { Attributes->RemoveBonus(AttributeIn, HandleIn, InMod); };
 	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn
-	, FGAEffectProperty& InProperty) override { Attributes->ModifyAttribute(ModIn, HandleIn, InProperty); };
+	, FGAEffectProperty& InProperty) override 
+	{ 
+		if (!Attributes)
+		{
+			UE_LOG(AFAbilities, Log, TEXT("ModifyAttribute Ability Attributes INVALID"));
+			return;
+		}
+		Attributes->ModifyAttribute(ModIn, HandleIn, InProperty); 
+	};
 	virtual FAFPredictionHandle GetPredictionHandle() override;
 	/* IAFAbilityInterface End **/
 	UFUNCTION(BlueprintPure, Category = "AbilityFramework|Abilities|Attributes")

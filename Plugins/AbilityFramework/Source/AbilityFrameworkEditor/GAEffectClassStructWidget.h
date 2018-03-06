@@ -19,6 +19,7 @@ protected:
 
 	TSharedPtr<SWindow> EffectEditorWindow;
 	UBlueprint* EditedBlueprint;
+	UObject* OuterObject;
 public:
 	FGAEffectClassStructWidget() {};
 	FGAEffectClassStructWidget(TSharedPtr<IPropertyHandle> InStructPropertyHandle,
@@ -28,7 +29,7 @@ public:
 	{};
 
 	TSubclassOf<class UGAGameEffectSpec> ParentClass;
-	TSharedRef<SWidget> CreateEffectClassWidget();
+	TSharedRef<SWidget> CreateEffectClassWidget(UObject* OwnerObject);
 	void SetHandles(TSharedPtr<IPropertyHandle> InStructPropertyHandle,
 		TSharedPtr<IPropertyHandle> InEffectPropertyHandle)
 	{

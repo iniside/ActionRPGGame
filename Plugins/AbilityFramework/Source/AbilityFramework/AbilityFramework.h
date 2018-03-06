@@ -144,3 +144,9 @@ DECLARE_LOG_CATEGORY_EXTERN(GameAttributesGeneral, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(GameAttributes, Log, All);
 
 DECLARE_LOG_CATEGORY_EXTERN(GameAttributesEffects, Log, All);
+
+
+
+DECLARE_LOG_CATEGORY_EXTERN(AFAttributes, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(AFEffects, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(AFAbilities, Log, All);

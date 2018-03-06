@@ -73,10 +73,7 @@ public:
 		float CurrentValue;
 	UPROPERTY()
 		float BonusValue;
-
-	//UPROPERTY(EditAnywhere)
-	//	EAFAttributeStacking Stacking;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Value")
 		TSubclassOf<class UGAAttributeExtension> ExtensionClass;
 
@@ -103,7 +100,6 @@ public:
 	void AddBonus(const FGAEffectMod& ModIn, const FGAEffectHandle& Handle);
 	void RemoveBonus(const FGAEffectHandle& Handle, EGAAttributeMod InMod);
 	void SetExtensionClass(TSubclassOf<class UGAAttributeExtension> InExtensionClass) { ExtensionClass = InExtensionClass; };
-	//EAFAttributeStacking GetStacking() const { return Stacking; }
 };
 template<>
 struct TStructOpsTypeTraits<FAFAttributeBase> : public TStructOpsTypeTraitsBase2<FAFAttributeBase>

@@ -297,8 +297,9 @@ FGAEffectClassStructWidget::~FGAEffectClassStructWidget()
 
 }
 
-TSharedRef<SWidget> FGAEffectClassStructWidget::CreateEffectClassWidget()
+TSharedRef<SWidget> FGAEffectClassStructWidget::CreateEffectClassWidget(UObject* OwnerObject)
 {
+	OuterObject = OwnerObject;
 	//TAttribute<FText> EffectName;// ();
 	//EffectName.Create(TAttribute<FText>::FGetter::CreateRaw(this, &FGAEffectClassStructWidget::GetClassName));
 	return SNew(SHorizontalBox)
@@ -563,32 +564,53 @@ FReply FGAEffectClassStructWidget::MakeNewBlueprint()
 
 		// Pre-generate a unique asset name to fill out the path picker dialog with.
 		FString OuterName;
+		FString OuterName2;
+
 		if (StructPropertyHandle.IsValid())
 		{
 			UProperty* prop = StructPropertyHandle->GetProperty();
 			OuterName = prop->GetOuter()->GetName();
 			OuterName = prop->GetPathName();
+			OuterName = StructPropertyHandle->GeneratePathToProperty();
 		}
-		FString NewNameSuggestion = FString::Printf(TEXT("AFE_%s_"), *OuterName);
 		
+		
+		UPackage* OuterMost = OuterObject->GetOutermost();
+		FString AssetName = OuterObject->GetName();
+		FString Path = OuterMost->GetFullName();
+		FJsonSerializableArray OutArray;
+		Path = Path.RightChop(7);
+		Path.ParseIntoArrayWS(OutArray, TEXT("/"));
+		FString OutAsset = OutArray[OutArray.Num() - 1];
+		OutArray.RemoveAt(OutArray.Num() - 1);
+	//	OutArray.RemoveAt(0);
+		FString OutPath = "/";
+		for (const FString& str : OutArray)
+		{
+			OutPath += str;
+			OutPath += "/";
+		}
+		OutPath += FString::Printf(TEXT("E_%s_"), *OutAsset);
 
+		FString NewNameSuggestion = "";// FString::Printf(TEXT("E_%s_"), *OutAsset);
 		UClass* BlueprintClass = UGAGameEffectSpec::StaticClass();
 		UClass* BlueprintGeneratedClass = UGAEffectBlueprint::StaticClass();
 
 		IKismetCompilerInterface& KismetCompilerModule = FModuleManager::LoadModuleChecked<IKismetCompilerInterface>("KismetCompiler");
 		KismetCompilerModule.GetBlueprintTypesForClass(UGAGameEffectSpec::StaticClass(), BlueprintClass, BlueprintGeneratedClass);
 
-		FString PackageName = FString(TEXT("/Game/Blueprints/")) + NewNameSuggestion;
+		FString PackageName = OutPath + NewNameSuggestion;
+		FString OutPackageName;
 		FString Name;
 		FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
-		AssetToolsModule.Get().CreateUniqueAssetName(PackageName, TEXT(""), PackageName, Name);
+		AssetToolsModule.Get().CreateUniqueAssetName(PackageName, NewNameSuggestion, OutPackageName, Name);
 
 		
 
 		TSharedPtr<SDlgPickAssetPath> PickAssetPathWidget =
 			SNew(SDlgPickAssetPath)
 			.Title(FText::FromString("Create New Effect"))
-			.DefaultAssetPath(FText::FromString(PackageName));
+			.DefaultAssetPath(FText::FromString(OutPath));
 		UBlueprint* Blueprint = nullptr;
 		if (EAppReturnType::Ok == PickAssetPathWidget->ShowModal())
 		{

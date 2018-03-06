@@ -6,6 +6,11 @@ DEFINE_LOG_CATEGORY(AbilityFramework);
 DEFINE_LOG_CATEGORY(GameAttributesGeneral);
 DEFINE_LOG_CATEGORY(GameAttributes);
 DEFINE_LOG_CATEGORY(GameAttributesEffects);
+
+DEFINE_LOG_CATEGORY(AFAttributes);
+DEFINE_LOG_CATEGORY(AFEffects);
+DEFINE_LOG_CATEGORY(AFAbilities);
+
 FAFEffectTimerManager* FAFEffectTimerManager::Instance = nullptr;
 
 DECLARE_CYCLE_STAT(TEXT("EffectTimer.Run"), STAT_EffectTimerRun, STATGROUP_EffectTimer);

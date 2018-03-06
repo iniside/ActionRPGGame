@@ -583,25 +583,6 @@ struct FGAEffectMod
 	inline bool HasAllTagsIncludingChildren(const FGameplayTagContainer& TagsIn) const
 	{
 		return TagsIn.HasAll(AttributeTags);
-//		bool has = true;
-//		TArray<FGameplayTag> GameplayTags;
-//		AttributeTags.GetGameplayTagArray(GameplayTags);
-//		for (const FGameplayTag& OtherTag : TagsIn)
-//		{
-//			/*for (const FGameplayTag& ChildTag : AttributeTags)
-//			{
-//				FGameplayTagContainer test = UGameplayTagsManager::Get().RequestGameplayTagChildren(ChildTag);
-//*/
-//				if (!ChildTags.HasAnyExact(TagsIn))
-//				{
-//					if (!GameplayTags.Contains(OtherTag))
-//					{
-//						has = false;
-//					}
-//				}
-//			//}
-//		}
-//		return has;
 	}
 	const bool operator==(const FGAEffectMod& Other) const
 	{

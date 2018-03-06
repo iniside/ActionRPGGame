@@ -9,7 +9,50 @@
 #include "AFEffectsComponent.h"
 #include "AFAbilityComponent.h"
 #include "AFAbilityInterface.h"
+#include "OrionInterface.h"
+#include "OrionAnimComponent.h"
 #include "ARCharacter.generated.h"
+
+UENUM(BlueprintType)
+enum class EEightCardinalDirection : uint8
+{
+	N = 0,
+	SW = 1,
+	E = 2,
+	NW = 3,
+	S = 4,
+	NE = 5,
+	W = 6,
+	SE = 7
+};
+
+UENUM(BlueprintType)
+enum class EFourCardinalDirection : uint8
+{
+	N = 0,
+	E = 1,
+	S = 2,
+	W = 3
+};
+
+UENUM(BlueprintType)
+enum class EPivotDirectionChange : uint8
+{
+	NtoE = 0,
+	NtoW = 1,
+	NToS = 2,
+};
+
+USTRUCT(BlueprintType)
+struct FCardinalDirection
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+		EFourCardinalDirection CaridnalDirections;
+
+	EEightCardinalDirection HelperDirections;
+};
 
 USTRUCT(BlueprintType)
 struct FARCameraTransform
@@ -29,7 +72,7 @@ struct WeaponSocket
 	static const FName EquipedMainWeapon;
 };
 UCLASS(config=Game)
-class AARCharacter : public ACharacter, public IAFAbilityInterface
+class AARCharacter : public ACharacter, public IAFAbilityInterface, public IOrionInterface
 {
 	GENERATED_BODY()
 
@@ -65,15 +108,59 @@ class AARCharacter : public ACharacter, public IAFAbilityInterface
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons", meta = (AllowPrivateAccess = "true"))
 		UChildActorComponent* WeaponEquipedMain;
 
+
+	
 public:
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Player Character Camera")
 		FARCameraTransform CameraTransform;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Character Animation")
+		bool bStopDistancePredicted;
+	UPROPERTY(BlueprintReadOnly, Category = "Character Animation")
+		bool bStartedLocomotion;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Character Animation")
+		EEightCardinalDirection EigthDirections;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Character Animation")
+		EFourCardinalDirection OldFourDirections;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Character Animation")
+		EFourCardinalDirection FourDirections;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Character Animation")
+		float MovingAngle;
+	UPROPERTY(BlueprintReadOnly, Category = "Character Animation")
+		float OrientN;
+	UPROPERTY(BlueprintReadOnly, Category = "Character Animation")
+		float OrientS;
+	UPROPERTY(BlueprintReadOnly, Category = "Character Animation")
+		float OrientE;
+	UPROPERTY(BlueprintReadOnly, Category = "Character Animation")
+		float OrientW;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Animation")
+		float OrientInterpolationSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Animation")
+		float OrientationDOT;
+
+	float ForwardDirection;
+	float LateralDirection;
+	UPROPERTY(BlueprintReadOnly, Category = "Character Animation")
+		float CurrentOrient;
+	float OldOrient;
 public:
-	AARCharacter();
+	AARCharacter(const FObjectInitializer& ObjectInitializer);
+	float GetAnimOrient() final;
+	EFCardinalDirection GetCardianlDirection() final;
+	float GetAnimOrientN() final;
+	float GetAnimOrientE() final;
+	float GetAnimOrientS() final;
+	float GetAnimOrientW() final;
 
 	virtual void BeginPlay() override;
-
+	virtual void Tick(float DeltaSeconds) override;
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseTurnRate;

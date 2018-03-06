@@ -594,7 +594,10 @@ public:
 	void InitializeIfNotInitialized(const FGAEffectContext& InContext
 	, TSubclassOf<UGAGameEffectSpec> EffectClass);
 
-
+	bool GetIsInstant() const
+	{
+		return bInstant;
+	}
 	inline float GetPeriod() const
 	{
 		return Period;
@@ -1156,7 +1159,7 @@ public:
 	
 	TMap<FObjectKey, TArray<FGAEffectHandle>> EffectByClass;
 
-	TMap<FGAEffectHandle, FGAEffect*> ActiveEffects;
+	TMap<FGAEffectHandle, TSharedPtr<FGAEffect>> ActiveEffects;
 	/* 
 		Contains effects with infinite duration.
 		Infinite effects are considred to be special case, where they can only be self spplied
@@ -1251,7 +1254,7 @@ public:
 	float GetCurrentTimeNormalized(const FGAEffectHandle& InHandle) const;
 	float GetEndTime(const FGAEffectHandle& InHandle) const;
 
-	FGAEffect* GetEffect(const FGAEffectHandle& InHandle)
+	TSharedPtr<FGAEffect> GetEffect(const FGAEffectHandle& InHandle)
 	{
 		return ActiveEffects[InHandle];
 	}

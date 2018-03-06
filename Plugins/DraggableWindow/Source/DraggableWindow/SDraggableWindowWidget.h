@@ -55,8 +55,8 @@ public:
 	class FBoxSlot : public TSupportsOneChildMixin<FBoxSlot>, public TSupportsContentAlignmentMixin<FBoxSlot>, public TSupportsContentPaddingMixin<FBoxSlot>
 	{
 	public:
-		FBoxSlot()
-			: TSupportsOneChildMixin<FBoxSlot>()
+		FBoxSlot(SWidget* InOwner)
+			: TSupportsOneChildMixin<FBoxSlot>(nullptr)
 			, TSupportsContentAlignmentMixin<FBoxSlot>(HAlign_Fill, VAlign_Fill)
 		{
 		}
@@ -85,6 +85,9 @@ protected:
 
 	FBoxSlot ChildSlot;
 public:
+	SWindowBox()
+		: ChildSlot(this)
+	{}
 	void Construct(const FArguments& InArgs);
 		/** See WidthOverride attribute */
 	void SetWidthOverride(float InWidthOverride);
