@@ -402,14 +402,16 @@ struct TStructOpsTypeTraits< FAFContextHandle > : public TStructOpsTypeTraitsBas
 	};
 };
 
-
+/*
+	
+*/
 USTRUCT(BlueprintType)
 struct ABILITYFRAMEWORK_API FAFEffectSpec
 {
 	GENERATED_BODY()
 private:
 	UPROPERTY()
-		class UGAEffectExtension* Extension;
+		class UGAEffectExtension* Extension; //week ptr ?
 
 	TSubclassOf<UGAGameEffectSpec> SpecClass;
 public:
@@ -423,10 +425,7 @@ public:
 		: Extension(nullptr)
 	{}
 
-	FAFEffectSpec(TSubclassOf<UGAGameEffectSpec> InSpecClass)
-		: Extension(nullptr)
-		, SpecClass(InSpecClass)
-	{}
+	FAFEffectSpec(const FAFContextHandle& Context, TSubclassOf<UGAGameEffectSpec> InSpecClass);
 
 	void OnApplied();
 	void OnExpired();

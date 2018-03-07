@@ -143,7 +143,7 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(
 	
 	if (!bReusedSpec)
 	{
-		FAFEffectSpec* EffectSpec = new FAFEffectSpec(InEffect.GetClass());
+		FAFEffectSpec* EffectSpec = new FAFEffectSpec(Context, InEffect.GetClass());
 		AddTagsToEffect(EffectSpec);
 		Params.EffectSpec = FAFEffectSpecHandle::Generate(EffectSpec);
 	}

@@ -46,6 +46,12 @@ void FAFEffectSpec::OnExecuted()
 		Extension->NativeOnEffectExecuted();
 	}
 }
+FAFEffectSpec::FAFEffectSpec(const FAFContextHandle& Context, TSubclassOf<UGAGameEffectSpec> InSpecClass)
+	: SpecClass(InSpecClass)
+{
+	Extension = NewObject<UGAEffectExecution>(Context.GetPtr()->Target.Get(), InSpecClass.GetDefaultObject()->Extension);
+}
+
 float FAFEffectSpec::GetFloatFromAttributeMagnitude(
 	  const FGAMagnitude& AttributeIn
 	, const FGAEffectContext& InContext) const
