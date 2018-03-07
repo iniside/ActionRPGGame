@@ -5,7 +5,10 @@
 
 
 #include "GABlueprintLibrary.h"
+
 #include "AFAbilityInterface.h"
+#include "GAGameEffect.h"
+#include "AFEffectCustomApplication.h"
 
 #include "GAEffectExtension.h"
 
@@ -64,7 +67,12 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(
 		UE_LOG(GameAttributesEffects, Error, TEXT("UGABlueprintLibrary::ApplyEffect Effects must be applied trough Ability"));
 		return FGAEffectHandle();
 	}
-	
+
+	IAFAbilityInterface* TargetInterface = Cast<IAFAbilityInterface>(Target);
+	if (!InEffect.GetClass().GetDefaultObject()->Application.GetDefaultObject()->CanApply(TargetInterface, InEffect.GetClass()))
+	{
+		return FGAEffectHandle();
+	}
 	bool bReusedParams = false;
 	bool bPeriodicEffect = false;
 	bool bReusedSpec = false;
@@ -96,7 +104,9 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(
 	}
 	
 	InEffect.InitializeIfNotInitialized(Context.GetRef());
+	UAFEffectsComponent* Target2 = Context.GetRef().GetTargetEffectsComponent();
 	
+
 	if ((InEffect.GetDuration() > 0 || InEffect.GetPeriod() > 0))
 	{
 		bPeriodicEffect = true;
@@ -108,7 +118,7 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(
 		return FGAEffectHandle();
 	}
 		
-	UAFEffectsComponent* Target2 = Context.GetRef().GetTargetEffectsComponent();
+	
 	if (!Target2->HaveEffectRquiredTags(InEffect.GetSpec()->RequiredTags))
 	{
 		return FGAEffectHandle();

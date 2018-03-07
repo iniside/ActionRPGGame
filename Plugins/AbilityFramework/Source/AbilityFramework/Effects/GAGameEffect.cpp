@@ -812,3 +812,13 @@ void FGAEffectContainer::RemoveEffectInternal(const FAFPropertytHandle& InProper
 	}
 	ActiveEffects.Remove(InHandle);
 }
+
+bool FGAEffectContainer::IsEffectActive(TSubclassOf<UGAGameEffectSpec> EffectClass)
+{
+	FObjectKey EffectKey(EffectClass);
+	if (EffectByClass.Contains(EffectKey))
+	{
+		return true;
+	}
+	return false;
+}

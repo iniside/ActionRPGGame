@@ -28,6 +28,11 @@ public:
 		, const FAFEffectParams& Params
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
+	virtual bool CanApply(class IAFAbilityInterface* Target, TSubclassOf<UGAGameEffectSpec> EffectClass)
+	{
+		return true;
+	}
+
 	virtual bool ShowPeriod()
 	{
 		return false;

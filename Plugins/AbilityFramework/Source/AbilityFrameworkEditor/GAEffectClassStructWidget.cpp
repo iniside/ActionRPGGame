@@ -163,7 +163,7 @@ private:
 		// Fill in options
 		FClassViewerInitializationOptions Options;
 		Options.Mode = EClassViewerMode::ClassPicker;
-
+		Options.bShowDisplayNames = true;
 		// Only allow parenting to base blueprints.
 		Options.bIsBlueprintBaseOnly = true;
 

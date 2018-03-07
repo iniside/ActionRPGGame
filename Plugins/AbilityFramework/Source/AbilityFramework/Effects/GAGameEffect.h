@@ -454,6 +454,11 @@ public:
 	float GetDuration(const FGAEffectContext& InContext);
 	float GetPeriod(const FGAEffectContext& InContext);
 
+	const TSubclassOf<UGAGameEffectSpec>& GetEffectClass()
+	{
+		return SpecClass;
+	}
+
 };
 USTRUCT(BlueprintType)
 struct FAFEffectSpecHandle
@@ -1258,6 +1263,7 @@ public:
 	{
 		return ActiveEffects[InHandle];
 	}
+	bool IsEffectActive(TSubclassOf<UGAGameEffectSpec> EffectClass);
 private:
 	void RemoveEffectInternal(const FAFPropertytHandle& InProperty, const FGAEffectHandle& InHandle);
 };

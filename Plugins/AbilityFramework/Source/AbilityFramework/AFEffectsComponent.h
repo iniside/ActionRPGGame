@@ -190,6 +190,13 @@ public:
 	/* Counted Tag Container Wrapper Start */
 
 	
+	/* Game Effect Container WRAPPER */
+	bool IsEffectActive(TSubclassOf<UGAGameEffectSpec> EffectClass)
+	{
+		return GameEffectContainer.IsEffectActive(EffectClass);
+	}
+
+	/* Game Effect Container WRAPPER */
 
 	/*Network Functions - BEGIN */
 protected:
