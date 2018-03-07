@@ -7,7 +7,7 @@
 #include "AFAtributeDurationUnique.generated.h"
 
 /**
- * Adds New duration Effect.
+ * Adds New Unique duration Effect. If effect of the same class is already applied to target, new effect will be ignored.
  */
 UCLASS(meta = (DisplayName = "Duration Add Unique"))
 class ABILITYFRAMEWORK_API UAFAtributeDurationUnique : public UAFEffectCustomApplication
