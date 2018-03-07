@@ -218,6 +218,7 @@ void UAFEffectsComponent::RemoveEffect(const FAFPropertytHandle& InProperty
 	if (!InProperty.IsValid())
 	{
 		UE_LOG(AFEffects, Log, TEXT("RemoveEffect - Trying to Remove invalid effect."));
+		return;
 	}
 	//if (GetOwnerRole() == ENetRole::ROLE_Authority
 	//	|| GetOwner()->GetNetMode() == ENetMode::NM_Standalone)
