@@ -242,7 +242,7 @@ void UGAAbilityBase::NativeOnBeginAbilityActivation(bool bApplyActivationEffect)
 
 void UGAAbilityBase::OnCooldownEffectExpired()
 {
-	UE_LOG(AbilityFramework, Log, TEXT("Cooldown expired In Ability: %s"), *GetName());
+	UE_LOG(AFAbilities, Log, TEXT("Cooldown expired In Ability: %s"), *GetName());
 
 	if (CooldownEffectHandle.IsValid())
 	{
@@ -270,13 +270,13 @@ void UGAAbilityBase::NativeOnAbilityActivationCancel()
 }
 void UGAAbilityBase::OnActivationEffectPeriod(FGAEffectHandle InHandle)
 {
-	UE_LOG(AbilityFramework, Log, TEXT("Ability Activation Effect Period In Ability: %s"), *GetName());
+	UE_LOG(AFAbilities, Log, TEXT("Ability Activation Effect Period In Ability: %s"), *GetName());
 
 	OnPeriod();
 }
 void UGAAbilityBase::FinishAbility()
 {
-	UE_LOG(AbilityFramework, Log, TEXT("FinishExecution in ability %s"), *GetName());
+	UE_LOG(AFAbilities, Log, TEXT("FinishExecution in ability %s"), *GetName());
 	OnAbilityFinished();
 	NativeFinishAbility();
 	AbilityState = EAFAbilityState::Waiting;
@@ -284,7 +284,7 @@ void UGAAbilityBase::FinishAbility()
 }
 void UGAAbilityBase::NativeFinishAbility()
 {
-	UE_LOG(AbilityFramework, Log, TEXT("NativeFinishExecution in ability %s"), *GetName());
+	UE_LOG(AFAbilities, Log, TEXT("NativeFinishExecution in ability %s"), *GetName());
 	AbilityComponent->ExecutingAbility = nullptr;
 	OnConfirmDelegate.Clear();
 	OnConfirmDelegate.RemoveAll(this);

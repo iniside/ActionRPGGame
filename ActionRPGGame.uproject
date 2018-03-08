@@ -186,6 +186,11 @@
 			"Name": "CustomAnimNode",
 			"Enabled": true,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/8901af6d589b40b68d763b44c9ced66c"
+		},
+		{
+			"Name": "Substance",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/2f6439c2f9584f49809d9b13b16c2ba4"
 		}
 	],
 	"TargetPlatforms": [

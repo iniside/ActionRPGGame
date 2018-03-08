@@ -2,6 +2,8 @@
 //#include "GAGlobalTypes.h"
 #include "GAEffectGlobalTypes.h"
 #include "GameplayTagContainer.h"
+#include "UObject/ObjectMacros.h"
+#include "UObject/GCObject.h"
 #include "GAGameEffect.generated.h"
 
 DECLARE_STATS_GROUP(TEXT("GameEffect"), STATGROUP_GameEffect, STATCAT_Advanced);
@@ -405,13 +407,12 @@ struct TStructOpsTypeTraits< FAFContextHandle > : public TStructOpsTypeTraitsBas
 /*
 	
 */
-USTRUCT(BlueprintType)
-struct ABILITYFRAMEWORK_API FAFEffectSpec
+
+struct ABILITYFRAMEWORK_API FAFEffectSpec : public FGCObject
 {
-	GENERATED_BODY()
 private:
-	UPROPERTY()
-		class UGAEffectExtension* Extension; //week ptr ?
+	FAFContextHandle Context;
+	UGAEffectExtension* Extension; //week ptr ?
 
 	TSubclassOf<UGAGameEffectSpec> SpecClass;
 public:
@@ -425,7 +426,7 @@ public:
 		: Extension(nullptr)
 	{}
 
-	FAFEffectSpec(const FAFContextHandle& Context, TSubclassOf<UGAGameEffectSpec> InSpecClass);
+	FAFEffectSpec(const FAFContextHandle& InContext, TSubclassOf<UGAGameEffectSpec> InSpecClass);
 
 	void OnApplied();
 	void OnExpired();
@@ -456,6 +457,11 @@ public:
 	const TSubclassOf<UGAGameEffectSpec>& GetEffectClass()
 	{
 		return SpecClass;
+	}
+
+	virtual void AddReferencedObjects(FReferenceCollector& Collector) override
+	{
+		Collector.AddReferencedObject(Extension, Context.GetPtr()->Target.Get());
 	}
 
 };
@@ -522,11 +528,9 @@ struct TStructOpsTypeTraits< FAFEffectSpecHandle > : public TStructOpsTypeTraits
 */
 
 struct FAFEffectParams;
-USTRUCT(BlueprintType)
+
 struct ABILITYFRAMEWORK_API FGAEffectProperty
 {
-	GENERATED_BODY()
-
 protected:
 	
 	TWeakObjectPtr<class UAFEffectApplicationRequirement> ApplicationRequirement;

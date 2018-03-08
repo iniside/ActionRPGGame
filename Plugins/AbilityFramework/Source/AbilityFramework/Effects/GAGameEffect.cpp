@@ -46,9 +46,10 @@ void FAFEffectSpec::OnExecuted()
 		Extension->NativeOnEffectExecuted();
 	}
 }
-FAFEffectSpec::FAFEffectSpec(const FAFContextHandle& Context, TSubclassOf<UGAGameEffectSpec> InSpecClass)
+FAFEffectSpec::FAFEffectSpec(const FAFContextHandle& InContext, TSubclassOf<UGAGameEffectSpec> InSpecClass)
 	: SpecClass(InSpecClass)
 {
+	Context = InContext;
 	Extension = NewObject<UGAEffectExtension>(Context.GetPtr()->Target.Get(), InSpecClass.GetDefaultObject()->Extension);
 }
 
