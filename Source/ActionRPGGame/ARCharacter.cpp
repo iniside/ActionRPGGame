@@ -56,7 +56,9 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
+	//CameraBoom->SetupAttachment(GetMesh());
+	CameraBoom->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("headSocket"));
+	
 	CameraBoom->TargetArmLength = 250; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 	CameraBoom->SocketOffset = FVector(0, 30, 95);
