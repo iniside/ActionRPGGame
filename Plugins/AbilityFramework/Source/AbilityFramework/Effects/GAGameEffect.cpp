@@ -50,6 +50,7 @@ FAFEffectSpec::FAFEffectSpec(const FAFContextHandle& InContext, TSubclassOf<UGAG
 	: SpecClass(InSpecClass)
 {
 	Context = InContext;
+	Extension = nullptr;
 	if(InSpecClass.GetDefaultObject()->Extension)
 		Extension = NewObject<UGAEffectExtension>(Context.GetPtr()->Target.Get(), InSpecClass.GetDefaultObject()->Extension);
 }
