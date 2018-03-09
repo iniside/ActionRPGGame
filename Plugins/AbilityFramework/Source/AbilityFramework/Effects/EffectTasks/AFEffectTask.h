@@ -29,15 +29,17 @@ public:
 
 		T* MyObj = NewObject<T>(WorldContextObject);
 		UGAEffectExtension* ThisAbility = CastChecked<UGAEffectExtension>(WorldContextObject);
-	/*	if (UGAAbilityTask* CachedTask = ThisAbility->GetAbilityTask(InTaskName))
+		if (UAFEffectTask** CachedTask = ThisAbility->Tasks.Find(InTaskName))
 		{
-			return Cast<T>(CachedTask);
-		}*/
+			return Cast<T>(*CachedTask);
+		}
 		//MyObj->Effect = ThisAbility;
-		//MyObj->EffectsComponent = ThisAbility->OwningComponent;
-		//MyObj->InitTask(*ThisAbility, ThisAbility->GetGameplayTaskDefaultPriority());
-		//MyObj->InstanceName = InstanceName;
+		MyObj->EffectsComponent = ThisAbility->OwningComponent;
+		MyObj->InitTask(*ThisAbility, ThisAbility->GetGameplayTaskDefaultPriority());
+		MyObj->InstanceName = InstanceName;
 		//ThisAbility->AddAbilityTask(InTaskName, MyObj);
+		ThisAbility->Tasks.Add(InTaskName, MyObj);
+		//ThisAbility->Dupa.Add(MyObj);
 		return MyObj;
 	}
 

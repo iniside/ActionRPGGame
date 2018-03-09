@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameplayTasksComponent.h"
 #include "GameplayTags.h"
 #include "GameplayTagAssetInterface.h"
 
@@ -16,10 +17,10 @@
 #include "AFEffectsComponent.generated.h"
 
 DECLARE_DELEGATE(FAFEffectEvent);
-DECLARE_MULTICAST_DELEGATE_OneParam(FAFEventDelegate, FAFEventData);
+DECLARE_DELEGATE_OneParam(FAFEventDelegate, FAFEventData);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class ABILITYFRAMEWORK_API UAFEffectsComponent : public UActorComponent
+class ABILITYFRAMEWORK_API UAFEffectsComponent : public UGameplayTasksComponent//public UActorComponent
 {
 	GENERATED_BODY()
 private:
@@ -43,7 +44,7 @@ private:
 
 	TMap<FGameplayTag, FAFEffectEvent> OnEffectApplyToTarget;
 	TMap<FGameplayTag, FAFEffectEvent> OnEffectApplyToSelf;
-	TMap<FGameplayTag, FAFEventDelegate> EffectEvents;
+	TMap<FGameplayTag, TArray<FAFEventDelegate>> EffectEvents;
 
 	TMap<FGAEffectHandle, FGAEffectProperty*> PropertyByHandle;
 	TMap<FGAEffectHandle, FAFCueHandle> EffectToCue;
@@ -52,7 +53,7 @@ private:
 
 public:	
 	// Sets default values for this component's properties
-	UAFEffectsComponent();
+	UAFEffectsComponent(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	// Called when the game starts
@@ -136,7 +137,10 @@ protected:
 	void RemoveEffectEvent(const FGameplayTag& InEventTag);
 	bool IsEffectActive(const FGAEffectHandle& InHandle) const;
 
-	FAFEventDelegate& GetTagEvent(FGameplayTag TagIn);
+
+	void AddEvent(const FGameplayTag& EventTag, FAFEventDelegate& EventDelegate);
+	void RemoveEvent(const FGameplayTag& EventTag, const FDelegateHandle& EventDelegate);
+	TArray<FAFEventDelegate>& GetTagEvent(FGameplayTag TagIn);
 	void NativeTriggerTagEvent(FGameplayTag TagIn, const FAFEventData& InEventData);
 public:
 	bool DenyEffectApplication(const FGameplayTagContainer& InTags);

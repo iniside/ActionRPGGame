@@ -51,8 +51,11 @@ FAFEffectSpec::FAFEffectSpec(const FAFContextHandle& InContext, TSubclassOf<UGAG
 {
 	Context = InContext;
 	Extension = nullptr;
-	if(InSpecClass.GetDefaultObject()->Extension)
+	if (InSpecClass.GetDefaultObject()->Extension)
+	{
 		Extension = NewObject<UGAEffectExtension>(Context.GetPtr()->Target.Get(), InSpecClass.GetDefaultObject()->Extension);
+		Extension->OwningComponent = Context.GetPtr()->TargetInterface->GetEffectsComponent();
+	}
 }
 
 float FAFEffectSpec::GetFloatFromAttributeMagnitude(
@@ -433,7 +436,9 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(
 		}
 		
 	}
-	
+	//right place ?
+	Params.GetSpec().OnApplied();
+
 	FGAEffectContext& InContext = Params.GetContext();
 
 	if (InProperty.GetSpec()->IfHaveTagEffect.RequiredTag.IsValid()

@@ -85,7 +85,7 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(
 	FAFEffectSpecHandle EffectSpecHandle;
 	
 	//only reused Spec and Context if effect is instant ?
-	if (Handle.IsValid())
+	if (Handle.IsValid() && !bPeriodicEffect)
 	{
 		FAFContextHandle ExistingContext = InEffect.GetContext(Handle);
 		if (ExistingContext.IsValid())

@@ -2,6 +2,7 @@
 
 #include "AbilityFramework.h"
 #include "../../AFAbilityInterface.h"
+#include "AFEffectsComponent.h"
 #include "AFEffectTask_EffectEvent.h"
 
 
@@ -13,13 +14,13 @@ UAFEffectTask_EffectEvent::UAFEffectTask_EffectEvent(const FObjectInitializer& O
 
 }
 
-UAFEffectTask_EffectEvent* UAFEffectTask_EffectEvent::ListenEffectEvent(UObject* OwningExtension, FGameplayTag Tag, AActor* OptionalExternalTarget, bool OnlyTriggerOnce)
+UAFEffectTask_EffectEvent* UAFEffectTask_EffectEvent::ListenEffectEvent(UObject* OwningExtension, FName TaskName, FGameplayTag Tag, AActor* OptionalExternalTarget, bool OnlyTriggerOnce)
 {
-	auto MyObj = NewEffectTask<UAFEffectTask_EffectEvent>(OwningExtension);
+	auto MyObj = NewEffectTask<UAFEffectTask_EffectEvent>(OwningExtension, TaskName);
 	MyObj->Tag = Tag;
 	MyObj->SetExternalTarget(OptionalExternalTarget);
 	MyObj->OnlyTriggerOnce = OnlyTriggerOnce;
-
+	
 	return MyObj;
 }
 
@@ -28,7 +29,10 @@ void UAFEffectTask_EffectEvent::Activate()
 	UAFEffectsComponent* ASC = GetTargetASC();
 	if (ASC)
 	{
-		MyHandle = ASC->EffectEvents.FindOrAdd(Tag).AddUObject(this, &UAFEffectTask_EffectEvent::GameplayEventCallback);
+		//(this, &UAFEffectTask_EffectEvent::GameplayEventCallback
+		FAFEventDelegate Delegate = FAFEventDelegate::CreateUObject(this, &UAFEffectTask_EffectEvent::GameplayEventCallback);
+		MyHandle = Delegate.GetHandle();
+		ASC->AddEvent(Tag, Delegate);
 	}
 
 	Super::Activate();
@@ -75,7 +79,7 @@ void UAFEffectTask_EffectEvent::OnDestroy(bool AbilityEnding)
 	UAFEffectsComponent* ASC = GetTargetASC();
 	if (ASC && MyHandle.IsValid())
 	{
-		ASC->EffectEvents.FindOrAdd(Tag).Remove(MyHandle);
+		ASC->RemoveEvent(Tag, MyHandle);
 	}
 
 	Super::OnDestroy(AbilityEnding);
