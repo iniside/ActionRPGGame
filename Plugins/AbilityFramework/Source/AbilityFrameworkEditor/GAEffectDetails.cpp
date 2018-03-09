@@ -107,5 +107,6 @@ void FGAEffectDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 }
 void FGAEffectDetails::OnDurationPolicyChange()
 {
-	MyDetailLayout->ForceRefreshDetails();
+	if(MyDetailLayout)
+		MyDetailLayout->ForceRefreshDetails();
 }

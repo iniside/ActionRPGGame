@@ -156,8 +156,6 @@ void UAFEffectsComponent::ExecuteEffect(FGAEffectHandle HandleIn
 		, Context
 		, HandleIn);
 
-	//execute period regardless if this periodic effect ? Or maybe change name OnEffectExecuted ?
-
 	EffectSpec.OnExecuted();
 	ExecuteEffectEvent(Property.GetSpec()->OnPeriodEvent);
 
@@ -165,7 +163,7 @@ void UAFEffectsComponent::ExecuteEffect(FGAEffectHandle HandleIn
 	if (CueHandle)
 		MulticastExecuteEffectCue(*CueHandle);
 
-	Property.EffectExecution(HandleIn, Mod, Params, Modifier);
+	Property.ExecuteEffect(HandleIn, Mod, Params, Modifier);
 	PostExecuteEffect();
 }
 

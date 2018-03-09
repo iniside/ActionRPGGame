@@ -18,6 +18,9 @@ void FAFEffectCustomizationCommon::CreateMagnitudeLayout(IDetailLayoutBuilder& D
 	TSharedPtr<IPropertyHandle>& InProperty, FName InCategory)
 {
 	IDetailCategoryBuilder& DurationCategory = DetailLayout.EditCategory(InCategory);
+	//DurationCategory.
+	//DurationCategory.HeaderContent(SNew(STextBlock).Text(FText::FromName(InCategory)));
+	//IDetailGroup& DetailGroup = DurationCategory.AddGroup(InCategory,FText::FromName(InCategory), false, true);
 
 	TSharedPtr<IPropertyHandle> DurationCalcTypeProp = InProperty->GetChildHandle("CalculationType");
 	

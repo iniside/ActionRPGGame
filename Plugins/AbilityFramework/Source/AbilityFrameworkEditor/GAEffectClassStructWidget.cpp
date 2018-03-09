@@ -711,7 +711,8 @@ FReply FGAEffectClassStructWidget::OnEditButtonClicked()
 			}
 			else if (Blueprint->ParentClass && Blueprint->ParentClass->IsChildOf(UGAGameEffectSpec::StaticClass()))
 			{
-				DetailView->RegisterInstancedCustomPropertyLayout(UGAGameEffectSpec::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FGAEffectDetails::MakeInstance));
+			//	DetailView->UnregisterInstancedCustomPropertyLayout(UGAGameEffectSpec::StaticClass());
+			//	DetailView->RegisterInstancedCustomPropertyLayout(UGAGameEffectSpec::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FGAEffectDetails::MakeInstance));
 			}
 		}
 		if(!Class)
