@@ -178,7 +178,7 @@ void FGAEffectProperty::ApplyExecute(const FGAEffectHandle& InHandle
 	Application->ApplyExecute(InHandle, InParams, Modifier);
 }
 
-void FGAEffectProperty::EffectExecution(
+void FGAEffectProperty::ExecuteEffect(
 	const FGAEffectHandle& HandleIn
 	, FGAEffectMod& ModIn
 	, const FAFEffectParams& InParams

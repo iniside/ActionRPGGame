@@ -588,7 +588,7 @@ public:
 		, const FAFEffectParams& InParams
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
-	void EffectExecution(const FGAEffectHandle& HandleIn
+	void ExecuteEffect(const FGAEffectHandle& HandleIn
 		, FGAEffectMod& ModIn
 		, const FAFEffectParams& InParams
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
