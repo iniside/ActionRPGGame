@@ -446,19 +446,24 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(
 		OwningComponent->TriggerAppliedEvent(Event, EventData);
 
 	FGAEffectContext& InContext = Params.GetContext();
-
-	if (InProperty.GetSpec()->IfHaveTagEffect.RequiredTag.IsValid()
-		&& InContext.GetTargetEffectsComponent()->HasTag(InProperty.GetSpec()->IfHaveTagEffect.RequiredTag))
+	TArray<FAFConditionalEffect>& Effects = InProperty.GetSpec()->IfHaveTagEffect.Effects;
+	for (FAFConditionalEffect& Effect : Effects)
 	{
-		
-		for (TSubclassOf<class UGAGameEffectSpec>& Effect : InProperty.GetSpec()->IfHaveTagEffect.Effects)
+		if (Effect.RequiredTag.IsValid()
+			&& InContext.GetTargetEffectsComponent()->HasTag(Effect.RequiredTag))
 		{
-			FGAEffectProperty prop(Effect);
 			//Hack. We need a way store handles for conditional effects.
+			FAFPropertytHandle PropertyNew(Effect.Effect);
 			FGAEffectHandle Handle;
-			//UGABlueprintLibrary::ApplyEffect(Params.Property, Handle, InContext.Target.Get(), InContext.Instigator.Get(), InContext.Causer.Get(), InContext.HitResult);
+			Handle = UGABlueprintLibrary::ApplyEffect(PropertyNew
+				, Handle
+				, InContext.Target.Get()
+				, InContext.Instigator.Get()
+				, InContext.Causer.Get()
+				, InContext.HitResult);
 		}
 	}
+	
 
 	return Handle;
 	

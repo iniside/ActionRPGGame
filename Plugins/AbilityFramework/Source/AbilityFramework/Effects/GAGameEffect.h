@@ -95,16 +95,22 @@ public:
 };
 
 USTRUCT(BlueprintType)
+struct FAFConditionalEffect
+{
+	GENERATED_BODY()
+	/* If target have this tag apply specified effects */
+	UPROPERTY(EditAnywhere)
+		FGameplayTag RequiredTag;
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class UGAGameEffectSpec> Effect;
+};
+USTRUCT(BlueprintType)
 struct FAFConditionalEffectContainer
 {
 	GENERATED_BODY()
 public:
-	/* If target have this tag apply specified effects */
 	UPROPERTY(EditAnywhere)
-		FGameplayTag RequiredTag;
-
-	UPROPERTY(EditAnywhere)
-		TArray<TSubclassOf<class UGAGameEffectSpec>> Effects;
+		TArray<FAFConditionalEffect> Effects;
 };
 
 
@@ -837,6 +843,16 @@ public:
 		}
 	};
 
+	FAFPropertytHandle(TSubclassOf<UGAGameEffectSpec> InSpecClass)
+		: ID(0)
+	{
+		SpecClass = InSpecClass;
+		if (!DataPtr.IsValid())
+		{
+			DataPtr = MakeShareable<FGAEffectProperty>(new FGAEffectProperty());
+		}
+	};
+
 	FAFPropertytHandle(const FAFPropertytHandle& Other)
 	{
 		SpecClass = Other.SpecClass;
@@ -1200,6 +1216,9 @@ public:
 	*/
 	
 	TMap<UClass*, TSet<FGAEffectHandle>> TargetEffectByClass;
+
+	//Conditonally applied effects. Only duration/periodic.
+	//TMap<FGAEffectHandle, FAFPropertytHandle> ConditionalEffects;
 
 	UPROPERTY(NotReplicated)
 		class UAFEffectsComponent* OwningComponent;
