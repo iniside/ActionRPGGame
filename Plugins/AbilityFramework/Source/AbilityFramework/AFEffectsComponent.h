@@ -19,6 +19,8 @@
 DECLARE_DELEGATE(FAFEffectEvent);
 DECLARE_DELEGATE_OneParam(FAFEventDelegate, FAFEventData);
 
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FAFApplicationDelegate, FAFContextHandle, FAFPropertytHandle, FAFEffectSpecHandle);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ABILITYFRAMEWORK_API UAFEffectsComponent : public UGameplayTasksComponent//public UActorComponent
 {
@@ -46,11 +48,15 @@ private:
 	TMap<FGameplayTag, FAFEffectEvent> OnEffectApplyToSelf;
 	TMap<FGameplayTag, TArray<FAFEventDelegate>> EffectEvents;
 
-	TMap<FGAEffectHandle, FGAEffectProperty*> PropertyByHandle;
 	TMap<FGAEffectHandle, FAFCueHandle> EffectToCue;
 	
 	TMap<FGameplayTag, FSimpleDelegate> OnEffectEvent;
 
+	TMap<FGameplayTag, TArray<FAFEventDelegate>> AppliedEvents;
+	TMap<FGameplayTag, TArray<FAFEventDelegate>> ExecutedEvents;
+public:
+	FAFApplicationDelegate OnAppliedToTarget;
+	FAFApplicationDelegate OnAppliedToSelf;
 public:	
 	// Sets default values for this component's properties
 	UAFEffectsComponent(const FObjectInitializer& ObjectInitializer);
@@ -77,7 +83,7 @@ protected:
 	* TMap<FGameplayTag, FSimpleDelegate> OnEffectEvent - event is called before application;
 	* TMap<FGameplayTag, FAFEffectEvent> OnEffectApplyToSelf - event is called before application;
 	*
-	* @param EffectIn* - Effect to apply
+	* @param EffectIn& - Effect to apply
 	* @param InProperty - cached effect information
 	* @param InContext - Context about effect application. Target, instigator, causer.
 	* @param Modifier - optional modifier which can be applied to effect.
@@ -97,7 +103,7 @@ protected:
 	* Try launch events:
 	* TMap<FGameplayTag, FAFEffectEvent> OnEffectApplyToTarget - event is called before application
 	*
-	* @param EffectIn* - Effect to apply
+	* @param EffectIn& - Effect to apply
 	* @param InProperty - cached effect information
 	* @param InContext - Context about effect application. Target, instigator, causer.
 	* @param Modifier - optional modifier which can be applied to effect.
@@ -137,11 +143,21 @@ protected:
 	void RemoveEffectEvent(const FGameplayTag& InEventTag);
 	bool IsEffectActive(const FGAEffectHandle& InHandle) const;
 
-
+public:
 	void AddEvent(const FGameplayTag& EventTag, FAFEventDelegate& EventDelegate);
 	void RemoveEvent(const FGameplayTag& EventTag, const FDelegateHandle& EventDelegate);
 	TArray<FAFEventDelegate>& GetTagEvent(FGameplayTag TagIn);
 	void NativeTriggerTagEvent(FGameplayTag TagIn, const FAFEventData& InEventData);
+
+	void AddAppliedEvent(const FGameplayTag& EventTag, FAFEventDelegate& EventDelegate);
+	void RemoveAppliedEvent(const FGameplayTag& EventTag, const FDelegateHandle& EventDelegate);
+	void TriggerAppliedEvent(FGameplayTag TagIn, const FAFEventData& InEventData);
+
+
+	void AddExecuteEvent(const FGameplayTag& EventTag, FAFEventDelegate& EventDelegate);
+	void RemoveExecuteEvent(const FGameplayTag& EventTag, const FDelegateHandle& EventDelegate);
+	void TriggerExecuteEvent(FGameplayTag TagIn, const FAFEventData& InEventData);
+
 public:
 	bool DenyEffectApplication(const FGameplayTagContainer& InTags);
 	bool HaveEffectRquiredTags(const FGameplayTagContainer& InTags);

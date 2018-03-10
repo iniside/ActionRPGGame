@@ -69,6 +69,8 @@ FGAEffectHandle UAFEffectsComponent::ApplyEffectToSelf(
 		}
 		
 	}
+	OnAppliedToSelf.Broadcast(Params.Context, Params.Property, Params.EffectSpec);
+	
 	if (FAFEffectEvent* Delegate = OnEffectApplyToSelf.Find(InProperty.GetSpec()->EffectTag))
 	{
 		Delegate->ExecuteIfBound();
@@ -102,13 +104,15 @@ FGAEffectHandle UAFEffectsComponent::ApplyEffectToTarget(
 		MulticastApplyEffectCue(CueParams, CueHandle);
 	}
 
+	OnAppliedToTarget.Broadcast(Params.Context, Params.Property, Params.EffectSpec);
+
 	if (InContext.TargetComp.IsValid())
 	{
 		FGAEffectHandle Handle;
 		Handle = InContext.GetTargetEffectsComponent()->ApplyEffectToSelf(EffectIn, InHandle, Params, Modifier);
-		if (!PropertyByHandle.Contains(Handle))
-			PropertyByHandle.Add(Handle, &InProperty);
-
+		//if (!PropertyByHandle.Contains(Handle))
+		//	PropertyByHandle.Add(Handle, &InProperty);
+		
 		EffectToCue.Add(Handle, CueHandle);
 		
 		return Handle;
@@ -145,14 +149,7 @@ void UAFEffectsComponent::ExecuteEffect(FGAEffectHandle HandleIn
 	FAFEventData Data;
 	for (const FGameplayTag& Tag : ExecuteEventTags)
 	{
-		if (TArray<FAFEventDelegate>* Events = EffectEvents.Find(Tag))
-		{
-			TArray<FAFEventDelegate>& EventsRef = *Events;
-			for (const FAFEventDelegate& Event : EventsRef)
-			{
-				Event.Execute(Data);
-			}
-		}
+		TriggerExecuteEvent(Tag, Data);
 	}
 
 	//OnEffectExecuted.Broadcast(HandleIn, HandleIn.GetEffectSpec()->OwnedTags);
@@ -307,6 +304,73 @@ void UAFEffectsComponent::NativeTriggerTagEvent(FGameplayTag TagIn, const FAFEve
 		}
 	}
 }
+
+void UAFEffectsComponent::AddAppliedEvent(const FGameplayTag& EventTag, FAFEventDelegate& EventDelegate)
+{
+	TArray<FAFEventDelegate>& Events = AppliedEvents.FindOrAdd(EventTag);
+	Events.Add(EventDelegate);
+}
+void UAFEffectsComponent::RemoveAppliedEvent(const FGameplayTag& EventTag, const FDelegateHandle& EventDelegate)
+{
+	TArray<FAFEventDelegate>* Events = AppliedEvents.Find(EventTag);
+	if (Events)
+	{
+		int32 Idx = Events->IndexOfByPredicate([&](const FAFEventDelegate& Other)
+		{
+			return Other.GetHandle() == EventDelegate;
+		});
+
+		Events->RemoveAt(Idx, 1, true);
+	}
+}
+void UAFEffectsComponent::TriggerAppliedEvent(FGameplayTag TagIn, const FAFEventData& InEventData)
+{
+	TArray<FAFEventDelegate>* Delegate = AppliedEvents.Find(TagIn);
+	if (Delegate)
+	{
+		for (const FAFEventDelegate& Event : *Delegate)
+		{
+			if (Event.IsBound())
+			{
+				Event.Execute(InEventData);
+			}
+		}
+	}
+}
+
+void UAFEffectsComponent::AddExecuteEvent(const FGameplayTag& EventTag, FAFEventDelegate& EventDelegate)
+{
+	TArray<FAFEventDelegate>& Events = ExecutedEvents.FindOrAdd(EventTag);
+	Events.Add(EventDelegate);
+}
+void UAFEffectsComponent::RemoveExecuteEvent(const FGameplayTag& EventTag, const FDelegateHandle& EventDelegate)
+{
+	TArray<FAFEventDelegate>* Events = ExecutedEvents.Find(EventTag);
+	if (Events)
+	{
+		int32 Idx = Events->IndexOfByPredicate([&](const FAFEventDelegate& Other)
+		{
+			return Other.GetHandle() == EventDelegate;
+		});
+
+		Events->RemoveAt(Idx, 1, true);
+	}
+}
+void UAFEffectsComponent::TriggerExecuteEvent(FGameplayTag TagIn, const FAFEventData& InEventData)
+{
+	TArray<FAFEventDelegate>* Delegate = ExecutedEvents.Find(TagIn);
+	if (Delegate)
+	{
+		for (const FAFEventDelegate& Event : *Delegate)
+		{
+			if (Event.IsBound())
+			{
+				Event.Execute(InEventData);
+			}
+		}
+	}
+}
+
 
 void UAFEffectsComponent::AddEvent(const FGameplayTag& EventTag, FAFEventDelegate& EventDelegate)
 {

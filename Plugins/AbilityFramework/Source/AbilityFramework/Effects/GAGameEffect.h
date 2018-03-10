@@ -959,8 +959,10 @@ struct TStructOpsTypeTraits< FAFPropertytHandle > : public TStructOpsTypeTraitsB
 	};
 };
 
+USTRUCT()
 struct FAFEffectParams
 {
+	GENERATED_BODY()
 	//make this private and allow assign only trough constructr.
 	FAFContextHandle Context;
 	FAFPropertytHandle Property;
@@ -968,6 +970,8 @@ struct FAFEffectParams
 	bool bRecreated;
 	bool bPeriodicEffect;
 public:
+	FAFEffectParams()
+	{};
 	FAFEffectParams(FAFPropertytHandle InProperty)
 		: bRecreated(false)
 		, Property(InProperty)

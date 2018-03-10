@@ -438,6 +438,11 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(
 	}
 	//right place ?
 	Params.GetSpec().OnApplied();
+	
+	FAFEventData EventData;
+	const FGameplayTagContainer& AppliedEvents = InProperty.GetSpec()->AppliedEventTags;
+	for(const FGameplayTag& Event : AppliedEvents)
+		OwningComponent->TriggerAppliedEvent(Event, EventData);
 
 	FGAEffectContext& InContext = Params.GetContext();
 
