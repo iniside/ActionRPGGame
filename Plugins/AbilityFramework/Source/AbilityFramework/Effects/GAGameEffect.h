@@ -498,6 +498,10 @@ public:
 		return SpecPtr.IsValid();
 	}
 
+	TSharedPtr<FAFEffectSpec> GetPtr()
+	{
+		return SpecPtr;
+	}
 	FAFEffectSpec& GetRef()
 	{
 		return SpecPtr.ToSharedRef().Get();

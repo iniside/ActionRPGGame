@@ -56,6 +56,7 @@ FAFEffectSpec::FAFEffectSpec(const FAFContextHandle& InContext, TSubclassOf<UGAG
 		Extension = NewObject<UGAEffectExtension>(Context.GetPtr()->Target.Get(), InSpecClass.GetDefaultObject()->Extension);
 		Extension->OwningComponent = Context.GetPtr()->TargetInterface->GetEffectsComponent();
 	}
+	OwnedTags.AppendTags(InSpecClass.GetDefaultObject()->OwnedTags);
 }
 
 float FAFEffectSpec::GetFloatFromAttributeMagnitude(
