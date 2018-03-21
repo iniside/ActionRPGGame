@@ -4,6 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "UI/HUD/AREnemyHealthBar.h"
+#include "ARHUDWidget.h"
+#include "SARDrawTestWidget.h"
+
 #include "ARUIComponent.generated.h"
 
 
@@ -12,6 +16,9 @@ class ACTIONRPGGAME_API UARUIComponent : public UActorComponent
 {
 	GENERATED_BODY()
 protected:
+	UPROPERTY(EditAnywhere, Category="Cross Hair")
+		FSlateBrush Brush;
+
 	UPROPERTY(EditAnywhere, Category = "Widgets")
 		TSubclassOf<class UUserWidget> CrosshairClass;
 
@@ -23,6 +30,22 @@ protected:
 	UPROPERTY()
 		class UARInventoryManagerWidget* InventoryManagerWidget;
 
+
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+		TSubclassOf<class UAREnemyHealthBar> EnemyHealthBarClass;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UAREnemyHealthBar* EnemyHealthBarWidget;
+
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+		TSubclassOf<class UARHUDWidget> HUDWidgetClass;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UARHUDWidget* HUDWidget;
+
+
+	TSharedPtr<SWidget> DrawWidget;
+	TSharedPtr<SARDrawTestWidget> CrosshairWidget2;
 public:	
 	// Sets default values for this component's properties
 	UARUIComponent();

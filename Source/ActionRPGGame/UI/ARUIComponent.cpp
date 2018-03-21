@@ -5,13 +5,16 @@
 
 #include "ARPlayerController.h"
 #include "Inventory/ARInventoryManagerWidget.h"
+
+
+
 // Sets default values for this component's properties
 UARUIComponent::UARUIComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
+	EnemyHealthBarClass = UAREnemyHealthBar::StaticClass();
 	// ...
 }
 
@@ -38,6 +41,36 @@ void UARUIComponent::BeginPlay()
 			InventoryManagerWidget->SetVisibility(ESlateVisibility::Collapsed);
 			InventoryManagerWidget->AddToViewport();
 		}
+
+		if (EnemyHealthBarClass)
+		{
+			EnemyHealthBarWidget = CreateWidget<UAREnemyHealthBar>(MyPC, EnemyHealthBarClass);
+			EnemyHealthBarWidget->SetVisibility(ESlateVisibility::Collapsed);
+			EnemyHealthBarWidget->AddToViewport();
+		}
+
+		if (HUDWidgetClass)
+		{
+			HUDWidget = CreateWidget<UARHUDWidget>(MyPC, HUDWidgetClass);
+			HUDWidget->AddToViewport();
+		}
+
+		//DrawWidget = SNew(SHorizontalBox)
+		//			+SHorizontalBox::Slot()
+		//			.HAlign(EHorizontalAlignment::HAlign_Fill)
+		//			.VAlign(EVerticalAlignment::VAlign_Center)
+		//			[
+		//				SNew(SVerticalBox)
+		//				+SVerticalBox::Slot()
+		//				.HAlign(EHorizontalAlignment::HAlign_Center)
+		//				.VAlign(EVerticalAlignment::VAlign_Fill)
+		//				[
+		//					SAssignNew(CrosshairWidget2, SARDrawTestWidget)
+		//				]
+		//			];
+
+		//CrosshairWidget2->Brush = &Brush;
+		//GEngine->GameViewport->AddViewportWidgetContent(DrawWidget.ToSharedRef());
 	}
 }
 

@@ -1,19 +1,19 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "ARAbilityManagerSlotDragWidget.h"
+#include "ARAbilityListSlotDragWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 
 #include "ARAbilityDragVisual.h"
-#include "../../Abilities/ARAbilityManagerComponent.h"
+#include "Abilities/ARAbilityManagerComponent.h"
 
-FReply UARAbilityManagerSlotDragWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
+FReply UARAbilityListSlotDragWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 	, const FPointerEvent& InMouseEvent)
 {
 	return UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton).NativeReply;
 	//return FReply::Unhandled();
 }
 
-void UARAbilityManagerSlotDragWidget::NativeOnDragDetected(const FGeometry& InGeometry
+void UARAbilityListSlotDragWidget::NativeOnDragDetected(const FGeometry& InGeometry
 	, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
 {
 	UDragDropOperation* DragDropOp = NewObject<UDragDropOperation>(UDragDropOperation::StaticClass());
@@ -21,7 +21,7 @@ void UARAbilityManagerSlotDragWidget::NativeOnDragDetected(const FGeometry& InGe
 	{
 		APlayerController* MyPC = Cast<APlayerController>(AbilityManager->GetOwner());
 		UARAbilityDragVisual* DragIcon = CreateWidget<UARAbilityDragVisual>(MyPC, AbilityManager->GetDragVisualClass());
-		DragIcon->AbilityManager = AbilityManager;
+		//DragIcon->AbilityManager = AbilityManager;
 
 		DragDropOp->Payload = this;
 		DragDropOp->DefaultDragVisual = DragIcon;

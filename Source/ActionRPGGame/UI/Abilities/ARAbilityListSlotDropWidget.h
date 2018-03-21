@@ -5,13 +5,13 @@
 #include "CoreMinimal.h"
 #include "UI/ARAbilityWidget.h"
 #include "AMTypes.h"
-#include "ARAbilityManagerSlotDropWidget.generated.h"
+#include "ARAbilityListSlotDropWidget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ACTIONRPGGAME_API UARAbilityManagerSlotDropWidget : public UARAbilityWidget
+class ACTIONRPGGAME_API UARAbilityListSlotDropWidget : public UARAbilityWidget
 {
 	GENERATED_BODY()
 protected:

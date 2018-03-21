@@ -5,16 +5,16 @@
 #include "CoreMinimal.h"
 #include "UI/ARAbilityWidget.h"
 #include "AMTypes.h"
-#include "ARAbilityManagerSlotDragWidget.generated.h"
+#include "ARAbilityListSlotDragWidget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ACTIONRPGGAME_API UARAbilityManagerSlotDragWidget : public UARAbilityWidget
+class ACTIONRPGGAME_API UARAbilityListSlotDragWidget : public UARAbilityWidget
 {
 	GENERATED_BODY()
-protected:
+public:
 	UPROPERTY(EditAnywhere, Category = "Config")
 		FGameplayTag AbilityTag;
 public:

@@ -6,6 +6,8 @@
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/UniformGridPanel.h"
+
+#include "UI/HUD/ARHUDPlayerInfo.h"
 #include "ARHUDWidget.generated.h"
 
 /**
@@ -16,9 +18,6 @@ class ACTIONRPGGAME_API UARHUDWidget : public UUserWidget
 {
 	GENERATED_BODY()
 protected:
-	UUniformGridPanel* MainGrid;
-public:
-	virtual void NativeConstruct() override;
-	
-	
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+		UARHUDPlayerInfo* PlayerInfo;
 };
