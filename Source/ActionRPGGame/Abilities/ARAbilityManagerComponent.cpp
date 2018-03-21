@@ -7,8 +7,8 @@
 
 #include "DWBPFunctionLibrary.h"
 #include "SDraggableWindowWidget.h"
-
-#include "../UI/Abilities/ARAbilityManagerWidget.h"
+#include "ARPlayerController.h"
+#include "UI/Abilities/ARAbilityListWidget.h"
 
 // Sets default values for this component's properties
 UARAbilityManagerComponent::UARAbilityManagerComponent()
@@ -32,8 +32,14 @@ void UARAbilityManagerComponent::BeginPlay()
 		// ...
 		if (ManagerWidgetClass)
 		{
-			ManagerWidget = CreateWidget<UARAbilityManagerWidget>(OwnerPC, ManagerWidgetClass);
+			ManagerWidget = CreateWidget<UARAbilityListWidget>(OwnerPC, ManagerWidgetClass);
 			ManagerWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			ManagerWidget->ARPC = Cast<AARPlayerController>(GetOwner());
+			for (const FARAbilityItem& Ability : AvailableAbilities)
+			{
+				ManagerWidget->AddItem(DragWidgetClass, Ability.Ability);
+			}
+			
 			ManagerWindowHandle = UDWBPFunctionLibrary::CreateWindowWithContent(ManagerWidget, "Ability Manager");
 			ManagerWindowHandle.Window.Pin()->SetVisibility(EVisibility::Collapsed);
 			//ManagerWidget->AddToViewport();

@@ -423,8 +423,6 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(
 				MarkArrayDirty();
 				AddEffect(Handle, const_cast<FGAEffect&>(EffectIn).PredictionHandle, &ActiveEffectInfos[newItem], InProperty);
 				
-				
-				
 				//InProperty.ApplyExecute(Handle, Params, Modifier);
 				//generate it only on client, and apply prediction key from client.
 				//if server replicates with valid key, then nothing happens.

@@ -62,10 +62,16 @@ public class ActionRPGGame : ModuleRules
             "AbilityManager",
             "DraggableWindow"
         });
+        PrivateDependencyModuleNames.AddRange(new string[] { "Noesis", "NoesisRuntime" });
         if (Target.Type == TargetRules.TargetType.Editor)
         {
             PublicDependencyModuleNames.AddRange(new string[] { "UnrealEd", "SourceControl", "Matinee", "PropertyEditor", "ShaderCore", "AbilityFrameworkEditor" });
             PrivateDependencyModuleNames.AddRange(new string[] { "AbilityFrameworkEditor" });
+        }
+
+        if (Target.Type == TargetRules.TargetType.Server)
+        {
+            PublicDependencyModuleNames.AddRange(new string[] { "GameLiftServerSDK" });
         }
     }
 }

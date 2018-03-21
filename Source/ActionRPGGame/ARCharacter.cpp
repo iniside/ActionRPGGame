@@ -84,6 +84,10 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 
 	Weapons = CreateDefaultSubobject<UARWeaponPawnManagerComponent>(TEXT("Weapons"));
 
+	LegsCloth = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LegsCloth"));
+	LegsCloth->SetupAttachment(GetMesh());
+	//LegsCloth->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale);
+
 	WeaponHolsteredRight = CreateDefaultSubobject<UChildActorComponent>(TEXT("WeaponHolsteredRight"));
 	//HolsteredRightWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);
 	WeaponHolsteredRight->SetupAttachment(GetMesh(), WeaponSocket::HolsteredRightWeapon);

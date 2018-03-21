@@ -13,7 +13,14 @@
 
 #include "ARAbilityManagerComponent.generated.h"
 
-
+USTRUCT(BlueprintType)
+struct FARAbilityItem
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere)
+		FGameplayTag Ability;
+};
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ACTIONRPGGAME_API UARAbilityManagerComponent : public UAMAbilityManagerComponent
 {
@@ -23,11 +30,16 @@ protected:
 		TSubclassOf<class UARAbilityDragVisual> DragVisualClass;
 
 	UPROPERTY(EditAnywhere, Category = "Widget Config")
-		TSubclassOf<class UARAbilityManagerWidget> ManagerWidgetClass;
+		TSubclassOf<class UARAbilityListWidget> ManagerWidgetClass;
 
+	UPROPERTY(EditAnywhere, Category = "Widget Config")
+		TSubclassOf<class UARAbilityListSlotDragWidget> DragWidgetClass;
 
 	UPROPERTY()
-		class UARAbilityManagerWidget* ManagerWidget;
+		class UARAbilityListWidget* ManagerWidget;
+
+	UPROPERTY(EditAnywhere)
+		TArray<FARAbilityItem> AvailableAbilities;
 
 	FDWWWindowHandle ManagerWindowHandle;
 public:	

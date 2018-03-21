@@ -95,6 +95,8 @@ class AARCharacter : public ACharacter, public IAFAbilityInterface, public IOrio
 	UPROPERTY(EditAnywhere, Category = "Default Abilities")
 		TArray<FGameplayTag> AbilitiesToGive;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Parts", meta = (AllowPrivateAccess = "true"))
+		USkeletalMeshComponent* LegsCloth;
 	//Weapons
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons", meta = (AllowPrivateAccess = "true"))
 		UChildActorComponent* WeaponHolsteredRight;

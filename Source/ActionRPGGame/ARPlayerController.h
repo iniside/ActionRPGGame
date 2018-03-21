@@ -48,4 +48,7 @@ public:
 	void InputShowHideAbilityManager();
 	void InputShowHideInventory();
 	void OnInputAbilityReady(FGameplayTag InAbilityTag, FGameplayTag InInputTag);
+
+	UFUNCTION(BlueprintPure, Category = "Hud")
+		float GetObjectScreenRadius(AActor* InActor);
 };
