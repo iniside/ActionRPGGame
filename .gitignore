@@ -246,6 +246,8 @@ Binaries/
 Plugins/
 Plugins/*
 Content/*
+Substance/
+Substance/*
 !Content/Blueprints/
 !Plugins/AbilityFramework/Source
 !Plugins/AbilityFrameworkEditor/Source
