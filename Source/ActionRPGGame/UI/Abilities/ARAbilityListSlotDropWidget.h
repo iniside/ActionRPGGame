@@ -19,6 +19,9 @@ protected:
 		EAMGroup AbilityGroup;
 	UPROPERTY(EditAnywhere, Category = "Config")
 		EAMSlot AbilitySlot;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+		UImage* IconImage;
 public:
 	virtual bool NativeOnDrop(const FGeometry& InGeometry
 		, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;

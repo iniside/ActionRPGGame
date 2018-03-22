@@ -17,6 +17,9 @@ class ACTIONRPGGAME_API UARAbilityListSlotDragWidget : public UARAbilityWidget
 public:
 	UPROPERTY(EditAnywhere, Category = "Config")
 		FGameplayTag AbilityTag;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+		UImage* IconImage;
 public:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry
 			, const FPointerEvent& InMouseEvent) override;
@@ -28,4 +31,7 @@ public:
 		return AbilityTag;
 	}
 	
+	void OnItemAdded();
+protected:
+	void OnItemLoaded(FPrimaryAssetId InPrimaryAssetId);
 };

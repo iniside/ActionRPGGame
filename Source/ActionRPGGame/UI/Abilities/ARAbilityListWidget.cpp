@@ -10,6 +10,6 @@ void UARAbilityListWidget::AddItem(TSubclassOf<class UARAbilityListSlotDragWidge
 	UARAbilityListSlotDragWidget* Item = CreateWidget<UARAbilityListSlotDragWidget>(ARPC.Get(), DragWidgetClass);
 	Item->AbilityTag = Ability;
 	Items.Add(Item);
-
+	Item->OnItemAdded();
 	ItemContainer->AddChild(Item);
 }
