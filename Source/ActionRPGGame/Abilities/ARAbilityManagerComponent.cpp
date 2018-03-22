@@ -41,6 +41,7 @@ void UARAbilityManagerComponent::BeginPlay()
 			}
 			
 			ManagerWindowHandle = UDWBPFunctionLibrary::CreateWindowWithContent(ManagerWidget, "Ability Manager");
+			ManagerWindowHandle.Window.Pin()->bDestroyOnClose = false;
 			ManagerWindowHandle.Window.Pin()->SetVisibility(EVisibility::Collapsed);
 			//ManagerWidget->AddToViewport();
 		}

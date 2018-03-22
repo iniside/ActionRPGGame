@@ -128,6 +128,7 @@ public:
 	friend struct FDWWWindowHandle;
 	friend class SDraggableDesktopWidget;
 	friend class FDWManager;
+	bool bDestroyOnClose;
 protected:
 	EDDWState ResizingState;
 	

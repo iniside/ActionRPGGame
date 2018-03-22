@@ -156,6 +156,7 @@ void SDraggableWindowWidget::Construct(const FArguments& InArgs)
 {
 	CurrentSize = FVector2D(1, 1);
 	ResizingState = EDDWState::NoResize;
+	bDestroyOnClose = true;
 	SetVisibility(EVisibility::SelfHitTestInvisible);
 	FSimpleDelegate OnPressedDel = FSimpleDelegate::CreateSP(this, &SDraggableWindowWidget::OnPressed);
 	FSimpleDelegate OnReleasedDel = FSimpleDelegate::CreateSP(this, &SDraggableWindowWidget::OnReleased);
@@ -590,7 +591,12 @@ void SDraggableWindowWidget::SetHandle(const FDWWWindowHandle& InHandle)
 }
 void SDraggableWindowWidget::OnCloseButtonPressed()
 {
-	FDWManager::Get().RemoveWindow(Handle);
+	if(bDestroyOnClose)
+		FDWManager::Get().RemoveWindow(Handle);
+	else
+	{
+		SetVisibility(EVisibility::Collapsed);
+	}
 }
 void SDraggableWindowWidget::OnPressed()
 {
