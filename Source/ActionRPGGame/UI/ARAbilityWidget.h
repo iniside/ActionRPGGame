@@ -19,8 +19,8 @@ class ACTIONRPGGAME_API UARAbilityWidget : public UARUMGWidgetBase
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY()
-		class UARAbilityManagerComponent* AbilityManager;
+	
+		TWeakObjectPtr<class UARAbilityManagerComponent> AbilityManager;
 
 	UPROPERTY(EditAnywhere, Category = "Config")
 		UTexture2D* Icon;

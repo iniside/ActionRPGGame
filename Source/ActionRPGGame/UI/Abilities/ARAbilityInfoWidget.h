@@ -16,4 +16,11 @@ UCLASS()
 class ACTIONRPGGAME_API UARAbilityInfoWidget : public UARAbilityWidget
 {
 	GENERATED_BODY()
+protected:
+	UPROPERTY(EditAnywhere, Category = "Ability")
+		EAMSlot AbilitySlot;
+	UPROPERTY(EditAnywhere, Category = "Ability")
+		EAMGroup AbilityGroup;
+
+	float GetRemainingCooldown() const;
 };

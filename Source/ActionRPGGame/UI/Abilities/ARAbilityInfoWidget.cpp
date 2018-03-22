@@ -5,3 +5,18 @@
 #include "AFAbilityComponent.h"
 #include "Abilities/GAAbilityBase.h"
 #include "ARPlayerController.h"
+#include "Abilities/ARAbilityBase.h"
+#include "Abilities/ARAbilityManagerComponent.h"
+
+float UARAbilityInfoWidget::GetRemainingCooldown() const
+{
+	if (!AbilityManager.IsValid())
+		return 0;
+
+	UGAAbilityBase* Ability = AbilityManager->GetAbility(AbilityGroup, AbilitySlot);
+	if (Ability)
+	{
+		return Ability->GetCooldownRemainingTimeNormalized();
+	}
+	return 0;
+}

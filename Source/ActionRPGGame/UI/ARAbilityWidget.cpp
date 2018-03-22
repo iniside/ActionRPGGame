@@ -39,7 +39,7 @@ UTexture2D* UARAbilityWidget::GetIcon()
 	if (Icon)
 		return Icon;
 
-	if (!AbilityManager)
+	if (!AbilityManager.IsValid())
 		return nullptr;
 
 	//return nullptr;
