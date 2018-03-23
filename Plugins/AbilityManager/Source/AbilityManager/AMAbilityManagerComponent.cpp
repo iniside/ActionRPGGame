@@ -80,7 +80,12 @@ void UAMAbilityManagerComponent::BP_EquipAbility(const FGameplayTag& InAbilityTa
 }
 FGameplayTag UAMAbilityManagerComponent::GetAbilityTag(EAMGroup InGroup, EAMSlot InSlot)
 {
-	return AbilityTagsSet[AMEnumToInt<EAMGroup>(InGroup)][AMEnumToInt<EAMSlot>(InSlot)];
+	if (AbilityTagsSet.IsValidIndex(AMEnumToInt<EAMGroup>(InGroup))
+		&& AbilityTagsSet[AMEnumToInt<EAMGroup>(InGroup)].IsValidIndex(AMEnumToInt<EAMSlot>(InSlot)))
+	{
+		return AbilityTagsSet[AMEnumToInt<EAMGroup>(InGroup)][AMEnumToInt<EAMSlot>(InSlot)];
+	}
+	return FGameplayTag();
 }
 void UAMAbilityManagerComponent::SetAbilityTag(EAMGroup InGroup, EAMSlot InSlot, FGameplayTag InAbilityTag)
 {
