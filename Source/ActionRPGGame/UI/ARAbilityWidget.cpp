@@ -32,17 +32,3 @@ void UARAbilityWidget::NativeConstruct()
 	}
 	Super::NativeConstruct();
 }
-
-
-UTexture2D* UARAbilityWidget::GetIcon()
-{
-	if (Icon)
-		return Icon;
-
-	if (!AbilityManager.IsValid())
-		return nullptr;
-
-	//return nullptr;
-	UARAbilityBase* Ability = nullptr;// Cast<UARAbilityBase>(AbilityManager->GetAbility(Group, AbilitySlot));
-	return Ability ? Ability->UIData->Icon : nullptr;
-}

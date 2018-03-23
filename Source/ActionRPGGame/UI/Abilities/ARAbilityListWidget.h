@@ -28,6 +28,13 @@ protected:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 		class UARAbilityListSlotDropWidget* Ability003Group001;
 
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+		class UARAbilityListSlotDropWidget* Ability001Group002;
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+		class UARAbilityListSlotDropWidget* Ability002Group002;
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+		class UARAbilityListSlotDropWidget* Ability003Group002;
+
 	UPROPERTY()
 		TArray<class UARAbilityListSlotDragWidget*> Items;
 public:

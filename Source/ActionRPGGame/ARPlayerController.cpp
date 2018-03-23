@@ -97,7 +97,7 @@ void AARPlayerController::InputShowHideAbilityManager()
 }
 void AARPlayerController::InputShowHideInventory()
 {
-	UIComponent->ShowHideInventory();
+	WeaponManager->ShowHideAbilityManager();
 }
 void AARPlayerController::OnInputAbilityReady(FGameplayTag InAbilityTag, FGameplayTag InInputTag)
 {

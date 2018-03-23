@@ -44,6 +44,7 @@ class ACTIONRPGGAME_API UARWeaponManagerComponent : public UAMAbilityManagerComp
 	GENERATED_BODY()
 protected:
 	static constexpr int32 MAX_WEAPONS = 4; //maximum weapon + empty hands
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapons")
 		TArray<TSubclassOf<class UARItemWeapon>> WeaponClasses;
 
@@ -53,7 +54,22 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Attachment Config")
 		FName EquipSocketName;
 	UPROPERTY(EditAnywhere, Category = "Attachment Config")
-		TArray<FARWeaponAttachment> WeaponAttachment;	
+		TArray<FARWeaponAttachment> WeaponAttachment;
+
+	//Widgets
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+		TSubclassOf<class UARWeaponListWidget> WeaponListClass;
+
+
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UARWeaponListWidget* WeaponListWidget;
+
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+		TSubclassOf<class UARWeaponListSlotDragWidget> DragSlotClass;
+
+
+	FDWWWindowHandle WeaponListWindowHandle;
+
 public:	
 	UPROPERTY()
 		class APawn* POwner;
@@ -127,5 +143,6 @@ protected:
 
 	FGameplayTag FindNextValid();
 	FGameplayTag FindPreviousValid();
-
+	public:
+	void ShowHideAbilityManager();
 };

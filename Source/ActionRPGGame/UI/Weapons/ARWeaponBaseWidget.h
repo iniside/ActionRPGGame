@@ -13,9 +13,8 @@ UCLASS()
 class ACTIONRPGGAME_API UARWeaponBaseWidget : public UARUMGWidgetBase
 {
 	GENERATED_BODY()
-protected:
-	UPROPERTY(BlueprintReadOnly, Category = "Weapon Manager")
-		class UARWeaponManagerComponent* WeaponManager;
+	public:
+		TWeakObjectPtr<class UARWeaponManagerComponent> WeaponManager;
 
 public:
 	void NativePreConstruct();

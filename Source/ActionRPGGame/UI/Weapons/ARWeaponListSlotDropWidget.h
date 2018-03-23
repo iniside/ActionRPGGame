@@ -5,18 +5,21 @@
 #include "CoreMinimal.h"
 #include "ARWeaponBaseWidget.h"
 #include "AMTypes.h"
-#include "ARWeaponManagerSlotDropWidget.generated.h"
+#include "ARWeaponListSlotDropWidget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ACTIONRPGGAME_API UARWeaponManagerSlotDropWidget : public UARWeaponBaseWidget
+class ACTIONRPGGAME_API UARWeaponListSlotDropWidget : public UARWeaponBaseWidget
 {
 	GENERATED_BODY()
 protected:
 	UPROPERTY(EditAnywhere, Category = "Config")
 		EAMGroup WeaponSlot;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+		UImage* IconImage;
 public:
 	virtual bool NativeOnDrop(const FGeometry& InGeometry
 		, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;

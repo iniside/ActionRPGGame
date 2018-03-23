@@ -20,14 +20,8 @@ class ACTIONRPGGAME_API UARAbilityWidget : public UARUMGWidgetBase
 	GENERATED_BODY()
 public:
 	
-		TWeakObjectPtr<class UARAbilityManagerComponent> AbilityManager;
-
-	UPROPERTY(EditAnywhere, Category = "Config")
-		UTexture2D* Icon;
+	TWeakObjectPtr<class UARAbilityManagerComponent> AbilityManager;
 
 	virtual void NativePreConstruct() override;
 	virtual void NativeConstruct() override;
-
-	UFUNCTION(BlueprintPure, Category = "ActionRPGGame|UI|Abilities")
-		UTexture2D* GetIcon();
 };

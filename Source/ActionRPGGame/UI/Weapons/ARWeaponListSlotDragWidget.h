@@ -4,18 +4,23 @@
 
 #include "CoreMinimal.h"
 #include "UI/Weapons/ARWeaponBaseWidget.h"
-#include "ARWeaponManagerSlotDragWidget.generated.h"
+#include "Components/Image.h"
+#include "ARWeaponListSlotDragWidget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ACTIONRPGGAME_API UARWeaponManagerSlotDragWidget : public UARWeaponBaseWidget
+class ACTIONRPGGAME_API UARWeaponListSlotDragWidget : public UARWeaponBaseWidget
 {
 	GENERATED_BODY()
-protected:
+public:
 	UPROPERTY(BlueprintReadWrite, meta=(ExposeOnSpawn), Category = "Weapon Widget")
 		int32 WeaponIdx;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+		UImage* IconImage;
+
 public:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry
 		, const FPointerEvent& InMouseEvent) override;
@@ -26,4 +31,7 @@ public:
 	{
 		return WeaponIdx;
 	}
+	void OnItemAdded();
+protected:
+	void OnItemLoaded(FPrimaryAssetId InPrimaryAssetId);
 };
