@@ -65,13 +65,13 @@ UGAEffectCueSequence* UGAEffectCueSequence::GetNullAnimation()
 	return NullAnimation;
 }
 #endif //WITH_EDITOR
-float UGAEffectCueSequence::GetStartTime() const
+FFrameNumber UGAEffectCueSequence::GetStartTime() const
 {
 	return MovieScene->GetPlaybackRange().GetLowerBoundValue();
 }
 
 
-float UGAEffectCueSequence::GetEndTime() const
+FFrameNumber UGAEffectCueSequence::GetEndTime() const
 {
 	return MovieScene->GetPlaybackRange().GetUpperBoundValue();
 }

@@ -7,6 +7,7 @@
 #include "MovieScene.h"
 #include "LazyObjectPtr.h"
 #include "ActorSequence.h"
+#include "FrameNumber.h"
 #include "GAEffectCueSequence.generated.h"
 
 UCLASS(BlueprintType, DefaultToInstanced)
@@ -49,7 +50,7 @@ public:
 public:
 	inline UMovieScene* GetMovieScene() { return MovieScene; }
 	UFUNCTION(BlueprintCallable, Category = "Animation")
-		float GetStartTime() const;
+		FFrameNumber GetStartTime() const;
 
 	/**
 	* Get the end time of this animation.
@@ -58,7 +59,7 @@ public:
 	* @see GetStartTime
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Animation")
-		float GetEndTime() const;
+		FFrameNumber GetEndTime() const;
 	virtual void BindPossessableObject(const FGuid& ObjectId, UObject& PossessedObject, UObject* Context) override;
 	virtual bool CanPossessObject(UObject& Object, UObject* InPlaybackContext) const override;
 	virtual UMovieScene* GetMovieScene() const override;

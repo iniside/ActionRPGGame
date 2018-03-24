@@ -53,7 +53,8 @@ namespace UnrealBuildTool.Rules
 			PrivateDependencyModuleNames.AddRange(
 				new string[]
 				{
-                    "ActorSequence"
+                    "ActorSequence",
+                    "TimeManagement"
 					// ... add private dependencies that you statically link with here ...
 				}
 				);

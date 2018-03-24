@@ -197,10 +197,6 @@
 		{
 			"Name": "GameLiftServerSDK",
 			"Enabled": true
-		},
-		{
-			"Name": "NoesisGUI",
-			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [

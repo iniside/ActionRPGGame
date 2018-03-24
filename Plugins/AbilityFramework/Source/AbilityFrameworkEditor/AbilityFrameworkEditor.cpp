@@ -64,13 +64,17 @@ void FAbilityFrameworkEditor::OnInitializeSequence(UGAEffectCueSequence* Sequenc
 {
 	auto* ProjectSettings = GetDefault<UMovieSceneToolsProjectSettings>();
 	AGAEffectCue* Cue = Cast<AGAEffectCue>(Sequence->GetOuter());
+	
+	
 	if (Cue)
 	{
-		Sequence->GetMovieScene()->SetPlaybackRange(Cue->StartTime, Cue->EndTime);
+		TRange<FFrameNumber> Frames(static_cast<int32>(Cue->StartTime), static_cast<int32>(Cue->EndTime));
+		Sequence->GetMovieScene()->SetPlaybackRange(Frames, true);
 	}
 	else
 	{
-		Sequence->GetMovieScene()->SetPlaybackRange(ProjectSettings->DefaultStartTime, ProjectSettings->DefaultStartTime + ProjectSettings->DefaultDuration);
+		TRange<FFrameNumber> Frames;
+		Sequence->GetMovieScene()->SetPlaybackRange(Frames, true);
 	}
 }
 	/** IModuleInterface implementation */

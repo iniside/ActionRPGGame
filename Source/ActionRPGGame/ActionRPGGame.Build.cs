@@ -62,7 +62,6 @@ public class ActionRPGGame : ModuleRules
             "AbilityManager",
             "DraggableWindow"
         });
-        PrivateDependencyModuleNames.AddRange(new string[] { "Noesis", "NoesisRuntime" });
         if (Target.Type == TargetRules.TargetType.Editor)
         {
             PublicDependencyModuleNames.AddRange(new string[] { "UnrealEd", "SourceControl", "Matinee", "PropertyEditor", "ShaderCore", "AbilityFrameworkEditor" });
