@@ -54,15 +54,17 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 150.0f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 150.0f;
 
+	GetArrowComponent()->bIsEditorOnly = true;
+
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	//CameraBoom->SetupAttachment(GetMesh());
 	CameraBoom->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("headSocket"));
 	
-	CameraBoom->TargetArmLength = 250; // The camera follows at this distance behind the character	
+	CameraBoom->TargetArmLength = 265; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
-	CameraBoom->SocketOffset = FVector(0, 30, 95);
-	CameraBoom->TargetOffset = FVector(0, 0, -95);
+	CameraBoom->SocketOffset = FVector(0, 25, 95);
+	CameraBoom->TargetOffset = FVector(0, 0, -75);
 	CameraBoom->bEnableCameraLag = true;
 	CameraBoom->bEnableCameraRotationLag = true;
 	CameraBoom->CameraLagSpeed = 8;
@@ -84,9 +86,41 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 
 	Weapons = CreateDefaultSubobject<UARWeaponPawnManagerComponent>(TEXT("Weapons"));
 
+	Head = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Head"));
+	Head->SetupAttachment(GetMesh());
+	Head->SetMasterPoseComponent(GetMesh());
+
+	Shoulders = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Shoulders"));
+	Shoulders->SetupAttachment(GetMesh());
+	Shoulders->SetMasterPoseComponent(GetMesh());
+
+	Arms = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Arms"));
+	Arms->SetupAttachment(GetMesh());
+	Arms->SetMasterPoseComponent(GetMesh());
+
+	Hands = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Hands"));
+	Hands->SetupAttachment(GetMesh());
+	Hands->SetMasterPoseComponent(GetMesh());
+
+	Torso = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Torso"));
+	Torso->SetupAttachment(GetMesh());
+	Torso->SetMasterPoseComponent(GetMesh());
+
+	Legs = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Legs"));
+	Legs->SetupAttachment(GetMesh());
+	Legs->SetMasterPoseComponent(GetMesh());
+
+	Feets = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Feets"));
+	Feets->SetupAttachment(GetMesh());
+	Feets->SetMasterPoseComponent(GetMesh());
+
+	Backpack = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Backpack"));
+	Backpack->SetupAttachment(GetMesh());
+	Backpack->SetMasterPoseComponent(GetMesh());
+
 	LegsCloth = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LegsCloth"));
 	LegsCloth->SetupAttachment(GetMesh());
-	//LegsCloth->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale);
+	//LegsCloth->SetMasterPoseComponent(GetMesh());
 
 	WeaponHolsteredRight = CreateDefaultSubobject<UChildActorComponent>(TEXT("WeaponHolsteredRight"));
 	//HolsteredRightWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);

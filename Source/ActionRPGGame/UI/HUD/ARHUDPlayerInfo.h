@@ -24,7 +24,7 @@ protected:
 		UProgressBar* PlayerStamina;
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 		UProgressBar* PlayerEnergy;
-
+public:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 		UARAbilitySlotWidget* AbilityGroup001Slot001;
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
@@ -33,12 +33,19 @@ protected:
 		UARAbilitySlotWidget* AbilityGroup001Slot003;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
-		UARWeaponSlotWidget* Weapon001;
+		UARAbilitySlotWidget* AbilityGroup002Slot001;
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
-		UARWeaponSlotWidget* Weapon002;
+		UARAbilitySlotWidget* AbilityGroup002Slot002;
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
-		UARWeaponSlotWidget* Weapon003;
-	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
-		UARWeaponSlotWidget* Weapon004;
+		UARAbilitySlotWidget* AbilityGroup002Slot003;
+
+	//UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	//	UARWeaponSlotWidget* Weapon001;
+	//UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	//	UARWeaponSlotWidget* Weapon002;
+	//UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	//	UARWeaponSlotWidget* Weapon003;
+	//UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	//	UARWeaponSlotWidget* Weapon004;
 	
 };

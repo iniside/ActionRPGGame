@@ -154,3 +154,23 @@ float AARPlayerController::GetObjectScreenRadius(AActor* InActor)
 
 	return ScreenRadius;
 }
+void AARPlayerController::GetObjectBoundSphere(float Distance, AActor* InActor, FVector& Origin, float& Radius, float& Scale
+	, float& SphereRadius)
+{
+	const FMinimalViewInfo& ViewInfo = PlayerCameraManager->GetLastFrameCameraCachePOV();
+	FMatrix Proj = ViewInfo.CalculateProjectionMatrix();
+	const float ScreenMultiple = FMath::Max(0.5f * Proj.M[0][0], 0.5f * Proj.M[1][1]);
+	if (ACharacter* Character = Cast<ACharacter>(InActor))
+	{
+		Origin = Character->GetMesh()->Bounds.Origin;
+		Radius = Character->GetMesh()->Bounds.SphereRadius;
+		Scale = ScreenMultiple;
+		SphereRadius = ScreenMultiple * Radius / FMath::Max(1.0f, Distance);
+		return;
+	}
+	
+	Scale = ScreenMultiple;
+	Origin = InActor->GetRootComponent()->Bounds.Origin;
+	Radius = InActor->GetRootComponent()->Bounds.SphereRadius;
+	SphereRadius = ScreenMultiple * Radius / FMath::Max(1.0f, Distance);
+}

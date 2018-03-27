@@ -8,6 +8,13 @@
 #include "ARAbilityBase.h"
 #include "ARAbilityUIData.h"
 
+void UARAbilitySlotWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	CooldownBar->SetPercent(GetCooldownRemainingTimeNormalized());
+}
+
 float UARAbilitySlotWidget::GetActivationRemainingTime()
 {
 	if (!AbilityManager.IsValid())

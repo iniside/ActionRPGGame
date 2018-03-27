@@ -19,7 +19,6 @@ class ACTIONRPGGAME_API UARAbilityWidget : public UARUMGWidgetBase
 {
 	GENERATED_BODY()
 public:
-	
 	TWeakObjectPtr<class UARAbilityManagerComponent> AbilityManager;
 
 	virtual void NativePreConstruct() override;

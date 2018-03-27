@@ -20,6 +20,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Config")
 		EAMSlot AbilitySlot;
 public:
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+		UProgressBar* CooldownBar;
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+		UImage* AbilityIcon;
+public:
+
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
 	UFUNCTION(BlueprintPure, Category = "ActionRPGGame|UI|Abilities")
 		float GetActivationRemainingTime();
 	UFUNCTION(BlueprintPure, Category = "ActionRPGGame|UI|Abilities")

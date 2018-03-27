@@ -18,6 +18,9 @@ class ACTIONRPGGAME_API UARHUDWidget : public UUserWidget
 {
 	GENERATED_BODY()
 protected:
+
+	TWeakObjectPtr<class UARUIComponent> UIComponent;
+public:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 		UARHUDPlayerInfo* PlayerInfo;
 };

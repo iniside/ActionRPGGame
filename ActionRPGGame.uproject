@@ -197,6 +197,10 @@
 		{
 			"Name": "GameLiftServerSDK",
 			"Enabled": true
+		},
+		{
+			"Name": "LiveLink",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [

@@ -95,8 +95,35 @@ class AARCharacter : public ACharacter, public IAFAbilityInterface, public IOrio
 	UPROPERTY(EditAnywhere, Category = "Default Abilities")
 		TArray<FGameplayTag> AbilitiesToGive;
 
+	//Character parts:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Parts", meta = (AllowPrivateAccess = "true"))
+		USkeletalMeshComponent* Head;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Parts", meta = (AllowPrivateAccess = "true"))
+		USkeletalMeshComponent* Shoulders;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Parts", meta = (AllowPrivateAccess = "true"))
+		USkeletalMeshComponent* Arms;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Parts", meta = (AllowPrivateAccess = "true"))
+		USkeletalMeshComponent* Hands;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Parts", meta = (AllowPrivateAccess = "true"))
+		USkeletalMeshComponent* Torso;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Parts", meta = (AllowPrivateAccess = "true"))
+		USkeletalMeshComponent* Legs;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Parts", meta = (AllowPrivateAccess = "true"))
+		USkeletalMeshComponent* Feets;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Parts", meta = (AllowPrivateAccess = "true"))
+		USkeletalMeshComponent* Backpack;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Parts", meta = (AllowPrivateAccess = "true"))
 		USkeletalMeshComponent* LegsCloth;
+
+
 	//Weapons
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons", meta = (AllowPrivateAccess = "true"))
 		UChildActorComponent* WeaponHolsteredRight;

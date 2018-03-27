@@ -39,7 +39,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Widgets")
 		TSubclassOf<class UARHUDWidget> HUDWidgetClass;
-
+public:
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		UARHUDWidget* HUDWidget;
 

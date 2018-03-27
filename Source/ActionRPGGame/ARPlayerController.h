@@ -51,4 +51,8 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Hud")
 		float GetObjectScreenRadius(AActor* InActor);
+
+	UFUNCTION(BlueprintPure, Category = "Hud")
+		void GetObjectBoundSphere(float Distance, AActor* InActor, FVector& Origin, float& Radius, float& Scale
+			, float& SphereRadius);
 };
