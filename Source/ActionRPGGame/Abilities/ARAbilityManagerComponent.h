@@ -69,5 +69,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ActionRPGGame|Ability Manager")
 		void SetCurrentSet(int32 SetIndex);
 
+	virtual void OnGroupSelectionConfirmed(EAMGroup ValidGroup, bool bPredictionSuccess) override;
+
 	void OnInputReady(FGameplayTag WeaponAbilityTag, TArray<FGameplayTag> InInputTags);
 };

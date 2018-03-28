@@ -162,9 +162,17 @@ public:
 
 	virtual void OnNextGroupConfirmed(EAMGroup ValidGroup, bool bPredictionSuccess) {};
 	virtual void OnPreviousGroupConfirmed(EAMGroup ValidGroup, bool bPredictionSuccess) {};
+	virtual void OnGroupSelectionConfirmed(EAMGroup ValidGroup, bool bPredictionSuccess) {};
 
 	UFUNCTION(BlueprintCallable)
 		void SelectGroup(EAMGroup InGroup);
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerSelectGroup(EAMGroup InGroup);
+	void ServerSelectGroup_Implementation(EAMGroup InGroup);
+	bool ServerSelectGroup_Validate(EAMGroup InGroup);
+	UFUNCTION(Client, Reliable)
+		void ClientSelectGroup(EAMGroup InGroup, bool bPredictionSuccess);
+	void ClientSelectGroup_Implementation(EAMGroup InGroup, bool bPredictionSuccess);
 
 
 	void AddOnAbilityReadyEvent(const FGameplayTag& Ability, const FSimpleDelegate& Delegate)

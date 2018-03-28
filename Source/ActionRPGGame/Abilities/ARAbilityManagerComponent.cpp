@@ -76,22 +76,24 @@ void UARAbilityManagerComponent::ShowHideAbilityManager()
 
 void UARAbilityManagerComponent::SetCurrentSet(int32 SetIndex)
 {
+	//add server/client checks.
 	SelectGroup(AMIntToEnum<EAMGroup>(SetIndex));
-	EAMGroup Group = AMIntToEnum<EAMGroup>(SetIndex); //ActiveGroup
 
-	
-	
+}
+
+void UARAbilityManagerComponent::OnGroupSelectionConfirmed(EAMGroup ValidGroup, bool bPredictionSuccess)
+{
+	EAMGroup Group = ValidGroup; //ActiveGroup
+
 	UAFAbilityComponent* AbilityComp = GetAbilityComponent();
 	if (!AbilityComp)
 		return;
-
-	//UGAAbilityBase* Ability = Cast<UGAAbilityBase>(AbilityComp->BP_GetAbilityByTag(NextWeaponAbility));
 
 	if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
 	{
 		TArray<FAFAbilityActionSet> AbilityActionSet;
 		TArray<FAFOnAbilityReady> InputReadyDelegates;
-		for (int32 Idx = 0; Idx < AbilityTagsSet[SetIndex].Num(); Idx++)
+		for (int32 Idx = 0; Idx < AbilityTagsSet[AMEnumToInt<EAMGroup>(ValidGroup)].Num(); Idx++)
 		{
 			TArray<FGameplayTag> WeaponInput = GetInputTag(Group, AMIntToEnum<EAMSlot>(Idx));
 			FGameplayTag NextWeaponAbility = GetAbilityTag(Group, AMIntToEnum<EAMSlot>(Idx));
@@ -106,15 +108,15 @@ void UARAbilityManagerComponent::SetCurrentSet(int32 SetIndex)
 			AbilityActionSet.Add(Set);
 			InputReadyDelegates.Add(ReadyDelegate);
 		}
-		
+
 		AbilityComp->SetAbilitiesToActions(AbilityActionSet, InputReadyDelegates);
 	}
 	else
 	{
 		TArray<FAFAbilityActionSet> AbilityActionSet;
 		TArray<FAFOnAbilityReady> InputReadyDelegates;
-		
-		for (int32 Idx = 0; Idx < AbilityTagsSet[SetIndex].Num(); Idx++)
+
+		for (int32 Idx = 0; Idx < AbilityTagsSet[AMEnumToInt<EAMGroup>(ValidGroup)].Num(); Idx++)
 		{
 			TArray<FGameplayTag> WeaponInput = GetInputTag(Group, AMIntToEnum<EAMSlot>(Idx));
 			FGameplayTag NextWeaponAbility = GetAbilityTag(Group, AMIntToEnum<EAMSlot>(Idx));
@@ -130,7 +132,7 @@ void UARAbilityManagerComponent::SetCurrentSet(int32 SetIndex)
 			InputReadyDelegates.Add(ReadyDelegate);
 		}
 		AbilityComp->SetAbilitiesToActions(AbilityActionSet, InputReadyDelegates);
-		OnAbilitySetChanged.Broadcast(AMIntToEnum<EAMGroup>(SetIndex));
+		OnAbilitySetChanged.Broadcast(ValidGroup);
 	}
 }
 

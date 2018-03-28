@@ -298,10 +298,58 @@ void UAMAbilityManagerComponent::SelectGroup(EAMGroup InGroup)
 	if (AMEnumToInt<EAMGroup>(InGroup) > Groups.Num())
 	{
 		ActiveGroup = EAMGroup::Group001;
-		return;
 	}
-	ActiveGroup = InGroup;
+	else
+	{
+		ActiveGroup = InGroup;
+	}
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		ServerSelectGroup(InGroup);
+	}
+	else
+	{
+		OnGroupSelectionConfirmed(InGroup, true);
+	}
 }
+void UAMAbilityManagerComponent::ServerSelectGroup_Implementation(EAMGroup InGroup)
+{
+	if (AMEnumToInt<EAMGroup>(InGroup) > Groups.Num())
+	{
+		ActiveGroup = EAMGroup::Group001;
+	}
+	else
+	{
+		ActiveGroup = InGroup;
+	}
+	if (ActiveGroup != InGroup)
+	{
+		ClientPreviousGroup(AMEnumToInt<EAMGroup>(ActiveGroup), false);
+	}
+	else
+	{
+		ClientPreviousGroup(AMEnumToInt<EAMGroup>(ActiveGroup), true);
+	}
+}
+bool UAMAbilityManagerComponent::ServerSelectGroup_Validate(EAMGroup InGroup)
+{
+	return true;
+}
+
+
+void UAMAbilityManagerComponent::ClientSelectGroup_Implementation(EAMGroup InGroup, bool bPredictionSuccess)
+{
+	if (bPredictionSuccess)
+	{
+		OnGroupSelectionConfirmed(InGroup, true);
+	}
+	else
+	{
+		ActiveGroup = InGroup;
+		OnGroupSelectionConfirmed(InGroup, false);
+	}
+}
+
 
 class UAFAbilityComponent* UAMAbilityManagerComponent::GetAbilityComponent()
 {
