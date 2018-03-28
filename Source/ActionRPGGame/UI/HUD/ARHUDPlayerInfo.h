@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/ProgressBar.h"
 
+#include "UI/ARUMGWidgetBase.h"
 #include "UI/Weapons/ARWeaponSlotWidget.h"
 #include "UI/Abilities/ARAbilitySlotWidget.h"
 #include "ARHUDPlayerInfo.generated.h"
@@ -14,7 +15,7 @@
  * 
  */
 UCLASS()
-class ACTIONRPGGAME_API UARHUDPlayerInfo : public UUserWidget
+class ACTIONRPGGAME_API UARHUDPlayerInfo : public UARUMGWidgetBase
 {
 	GENERATED_BODY()
 protected:
@@ -48,4 +49,10 @@ public:
 	//UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 	//	UARWeaponSlotWidget* Weapon004;
 	
+	virtual void NativePreConstruct() override;
+	virtual void NativeConstruct() override;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "ActionRPGGame|UI")
+		void OnAbilityGroupChanged(EAMGroup CurrentGroup);
+
 };

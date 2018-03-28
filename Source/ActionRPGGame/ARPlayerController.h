@@ -38,6 +38,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
 		FGameplayTag AbilitytHolstersWeapon;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
+		FGameplayTag InputSetAbilityGroup01;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
+		FGameplayTag SetAbilityGroup01;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
+		FGameplayTag InputSetAbilityGroup02;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
+		FGameplayTag SetAbilityGroup02;
+
 	bool bInputBount;
 public:
 	AARPlayerController(const FObjectInitializer& ObjectInitializer);

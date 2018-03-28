@@ -15,9 +15,40 @@ bool UARAbilityListSlotDropWidget::NativeOnDrop(const FGeometry& InGeometry
 	AbilityManager->NativeEquipAbility(Payload->GetAbilityTag(), AbilityGroup, AbilitySlot);
 
 	IconImage->SetBrush(brush);
-	if (AbilitySlot == EAMSlot::Slot001)
+	if (AbilityGroup == EAMGroup::Group001)
 	{
-		UIComponent->HUDWidget->PlayerInfo->AbilityGroup001Slot001->AbilityIcon->SetBrush(brush); //DAT BAD
+		switch (AbilitySlot)
+		{
+		case EAMSlot::Slot001:
+			UIComponent->HUDWidget->PlayerInfo->AbilityGroup001Slot001->AbilityIcon->SetBrush(brush); //DAT BAD
+			break;
+		case EAMSlot::Slot002:
+			UIComponent->HUDWidget->PlayerInfo->AbilityGroup001Slot002->AbilityIcon->SetBrush(brush); //DAT BAD
+			break;
+		case EAMSlot::Slot003:
+			UIComponent->HUDWidget->PlayerInfo->AbilityGroup001Slot003->AbilityIcon->SetBrush(brush); //DAT BAD
+			break;
+		default:
+			break;
+		}
 	}
+	else if (AbilityGroup == EAMGroup::Group002)
+	{
+		switch (AbilitySlot)
+		{
+		case EAMSlot::Slot001:
+			UIComponent->HUDWidget->PlayerInfo->AbilityGroup002Slot001->AbilityIcon->SetBrush(brush); //DAT BAD
+			break;
+		case EAMSlot::Slot002:
+			UIComponent->HUDWidget->PlayerInfo->AbilityGroup002Slot002->AbilityIcon->SetBrush(brush); //DAT BAD
+			break;
+		case EAMSlot::Slot003:
+			UIComponent->HUDWidget->PlayerInfo->AbilityGroup002Slot003->AbilityIcon->SetBrush(brush); //DAT BAD
+			break;
+		default:
+			break;
+		}
+	}
+	
 	return true;
 }

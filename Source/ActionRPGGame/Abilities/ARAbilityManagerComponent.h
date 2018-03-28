@@ -13,6 +13,8 @@
 
 #include "ARAbilityManagerComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAROnAbilitySetChanged, EAMGroup, Group);
+
 USTRUCT(BlueprintType)
 struct FARAbilityItem
 {
@@ -42,6 +44,9 @@ protected:
 		TArray<FARAbilityItem> AvailableAbilities;
 
 	FDWWWindowHandle ManagerWindowHandle;
+public:
+	UPROPERTY(BlueprintAssignable)
+		FAROnAbilitySetChanged OnAbilitySetChanged;
 public:	
 	// Sets default values for this component's properties
 	UARAbilityManagerComponent();
@@ -60,4 +65,9 @@ public:
 	{
 		return DragVisualClass;
 	}
+
+	UFUNCTION(BlueprintCallable, Category = "ActionRPGGame|Ability Manager")
+		void SetCurrentSet(int32 SetIndex);
+
+	void OnInputReady(FGameplayTag WeaponAbilityTag, TArray<FGameplayTag> InInputTags);
 };

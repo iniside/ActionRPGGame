@@ -155,7 +155,7 @@ public:
 
 	TMap<FGameplayTag, UGAAbilityBase*> TagToAbility;
 
-	void SetBlockedInput(const FGameplayTag& InInput, bool bBlock);
+	void SetBlockedInput(const FGameplayTag& InActionName, bool bBlock);
 	UGAAbilityBase* AddAbility(TSubclassOf<class UGAAbilityBase> AbilityIn, 
 		AActor* InAvatar);
 	void RemoveAbility(const FGameplayTag& AbilityIn);
@@ -250,6 +250,18 @@ struct TStructOpsTypeTraits< FAFReplicatedAttributeContainer > : public TStructO
 	{
 		WithNetDeltaSerializer = true,
 	};
+};
+
+
+USTRUCT(BlueprintType)
+struct ABILITYFRAMEWORK_API FAFAbilityActionSet
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY()
+		FGameplayTag AbilityTag;
+	UPROPERTY()
+		TArray<FGameplayTag> AbilityInputs;
 };
 
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
@@ -562,7 +574,7 @@ public:
 	TMap<FGameplayTag, bool> BlockedInput;
 	//TSharedPtr<FStreamableHandle> AbilityLoadedHandle;
 	void OnFinishedLoad(FGameplayTag InAbilityTag, FPrimaryAssetId InPrimaryAssetId, AActor* InAvatar);
-	void SetBlockedInput(const FGameplayTag& InInput, bool bBlock);
+	void SetBlockedInput(const FGameplayTag& InActionName, bool bBlock);
 	void BindInputs(class UInputComponent* InputComponent);
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Bind Ability To Action"), Category = "AbilityFramework|Abilities")
 		void BP_BindAbilityToAction(FGameplayTag ActionName);
@@ -584,6 +596,13 @@ public:
 	UFUNCTION(Client, Reliable)
 		void ClientNotifyAbilityInputReady(FGameplayTag AbilityTag);
 	void ClientNotifyAbilityInputReady_Implementation(FGameplayTag AbilityTag);
+
+
+	void SetAbilitiesToActions(const TArray<FAFAbilityActionSet>& InAbilitiesActions, const TArray<FAFOnAbilityReady>& InputDelegate);
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerSetAbilitiesToActions(const TArray<FAFAbilityActionSet>& InAbilitiesActions);
+	void ServerSetAbilitiesToActions_Implementation(const TArray<FAFAbilityActionSet>& InAbilitiesActions);
+	bool ServerSetAbilitiesToActions_Validate(const TArray<FAFAbilityActionSet>& InAbilitiesActions);
 
 
 	UFUNCTION(BlueprintCallable, meta=(DisplayName="Input Pressed"), Category = "AbilityFramework|Abilities")

@@ -19,6 +19,10 @@ void UARAbilityCrosshairInfo::NativeConstruct()
 	Super::NativeConstruct();
 
 	CrosshairImage->SetBrushFromMaterial(CrosshairMaterial);
+	if (AARPlayerController* MyPC = Cast<AARPlayerController>(GetOwningPlayer()))
+	{
+		MyPC->AbilityManager->OnAbilitySetChanged.AddDynamic(this, &UARAbilityCrosshairInfo::OnAbilityGroupChanged);
+	}
 }
 
 void UARAbilityCrosshairInfo::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)

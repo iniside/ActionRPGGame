@@ -73,3 +73,68 @@ void UARAbilityManagerComponent::ShowHideAbilityManager()
 		ManagerWindowHandle.Window.Pin()->SetVisibility(EVisibility::Collapsed);
 	}
 }
+
+void UARAbilityManagerComponent::SetCurrentSet(int32 SetIndex)
+{
+	SelectGroup(AMIntToEnum<EAMGroup>(SetIndex));
+	EAMGroup Group = AMIntToEnum<EAMGroup>(SetIndex); //ActiveGroup
+
+	
+	
+	UAFAbilityComponent* AbilityComp = GetAbilityComponent();
+	if (!AbilityComp)
+		return;
+
+	//UGAAbilityBase* Ability = Cast<UGAAbilityBase>(AbilityComp->BP_GetAbilityByTag(NextWeaponAbility));
+
+	if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
+	{
+		TArray<FAFAbilityActionSet> AbilityActionSet;
+		TArray<FAFOnAbilityReady> InputReadyDelegates;
+		for (int32 Idx = 0; Idx < AbilityTagsSet[SetIndex].Num(); Idx++)
+		{
+			TArray<FGameplayTag> WeaponInput = GetInputTag(Group, AMIntToEnum<EAMSlot>(Idx));
+			FGameplayTag NextWeaponAbility = GetAbilityTag(Group, AMIntToEnum<EAMSlot>(Idx));
+
+			FAFAbilityActionSet Set;
+			Set.AbilityInputs = WeaponInput;
+			Set.AbilityTag = NextWeaponAbility;
+
+			FAFOnAbilityReady ReadyDelegate = FAFOnAbilityReady::CreateUObject(this, &UARAbilityManagerComponent::OnInputReady,
+				NextWeaponAbility, WeaponInput);
+
+			AbilityActionSet.Add(Set);
+			InputReadyDelegates.Add(ReadyDelegate);
+		}
+		
+		AbilityComp->SetAbilitiesToActions(AbilityActionSet, InputReadyDelegates);
+	}
+	else
+	{
+		TArray<FAFAbilityActionSet> AbilityActionSet;
+		TArray<FAFOnAbilityReady> InputReadyDelegates;
+		
+		for (int32 Idx = 0; Idx < AbilityTagsSet[SetIndex].Num(); Idx++)
+		{
+			TArray<FGameplayTag> WeaponInput = GetInputTag(Group, AMIntToEnum<EAMSlot>(Idx));
+			FGameplayTag NextWeaponAbility = GetAbilityTag(Group, AMIntToEnum<EAMSlot>(Idx));
+
+			FAFAbilityActionSet Set;
+			Set.AbilityInputs = WeaponInput;
+			Set.AbilityTag = NextWeaponAbility;
+
+			FAFOnAbilityReady ReadyDelegate = FAFOnAbilityReady::CreateUObject(this, &UARAbilityManagerComponent::OnInputReady,
+				NextWeaponAbility, WeaponInput);
+
+			AbilityActionSet.Add(Set);
+			InputReadyDelegates.Add(ReadyDelegate);
+		}
+		AbilityComp->SetAbilitiesToActions(AbilityActionSet, InputReadyDelegates);
+		OnAbilitySetChanged.Broadcast(AMIntToEnum<EAMGroup>(SetIndex));
+	}
+}
+
+void UARAbilityManagerComponent::OnInputReady(FGameplayTag WeaponAbilityTag, TArray<FGameplayTag> InInputTags)
+{
+	OnAbilitySetChanged.Broadcast(ActiveGroup);
+}

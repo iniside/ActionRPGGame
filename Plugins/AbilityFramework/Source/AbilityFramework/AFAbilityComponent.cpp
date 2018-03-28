@@ -257,15 +257,15 @@ void FGASAbilityItem::PostReplicatedChange(const struct FGASAbilityContainer& In
 {
 
 }
-void FGASAbilityContainer::SetBlockedInput(const FGameplayTag& InInput, bool bBlock)
+void FGASAbilityContainer::SetBlockedInput(const FGameplayTag& InActionName, bool bBlock)
 {
-	if (BlockedInput.Contains(InInput))
+	if (BlockedInput.Contains(InActionName))
 	{
-		BlockedInput[InInput] = bBlock;
+		BlockedInput[InActionName] = bBlock;
 	}
 	else
 	{
-		BlockedInput.Add(InInput, bBlock);
+		BlockedInput.Add(InActionName, bBlock);
 	}
 }
 UGAAbilityBase* FGASAbilityContainer::AddAbility(TSubclassOf<class UGAAbilityBase> AbilityIn,
@@ -359,7 +359,7 @@ void FGASAbilityContainer::SetAbilityToAction(const FGameplayTag& InAbilityTag, 
 		FGameplayTag& AbilityTag = ActionToAbility.FindOrAdd(InputTag);
 		AbilityTag = InAbilityTag;
 
-		TArray<FGameplayTag>& ActionTag = AbilityToAction.FindOrAdd(InputTag);
+		TArray<FGameplayTag>& ActionTag = AbilityToAction.FindOrAdd(InAbilityTag);
 		ActionTag.Add(InputTag);
 	}
 	if (!AbilitiesComp.IsValid())
@@ -461,9 +461,9 @@ void UAFAbilityComponent::BindInputs(class UInputComponent* InputComponent)
 		BindAbilityToAction(InputComponent, Tag);
 	}
 }
-void UAFAbilityComponent::SetBlockedInput(const FGameplayTag& InInput, bool bBlock)
+void UAFAbilityComponent::SetBlockedInput(const FGameplayTag& InActionName, bool bBlock)
 {
-	AbilityContainer.SetBlockedInput(InInput, bBlock);
+	AbilityContainer.SetBlockedInput(InActionName, bBlock);
 }
 void UAFAbilityComponent::BP_BindAbilityToAction(FGameplayTag ActionName)
 {
@@ -546,6 +546,55 @@ bool UAFAbilityComponent::ServerSetAbilityToAction_Validate(const FGameplayTag& 
 void UAFAbilityComponent::ClientNotifyAbilityInputReady_Implementation(FGameplayTag AbilityTag)
 {
 	NotifyOnAbilityInputReady(AbilityTag);
+}
+
+void UAFAbilityComponent::SetAbilitiesToActions(const TArray<FAFAbilityActionSet>& InAbilitiesActions
+	, const TArray<FAFOnAbilityReady>& InputDelegate)
+{
+	for (const FAFAbilityActionSet& Set : InAbilitiesActions)
+	{
+		for (const FGameplayTag& Tag : Set.AbilityInputs)
+		{
+			if (AbilityContainer.IsAbilityBoundToAction(Tag).IsValid())
+			{
+				RemoveAbilityFromAction(Set.AbilityTag, FGameplayTag());
+			}
+		}
+	}
+	for (const FAFAbilityActionSet& Set : InAbilitiesActions)
+	{
+		AbilityContainer.SetAbilityToAction(Set.AbilityTag, Set.AbilityInputs);
+	}
+	ENetRole role = GetOwnerRole();
+
+	if (GetOwner()->GetNetMode() == ENetMode::NM_Client
+		&& role == ENetRole::ROLE_AutonomousProxy)
+	{
+		for (int32 Idx = 0; Idx < InAbilitiesActions.Num(); Idx++)
+		{
+			if (InputDelegate[Idx].IsBound())
+			{
+				AddOnAbilityInputReadyDelegate(InAbilitiesActions[Idx].AbilityTag, InputDelegate[Idx]);
+			}
+		}
+		
+		ServerSetAbilitiesToActions(InAbilitiesActions);
+	}
+}
+
+void UAFAbilityComponent::ServerSetAbilitiesToActions_Implementation(const TArray<FAFAbilityActionSet>& InAbilitiesActions)
+{
+	if (GetOwner()->GetNetMode() == ENetMode::NM_DedicatedServer)
+	{
+		for (const FAFAbilityActionSet& Set : InAbilitiesActions)
+		{
+			SetAbilityToAction(Set.AbilityTag, Set.AbilityInputs, FAFOnAbilityReady());
+		}
+	}
+}
+bool UAFAbilityComponent::ServerSetAbilitiesToActions_Validate(const TArray<FAFAbilityActionSet>& InAbilitiesActions)
+{
+	return true;
 }
 
 void UAFAbilityComponent::BP_InputPressed(FGameplayTag ActionName)

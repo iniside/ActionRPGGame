@@ -43,6 +43,8 @@ void AARPlayerController::SetPawn(APawn* InPawn)
 			AbilityComp->BindAbilityToAction(InputComponent, InputNextWeapon);
 			AbilityComp->BindAbilityToAction(InputComponent, InputPreviousWeapon);
 			AbilityComp->BindAbilityToAction(InputComponent, InputHolsterWeapon);
+			AbilityComp->BindAbilityToAction(InputComponent, InputSetAbilityGroup01);
+			AbilityComp->BindAbilityToAction(InputComponent, InputSetAbilityGroup02);
 			InputComponent->BindAction("InputAbilityManager", IE_Pressed, this, &AARPlayerController::InputShowHideAbilityManager);
 			InputComponent->BindAction("InputInventory", IE_Pressed, this, &AARPlayerController::InputShowHideInventory);
 
@@ -74,6 +76,23 @@ void AARPlayerController::SetPawn(APawn* InPawn)
 			TArray<FGameplayTag> HolsterInput;
 			HolsterInput.Add(InputHolsterWeapon);
 			AbilityComp->NativeAddAbilityFromTag(AbilitytHolstersWeapon, nullptr, HolsterInput);
+		}
+
+		if (SetAbilityGroup01.IsValid())
+		{
+			FAFOnAbilityReady del3 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, SetAbilityGroup01, InputSetAbilityGroup01);
+			AbilityComp->AddOnAbilityReadyDelegate(SetAbilityGroup01, del3);
+			TArray<FGameplayTag> HolsterInput;
+			HolsterInput.Add(InputSetAbilityGroup01);
+			AbilityComp->NativeAddAbilityFromTag(SetAbilityGroup01, nullptr, HolsterInput);
+		}
+		if (SetAbilityGroup02.IsValid())
+		{
+			FAFOnAbilityReady del3 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, SetAbilityGroup02, InputSetAbilityGroup02);
+			AbilityComp->AddOnAbilityReadyDelegate(SetAbilityGroup02, del3);
+			TArray<FGameplayTag> HolsterInput;
+			HolsterInput.Add(InputSetAbilityGroup02);
+			AbilityComp->NativeAddAbilityFromTag(SetAbilityGroup02, nullptr, HolsterInput);
 		}
 		
 	}
