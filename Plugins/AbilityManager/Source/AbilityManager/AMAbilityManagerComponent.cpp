@@ -106,7 +106,7 @@ void UAMAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbilit
 		return;
 	TArray<FGameplayTag> IAbilityInput;
 	
-	//if(bBindInput)
+	if(ActiveGroup == InGroup)
 		IAbilityInput = GetInputTag(InGroup, InSlot);
 
 	FAFOnAbilityReady del;
