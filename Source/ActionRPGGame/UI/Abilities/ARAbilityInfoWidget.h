@@ -17,9 +17,9 @@ class ACTIONRPGGAME_API UARAbilityInfoWidget : public UARAbilityWidget
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(EditAnywhere, Category = "Ability")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability")
 		EAMSlot AbilitySlot;
-	UPROPERTY(EditAnywhere, Category = "Ability")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability")
 		EAMGroup AbilityGroup;
 
 	float GetRemainingCooldown() const;
