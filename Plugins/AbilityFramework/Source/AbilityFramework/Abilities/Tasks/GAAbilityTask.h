@@ -40,18 +40,22 @@ public:
 	{
 		check(WorldContextObject);
 
-		T* MyObj = NewObject<T>(WorldContextObject);
+		T* MyObj = nullptr;
 		UGAAbilityBase* ThisAbility = CastChecked<UGAAbilityBase>(WorldContextObject);
 		if (UGAAbilityTask* CachedTask = ThisAbility->GetAbilityTask(InTaskName))
 		{
-			CachedTask->InitTask(*ThisAbility, ThisAbility->GetGameplayTaskDefaultPriority());
-			return Cast<T>(CachedTask);
+			MyObj = Cast<T>(CachedTask);
+		}
+		else
+		{
+			MyObj = NewObject<T>(WorldContextObject);
+			ThisAbility->AddAbilityTask(InTaskName, MyObj);
 		}
 		MyObj->Ability = ThisAbility;
 		MyObj->AbilityComponent = ThisAbility->AbilityComponent;
 		MyObj->InitTask(*ThisAbility, ThisAbility->GetGameplayTaskDefaultPriority());
 		MyObj->InstanceName = InstanceName;
-		ThisAbility->AddAbilityTask(InTaskName, MyObj);
+		
 		return MyObj;
 	}
 
@@ -73,4 +77,17 @@ public:
 	virtual bool CallRemoteFunction(UFunction* Function, void* Parameters, FOutParmRec* OutParms, FFrame* Stack) override;
 protected:
 	void EndAbilityTask();
+
+	void OnDestroy(bool bInOwnerFinished) override
+	{
+		ensure(TaskState != EGameplayTaskState::Finished && !IsPendingKill());
+		TaskState = EGameplayTaskState::Finished;
+
+		if (TasksComponent.IsValid())
+		{
+			TasksComponent->OnGameplayTaskDeactivated(*this);
+		}
+
+		//MarkPendingKill();
+	}
 };

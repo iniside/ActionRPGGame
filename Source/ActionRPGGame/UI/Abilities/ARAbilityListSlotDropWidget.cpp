@@ -20,6 +20,7 @@ bool UARAbilityListSlotDropWidget::NativeOnDrop(const FGeometry& InGeometry
 		switch (AbilitySlot)
 		{
 		case EAMSlot::Slot001:
+			//probabaly should just bind delgate from widget and track ability change.
 			UIComponent->HUDWidget->PlayerInfo->AbilityGroup001Slot001->AbilityIcon->SetBrush(brush); //DAT BAD
 			break;
 		case EAMSlot::Slot002:

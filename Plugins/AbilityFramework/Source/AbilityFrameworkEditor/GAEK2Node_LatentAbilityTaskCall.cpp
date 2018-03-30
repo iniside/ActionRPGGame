@@ -17,6 +17,7 @@
 UGAEK2Node_LatentAbilityTaskCall::UGAEK2Node_LatentAbilityTaskCall(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	ProxyActivateFunctionName = GET_FUNCTION_NAME_CHECKED(UGameplayTask, ReadyForActivation);
 	if (HasAnyFlags(RF_ClassDefaultObject) == true)
 	{
 		UK2Node_LatentGameplayTaskCall::RegisterSpecializedTaskNodeClass(GetClass());
