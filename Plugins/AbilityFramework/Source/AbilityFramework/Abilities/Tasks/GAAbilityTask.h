@@ -25,6 +25,7 @@ class ABILITYFRAMEWORK_API UGAAbilityTask : public UGameplayTask
 	GENERATED_UCLASS_BODY()
 		friend struct FAFAbilityTaskMessageTick;
 public:
+	uint8 bIsReplicated : 1;
 	/* Ability owning this task */
 	TWeakObjectPtr<UGAAbilityBase> Ability;
 	/* Ability owning this task */
@@ -72,9 +73,14 @@ public:
 		static_assert(DelayedFalse<T>(), "UAbilityTask::NewTask should never be used. Use NewAbilityTask instead");
 	}
 
+	bool IsReplicated()
+	{
+		return bIsReplicated;
+	}
+
 	//network overrides:
-	int32 GetFunctionCallspace(UFunction* Function, void* Parameters, FFrame* Stack) override;
-	virtual bool CallRemoteFunction(UFunction* Function, void* Parameters, FOutParmRec* OutParms, FFrame* Stack) override;
+	//int32 GetFunctionCallspace(UFunction* Function, void* Parameters, FFrame* Stack) override;
+	//virtual bool CallRemoteFunction(UFunction* Function, void* Parameters, FOutParmRec* OutParms, FFrame* Stack) override;
 protected:
 	void EndAbilityTask();
 
@@ -89,5 +95,47 @@ protected:
 		}
 
 		//MarkPendingKill();
+	}
+
+	bool IsClient()
+	{
+		APawn* POwner = Ability->POwner;
+		if (POwner->GetNetMode() == ENetMode::NM_Client)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	bool IsServer()
+	{
+		APawn* POwner = Ability->POwner;
+		if (POwner->GetNetMode() == ENetMode::NM_DedicatedServer
+			|| POwner->GetNetMode() == ENetMode::NM_ListenServer)
+		{
+			return true;
+		}
+		return false;
+	}
+	bool IsServerOrStandalone()
+	{
+		APawn* POwner = Ability->POwner;
+		if (POwner->GetNetMode() == ENetMode::NM_DedicatedServer
+			|| POwner->GetNetMode() == ENetMode::NM_ListenServer
+			|| POwner->GetNetMode() == ENetMode::NM_Standalone)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	bool IsAuthority()
+	{
+		APawn* POwner = Ability->POwner;
+		if (POwner->Role >= ENetRole::ROLE_Authority)
+		{
+			return true;
+		}
+		return false;
 	}
 };

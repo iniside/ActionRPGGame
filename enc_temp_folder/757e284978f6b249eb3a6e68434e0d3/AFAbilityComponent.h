@@ -416,14 +416,6 @@ public:
 	*/
 
 	// BEGIN IGameplayTaskOwnerInterface
-	/*
-		Overrided because I'm not using GameplayTasks as they were meant to.
-		Create tasks, hold for it for a while and then destroy it (even for replicated tasks).
-		Instead I cache tasks off, and reuse them, which mean I don't want to fail at check if tasks is already simulated (because it is).
-		Instead if tasks is already simulating I simply skip adding it.
-
-		I also want to manually remove tasks, when they ability that owns them is removed.
-	*/
 	virtual void OnGameplayTaskActivated(UGameplayTask& Task) override;
 	// END IGameplayTaskOwnerInterface
 

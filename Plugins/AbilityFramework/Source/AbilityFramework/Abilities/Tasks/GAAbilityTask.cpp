@@ -7,6 +7,7 @@
 UGAAbilityTask::UGAAbilityTask(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
+	bIsReplicated = false;
 	bTickingTask = false;
 	bSimulatedTask = false;
 	bIsSimulating = false;
@@ -36,27 +37,27 @@ void UGAAbilityTask::EndAbilityTask()
 
 }
 
-int32 UGAAbilityTask::GetFunctionCallspace(UFunction* Function, void* Parameters, FFrame* Stack)
-{
-	if (HasAnyFlags(RF_ClassDefaultObject))
-	{
-		return FunctionCallspace::Local;
-	}
-	check(AbilityComponent.IsValid());
-	return AbilityComponent->GetFunctionCallspace(Function, Parameters, Stack);
-}
-bool UGAAbilityTask::CallRemoteFunction(UFunction* Function, void* Parameters, FOutParmRec* OutParms, FFrame* Stack)
-{
-	check(!HasAnyFlags(RF_ClassDefaultObject));
-	check(AbilityComponent.IsValid());
-
-
-	UNetDriver* NetDriver = AbilityComponent->GetOwner()->GetNetDriver();
-	if (NetDriver)
-	{
-		NetDriver->ProcessRemoteFunction(AbilityComponent->GetOwner(), Function, Parameters, OutParms, Stack, this);
-		return true;
-	}
-
-	return false;
-}
+//int32 UGAAbilityTask::GetFunctionCallspace(UFunction* Function, void* Parameters, FFrame* Stack)
+//{
+//	if (HasAnyFlags(RF_ClassDefaultObject))
+//	{
+//		return FunctionCallspace::Local;
+//	}
+//	check(AbilityComponent.IsValid());
+//	return AbilityComponent->GetFunctionCallspace(Function, Parameters, Stack);
+//}
+//bool UGAAbilityTask::CallRemoteFunction(UFunction* Function, void* Parameters, FOutParmRec* OutParms, FFrame* Stack)
+//{
+//	check(!HasAnyFlags(RF_ClassDefaultObject));
+//	check(AbilityComponent.IsValid());
+//
+//
+//	UNetDriver* NetDriver = AbilityComponent->GetOwner()->GetNetDriver();
+//	if (NetDriver)
+//	{
+//		NetDriver->ProcessRemoteFunction(AbilityComponent->GetOwner(), Function, Parameters, OutParms, Stack, this);
+//		return true;
+//	}
+//
+//	return false;
+//}

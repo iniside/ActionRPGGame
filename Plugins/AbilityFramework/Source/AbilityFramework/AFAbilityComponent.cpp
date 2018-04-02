@@ -213,7 +213,22 @@ void UAFAbilityComponent::GetOwnedGameplayTags(FGameplayTagContainer& TagContain
 		TagContainer = ABInterface->NativeGetEffectsComponent()->AppliedTags.AllTags;
 	}
 }
+void UAFAbilityComponent::OnGameplayTaskActivated(UGameplayTask& Task)
+{
+	Super::OnGameplayTaskActivated(Task);
 
+	if (UGAAbilityTask* ABTask = Cast<UGAAbilityTask>(&Task))
+	{
+		if (ABTask->IsReplicated())
+		{
+			if (SimulatedTasks.Contains(&Task) == false)
+			{
+				SimulatedTasks.Add(&Task);
+				bIsNetDirty = true;
+			}
+		}
+	}
+}
 const bool FGASAbilityItem::operator==(const FGameplayTag& AbilityTag) const
 {
 	return Ability->AbilityTag == AbilityTag;
