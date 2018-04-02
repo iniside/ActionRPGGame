@@ -3,6 +3,7 @@
 #include "AbilityFramework.h"
 
 #include "Abilities/GAAbilityBase.h"
+#include "Abilities/Tasks/GAAbilityTask.h"
 #include "IAbilityFramework.h"
 
 #include "Net/UnrealNetwork.h"
@@ -125,6 +126,11 @@ void UAFAbilityComponent::TickComponent(float DeltaTime, enum ELevelTick TickTyp
 	{
 		DefaultAttributes->Tick(DeltaTime);
 	}
+}
+
+void UAFAbilityComponent::RemoveSimulatedTask(class UGAAbilityTask* Task)
+{
+	SimulatedTasks.Remove(Task);
 }
 
 void UAFAbilityComponent::BeginPlay()
@@ -307,6 +313,8 @@ UGAAbilityBase* FGASAbilityContainer::AddAbility(TSubclassOf<class UGAAbilityBas
 		MarkItemDirty(AbilityItem);
 		AbilityItem.Ability = ability;
 		AbilitiesItems.Add(AbilityItem);
+		TagToAbility.Add(Tag, ability);
+
 		MarkArrayDirty();
 		if (AbilitiesComp->GetNetMode() == ENetMode::NM_Standalone
 			|| AbilitiesComp->GetOwnerRole() == ENetRole::ROLE_Authority)
@@ -328,6 +336,15 @@ void FGASAbilityContainer::RemoveAbility(const FGameplayTag& AbilityIn)
 	
 	if (Index == INDEX_NONE)
 		return;
+
+	UGAAbilityBase* Ability = TagToAbility.FindRef(AbilityIn);
+
+	for (auto It = Ability->AbilityTasks.CreateIterator(); It; ++It)
+	{
+		AbilitiesComp->RemoveSimulatedTask(It->Value);
+	}
+
+	TagToAbility.Remove(AbilityIn);
 	MarkItemDirty(AbilitiesItems[Index]);
 	RemoveAbilityFromAction(AbilityIn);
 	AbilitiesItems.RemoveAt(Index);

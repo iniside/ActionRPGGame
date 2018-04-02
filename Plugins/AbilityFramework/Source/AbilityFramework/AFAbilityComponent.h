@@ -369,8 +369,9 @@ public:
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	
 	/* UActorComponent Interface - End **/
-
+	void RemoveSimulatedTask(class UGAAbilityTask* Task);
 public:
 	/////////////////////////////////////////////////
 	//////////// ATTRIBUTES HANDLING
