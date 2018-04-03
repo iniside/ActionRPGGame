@@ -519,9 +519,6 @@ public: //protected ?
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Apply Attribute Cost"), Category = "AbilityFramework|Abilities")
 		bool BP_ApplyAttributeCost();
-	
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Check Attribute Cost"), Category = "AbilityFramework|Abilities")
-		bool BP_CheckAttributeCost();
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Apply Ability Attribute Cost"), Category = "AbilityFramework|Abilities")
 		bool BP_ApplyAbilityAttributeCost();

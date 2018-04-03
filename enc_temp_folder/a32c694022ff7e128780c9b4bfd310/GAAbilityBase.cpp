@@ -563,10 +563,10 @@ bool UGAAbilityBase::ApplyAttributeCost()
 	{
 		for (int32 Idx = 0; Idx < AttributeCost.Num(); Idx++)
 		{
-			AttributeCostHandle[Idx] = UGABlueprintLibrary::ApplyGameEffectToObject(
+			UGABlueprintLibrary::ApplyGameEffectToObject(
 				AttributeCost[Idx]
 				, AttributeCostHandle[Idx]
-				, POwner
+				, this
 				, POwner
 				, this
 				, Modifier);
@@ -601,11 +601,6 @@ bool UGAAbilityBase::BP_ApplyAttributeCost()
 {
 	return ApplyAttributeCost();
 }
-bool UGAAbilityBase::BP_CheckAttributeCost()
-{
-	return CheckAttributeCost();
-}
-
 bool UGAAbilityBase::BP_ApplyAbilityAttributeCost()
 {
 	return ApplyAbilityAttributeCost();
@@ -628,13 +623,11 @@ bool UGAAbilityBase::CheckAbilityAttributeCost()
 }
 bool UGAAbilityBase::CheckAttributeCost()
 {
-	IAFAbilityInterface* Interface = Cast<IAFAbilityInterface>(POwner);
-
 	for (int32 Idx = 0; Idx < AttributeCost.Num(); Idx++)
 	{
 		float ModValue = AttributeCost[Idx].GetSpec()->AtributeModifier.Magnitude.GetFloatValue(DefaultContext);
 		FGAAttribute Attribute = AttributeCost[Idx].GetSpec()->AtributeModifier.Attribute;
-		float AttributeVal = Interface->GetAttributes()->GetFloatValue(Attribute);
+		float AttributeVal = Attributes->GetFloatValue(Attribute);
 		if (ModValue > AttributeVal)
 			return false;
 	}
