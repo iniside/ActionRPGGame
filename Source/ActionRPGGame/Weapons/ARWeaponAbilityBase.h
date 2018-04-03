@@ -33,8 +33,13 @@ protected:
 		Handles to currently applied effects. Their order matches effects from DamageEffects array.
 	*/
 	TArray<FGAEffectHandle> AppliedEffectHandles;
+
+	UPROPERTY(BlueprintReadOnly, Category = "ActionRPGGame|Weapon")
+		class AARWeaponBase* WeaponActor;
+
 public:
 	virtual void OnAbilityInited() override;
+	virtual void OnAbilityInputReady() override;
 	virtual void OnAvatarReady() override;
 
 	void ReplaceDamageEffects(const TArray<FAFPropertytHandle>& InEffects);

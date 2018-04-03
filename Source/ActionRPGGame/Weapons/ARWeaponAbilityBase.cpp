@@ -2,12 +2,23 @@
 
 #include "ARWeaponAbilityBase.h"
 #include "Effects/GABlueprintLibrary.h"
+#include "ARCharacter.h"
+#include "ARWeaponBase.h"
 
 void UARWeaponAbilityBase::OnAbilityInited()
 {
 	ResetDamageEffects();
 }
-
+void UARWeaponAbilityBase::OnAbilityInputReady()
+{
+	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+	{
+		if (AARWeaponBase* Weapon = Cast<AARWeaponBase>(Character->GetEquipedMainWeapon()->GetChildActor()))
+		{
+			WeaponActor = Weapon;
+		}
+	}
+}
 void UARWeaponAbilityBase::OnAvatarReady()
 {
 	//AARWeaponBase* Weapon = Cast<AARWeaponBase>(AvatarActor);
