@@ -192,8 +192,8 @@ public:
 		Attribute cost from ability own attributes
 	*/
 	UPROPERTY(EditAnywhere, Category = "Config")
-		FAFPropertytHandle AbilityAttributeCost;
-	FGAEffectHandle AbilityAttributeCostHandle;
+		TArray<FAFPropertytHandle> AbilityAttributeCost;
+	TArray<FGAEffectHandle> AbilityAttributeCostHandle;
 
 	UPROPERTY(AssetRegistrySearchable)
 		FName AbilityTagSearch;

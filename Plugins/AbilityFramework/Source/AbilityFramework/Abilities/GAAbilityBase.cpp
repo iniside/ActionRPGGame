@@ -138,8 +138,11 @@ void UGAAbilityBase::InitAbility()
 	ActivationEffect.InitializeIfNotInitialized(DefaultContext);
 	CooldownEffect.InitializeIfNotInitialized(DefaultContext);
 	AttributeCost.InitializeIfNotInitialized(DefaultContext);
-	AbilityAttributeCost.InitializeIfNotInitialized(DefaultContext);
-	
+	for (int32 Idx = 0; Idx < AbilityAttributeCost.Num(); Idx++)
+	{
+		AbilityAttributeCost[Idx].InitializeIfNotInitialized(DefaultContext);
+	}
+	AbilityAttributeCostHandle.AddZeroed(AbilityAttributeCost.Num());
 	if (AbilityComponent)
 	{
 		World = AbilityComponent->GetWorld();
@@ -560,14 +563,16 @@ bool UGAAbilityBase::ApplyAbilityAttributeCost()
 	
 	if (CheckAbilityAttributeCost())
 	{
-		AbilityAttributeCostHandle = UGABlueprintLibrary::ApplyGameEffectToObject(
-			AbilityAttributeCost
-			, AbilityAttributeCostHandle
-			, this
-			, POwner
-			, this
-			, Modifier);
-
+		for (int32 Idx = 0; Idx < AbilityAttributeCost.Num(); Idx++)
+		{
+			AbilityAttributeCostHandle[Idx] = UGABlueprintLibrary::ApplyGameEffectToObject(
+				AbilityAttributeCost[Idx]
+				, AbilityAttributeCostHandle[Idx]
+				, this
+				, POwner
+				, this
+				, Modifier);
+		}
 		return true;
 	}
 	return false;
@@ -586,12 +591,14 @@ bool UGAAbilityBase::BP_CheckAbilityAttributeCost()
 }
 bool UGAAbilityBase::CheckAbilityAttributeCost()
 {
-	float ModValue = AbilityAttributeCost.GetSpec()->AtributeModifier.Magnitude.GetFloatValue(DefaultContext);
-	FGAAttribute Attribute = AbilityAttributeCost.GetSpec()->AtributeModifier.Attribute;
-	float AttributeVal = Attributes->GetFloatValue(Attribute);
-	if (ModValue > AttributeVal)
-		return false;
-
+	for (int32 Idx = 0; Idx < AbilityAttributeCost.Num(); Idx++)
+	{
+		float ModValue = AbilityAttributeCost[Idx].GetSpec()->AtributeModifier.Magnitude.GetFloatValue(DefaultContext);
+		FGAAttribute Attribute = AbilityAttributeCost[Idx].GetSpec()->AtributeModifier.Attribute;
+		float AttributeVal = Attributes->GetFloatValue(Attribute);
+		if (ModValue > AttributeVal)
+			return false;
+	}
 	return true;
 }
 bool UGAAbilityBase::IsOnCooldown()
