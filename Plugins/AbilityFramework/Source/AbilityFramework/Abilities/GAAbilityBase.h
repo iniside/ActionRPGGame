@@ -282,6 +282,12 @@ public:
 		void OnAttributeSetReplicated();
 	//called on both server and client after InitAbility();
 	virtual void OnAbilityInited();
+
+	/*
+		Called on server and client, after ability has been bound to some input.
+	*/
+	virtual void OnAbilityInputReady() {};
+
 	/*
 	 * @call Order:
 	 * Previous Function: FGASAbilityContainer::HandleInputPressed

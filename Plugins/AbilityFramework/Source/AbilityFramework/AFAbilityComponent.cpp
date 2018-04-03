@@ -396,6 +396,13 @@ void FGASAbilityContainer::SetAbilityToAction(const FGameplayTag& InAbilityTag, 
 	}
 	if (!AbilitiesComp.IsValid())
 		return;
+
+	UGAAbilityBase* Ability = TagToAbility.FindRef(InAbilityTag);
+	if (Ability)
+	{
+		Ability->OnAbilityInputReady();
+	}
+
 	if (AbilitiesComp->GetOwner()->GetNetMode() == ENetMode::NM_DedicatedServer)
 	{
 		AbilitiesComp->ClientNotifyAbilityInputReady(InAbilityTag);
@@ -578,6 +585,11 @@ bool UAFAbilityComponent::ServerSetAbilityToAction_Validate(const FGameplayTag& 
 void UAFAbilityComponent::ClientNotifyAbilityInputReady_Implementation(FGameplayTag AbilityTag)
 {
 	NotifyOnAbilityInputReady(AbilityTag);
+	UGAAbilityBase* Ability = AbilityContainer.TagToAbility.FindRef(AbilityTag);
+	if (Ability)
+	{
+		Ability->OnAbilityInputReady();
+	}
 }
 
 void UAFAbilityComponent::SetAbilitiesToActions(const TArray<FAFAbilityActionSet>& InAbilitiesActions
