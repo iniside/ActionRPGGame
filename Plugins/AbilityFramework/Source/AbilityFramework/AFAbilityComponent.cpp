@@ -250,6 +250,7 @@ void FGASAbilityItem::PreReplicatedRemove(const struct FGASAbilityContainer& InA
 		FGameplayTag AbilityTag = Ability->AbilityTag;
 		InArraySerializerC.RemoveAbilityFromAction(AbilityTag);
 		InArraySerializerC.AbilitiesInputs.Remove(AbilityTag);
+		InArraySerializerC.TagToAbility.Remove(AbilityTag);
 	}
 }
 void FGASAbilityItem::PostReplicatedAdd(const struct FGASAbilityContainer& InArraySerializer)
@@ -271,6 +272,7 @@ void FGASAbilityItem::PostReplicatedAdd(const struct FGASAbilityContainer& InArr
 		UGAAttributesBase* attr = InArraySerializer.AbilitiesComp->RepAttributes.AttributeMap.FindRef(Ability->AbilityTag);
 		Ability->Attributes = attr;
 		InArraySerializerC.AbilitiesInputs.Add(Ability->AbilityTag, Ability); //.Add(Ability->AbilityTag, Ability);
+		InArraySerializerC.TagToAbility.Add(Ability->AbilityTag, Ability);
 		InArraySerializerC.AbilitiesComp->NotifyOnAbilityReady(Ability->AbilityTag);
 	}
 }
