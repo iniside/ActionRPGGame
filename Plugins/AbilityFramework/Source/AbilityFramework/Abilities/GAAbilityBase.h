@@ -187,7 +187,8 @@ public:
 		Attribute cost from Ability Owner attributes
 	*/
 	UPROPERTY(EditAnywhere, Category = "Config")
-		FAFPropertytHandle AttributeCost;
+		TArray<FAFPropertytHandle> AttributeCost;
+	TArray<FGAEffectHandle> AttributeCostHandle;
 	/*
 		Attribute cost from ability own attributes
 	*/
@@ -506,6 +507,7 @@ public: //protected ?
 	bool ApplyAttributeCost();
 	bool ApplyAbilityAttributeCost();
 	bool CheckAbilityAttributeCost();
+	bool CheckAttributeCost();
 	bool IsOnCooldown();
 	bool IsActivating();
 

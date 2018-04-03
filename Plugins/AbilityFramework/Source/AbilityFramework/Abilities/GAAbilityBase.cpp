@@ -137,7 +137,12 @@ void UGAAbilityBase::InitAbility()
 	DefaultContext = UGABlueprintLibrary::MakeContext(this, POwner, AvatarActor, this, FHitResult(ForceInit)).GetRef();
 	ActivationEffect.InitializeIfNotInitialized(DefaultContext);
 	CooldownEffect.InitializeIfNotInitialized(DefaultContext);
-	AttributeCost.InitializeIfNotInitialized(DefaultContext);
+	for (int32 Idx = 0; Idx < AttributeCost.Num(); Idx++)
+	{
+		AttributeCost[Idx].InitializeIfNotInitialized(DefaultContext);
+	}
+	AttributeCostHandle.AddZeroed(AttributeCost.Num());
+
 	for (int32 Idx = 0; Idx < AbilityAttributeCost.Num(); Idx++)
 	{
 		AbilityAttributeCost[Idx].InitializeIfNotInitialized(DefaultContext);
@@ -553,7 +558,22 @@ float UGAAbilityBase::GetAttributeVal(FGAAttribute AttributeIn) const
 
 bool UGAAbilityBase::ApplyAttributeCost()
 {
-	return true;
+	FAFFunctionModifier Modifier;
+	if (CheckAttributeCost())
+	{
+		for (int32 Idx = 0; Idx < AttributeCost.Num(); Idx++)
+		{
+			UGABlueprintLibrary::ApplyGameEffectToObject(
+				AttributeCost[Idx]
+				, AttributeCostHandle[Idx]
+				, this
+				, POwner
+				, this
+				, Modifier);
+		}
+		return true;
+	}
+	return false;
 }
 bool UGAAbilityBase::ApplyAbilityAttributeCost()
 {
@@ -595,6 +615,18 @@ bool UGAAbilityBase::CheckAbilityAttributeCost()
 	{
 		float ModValue = AbilityAttributeCost[Idx].GetSpec()->AtributeModifier.Magnitude.GetFloatValue(DefaultContext);
 		FGAAttribute Attribute = AbilityAttributeCost[Idx].GetSpec()->AtributeModifier.Attribute;
+		float AttributeVal = Attributes->GetFloatValue(Attribute);
+		if (ModValue > AttributeVal)
+			return false;
+	}
+	return true;
+}
+bool UGAAbilityBase::CheckAttributeCost()
+{
+	for (int32 Idx = 0; Idx < AttributeCost.Num(); Idx++)
+	{
+		float ModValue = AttributeCost[Idx].GetSpec()->AtributeModifier.Magnitude.GetFloatValue(DefaultContext);
+		FGAAttribute Attribute = AttributeCost[Idx].GetSpec()->AtributeModifier.Attribute;
 		float AttributeVal = Attributes->GetFloatValue(Attribute);
 		if (ModValue > AttributeVal)
 			return false;
