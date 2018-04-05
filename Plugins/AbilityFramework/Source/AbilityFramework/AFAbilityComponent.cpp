@@ -82,11 +82,6 @@ void UAFAbilityComponent::BroadcastAttributeChange(const FGAAttribute& InAttribu
 	}
 }
 
-bool UAFAbilityComponent::GetShouldTick() const
-{
-	return true;
-}
-
 void UAFAbilityComponent::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn
 	,FGAEffectProperty& InProperty)
 { 
@@ -126,11 +121,6 @@ void UAFAbilityComponent::TickComponent(float DeltaTime, enum ELevelTick TickTyp
 	{
 		DefaultAttributes->Tick(DeltaTime);
 	}
-}
-
-void UAFAbilityComponent::RemoveSimulatedTask(class UGAAbilityTask* Task)
-{
-	SimulatedTasks.Remove(Task);
 }
 
 void UAFAbilityComponent::BeginPlay()
@@ -219,22 +209,7 @@ void UAFAbilityComponent::GetOwnedGameplayTags(FGameplayTagContainer& TagContain
 		TagContainer = ABInterface->NativeGetEffectsComponent()->AppliedTags.AllTags;
 	}
 }
-void UAFAbilityComponent::OnGameplayTaskActivated(UGameplayTask& Task)
-{
-	Super::OnGameplayTaskActivated(Task);
 
-	if (UGAAbilityTask* ABTask = Cast<UGAAbilityTask>(&Task))
-	{
-		if (ABTask->IsReplicated())
-		{
-			if (SimulatedTasks.Contains(&Task) == false)
-			{
-				SimulatedTasks.Add(&Task);
-				bIsNetDirty = true;
-			}
-		}
-	}
-}
 const bool FGASAbilityItem::operator==(const FGameplayTag& AbilityTag) const
 {
 	return Ability->AbilityTag == AbilityTag;
@@ -343,7 +318,7 @@ void FGASAbilityContainer::RemoveAbility(const FGameplayTag& AbilityIn)
 
 	for (auto It = Ability->AbilityTasks.CreateIterator(); It; ++It)
 	{
-		AbilitiesComp->RemoveSimulatedTask(It->Value);
+		AbilitiesComp->ReplicatedTasks.Remove(It->Value);
 	}
 
 	TagToAbility.Remove(AbilityIn);

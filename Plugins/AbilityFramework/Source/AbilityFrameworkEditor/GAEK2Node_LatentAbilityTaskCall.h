@@ -7,7 +7,7 @@
 #include "GAEK2Node_LatentAbilityTaskCall.generated.h"
 
 UCLASS()
-class UGAEK2Node_LatentAbilityTaskCall : public UK2Node_LatentGameplayTaskCall
+class UGAEK2Node_LatentAbilityTaskCall : public UK2Node_BaseAsyncTask//UK2Node_LatentGameplayTaskCall
 {
 	GENERATED_BODY()
 
@@ -18,6 +18,4 @@ public:
 	virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
 	virtual bool IsCompatibleWithGraph(UEdGraph const* TargetGraph) const override;
 	// End of UEdGraphNode interface
-protected:
-	virtual bool IsHandling(TSubclassOf<UGameplayTask> TaskClass) const override;
 };

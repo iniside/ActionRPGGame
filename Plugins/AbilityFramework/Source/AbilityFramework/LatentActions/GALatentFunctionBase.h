@@ -1,7 +1,8 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Engine/EngineBaseTypes.h"
-//#include "Messaging.h"
+#include "AFLatentInterface.h"
+
 #include "GALatentFunctionBase.generated.h"
 
 struct FGALatentFunctionTick: public FTickFunction
@@ -27,6 +28,16 @@ class ABILITYFRAMEWORK_API UGALatentFunctionBase : public UObject
 	GENERATED_BODY()
 	//never access internals of these classes directly. Use messages instead.
 protected:
+	enum class EState : uint8
+	{
+		Waiting,
+		Active,
+		Finished
+	};
+
+	EState TaskState;
+	bool bReplicated;
+
 	UPROPERTY()
 		UObject* TaskOwner;
 	friend struct FGALatentFunctionTick;
@@ -36,19 +47,56 @@ protected:
 	virtual UWorld* GetWorld() const override;
 
 	//virtual void Tick(float DeltaSecondsIn);
-	virtual void TickAction(float DeltaSeconds, ELevelTick TickType, FGALatentFunctionTick& ThisTickFunction) {};
+	virtual void TickTask(float DeltaSeconds, ELevelTick TickType, FGALatentFunctionTick& ThisTickFunction) {};
 	virtual void Initialize();
-	virtual void ReadyForActivation() {};
+public:
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"), Category = "Latent Action")
+	virtual void ReadyForActivation();
+protected:
 	virtual void Activate() {};
 	virtual void EndTask();
 	virtual void BeginDestroy() override;
 	
-	template <class T>
-	FORCEINLINE static T* NewTask(UObject* WorldContextObject, UObject* InTaskOwner, FName InstanceName = FName())
+public:
+	/* Replication */
+	bool IsNameStableForNetworking() const override;
+
+	bool IsSupportedForNetworking() const override
 	{
-		T* MyObj = NewObject<T>(WorldContextObject);
-		MyObj->TaskOwner = InTaskOwner;
-		MyObj->Initialize();
+		return bReplicated;
+	}
+	void SetNetAddressable();
+
+protected:
+	template <class T>
+	static T* NewTask(UObject* WorldContextObject, UObject* InTaskOwner, FName InstanceName = FName())
+	{
+		T* MyObj = nullptr;
+		if (IAFLatentInterface* Interface = Cast<IAFLatentInterface>(InTaskOwner))
+		{
+			if (!InstanceName.IsNone())
+			{
+				MyObj = Cast<T>(Interface->GetCachedLatentAction(InstanceName));
+				if (!MyObj)
+				{
+					MyObj = NewObject<T>(WorldContextObject);
+
+					Interface->OnLatentTaskAdded(InstanceName, MyObj);
+				}
+			}
+			else
+			{
+				MyObj = NewObject<T>(WorldContextObject);
+				
+				Interface->OnLatentTaskAdded(InstanceName, MyObj);
+			}
+			if (MyObj->bReplicated)
+			{
+				Interface->AddReplicatedTask(MyObj);
+			}
+			MyObj->TaskOwner = InTaskOwner;
+		}
+		
 		return MyObj;
 	}
 };

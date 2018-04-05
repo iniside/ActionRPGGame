@@ -24,12 +24,6 @@ UGAEK2Node_LatentAbilityTaskCall::UGAEK2Node_LatentAbilityTaskCall(const FObject
 	}
 }
 
-bool UGAEK2Node_LatentAbilityTaskCall::IsHandling(TSubclassOf<UGameplayTask> TaskClass) const
-{
-	bool isChilldOf = TaskClass && TaskClass->IsChildOf(UGAAbilityTask::StaticClass());
-	return isChilldOf;
-}
-
 bool UGAEK2Node_LatentAbilityTaskCall::IsCompatibleWithGraph(UEdGraph const* TargetGraph) const
 {
 	bool bIsCompatible = false;

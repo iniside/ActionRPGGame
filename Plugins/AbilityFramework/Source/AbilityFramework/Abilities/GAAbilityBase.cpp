@@ -477,40 +477,6 @@ bool UGAAbilityBase::CanReleaseAbility()
 	return bCanUse;
 }
 
-void UGAAbilityBase::OnGameplayTaskInitialized(UGameplayTask& Task)
-{
-	if (UGAAbilityTask* task = Cast<UGAAbilityTask>(&Task))
-	{
-		task->Ability = this;
-	}
-}
-UGameplayTasksComponent* UGAAbilityBase::GetGameplayTasksComponent(const UGameplayTask& Task) const
-{
-	return AbilityComponent;
-}
-/** this gets called both when task starts and when task gets resumed. Check Task.GetStatus() if you want to differenciate */
-void UGAAbilityBase::OnGameplayTaskActivated(UGameplayTask& Task)
-{
-	UE_LOG(AbilityFramework, Log, TEXT("Task Started; %s in ability: %s"), *Task.GetName(), *GetName());
-	ActiveTasks.Add(&Task);
-	//AbilityComponent->OnGameplayTaskActivated(Task);
-}
-/** this gets called both when task finished and when task gets paused. Check Task.GetStatus() if you want to differenciate */
-void UGAAbilityBase::OnGameplayTaskDeactivated(UGameplayTask& Task)
-{
-	UE_LOG(AbilityFramework, Log, TEXT("Task Removed: %s in ability: %s"), *Task.GetName(), *GetName());
-	ActiveTasks.Remove(&Task);
-	//AbilityComponent->OnGameplayTaskDeactivated(Task);
-}
-AActor* UGAAbilityBase::GetGameplayTaskOwner(const UGameplayTask* Task) const
-{
-	return POwner;
-}
-AActor* UGAAbilityBase::GetGameplayTaskAvatar(const UGameplayTask* Task) const
-{
-	return AvatarActor;
-}
-
 class UGAAttributesBase* UGAAbilityBase::GetAttributes()
 {
 	return Attributes;
@@ -948,4 +914,32 @@ float UGAAbilityBase::BP_GetCooldownEndTime()
 AActor*  UGAAbilityBase::BP_GetAvatar()
 {
 	return AvatarActor;
+}
+
+
+void UGAAbilityBase::OnLatentTaskAdded(FName InstanceName, class UGALatentFunctionBase* TaskIn)
+{
+	if (!InstanceName.IsNone())
+	{
+		AbilityTasks.Add(InstanceName, Cast<UGAAbilityTask>(TaskIn));
+	}
+};
+void UGAAbilityBase::AddReplicatedTask(class UGALatentFunctionBase* TaskIn)
+{
+	AbilityComponent->ReplicatedTasks.Add(TaskIn);
+}
+void UGAAbilityBase::OnLatentTaskRemoved(class UGALatentFunctionBase* TaskIn)
+{
+};
+	 
+void UGAAbilityBase::OnLatentTaskActivated(class UGALatentFunctionBase* TaskIn)
+{
+};
+void UGAAbilityBase::OnLatentTaskDeactivated(class UGALatentFunctionBase* TaskIn)
+{
+};
+
+class UGALatentFunctionBase* UGAAbilityBase::GetCachedLatentAction(FName TaskName)
+{
+	return AbilityTasks.FindRef(TaskName);
 }

@@ -1,11 +1,9 @@
 #pragma once
 #include "GameplayTask.h"
-#include "../GAAbilityBase.h"
-#include "../../AFAbilityComponent.h"
+#include "GAAbilityBase.h"
+#include "AFAbilityComponent.h"
 
-//#include "Messaging.h"
-#include "MessageEndpoint.h"
-#include "MessageEndpointBuilder.h"
+#include "LatentActions/GALatentFunctionBase.h"
 
 #include "GAAbilityTask.generated.h"
 /*
@@ -20,9 +18,9 @@
 */
 
 UCLASS(BlueprintType, Blueprintable, Within=GAAbilityBase)
-class ABILITYFRAMEWORK_API UGAAbilityTask : public UGameplayTask
+class ABILITYFRAMEWORK_API UGAAbilityTask : public UGALatentFunctionBase
 {
-	GENERATED_UCLASS_BODY()
+	GENERATED_BODY()
 		friend struct FAFAbilityTaskMessageTick;
 public:
 	uint8 bIsReplicated : 1;
@@ -31,11 +29,7 @@ public:
 	/* Ability owning this task */
 	TWeakObjectPtr<UAFAbilityComponent> AbilityComponent;
 public:
-	//virtual UWorld* GetWorld() const override;
 
-	//virtual void Tick(float DeltaSecondsIn);
-
-	virtual void Initialize();
 	template <class T>
 	static T* NewAbilityTask(UObject* WorldContextObject, FName InTaskName = FName(), FName InstanceName = FName())
 	{
@@ -43,60 +37,20 @@ public:
 
 		T* MyObj = nullptr;
 		UGAAbilityBase* ThisAbility = CastChecked<UGAAbilityBase>(WorldContextObject);
-		if (UGAAbilityTask* CachedTask = ThisAbility->GetAbilityTask(InTaskName))
-		{
-			MyObj = Cast<T>(CachedTask);
-		}
-		else
-		{
-			MyObj = NewObject<T>(WorldContextObject);
-			ThisAbility->AddAbilityTask(InTaskName, MyObj);
-		}
+		MyObj = NewTask<T>(WorldContextObject, WorldContextObject, InTaskName);
+
 		MyObj->Ability = ThisAbility;
 		MyObj->AbilityComponent = ThisAbility->AbilityComponent;
-		MyObj->InitTask(*ThisAbility, ThisAbility->GetGameplayTaskDefaultPriority());
-		MyObj->InstanceName = InstanceName;
 		
 		return MyObj;
 	}
-
-	template<typename T>
-	static bool DelayedFalse()
-	{
-		return false;
-	}
-
-	// this function has been added to make sure AbilityTasks don't use this method
-	template <class T>
-	FORCEINLINE static T* NewTask(UObject* WorldContextObject, FName InstanceName = FName())
-	{
-		static_assert(DelayedFalse<T>(), "UAbilityTask::NewTask should never be used. Use NewAbilityTask instead");
-	}
-
+	UGAAbilityTask(const FObjectInitializer& ObjectInitializer);
 	bool IsReplicated()
 	{
 		return bIsReplicated;
 	}
 
-	//network overrides:
-	//int32 GetFunctionCallspace(UFunction* Function, void* Parameters, FFrame* Stack) override;
-	//virtual bool CallRemoteFunction(UFunction* Function, void* Parameters, FOutParmRec* OutParms, FFrame* Stack) override;
 protected:
-	void EndAbilityTask();
-
-	void OnDestroy(bool bInOwnerFinished) override
-	{
-		ensure(TaskState != EGameplayTaskState::Finished && !IsPendingKill());
-		TaskState = EGameplayTaskState::Finished;
-
-		if (TasksComponent.IsValid())
-		{
-			TasksComponent->OnGameplayTaskDeactivated(*this);
-		}
-
-		//MarkPendingKill();
-	}
-
 	bool IsClient()
 	{
 		APawn* POwner = Ability->POwner;

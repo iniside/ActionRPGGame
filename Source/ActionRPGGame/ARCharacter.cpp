@@ -53,9 +53,7 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	GetCharacterMovement()->MaxWalkSpeed = 270.0f;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 150.0f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 150.0f;
-
-	GetArrowComponent()->bIsEditorOnly = true;
-
+	
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	//CameraBoom->SetupAttachment(GetMesh());

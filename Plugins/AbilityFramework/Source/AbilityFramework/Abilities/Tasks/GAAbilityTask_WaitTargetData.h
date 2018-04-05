@@ -20,24 +20,11 @@ public:
 	UPROPERTY()
 		float Range;
 	ETraceTypeQuery TraceChannel;
-	//UPROPERTY()
-	//	class AGATargetingActor* TargetActor;
-
-	//UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
-	//	static UGAAbilityTask_WaitTargetData* WaitTargetData(UObject* WorldContextObject, 
-	//		FName InTaskName, TSubclassOf<class AGATargetingActor> Class, float InRange, ETraceTypeQuery InTraceChannel);
-
-	//UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
-	//	bool BeginSpawningActor(UObject* WorldContextObject, TSubclassOf<class AGATargetingActor> Class, class AGATargetingActor*& SpawnedActor);
-
-	//UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
-	//	void FinishSpawningActor(UObject* WorldContextObject, class AGATargetingActor* SpawnedActor);
 
 	virtual void Activate() override;
 	
-	virtual void TickTask(float DeltaTime) override;
+	virtual void TickTask(float DeltaSeconds, ELevelTick TickType, FGALatentFunctionTick& ThisTickFunction) override;
 
-	virtual void OnDestroy(bool bInOwnerFinished) override;
 
 	UFUNCTION()
 		void OnConfirm();

@@ -265,7 +265,7 @@ public:
 };
 
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
-class ABILITYFRAMEWORK_API UAFAbilityComponent : public UGameplayTasksComponent, public IGameplayTagAssetInterface
+class ABILITYFRAMEWORK_API UAFAbilityComponent : public UActorComponent, /*UGameplayTasksComponent,*/ public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 		/* Attributes handling */
@@ -333,8 +333,6 @@ public:
 	void BroadcastAttributeChange(const FGAAttribute& InAttribute, 
 		const FAFAttributeChangedData& InData);
 	
-	virtual bool GetShouldTick() const override;
-
 	UFUNCTION()
 		void OnRep_GameEffectContainer();
 
@@ -371,7 +369,6 @@ public:
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
 	/* UActorComponent Interface - End **/
-	void RemoveSimulatedTask(class UGAAbilityTask* Task);
 public:
 	/////////////////////////////////////////////////
 	//////////// ATTRIBUTES HANDLING
@@ -415,18 +412,6 @@ public:
 	/*
 	IGameplayTagAssetInterface End
 	*/
-
-	// BEGIN IGameplayTaskOwnerInterface
-	/*
-		Overrided because I'm not using GameplayTasks as they were meant to.
-		Create tasks, hold for it for a while and then destroy it (even for replicated tasks).
-		Instead I cache tasks off, and reuse them, which mean I don't want to fail at check if tasks is already simulated (because it is).
-		Instead if tasks is already simulating I simply skip adding it.
-
-		I also want to manually remove tasks, when they ability that owns them is removed.
-	*/
-	virtual void OnGameplayTaskActivated(UGameplayTask& Task) override;
-	// END IGameplayTaskOwnerInterface
 
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
 		class UGAAttributesBase* GetAttributes() { return DefaultAttributes; };
@@ -689,13 +674,15 @@ protected:
 	void InitializeInstancedAbilities();
 	UGAAbilityBase* InstanceAbility(TSubclassOf<class UGAAbilityBase> AbilityClass, 
 		AActor* InAvatar);
-	/*
-		Messagin implementation for applying effects from multiple threads (in case 
-		at some beatyfull day UObject will be able to exist on any thread), and from single thread.
 
-		Implementation is based on FMessageEndpoint.
+
+public:
+	/*
+		Latent Tasks Handling
 	*/
 
+	UPROPERTY(Replicated)
+		TArray<class UGALatentFunctionBase*> ReplicatedTasks;
 };
 
 

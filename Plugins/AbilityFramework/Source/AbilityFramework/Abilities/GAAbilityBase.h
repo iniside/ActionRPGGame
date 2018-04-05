@@ -1,14 +1,16 @@
 #pragma once
-#include "../GAGlobalTypes.h"
-#include "../Effects/GAGameEffect.h"
+#include "GAGlobalTypes.h"
+#include "Effects/GAGameEffect.h"
 #include "GameplayTasksComponent.h"
 #include "GameplayTask.h"
 #include "GameplayTaskOwnerInterface.h"
-#include "../Attributes/GAAttributesBase.h"
+#include "Attributes/GAAttributesBase.h"
 #include "AFAbilityInterface.h"
 #include "AFAbilityActivationSpec.h"
 #include "AssetBundleData.h"
 #include "SubclassOf.h"
+#include "LatentActions/AFLatentInterface.h"
+
 #include "GAAbilityBase.generated.h"
 
 /*
@@ -91,7 +93,7 @@ enum EAFAbilityState
 };
 
 UCLASS(BlueprintType, Blueprintable)
-class ABILITYFRAMEWORK_API UGAAbilityBase : public UObject, public IGameplayTaskOwnerInterface, public IAFAbilityInterface
+class ABILITYFRAMEWORK_API UGAAbilityBase : public UObject, public IAFAbilityInterface, public IAFLatentInterface
 {
 	GENERATED_BODY()
 public:
@@ -449,28 +451,6 @@ public:
 
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "Can Use Ability"), Category = "AbilityFramework|Abilities")
 		bool BP_CanUseAbility();
-
-	/** GameplayTaskOwnerInterface - Begin */
-	virtual UGameplayTasksComponent* GetGameplayTasksComponent(const UGameplayTask& Task) const override;
-	/** this gets called both when task starts and when task gets resumed. Check Task.GetStatus() if you want to differenciate */
-	/** Get owner of a task or default one when task is null */
-	virtual AActor* GetGameplayTaskOwner(const UGameplayTask* Task) const override;
-
-	/** Get "body" of task's owner / default, having location in world (e.g. Owner = AIController, Avatar = Pawn) */
-	virtual AActor* GetGameplayTaskAvatar(const UGameplayTask* Task) const override;
-
-	/** Get default priority for running a task */
-	virtual uint8 GetGameplayTaskDefaultPriority() const {	return 1; };
-
-	/** Notify called after GameplayTask finishes initialization (not active yet) */
-	virtual void OnGameplayTaskInitialized(UGameplayTask& Task) override;
-
-	/** Notify called after GameplayTask changes state to Active (initial activation or resuming) */
-	virtual void OnGameplayTaskActivated(UGameplayTask& Task) override;
-
-	/** Notify called after GameplayTask changes state from Active (finishing or pausing) */
-	virtual void OnGameplayTaskDeactivated(UGameplayTask& Task) override;
-	/** GameplayTaskOwnerInterface - end */
 	
 	/** IAFAbilityInterface Begin */
 	virtual class UGAAttributesBase* GetAttributes() override;
@@ -630,4 +610,16 @@ public:
 		AActor*  BP_GetAvatar();
 
 	virtual void OnAvatarReady() {};
+
+
+	/*  IAFLatentInterface */
+	virtual void OnLatentTaskAdded(FName InstanceName, class UGALatentFunctionBase* TaskIn);
+	virtual void AddReplicatedTask(class UGALatentFunctionBase* TaskIn);
+	virtual void OnLatentTaskRemoved(class UGALatentFunctionBase* TaskIn);
+
+	virtual void OnLatentTaskActivated(class UGALatentFunctionBase* TaskIn);
+	virtual void OnLatentTaskDeactivated(class UGALatentFunctionBase* TaskIn);
+
+	virtual class UGALatentFunctionBase* GetCachedLatentAction(FName TaskName);
+	/*  IAFLatentInterface */
 };

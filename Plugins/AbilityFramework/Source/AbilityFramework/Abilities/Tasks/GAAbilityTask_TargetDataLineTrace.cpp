@@ -31,7 +31,6 @@ UGAAbilityTask_TargetDataLineTrace* UGAAbilityTask_TargetDataLineTrace::CreateTa
 UGAAbilityTask_TargetDataLineTrace::UGAAbilityTask_TargetDataLineTrace(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	bSimulatedTask = false;
 	bIsReplicated = true;
 }
 void UGAAbilityTask_TargetDataLineTrace::Activate()

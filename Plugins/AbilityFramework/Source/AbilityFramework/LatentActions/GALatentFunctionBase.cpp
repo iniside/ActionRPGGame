@@ -1,6 +1,8 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
-#include "../AbilityFramework.h"
+#include "AbilityFramework.h"
+#include "AFLatentInterface.h"
+
 #include "GALatentFunctionBase.h"
 
 void FGALatentFunctionTick::ExecuteTick(float DeltaTime, ELevelTick TickType, ENamedThreads::Type CurrentThread, const FGraphEventRef& MyCompletionGraphEvent)
@@ -8,7 +10,7 @@ void FGALatentFunctionTick::ExecuteTick(float DeltaTime, ELevelTick TickType, EN
 	if (Target && !Target->IsPendingKillOrUnreachable())
 	{
 		FScopeCycleCounterUObject ActorScope(Target);
-		Target->TickAction(DeltaTime, TickType, *this);
+		Target->TickTask(DeltaTime, TickType, *this);
 	}
 }
 
@@ -29,6 +31,7 @@ UGALatentFunctionBase::UGALatentFunctionBase(const FObjectInitializer& ObjectIni
 
 	TickFunction.SetTickFunctionEnable(true);
 	SetFlags(RF_StrongRefOnFrame);
+	TaskState = EState::Waiting;
 }
 
 void UGALatentFunctionBase::Initialize()
@@ -43,6 +46,25 @@ void UGALatentFunctionBase::Initialize()
 		}
 	}
 }
+
+void UGALatentFunctionBase::ReadyForActivation()
+{
+	if (TaskOwner)
+	{
+		if (TaskState != EState::Active)
+		{
+			TaskState = EState::Active;
+			Activate();
+			Cast<IAFLatentInterface>(TaskOwner)->OnLatentTaskActivated(this);
+		}
+		
+	}
+	else
+	{
+		EndTask();
+	}
+}
+
 void UGALatentFunctionBase::EndTask()
 {
 	if (TickFunction.bCanEverTick && TickFunction.IsTickFunctionRegistered())
@@ -50,11 +72,22 @@ void UGALatentFunctionBase::EndTask()
 		TickFunction.UnRegisterTickFunction();
 		TickFunction.SetTickFunctionEnable(false);
 	}
-	MarkPendingKill();
+	Cast<IAFLatentInterface>(TaskOwner)->OnLatentTaskDeactivated(this);
+	TaskState = EState::Finished;
+	//MarkPendingKill();
 }
 void UGALatentFunctionBase::BeginDestroy()
 {
 	Super::BeginDestroy();
+}
+
+bool UGALatentFunctionBase::IsNameStableForNetworking() const
+{
+	return false;
+}
+void UGALatentFunctionBase::SetNetAddressable()
+{
+
 }
 UWorld* UGALatentFunctionBase::GetWorld() const
 {

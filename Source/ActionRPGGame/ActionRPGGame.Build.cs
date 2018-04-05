@@ -31,7 +31,7 @@ public class ActionRPGGame : ModuleRules
                     "AbilityFramework",
                     "OrionAnimation",
                     "OrionAnimation/Private",
-                "OrionAnimation/Public",
+                    "OrionAnimation/Public",
                     "AbilityFramework/Abilities",
                     "AbilityFramework/Attributes",
                     "AbilityFramework/Effects",
@@ -68,9 +68,9 @@ public class ActionRPGGame : ModuleRules
             PrivateDependencyModuleNames.AddRange(new string[] { "AbilityFrameworkEditor" });
         }
 
-        if (Target.Type == TargetRules.TargetType.Server)
-        {
-            PublicDependencyModuleNames.AddRange(new string[] { "GameLiftServerSDK" });
-        }
+        //if (Target.Type == TargetRules.TargetType.Server)
+        //{
+        //    PublicDependencyModuleNames.AddRange(new string[] { "GameLiftServerSDK" });
+        //}
     }
 }

@@ -33,7 +33,7 @@ public:
 	//virtual void Tick(float DeltaSecondsIn);
 
 	virtual void Activate() override;
-	virtual void TickAction(float DeltaSeconds, ELevelTick TickType, FGALatentFunctionTick& ThisTickFunction) override;
+	virtual void TickTask(float DeltaSeconds, ELevelTick TickType, FGALatentFunctionTick& ThisTickFunction) override;
 	UFUNCTION(BlueprintCallable, Category = "Latent Actions", meta = (AdvancedDisplay = "InTaskOwner, Priority", DefaultToSelf = "InTaskOwner", BlueprintInternalUseOnly = "TRUE"))
 		static UGAWaitAction* NewGAWaitAction(UObject* InTaskOwner, float Time);
 

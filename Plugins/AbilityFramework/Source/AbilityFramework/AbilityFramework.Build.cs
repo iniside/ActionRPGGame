@@ -25,6 +25,7 @@ namespace UnrealBuildTool.Rules
                     "AbilityFramework/Abilities",
                     "AbilityFramework/Attributes",
                     "AbilityFramework/Effects",
+                    "AbilityFramework/LatentActions",
                     "AbilityFramework/Private",
 					// ... add other private include paths required here ...
 				}

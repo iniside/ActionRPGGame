@@ -19,10 +19,6 @@ UGAWaitAction* UGAWaitAction::NewGAWaitAction(UObject* InTaskOwner, float Time)
 	if (MyTask)
 	{
 		MyTask->Time = Time;
-		//MyTask->TaskOwner = InTaskOwner;
-		//MyTask->Initialize();
-		MyTask->Activate();
-		
 	}
 	return MyTask;
 }
@@ -44,7 +40,7 @@ void UGAWaitAction::Activate()
 		World->GetTimerManager().SetTimer(TimerHandle, this, &UGAWaitAction::OnTimeFinish, Time, false);
 	}
 }
-void UGAWaitAction::TickAction(float DeltaSeconds, ELevelTick TickType, FGALatentFunctionTick& ThisTickFunction)
+void UGAWaitAction::TickTask(float DeltaSeconds, ELevelTick TickType, FGALatentFunctionTick& ThisTickFunction)
 {
 	OnTick.Broadcast();
 };

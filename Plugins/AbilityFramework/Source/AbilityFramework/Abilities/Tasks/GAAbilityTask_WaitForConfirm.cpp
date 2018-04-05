@@ -29,5 +29,5 @@ void UGAAbilityTask_WaitForConfirm::OnConfirm()
 {
 	Ability->OnConfirmDelegate.Clear();
 	OnConfirmed.Broadcast();
-	EndAbilityTask();
+	EndTask();
 }

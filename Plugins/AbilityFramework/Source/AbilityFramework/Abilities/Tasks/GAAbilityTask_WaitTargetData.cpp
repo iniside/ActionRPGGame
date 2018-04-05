@@ -7,7 +7,6 @@
 UGAAbilityTask_WaitTargetData::UGAAbilityTask_WaitTargetData(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	bTickingTask = true;
 }
 
 
@@ -59,7 +58,7 @@ void UGAAbilityTask_WaitTargetData::Activate()
 //	ReadyForActivation();
 //	UE_LOG(AbilityFramework, Log, TEXT("Finish Spawning Actor in GAAbilityTask_SpawnActor"));
 //}
-void UGAAbilityTask_WaitTargetData::TickTask(float DeltaTime)
+void UGAAbilityTask_WaitTargetData::TickTask(float DeltaSeconds, ELevelTick TickType, FGALatentFunctionTick& ThisTickFunction)
 {
 	//if (TargetActor && Ability.IsValid())
 	//{
@@ -76,15 +75,7 @@ void UGAAbilityTask_WaitTargetData::TickTask(float DeltaTime)
 	//	}
 	//}
 }
-void UGAAbilityTask_WaitTargetData::OnDestroy(bool bInOwnerFinished)
-{
-	Super::OnDestroy(bInOwnerFinished);
-	//if (TargetActor)
-	//{
-	//	TargetActor->SetActorHiddenInGame(true);
-	//	TargetActor->Destroy();
-	//}
-}
+
 void UGAAbilityTask_WaitTargetData::OnConfirm()
 {
 	Ability->OnConfirmDelegate.Clear();
