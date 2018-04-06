@@ -111,7 +111,7 @@ public:
 
 	//possibly map TMap<FName, Task*> ?
 	UPROPERTY()
-		TSet<class UGameplayTask*> ActiveTasks;
+		TSet<class UGAAbilityTask*> ActiveTasks;
 	/* List of tasks, this ability have. */
 	UPROPERTY()
 		TMap<FName, class UGAAbilityTask*> AbilityTasks;

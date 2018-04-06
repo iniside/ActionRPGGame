@@ -3,7 +3,6 @@
 #include "EdGraph/EdGraphPin.h"
 #include "EdGraphSchema_K2.h"
 #include "K2Node_BaseAsyncTask.h"
-#include "K2Node_LatentGameplayTaskCall.h"
 #include "GAEK2Node_LatentAbilityTaskCall.generated.h"
 
 UCLASS()

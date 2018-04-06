@@ -42,7 +42,6 @@ namespace UnrealBuildTool.Rules
                     "UMG",
                     "Slate",
                     "SlateCore",
-                    "GameplayTasks",
                     "AIModule",
                     "MovieScene",
                     "MovieSceneTracks",

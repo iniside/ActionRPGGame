@@ -64,8 +64,6 @@ namespace UnrealBuildTool.Rules
                     "AssetTools",
                     "MainFrame",
                     "InputCore",
-                    "GameplayTasks",
-                    "GameplayTasksEditor",
                     "AbilityFramework",
                     "MovieScene",
                     "MovieSceneTools",

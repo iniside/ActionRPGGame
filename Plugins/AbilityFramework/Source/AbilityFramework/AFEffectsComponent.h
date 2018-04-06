@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "GameplayTasksComponent.h"
 #include "GameplayTags.h"
 #include "GameplayTagAssetInterface.h"
 
@@ -22,7 +21,7 @@ DECLARE_DELEGATE_OneParam(FAFEventDelegate, FAFEventData);
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FAFApplicationDelegate, FAFContextHandle, FAFPropertytHandle, FAFEffectSpecHandle);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class ABILITYFRAMEWORK_API UAFEffectsComponent : public UGameplayTasksComponent//public UActorComponent
+class ABILITYFRAMEWORK_API UAFEffectsComponent : public UActorComponent
 {
 	GENERATED_BODY()
 private:

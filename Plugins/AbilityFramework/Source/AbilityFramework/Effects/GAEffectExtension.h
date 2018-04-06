@@ -19,7 +19,7 @@
 	Or, old one will be refreshed (reset duration, reinitialize etc, but not destroyed).
 */
 UCLASS(BlueprintType, Blueprintable, EditInLineNew)
-class ABILITYFRAMEWORK_API UGAEffectExtension : public UObject, public IGameplayTaskOwnerInterface
+class ABILITYFRAMEWORK_API UGAEffectExtension : public UObject
 {
 	GENERATED_BODY()
 public:
@@ -31,7 +31,7 @@ public:
 		class AActor* Avatar;
 
 	UPROPERTY()
-		TSet<class UGameplayTask*> ActiveTasks;
+		TSet<class UAFEffectTask*> ActiveTasks;
 
 	UPROPERTY()
 		TMap<FName, class UAFEffectTask*> Tasks;
@@ -63,28 +63,6 @@ public:
 	void NativeOnEffectExecuted();
 	void NativeOnEffectExpired();
 	void NativeOnEffectRemoved();
-
-	/** GameplayTaskOwnerInterface - Begin */
-	virtual UGameplayTasksComponent* GetGameplayTasksComponent(const UGameplayTask& Task) const override;
-	/** this gets called both when task starts and when task gets resumed. Check Task.GetStatus() if you want to differenciate */
-	/** Get owner of a task or default one when task is null */
-	virtual AActor* GetGameplayTaskOwner(const UGameplayTask* Task) const override;
-
-	/** Get "body" of task's owner / default, having location in world (e.g. Owner = AIController, Avatar = Pawn) */
-	virtual AActor* GetGameplayTaskAvatar(const UGameplayTask* Task) const override;
-
-	/** Get default priority for running a task */
-	virtual uint8 GetGameplayTaskDefaultPriority() const { return 1; };
-
-	/** Notify called after GameplayTask finishes initialization (not active yet) */
-	virtual void OnGameplayTaskInitialized(UGameplayTask& Task) override;
-
-	/** Notify called after GameplayTask changes state to Active (initial activation or resuming) */
-	virtual void OnGameplayTaskActivated(UGameplayTask& Task) override;
-
-	/** Notify called after GameplayTask changes state from Active (finishing or pausing) */
-	virtual void OnGameplayTaskDeactivated(UGameplayTask& Task) override;
-	/** GameplayTaskOwnerInterface - end */
 
 	virtual UWorld* GetWorld() const override;
 };

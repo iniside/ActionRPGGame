@@ -74,14 +74,3 @@ UAFEffectsComponent* UAFEffectTask_EffectAppliedToTarget::GetTargetASC()
 
 	return EffectsComponent;
 }
-
-void UAFEffectTask_EffectAppliedToTarget::OnDestroy(bool AbilityEnding)
-{
-	UAFEffectsComponent* ASC = GetTargetASC();
-	if (ASC && MyHandle.IsValid())
-	{
-		ASC->OnAppliedToTarget.Remove(MyHandle);
-	}
-
-	Super::OnDestroy(AbilityEnding);
-}

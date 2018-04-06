@@ -36,9 +36,7 @@ public:
 	virtual void GameplayEventCallback(FAFContextHandle Context
 		, FAFPropertytHandle Property
 		, FAFEffectSpecHandle Spec);
-
-	void OnDestroy(bool AbilityEnding) override;
-	
+		
 	UPROPERTY()
 		UAFEffectsComponent* OptionalExternalTarget;
 

@@ -1,9 +1,5 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 #pragma once
-#include "GameplayTaskOwnerInterface.h"
-#include "GameplayTaskTypes.h"
-#include "GameplayTask.h"
-#include "GameplayTasksComponent.h"
 #include "GameplayTags.h"
 #include "AFAbilityTypes.h"
 
@@ -265,7 +261,7 @@ public:
 };
 
 UCLASS(hidecategories = (Object, LOD, Lighting, Transform, Sockets, TextureStreaming), editinlinenew, meta = (BlueprintSpawnableComponent))
-class ABILITYFRAMEWORK_API UAFAbilityComponent : public UActorComponent, /*UGameplayTasksComponent,*/ public IGameplayTagAssetInterface
+class ABILITYFRAMEWORK_API UAFAbilityComponent : public UActorComponent, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 		/* Attributes handling */

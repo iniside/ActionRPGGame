@@ -33,9 +33,7 @@ public:
 	virtual void Activate() override;
 
 	void AttributeChangedCallback(FAFAttributeChangedData Payload);
-
-	void OnDestroy(bool AbilityEnding) override;
-
+	
 	FGAAttribute Attribute;
 
 	UPROPERTY()

@@ -34,8 +34,6 @@ public:
 
 	virtual void GameplayEventCallback(FAFEventData Payload);
 
-	void OnDestroy(bool AbilityEnding) override;
-
 	FGameplayTag Tag;
 
 	UPROPERTY()

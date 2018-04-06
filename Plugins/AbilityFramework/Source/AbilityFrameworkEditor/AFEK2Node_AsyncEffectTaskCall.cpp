@@ -2,7 +2,7 @@
 #include "AbilityFrameworkEditor.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetArrayLibrary.h"
-#include "GameplayTask.h"
+#include "LatentActions/GALatentFunctionBase.h"
 #include "Effects/EffectTasks/AFEffectTask.h"
 #include "Effects/GAEffectExtension.h"
 #include "KismetCompiler.h"
@@ -17,16 +17,7 @@
 UAFEK2Node_AsyncEffectTaskCall::UAFEK2Node_AsyncEffectTaskCall(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	if (HasAnyFlags(RF_ClassDefaultObject) == true)
-	{
-		UK2Node_LatentGameplayTaskCall::RegisterSpecializedTaskNodeClass(GetClass());
-	}
-}
-
-bool UAFEK2Node_AsyncEffectTaskCall::IsHandling(TSubclassOf<UGameplayTask> TaskClass) const
-{
-	bool isChilldOf = TaskClass && TaskClass->IsChildOf(UAFEffectTask::StaticClass());
-	return isChilldOf;
+	ProxyActivateFunctionName = GET_FUNCTION_NAME_CHECKED(UGALatentFunctionBase, ReadyForActivation);
 }
 
 bool UAFEK2Node_AsyncEffectTaskCall::IsCompatibleWithGraph(UEdGraph const* TargetGraph) const

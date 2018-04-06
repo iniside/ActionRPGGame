@@ -33,41 +33,6 @@ void UGAEffectExtension::NativeOnEffectRemoved()
 {
 	OnEffectRemoved();
 }
-/** GameplayTaskOwnerInterface - Begin */
-void UGAEffectExtension::OnGameplayTaskInitialized(UGameplayTask& Task)
-{
-	if (UAFEffectTask* task = Cast<UAFEffectTask>(&Task))
-	{
-		task->Effect = this;
-	}
-}
-UGameplayTasksComponent* UGAEffectExtension::GetGameplayTasksComponent(const UGameplayTask& Task) const
-{
-	return OwningComponent;
-}
-/** this gets called both when task starts and when task gets resumed. Check Task.GetStatus() if you want to differenciate */
-void UGAEffectExtension::OnGameplayTaskActivated(UGameplayTask& Task)
-{
-	UE_LOG(AbilityFramework, Log, TEXT("Task Started; %s in ability: %s"), *Task.GetName(), *GetName());
-	ActiveTasks.Add(&Task);
-	//AbilityComponent->OnGameplayTaskActivated(Task);
-}
-/** this gets called both when task finished and when task gets paused. Check Task.GetStatus() if you want to differenciate */
-void UGAEffectExtension::OnGameplayTaskDeactivated(UGameplayTask& Task)
-{
-	UE_LOG(AbilityFramework, Log, TEXT("Task Removed: %s in ability: %s"), *Task.GetName(), *GetName());
-	ActiveTasks.Remove(&Task);
-	//AbilityComponent->OnGameplayTaskDeactivated(Task);
-}
-AActor* UGAEffectExtension::GetGameplayTaskOwner(const UGameplayTask* Task) const
-{
-	return OwningComponent->GetOwner();
-}
-AActor* UGAEffectExtension::GetGameplayTaskAvatar(const UGameplayTask* Task) const
-{
-	return OwningComponent->GetOwner();
-}
-/** GameplayTaskOwnerInterface - end */
 
 UWorld* UGAEffectExtension::GetWorld() const
 {
