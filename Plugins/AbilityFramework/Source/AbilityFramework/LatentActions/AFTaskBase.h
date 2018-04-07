@@ -3,12 +3,12 @@
 #include "Engine/EngineBaseTypes.h"
 #include "AFLatentInterface.h"
 
-#include "GALatentFunctionBase.generated.h"
+#include "AFTaskBase.generated.h"
 
 struct FGALatentFunctionTick: public FTickFunction
 {
 	/**  AActor  that is the target of this tick **/
-	class UGALatentFunctionBase* Target;
+	class UAFTaskBase* Target;
 
 	/**
 	* Abstract function actually execute the tick.
@@ -23,7 +23,7 @@ struct FGALatentFunctionTick: public FTickFunction
 };
 
 UCLASS(meta = (ExposedAsyncProxy = "true"))
-class ABILITYFRAMEWORK_API UGALatentFunctionBase : public UObject
+class ABILITYFRAMEWORK_API UAFTaskBase : public UObject
 {
 	GENERATED_BODY()
 	//never access internals of these classes directly. Use messages instead.
@@ -43,7 +43,7 @@ protected:
 	friend struct FGALatentFunctionTick;
 	FGALatentFunctionTick TickFunction;
 
-	UGALatentFunctionBase(const FObjectInitializer& ObjectInitializer);
+	UAFTaskBase(const FObjectInitializer& ObjectInitializer);
 	virtual UWorld* GetWorld() const override;
 
 	//virtual void Tick(float DeltaSecondsIn);
@@ -68,6 +68,40 @@ public:
 	void SetNetAddressable();
 
 protected:
+
+	//use template to avoid using interface
+	template<typename TaskType, typename OwnerType>
+	static TaskType* NewTask2(UObject* WorldContextObject, OwnerType* InTaskOwner, FName InstanceName = FName())
+	{
+		TaskType* MyObj = nullptr;
+		//if (IAFLatentInterface* Interface = Cast<IAFLatentInterface>(InTaskOwner))
+		{
+			if (!InstanceName.IsNone())
+			{
+				MyObj = Cast<TaskType>(InTaskOwner->GetCachedLatentAction(InstanceName));
+				if (!MyObj)
+				{
+					MyObj = NewObject<TaskType>(WorldContextObject);
+
+					InTaskOwner->OnLatentTaskAdded(InstanceName, MyObj);
+				}
+			}
+			else
+			{
+				MyObj = NewObject<TaskType>(WorldContextObject);
+
+				InTaskOwner->OnLatentTaskAdded(InstanceName, MyObj);
+			}
+			if (MyObj->bReplicated)
+			{
+				InTaskOwner->AddReplicatedTask(MyObj);
+			}
+			MyObj->TaskOwner = InTaskOwner;
+		}
+
+		return MyObj;
+	}
+
 	template <class T>
 	static T* NewTask(UObject* WorldContextObject, UObject* InTaskOwner, FName InstanceName = FName())
 	{

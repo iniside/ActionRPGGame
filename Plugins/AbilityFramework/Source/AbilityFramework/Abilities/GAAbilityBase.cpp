@@ -917,29 +917,29 @@ AActor*  UGAAbilityBase::BP_GetAvatar()
 }
 
 
-void UGAAbilityBase::OnLatentTaskAdded(FName InstanceName, class UGALatentFunctionBase* TaskIn)
+void UGAAbilityBase::OnLatentTaskAdded(FName InstanceName, class UAFTaskBase* TaskIn)
 {
 	if (!InstanceName.IsNone())
 	{
 		AbilityTasks.Add(InstanceName, Cast<UGAAbilityTask>(TaskIn));
 	}
 };
-void UGAAbilityBase::AddReplicatedTask(class UGALatentFunctionBase* TaskIn)
+void UGAAbilityBase::AddReplicatedTask(class UAFTaskBase* TaskIn)
 {
 	AbilityComponent->ReplicatedTasks.Add(TaskIn);
 }
-void UGAAbilityBase::OnLatentTaskRemoved(class UGALatentFunctionBase* TaskIn)
+void UGAAbilityBase::OnLatentTaskRemoved(class UAFTaskBase* TaskIn)
 {
 };
 	 
-void UGAAbilityBase::OnLatentTaskActivated(class UGALatentFunctionBase* TaskIn)
+void UGAAbilityBase::OnLatentTaskActivated(class UAFTaskBase* TaskIn)
 {
 };
-void UGAAbilityBase::OnLatentTaskDeactivated(class UGALatentFunctionBase* TaskIn)
+void UGAAbilityBase::OnLatentTaskDeactivated(class UAFTaskBase* TaskIn)
 {
 };
 
-class UGALatentFunctionBase* UGAAbilityBase::GetCachedLatentAction(FName TaskName)
+class UAFTaskBase* UGAAbilityBase::GetCachedLatentAction(FName TaskName)
 {
 	return AbilityTasks.FindRef(TaskName);
 }

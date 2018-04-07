@@ -2,17 +2,17 @@
 
 #pragma once
 
-#include "LatentActions/GALatentFunctionBase.h"
-#include "../GAEffectExtension.h"
-#include "../../GAGlobalTypes.h"
-#include "../../AFAbilityComponent.h"
+#include "LatentActions/AFTaskBase.h"
+#include "GAEffectExtension.h"
+#include "GAGlobalTypes.h"
+#include "AFAbilityComponent.h"
 #include "AFEffectTask.generated.h"
 
 /**
  * 
  */
 UCLASS(BlueprintType, meta = (ExposedAsyncProxy = "true") )
-class ABILITYFRAMEWORK_API UAFEffectTask : public UGALatentFunctionBase
+class ABILITYFRAMEWORK_API UAFEffectTask : public UAFTaskBase
 {
 	GENERATED_BODY()
 public:

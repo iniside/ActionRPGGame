@@ -3,7 +3,7 @@
 #include "GAAbilityBase.h"
 #include "AFAbilityComponent.h"
 
-#include "LatentActions/GALatentFunctionBase.h"
+#include "LatentActions/AFTaskBase.h"
 
 #include "GAAbilityTask.generated.h"
 /*
@@ -18,7 +18,7 @@
 */
 
 UCLASS(BlueprintType, Blueprintable, Within=GAAbilityBase)
-class ABILITYFRAMEWORK_API UGAAbilityTask : public UGALatentFunctionBase
+class ABILITYFRAMEWORK_API UGAAbilityTask : public UAFTaskBase
 {
 	GENERATED_BODY()
 		friend struct FAFAbilityTaskMessageTick;

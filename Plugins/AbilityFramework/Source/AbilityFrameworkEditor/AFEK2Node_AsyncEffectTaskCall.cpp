@@ -2,7 +2,7 @@
 #include "AbilityFrameworkEditor.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetArrayLibrary.h"
-#include "LatentActions/GALatentFunctionBase.h"
+#include "LatentActions/AFTaskBase.h"
 #include "Effects/EffectTasks/AFEffectTask.h"
 #include "Effects/GAEffectExtension.h"
 #include "KismetCompiler.h"
@@ -17,7 +17,7 @@
 UAFEK2Node_AsyncEffectTaskCall::UAFEK2Node_AsyncEffectTaskCall(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	ProxyActivateFunctionName = GET_FUNCTION_NAME_CHECKED(UGALatentFunctionBase, ReadyForActivation);
+	ProxyActivateFunctionName = GET_FUNCTION_NAME_CHECKED(UAFTaskBase, ReadyForActivation);
 }
 
 bool UAFEK2Node_AsyncEffectTaskCall::IsCompatibleWithGraph(UEdGraph const* TargetGraph) const

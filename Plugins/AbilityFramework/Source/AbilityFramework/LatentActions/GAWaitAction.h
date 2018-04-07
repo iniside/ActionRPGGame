@@ -1,5 +1,5 @@
 #pragma once
-#include "GALatentFunctionBase.h"
+#include "AFTaskBase.h"
 #include "GAWaitAction.generated.h"
 /*
 	AbilityActions are generic (preferably C++) defined actions, which then can be added to ability and
@@ -12,7 +12,7 @@
 	or should designer in blueprint decide when to launch actions ?).
 */
 UCLASS(meta = (ExposedAsyncProxy = "true") )
-class ABILITYFRAMEWORK_API UGAWaitAction : public UGALatentFunctionBase
+class ABILITYFRAMEWORK_API UGAWaitAction : public UAFTaskBase
 {
 	GENERATED_BODY()
 

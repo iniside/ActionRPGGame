@@ -678,7 +678,7 @@ public:
 	*/
 
 	UPROPERTY(Replicated)
-		TArray<class UGALatentFunctionBase*> ReplicatedTasks;
+		TArray<class UAFTaskBase*> ReplicatedTasks;
 };
 
 

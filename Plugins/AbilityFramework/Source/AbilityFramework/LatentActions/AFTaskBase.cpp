@@ -3,7 +3,7 @@
 #include "AbilityFramework.h"
 #include "AFLatentInterface.h"
 
-#include "GALatentFunctionBase.h"
+#include "AFTaskBase.h"
 
 void FGALatentFunctionTick::ExecuteTick(float DeltaTime, ELevelTick TickType, ENamedThreads::Type CurrentThread, const FGraphEventRef& MyCompletionGraphEvent)
 {
@@ -19,7 +19,7 @@ FString FGALatentFunctionTick::DiagnosticMessage()
 	return Target->GetFullName() + TEXT("[TickAction]");
 }
 
-UGALatentFunctionBase::UGALatentFunctionBase(const FObjectInitializer& ObjectInitializer)
+UAFTaskBase::UAFTaskBase(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
 	TickFunction.TickGroup = TG_PrePhysics;
@@ -34,7 +34,7 @@ UGALatentFunctionBase::UGALatentFunctionBase(const FObjectInitializer& ObjectIni
 	TaskState = EState::Waiting;
 }
 
-void UGALatentFunctionBase::Initialize()
+void UAFTaskBase::Initialize()
 {
 	if (GetWorld())
 	{
@@ -47,7 +47,7 @@ void UGALatentFunctionBase::Initialize()
 	}
 }
 
-void UGALatentFunctionBase::ReadyForActivation()
+void UAFTaskBase::ReadyForActivation()
 {
 	if (TaskOwner)
 	{
@@ -65,7 +65,7 @@ void UGALatentFunctionBase::ReadyForActivation()
 	}
 }
 
-void UGALatentFunctionBase::EndTask()
+void UAFTaskBase::EndTask()
 {
 	if (TickFunction.bCanEverTick && TickFunction.IsTickFunctionRegistered())
 	{
@@ -76,20 +76,20 @@ void UGALatentFunctionBase::EndTask()
 	TaskState = EState::Finished;
 	//MarkPendingKill();
 }
-void UGALatentFunctionBase::BeginDestroy()
+void UAFTaskBase::BeginDestroy()
 {
 	Super::BeginDestroy();
 }
 
-bool UGALatentFunctionBase::IsNameStableForNetworking() const
+bool UAFTaskBase::IsNameStableForNetworking() const
 {
 	return false;
 }
-void UGALatentFunctionBase::SetNetAddressable()
+void UAFTaskBase::SetNetAddressable()
 {
 
 }
-UWorld* UGALatentFunctionBase::GetWorld() const
+UWorld* UAFTaskBase::GetWorld() const
 {
 	if (TaskOwner)
 	{

@@ -613,13 +613,13 @@ public:
 
 
 	/*  IAFLatentInterface */
-	virtual void OnLatentTaskAdded(FName InstanceName, class UGALatentFunctionBase* TaskIn);
-	virtual void AddReplicatedTask(class UGALatentFunctionBase* TaskIn);
-	virtual void OnLatentTaskRemoved(class UGALatentFunctionBase* TaskIn);
+	virtual void OnLatentTaskAdded(FName InstanceName, class UAFTaskBase* TaskIn);
+	virtual void AddReplicatedTask(class UAFTaskBase* TaskIn);
+	virtual void OnLatentTaskRemoved(class UAFTaskBase* TaskIn);
 
-	virtual void OnLatentTaskActivated(class UGALatentFunctionBase* TaskIn);
-	virtual void OnLatentTaskDeactivated(class UGALatentFunctionBase* TaskIn);
+	virtual void OnLatentTaskActivated(class UAFTaskBase* TaskIn);
+	virtual void OnLatentTaskDeactivated(class UAFTaskBase* TaskIn);
 
-	virtual class UGALatentFunctionBase* GetCachedLatentAction(FName TaskName);
+	virtual class UAFTaskBase* GetCachedLatentAction(FName TaskName);
 	/*  IAFLatentInterface */
 };

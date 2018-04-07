@@ -8,13 +8,13 @@
 #include "K2Node_EnumLiteral.h"
 #include "BlueprintFunctionNodeSpawner.h"
 #include "BlueprintActionDatabaseRegistrar.h"
-#include "LatentActions/GALatentFunctionBase.h"
+#include "LatentActions/AFTaskBase.h"
 #define LOCTEXT_NAMESPACE "K2Node"
 
 UGAEK2Node_LatentAction::UGAEK2Node_LatentAction(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	ProxyActivateFunctionName = GET_FUNCTION_NAME_CHECKED(UGALatentFunctionBase, ReadyForActivation);
+	ProxyActivateFunctionName = GET_FUNCTION_NAME_CHECKED(UAFTaskBase, ReadyForActivation);
 }
 
 bool UGAEK2Node_LatentAction::IsCompatibleWithGraph(UEdGraph const* TargetGraph) const
@@ -61,7 +61,7 @@ void UGAEK2Node_LatentAction::GetMenuActions(FBlueprintActionDatabaseRegistrar& 
 
 	UClass* NodeClass = GetClass();
 	//FBlueprintActionDatabaseRegistrar::FMakeFuncSpawnerDelegate::CreateUObject(this, &UGAEK2Node_LatentAbilityTaskCall::CreateNodeSpawner);
-	ActionRegistrar.RegisterClassFactoryActions<UGALatentFunctionBase>(FBlueprintActionDatabaseRegistrar::FMakeFuncSpawnerDelegate::CreateLambda([NodeClass](const UFunction* FactoryFunc)->UBlueprintNodeSpawner*
+	ActionRegistrar.RegisterClassFactoryActions<UAFTaskBase>(FBlueprintActionDatabaseRegistrar::FMakeFuncSpawnerDelegate::CreateLambda([NodeClass](const UFunction* FactoryFunc)->UBlueprintNodeSpawner*
 	{
 		UBlueprintNodeSpawner* NodeSpawner = UBlueprintFunctionNodeSpawner::Create(FactoryFunc);
 		check(NodeSpawner != nullptr);

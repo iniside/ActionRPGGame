@@ -17,7 +17,7 @@
 UGAEK2Node_LatentAbilityTaskCall::UGAEK2Node_LatentAbilityTaskCall(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	ProxyActivateFunctionName = GET_FUNCTION_NAME_CHECKED(UGALatentFunctionBase, ReadyForActivation);
+	ProxyActivateFunctionName = GET_FUNCTION_NAME_CHECKED(UAFTaskBase, ReadyForActivation);
 }
 
 bool UGAEK2Node_LatentAbilityTaskCall::IsCompatibleWithGraph(UEdGraph const* TargetGraph) const
