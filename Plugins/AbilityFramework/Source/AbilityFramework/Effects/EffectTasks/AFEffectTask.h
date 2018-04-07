@@ -23,7 +23,7 @@ public:
 
 public:
 	template <class T>
-	static T* NewEffectTask(UObject* WorldContextObject, FName InTaskName = FName(), FName InstanceName = FName())
+	static T* NewEffectTask(UGAEffectExtension* WorldContextObject, FName InTaskName = FName(), FName InstanceName = FName())
 	{
 		return nullptr;
 	}

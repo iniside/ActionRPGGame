@@ -10,7 +10,7 @@ UAFEffectTask_AttributeChange::UAFEffectTask_AttributeChange(const FObjectInitia
 
 }
 
-UAFEffectTask_AttributeChange* UAFEffectTask_AttributeChange::ListenAttributeChanged(UObject* OwningExtension,
+UAFEffectTask_AttributeChange* UAFEffectTask_AttributeChange::ListenAttributeChanged(UGAEffectExtension* OwningExtension,
 	FGAAttribute InAttribute,
 	AActor* OptionalExternalTarget, 
 	bool OnlyTriggerOnce)

@@ -14,7 +14,7 @@ UAFEffectTask_EffectAppliedToTarget::UAFEffectTask_EffectAppliedToTarget(const F
 
 }
 
-UAFEffectTask_EffectAppliedToTarget* UAFEffectTask_EffectAppliedToTarget::ListenEffectAppliedToTarget(UObject* OwningExtension, FName TaskName, AActor* OptionalExternalTarget, bool OnlyTriggerOnce)
+UAFEffectTask_EffectAppliedToTarget* UAFEffectTask_EffectAppliedToTarget::ListenEffectAppliedToTarget(UGAEffectExtension* OwningExtension, FName TaskName, AActor* OptionalExternalTarget, bool OnlyTriggerOnce)
 {
 	auto MyObj = NewEffectTask<UAFEffectTask_EffectAppliedToTarget>(OwningExtension, TaskName);
 	MyObj->SetExternalTarget(OptionalExternalTarget);

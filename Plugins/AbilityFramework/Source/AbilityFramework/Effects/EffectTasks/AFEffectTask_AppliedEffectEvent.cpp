@@ -14,7 +14,7 @@ UAFEffectTask_AppliedEffectEvent::UAFEffectTask_AppliedEffectEvent(const FObject
 
 }
 
-UAFEffectTask_AppliedEffectEvent* UAFEffectTask_AppliedEffectEvent::ListenAppliedEffectEvent(UObject* OwningExtension, FName TaskName, FGameplayTag Tag, AActor* OptionalExternalTarget, bool OnlyTriggerOnce)
+UAFEffectTask_AppliedEffectEvent* UAFEffectTask_AppliedEffectEvent::ListenAppliedEffectEvent(UGAEffectExtension* OwningExtension, FName TaskName, FGameplayTag Tag, AActor* OptionalExternalTarget, bool OnlyTriggerOnce)
 {
 	auto MyObj = NewEffectTask<UAFEffectTask_AppliedEffectEvent>(OwningExtension, TaskName);
 	MyObj->Tag = Tag;

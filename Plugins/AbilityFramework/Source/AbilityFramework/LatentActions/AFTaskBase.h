@@ -71,7 +71,7 @@ protected:
 
 	//use template to avoid using interface
 	template<typename TaskType, typename OwnerType>
-	static TaskType* NewTask2(UObject* WorldContextObject, OwnerType* InTaskOwner, FName InstanceName = FName())
+	static TaskType* NewTask(UObject* WorldContextObject, OwnerType* InTaskOwner, FName InstanceName = FName())
 	{
 		TaskType* MyObj = nullptr;
 		
@@ -96,38 +96,6 @@ protected:
 			InTaskOwner->AddReplicatedTask(MyObj);
 		}
 		MyObj->TaskOwner = InTaskOwner;
-		
-		return MyObj;
-	}
-
-	template <class T>
-	static T* NewTask(UObject* WorldContextObject, UObject* InTaskOwner, FName InstanceName = FName())
-	{
-		T* MyObj = nullptr;
-		if (IAFLatentInterface* Interface = Cast<IAFLatentInterface>(InTaskOwner))
-		{
-			if (!InstanceName.IsNone())
-			{
-				MyObj = Cast<T>(Interface->GetCachedLatentAction(InstanceName));
-				if (!MyObj)
-				{
-					MyObj = NewObject<T>(WorldContextObject);
-
-					Interface->OnLatentTaskAdded(InstanceName, MyObj);
-				}
-			}
-			else
-			{
-				MyObj = NewObject<T>(WorldContextObject);
-				
-				Interface->OnLatentTaskAdded(InstanceName, MyObj);
-			}
-			if (MyObj->bReplicated)
-			{
-				Interface->AddReplicatedTask(MyObj);
-			}
-			MyObj->TaskOwner = InTaskOwner;
-		}
 		
 		return MyObj;
 	}

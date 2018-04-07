@@ -37,7 +37,7 @@ public:
 
 		T* MyObj = nullptr;
 		UGAAbilityBase* ThisAbility = CastChecked<UGAAbilityBase>(WorldContextObject);
-		MyObj = NewTask2<T, UGAAbilityBase>(WorldContextObject, WorldContextObject, InTaskName);
+		MyObj = NewTask<T, UGAAbilityBase>(WorldContextObject, WorldContextObject, InTaskName);
 
 		MyObj->Ability = ThisAbility;
 		MyObj->AbilityComponent = ThisAbility->AbilityComponent;

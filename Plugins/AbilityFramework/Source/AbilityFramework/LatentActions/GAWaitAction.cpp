@@ -15,11 +15,11 @@ UGAWaitAction::UGAWaitAction(const FObjectInitializer& ObjectInitializer)
 
 UGAWaitAction* UGAWaitAction::NewGAWaitAction(UObject* InTaskOwner, float Time)
 {
-	UGAWaitAction* MyTask = NewTask<UGAWaitAction>(InTaskOwner, InTaskOwner);
+	UGAWaitAction* MyTask = nullptr;/*NewTask<UGAWaitAction>(InTaskOwner, InTaskOwner);
 	if (MyTask)
 	{
 		MyTask->Time = Time;
-	}
+	}*/
 	return MyTask;
 }
 

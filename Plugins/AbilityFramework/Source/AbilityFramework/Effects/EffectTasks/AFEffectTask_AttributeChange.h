@@ -19,7 +19,7 @@ public:
 		FAFTaskAttributeChangedDelegate OnEvent;
 
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Effects|Tasks", meta = (HidePin = "OwningExtension", DefaultToSelf = "OwningExtension", BlueprintInternalUseOnly = "TRUE"))
-		static UAFEffectTask_AttributeChange* ListenAttributeChanged(UObject* OwningExtension, 
+		static UAFEffectTask_AttributeChange* ListenAttributeChanged(UGAEffectExtension* OwningExtension,
 			FGAAttribute InAttribute,
 			AActor* OptionalExternalTarget = nullptr, 
 			bool OnlyTriggerOnce = false);

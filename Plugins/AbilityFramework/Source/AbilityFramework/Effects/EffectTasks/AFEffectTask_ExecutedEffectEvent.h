@@ -22,7 +22,7 @@ public:
 		FAFEffectEventDelegate OnEvent;
 	
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Effects|Tasks", meta = (HidePin = "OwningExtension", DefaultToSelf = "OwningExtension", BlueprintInternalUseOnly = "TRUE"))
-		static UAFEffectTask_ExecutedEffectEvent* ListenExecutedEffectEvent(UObject* OwningExtension, FName TaskName, FGameplayTag EventTag, AActor* OptionalExternalTarget = nullptr, bool OnlyTriggerOnce = false);
+		static UAFEffectTask_ExecutedEffectEvent* ListenExecutedEffectEvent(UGAEffectExtension* OwningExtension, FName TaskName, FGameplayTag EventTag, AActor* OptionalExternalTarget = nullptr, bool OnlyTriggerOnce = false);
 
 	UAFEffectTask_ExecutedEffectEvent(const FObjectInitializer& ObjectInitializer);
 
