@@ -47,7 +47,14 @@ void UAFEffectTask_EffectAppliedToSelf::GameplayEventCallback(FAFContextHandle C
 		EndTask();
 	}
 }
-
+void UAFEffectTask_EffectAppliedToSelf::OnTaskEnded()
+{
+	UAFEffectsComponent* ASC = GetTargetASC();
+	if (ASC)
+	{
+		ASC->OnAppliedToSelf.Remove(MyHandle);
+	}
+}
 void UAFEffectTask_EffectAppliedToSelf::SetExternalTarget(AActor* Actor)
 {
 	if (Actor)

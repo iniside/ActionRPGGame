@@ -51,6 +51,15 @@ void UAFEffectTask_EffectAppliedToTarget::GameplayEventCallback(FAFContextHandle
 	}
 }
 
+void UAFEffectTask_EffectAppliedToTarget::OnTaskEnded()
+{
+	UAFEffectsComponent* ASC = GetTargetASC();
+	if (ASC)
+	{
+		ASC->OnAppliedToTarget.Remove(MyHandle);
+	}
+}
+
 void UAFEffectTask_EffectAppliedToTarget::SetExternalTarget(AActor* Actor)
 {
 	if (Actor)

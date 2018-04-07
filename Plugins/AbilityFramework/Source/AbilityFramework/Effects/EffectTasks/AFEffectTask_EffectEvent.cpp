@@ -50,6 +50,15 @@ void UAFEffectTask_EffectEvent::GameplayEventCallback(FAFEventData Payload)
 	}
 }
 
+void UAFEffectTask_EffectEvent::OnTaskEnded()
+{
+	UAFEffectsComponent* ASC = GetTargetASC();
+	if (ASC)
+	{
+		ASC->RemoveEvent(Tag, MyHandle);
+	}
+}
+
 void UAFEffectTask_EffectEvent::SetExternalTarget(AActor* Actor)
 {
 	if (Actor)

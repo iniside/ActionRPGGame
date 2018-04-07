@@ -50,6 +50,15 @@ void UAFEffectTask_ExecutedEffectEvent::GameplayEventCallback(FAFEventData Paylo
 	}
 }
 
+void UAFEffectTask_ExecutedEffectEvent::OnTaskEnded()
+{
+	UAFEffectsComponent* ASC = GetTargetASC();
+	if (ASC)
+	{
+		ASC->RemoveExecuteEvent(Tag, MyHandle);
+	}
+}
+
 void UAFEffectTask_ExecutedEffectEvent::SetExternalTarget(AActor* Actor)
 {
 	if (Actor)
