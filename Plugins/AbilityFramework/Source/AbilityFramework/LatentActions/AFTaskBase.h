@@ -56,7 +56,7 @@ protected:
 	virtual void Activate() {};
 	virtual void EndTask();
 	virtual void BeginDestroy() override;
-	
+	virtual void OnTaskEnded() {};
 public:
 	/* Replication */
 	bool IsNameStableForNetworking() const override;

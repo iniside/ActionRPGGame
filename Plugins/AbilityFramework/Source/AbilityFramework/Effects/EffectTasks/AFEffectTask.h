@@ -25,6 +25,13 @@ public:
 	template <class T>
 	static T* NewEffectTask(UGAEffectExtension* WorldContextObject, FName InTaskName = FName(), FName InstanceName = FName())
 	{
-		return nullptr;
+		T* MyObj = nullptr;
+		UGAEffectExtension* EffectExtension = WorldContextObject;
+		MyObj = NewTask<T, UGAEffectExtension>(WorldContextObject, WorldContextObject, InTaskName);
+
+		MyObj->Effect = EffectExtension;
+		MyObj->EffectsComponent = EffectExtension->OwningComponent;
+
+		return MyObj;
 	}
 };

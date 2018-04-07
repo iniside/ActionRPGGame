@@ -111,10 +111,10 @@ public:
 
 	//possibly map TMap<FName, Task*> ?
 	UPROPERTY()
-		TSet<class UGAAbilityTask*> ActiveTasks;
+		TSet<class UAFTaskBase*> ActiveTasks;
 	/* List of tasks, this ability have. */
 	UPROPERTY()
-		TMap<FName, class UGAAbilityTask*> AbilityTasks;
+		TMap<FName, class UAFTaskBase*> AbilityTasks;
 
 	/*
 		Delegate is used to confirm ability execution.
@@ -535,17 +535,14 @@ public:
 
 	virtual class UWorld* GetWorld() const override;
 
-	inline void AddAbilityTask(FName InName, class UGAAbilityTask* InTask)
+	inline void AddAbilityTask(FName InName, class UAFTaskBase* InTask)
 	{
 		if (!AbilityTasks.Contains(InName))
 		{
 			AbilityTasks.Add(InName, InTask);
 		}
 	}
-	inline class UGAAbilityTask* GetAbilityTask(const FName& InName)
-	{
-		return AbilityTasks.FindRef(InName);
-	}
+	class UGAAbilityTask* GetAbilityTask(const FName& InName);
 
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Abilities|Tags")
 		bool HaveGameplayTag(AActor* Target, const FGameplayTag& Tag);

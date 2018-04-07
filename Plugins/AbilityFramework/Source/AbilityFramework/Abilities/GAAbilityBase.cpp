@@ -1,18 +1,18 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
 
-#include "../AbilityFramework.h"
+#include "AbilityFramework.h"
 #include "Tasks/GAAbilityTask.h"
-#include "../Effects/GAGameEffect.h"
-#include "../GAGlobalTypes.h"
-#include "../Effects/GAEffectGlobalTypes.h"
-#include "../AFAbilityComponent.h"
+#include "Effects/GAGameEffect.h"
+#include "GAGlobalTypes.h"
+#include "Effects/GAEffectGlobalTypes.h"
+#include "AFAbilityComponent.h"
 #include "AFEffectsComponent.h"
 
 #include "GameplayTagContainer.h"
 #include "Net/UnrealNetwork.h"
 #include "Animation/AnimMontage.h"
-#include "../Effects/GABlueprintLibrary.h"
+#include "Effects/GABlueprintLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -921,7 +921,7 @@ void UGAAbilityBase::OnLatentTaskAdded(FName InstanceName, class UAFTaskBase* Ta
 {
 	if (!InstanceName.IsNone())
 	{
-		AbilityTasks.Add(InstanceName, Cast<UGAAbilityTask>(TaskIn));
+		AbilityTasks.Add(InstanceName, TaskIn);
 	}
 };
 void UGAAbilityBase::AddReplicatedTask(class UAFTaskBase* TaskIn)
@@ -942,4 +942,9 @@ void UGAAbilityBase::OnLatentTaskDeactivated(class UAFTaskBase* TaskIn)
 class UAFTaskBase* UGAAbilityBase::GetCachedLatentAction(FName TaskName)
 {
 	return AbilityTasks.FindRef(TaskName);
+}
+class UGAAbilityTask* UGAAbilityBase::GetAbilityTask(const FName& InName)
+{
+	UAFTaskBase* result = AbilityTasks.FindRef(InName);
+	return Cast<UGAAbilityTask>(result);
 }

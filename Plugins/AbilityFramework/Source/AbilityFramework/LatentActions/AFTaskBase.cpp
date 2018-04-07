@@ -72,6 +72,7 @@ void UAFTaskBase::EndTask()
 		TickFunction.UnRegisterTickFunction();
 		TickFunction.SetTickFunctionEnable(false);
 	}
+	OnTaskEnded();
 	Cast<IAFLatentInterface>(TaskOwner)->OnLatentTaskDeactivated(this);
 	TaskState = EState::Finished;
 	//MarkPendingKill();

@@ -41,3 +41,30 @@ UWorld* UGAEffectExtension::GetWorld() const
 
 	return nullptr;
 }
+
+void UGAEffectExtension::OnLatentTaskAdded(FName InstanceName, class UAFTaskBase* TaskIn)
+{
+	if (!InstanceName.IsNone())
+	{
+		Tasks.Add(InstanceName, TaskIn);
+	}
+};
+void UGAEffectExtension::AddReplicatedTask(class UAFTaskBase* TaskIn)
+{
+	//AbilityComponent->ReplicatedTasks.Add(TaskIn);
+}
+void UGAEffectExtension::OnLatentTaskRemoved(class UAFTaskBase* TaskIn)
+{
+};
+
+void UGAEffectExtension::OnLatentTaskActivated(class UAFTaskBase* TaskIn)
+{
+};
+void UGAEffectExtension::OnLatentTaskDeactivated(class UAFTaskBase* TaskIn)
+{
+};
+
+class UAFTaskBase* UGAEffectExtension::GetCachedLatentAction(FName TaskName)
+{
+	return Tasks.FindRef(TaskName);
+}

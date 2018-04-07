@@ -19,7 +19,7 @@
 	Or, old one will be refreshed (reset duration, reinitialize etc, but not destroyed).
 */
 UCLASS(BlueprintType, Blueprintable, EditInLineNew)
-class ABILITYFRAMEWORK_API UGAEffectExtension : public UObject
+class ABILITYFRAMEWORK_API UGAEffectExtension : public UObject, public IAFLatentInterface //this interface is not needed, but NewTask is expting those functions.
 {
 	GENERATED_BODY()
 public:
@@ -31,10 +31,10 @@ public:
 		class AActor* Avatar;
 
 	UPROPERTY()
-		TSet<class UAFEffectTask*> ActiveTasks;
+		TSet<class UAFTaskBase*> ActiveTasks;
 
 	UPROPERTY()
-		TMap<FName, class UAFEffectTask*> Tasks;
+		TMap<FName, class UAFTaskBase*> Tasks;
 
 public:
 	UGAEffectExtension(const FObjectInitializer& ObjectInitializer);
@@ -65,4 +65,15 @@ public:
 	void NativeOnEffectRemoved();
 
 	virtual UWorld* GetWorld() const override;
+
+	/*  IAFLatentInterface */
+	virtual void OnLatentTaskAdded(FName InstanceName, class UAFTaskBase* TaskIn);
+	virtual void AddReplicatedTask(class UAFTaskBase* TaskIn);
+	virtual void OnLatentTaskRemoved(class UAFTaskBase* TaskIn);
+
+	virtual void OnLatentTaskActivated(class UAFTaskBase* TaskIn);
+	virtual void OnLatentTaskDeactivated(class UAFTaskBase* TaskIn);
+
+	virtual class UAFTaskBase* GetCachedLatentAction(FName TaskName);
+	/*  IAFLatentInterface */
 };

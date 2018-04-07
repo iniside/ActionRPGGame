@@ -33,6 +33,8 @@ public:
 	virtual void Activate() override;
 
 	virtual void GameplayEventCallback(FAFEventData Payload);
+	
+	virtual void OnTaskEnded();
 
 	FGameplayTag Tag;
 
