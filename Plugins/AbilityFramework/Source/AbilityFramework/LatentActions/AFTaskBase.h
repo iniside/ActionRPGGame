@@ -74,31 +74,29 @@ protected:
 	static TaskType* NewTask2(UObject* WorldContextObject, OwnerType* InTaskOwner, FName InstanceName = FName())
 	{
 		TaskType* MyObj = nullptr;
-		//if (IAFLatentInterface* Interface = Cast<IAFLatentInterface>(InTaskOwner))
+		
+		if (!InstanceName.IsNone())
 		{
-			if (!InstanceName.IsNone())
-			{
-				MyObj = Cast<TaskType>(InTaskOwner->GetCachedLatentAction(InstanceName));
-				if (!MyObj)
-				{
-					MyObj = NewObject<TaskType>(WorldContextObject);
-
-					InTaskOwner->OnLatentTaskAdded(InstanceName, MyObj);
-				}
-			}
-			else
+			MyObj = Cast<TaskType>(InTaskOwner->GetCachedLatentAction(InstanceName));
+			if (!MyObj)
 			{
 				MyObj = NewObject<TaskType>(WorldContextObject);
 
 				InTaskOwner->OnLatentTaskAdded(InstanceName, MyObj);
 			}
-			if (MyObj->bReplicated)
-			{
-				InTaskOwner->AddReplicatedTask(MyObj);
-			}
-			MyObj->TaskOwner = InTaskOwner;
 		}
+		else
+		{
+			MyObj = NewObject<TaskType>(WorldContextObject);
 
+			InTaskOwner->OnLatentTaskAdded(InstanceName, MyObj);
+		}
+		if (MyObj->bReplicated)
+		{
+			InTaskOwner->AddReplicatedTask(MyObj);
+		}
+		MyObj->TaskOwner = InTaskOwner;
+		
 		return MyObj;
 	}
 
