@@ -21,12 +21,12 @@ public:
 		FGASSpawnObjectDelegate Failure;
 
 	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
-		static UGAAbilityTask_CreateObject* CreateObject(UObject* WorldContextObject, 
+		static UGAAbilityTask_CreateObject* CreateObject(UGAAbilityBase* WorldContextObject,
 			FName InTaskName, TSubclassOf<class UObject> Class, UObject* Outer);
 
 	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
-		bool BeginSpawningActor(UObject* WorldContextObject, TSubclassOf<class UObject> Class, class UObject*& SpawnedActor);
+		bool BeginSpawningActor(UGAAbilityBase* WorldContextObject, TSubclassOf<class UObject> Class, class UObject*& SpawnedActor);
 
 	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
-		void FinishSpawningActor(UObject* WorldContextObject, class UObject* SpawnedActor);
+		void FinishSpawningActor(UGAAbilityBase* WorldContextObject, class UObject* SpawnedActor);
 };

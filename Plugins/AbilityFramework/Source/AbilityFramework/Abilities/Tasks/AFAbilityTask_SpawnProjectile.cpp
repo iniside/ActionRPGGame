@@ -6,7 +6,7 @@
 
 
 
-UAFAbilityTask_SpawnProjectile* UAFAbilityTask_SpawnProjectile::Ability_SpawnProjectile(UObject* WorldContextObject,
+UAFAbilityTask_SpawnProjectile* UAFAbilityTask_SpawnProjectile::Ability_SpawnProjectile(UGAAbilityBase* WorldContextObject,
 	FName InTaskName,
 	FVector InStartLocation,
 	FVector InEndLocation,

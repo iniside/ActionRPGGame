@@ -19,7 +19,7 @@ public:
 		FGASOnConfirmed OnConfirmed;
 
 	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
-		static UGAAbilityTask_WaitForConfirm* CreateWaitConfirmTask(UObject* WorldContextObject,
+		static UGAAbilityTask_WaitForConfirm* CreateWaitConfirmTask(UGAAbilityBase* WorldContextObject,
 			FName InTaskName);
 
 	virtual void Activate() override;

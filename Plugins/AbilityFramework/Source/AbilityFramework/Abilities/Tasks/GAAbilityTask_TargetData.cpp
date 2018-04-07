@@ -5,7 +5,7 @@
 #include "GAAbilityTask_TargetData.h"
 
 
-UGAAbilityTask_TargetData* UGAAbilityTask_TargetData::CreateTargetDataTask(UObject* WorldContextObject,
+UGAAbilityTask_TargetData* UGAAbilityTask_TargetData::CreateTargetDataTask(UGAAbilityBase* WorldContextObject,
 	FName InTaskName,
 	bool bDrawDebug,
 	bool bDrawCorrectedDebug,

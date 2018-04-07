@@ -3,7 +3,7 @@
 #include "../../AbilityFramework.h"
 #include "GAAbilityTask_CreateObject.h"
 
-UGAAbilityTask_CreateObject* UGAAbilityTask_CreateObject::CreateObject(UObject* WorldContextObject, 
+UGAAbilityTask_CreateObject* UGAAbilityTask_CreateObject::CreateObject(UGAAbilityBase* WorldContextObject,
 	FName InTaskName, TSubclassOf<class UObject> Class, UObject* Outer)
 {
 	auto MyObj = NewAbilityTask<UGAAbilityTask_CreateObject>(WorldContextObject);
@@ -15,7 +15,7 @@ UGAAbilityTask_CreateObject* UGAAbilityTask_CreateObject::CreateObject(UObject* 
 
 // ---------------------------------------------------------------------------------------
 
-bool UGAAbilityTask_CreateObject::BeginSpawningActor(UObject* WorldContextObject, 
+bool UGAAbilityTask_CreateObject::BeginSpawningActor(UGAAbilityBase* WorldContextObject,
 	TSubclassOf<UObject> Class, UObject*& SpawnedActor)
 {
 	//if (Ability.IsValid() && Ability.Get()->GetCurrentActorInfo()->IsNetAuthority())
@@ -36,7 +36,7 @@ bool UGAAbilityTask_CreateObject::BeginSpawningActor(UObject* WorldContextObject
 	return true;
 }
 
-void UGAAbilityTask_CreateObject::FinishSpawningActor(UObject* WorldContextObject, UObject* SpawnedActor)
+void UGAAbilityTask_CreateObject::FinishSpawningActor(UGAAbilityBase* WorldContextObject, UObject* SpawnedActor)
 {
 	if (SpawnedActor)
 	{

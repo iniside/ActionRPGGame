@@ -8,6 +8,10 @@ UCLASS()
 class ABILITYFRAMEWORK_API UAFTaskManager : public UObject
 {
 	GENERATED_BODY()
+
+	static UAFTaskManager* Instance;
+
 public:
 	UAFTaskManager(const FObjectInitializer& ObjectInitializer);
+	static UAFTaskManager* Get();
 };

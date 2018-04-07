@@ -21,14 +21,14 @@ public:
 		FGASSpawnActorDelegate Failure;
 	
 	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
-		static UGAAbilityTask_SpawnActor* SpawnActor(UObject* WorldContextObject, 
+		static UGAAbilityTask_SpawnActor* SpawnActor(UGAAbilityBase* WorldContextObject,
 			FName InTaskName, TSubclassOf<AActor> Class);
 
 	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
-		bool BeginSpawningActor(UObject* WorldContextObject, TSubclassOf<AActor> Class, AActor*& SpawnedActor);
+		bool BeginSpawningActor(UGAAbilityBase* WorldContextObject, TSubclassOf<AActor> Class, AActor*& SpawnedActor);
 
 	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
-		void FinishSpawningActor(UObject* WorldContextObject, AActor* SpawnedActor);
+		void FinishSpawningActor(UGAAbilityBase* WorldContextObject, AActor* SpawnedActor);
 
 	virtual void Activate() override;
 };

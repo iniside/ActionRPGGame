@@ -68,7 +68,7 @@ public:
 	FHitResult LocalHitResult;
 public:
 	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
-		static UGAAbilityTask_TargetDataLineTrace* CreateTargetDataLineTrace(UObject* WorldContextObject
+		static UGAAbilityTask_TargetDataLineTrace* CreateTargetDataLineTrace(UGAAbilityBase* WorldContextObject
 			, FName InTaskName
 			, ETraceTypeQuery InTraceChannel
 			, USkeletalMeshComponent* InSocketComponent

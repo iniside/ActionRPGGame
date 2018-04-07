@@ -5,7 +5,7 @@
 #include "GAAbilityTask_TargetDataCircle.h"
 
 
-UGAAbilityTask_TargetDataCircle* UGAAbilityTask_TargetDataCircle::TargetCircleDataTask(UObject* WorldContextObject, 
+UGAAbilityTask_TargetDataCircle* UGAAbilityTask_TargetDataCircle::TargetCircleDataTask(UGAAbilityBase* WorldContextObject,
 	FName InTaskName, EGASConfirmType ConfirmTypeIn)
 {
 	auto MyObj = NewAbilityTask<UGAAbilityTask_TargetDataCircle>(WorldContextObject);

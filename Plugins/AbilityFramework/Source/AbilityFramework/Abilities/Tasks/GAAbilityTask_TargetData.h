@@ -37,7 +37,7 @@ public:
 	bool bUseCorrectedTrace;
 public:
 	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
-		static UGAAbilityTask_TargetData* CreateTargetDataTask(UObject* WorldContextObject, 
+		static UGAAbilityTask_TargetData* CreateTargetDataTask(UGAAbilityBase* WorldContextObject,
 			FName InTaskName,
 			bool bDrawDebug,
 			bool bDrawCorrectedDebug,

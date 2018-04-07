@@ -6,7 +6,7 @@
 
 
 
-UGAAbilityTask_Repeat* UGAAbilityTask_Repeat::CreateRepeatTask(UObject* WorldContextObject,
+UGAAbilityTask_Repeat* UGAAbilityTask_Repeat::CreateRepeatTask(UGAAbilityBase* WorldContextObject,
 	FName InTaskName)
 {
 	auto MyObj = NewAbilityTask<UGAAbilityTask_Repeat>(WorldContextObject);

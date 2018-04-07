@@ -7,7 +7,7 @@
 
 
 
-UGAAbilityTask_SpawnActor* UGAAbilityTask_SpawnActor::SpawnActor(UObject* WorldContextObject, 
+UGAAbilityTask_SpawnActor* UGAAbilityTask_SpawnActor::SpawnActor(UGAAbilityBase* WorldContextObject,
 	FName InTaskName, TSubclassOf<AActor> InClass)
 {
 	auto MyObj = NewAbilityTask<UGAAbilityTask_SpawnActor>(WorldContextObject);
@@ -22,7 +22,7 @@ void UGAAbilityTask_SpawnActor::Activate()
 	//EndTask();
 }
 
-bool UGAAbilityTask_SpawnActor::BeginSpawningActor(UObject* WorldContextObject, TSubclassOf<AActor> InClass, AActor*& SpawnedActor)
+bool UGAAbilityTask_SpawnActor::BeginSpawningActor(UGAAbilityBase* WorldContextObject, TSubclassOf<AActor> InClass, AActor*& SpawnedActor)
 {
 	//if (Ability.IsValid() && Ability.Get()->GetCurrentActorInfo()->IsNetAuthority())
 	//{
@@ -42,7 +42,7 @@ bool UGAAbilityTask_SpawnActor::BeginSpawningActor(UObject* WorldContextObject, 
 	return true;
 }
 
-void UGAAbilityTask_SpawnActor::FinishSpawningActor(UObject* WorldContextObject, AActor* SpawnedActor)
+void UGAAbilityTask_SpawnActor::FinishSpawningActor(UGAAbilityBase* WorldContextObject, AActor* SpawnedActor)
 {
 	if (SpawnedActor)
 	{

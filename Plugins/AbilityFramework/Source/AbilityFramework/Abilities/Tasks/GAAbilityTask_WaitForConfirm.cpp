@@ -7,7 +7,7 @@
 
 
 
-UGAAbilityTask_WaitForConfirm* UGAAbilityTask_WaitForConfirm::CreateWaitConfirmTask(UObject* WorldContextObject,
+UGAAbilityTask_WaitForConfirm* UGAAbilityTask_WaitForConfirm::CreateWaitConfirmTask(UGAAbilityBase* WorldContextObject,
 	FName InTaskName)
 {
 	auto MyObj = NewAbilityTask<UGAAbilityTask_WaitForConfirm>(WorldContextObject, InTaskName);

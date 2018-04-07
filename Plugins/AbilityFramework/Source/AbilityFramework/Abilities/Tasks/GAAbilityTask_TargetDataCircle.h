@@ -23,7 +23,7 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
-		static UGAAbilityTask_TargetDataCircle* TargetCircleDataTask(UObject* WorldContextObject,
+		static UGAAbilityTask_TargetDataCircle* TargetCircleDataTask(UGAAbilityBase* WorldContextObject,
 			FName InTaskName, EGASConfirmType ConfirmTypeIn);
 
 	virtual void Activate() override;

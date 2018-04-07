@@ -4,7 +4,7 @@
 #include "../../AFAbilityComponent.h"
 #include "GAAbilityTask_PlayMontage.h"
 
-UGAAbilityTask_PlayMontage* UGAAbilityTask_PlayMontage::AbilityPlayMontage(UObject* WorldContextObject,
+UGAAbilityTask_PlayMontage* UGAAbilityTask_PlayMontage::AbilityPlayMontage(UGAAbilityBase* WorldContextObject,
 	FName InTaskName, UAnimMontage* MontageIn, FName SectionNameIn, float PlayRateIn,
 	bool bInUseActivationTime)
 {

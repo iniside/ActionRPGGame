@@ -33,7 +33,7 @@ public:
 		FGASGenericMontageDelegate NotifyEnd;
 
 	UFUNCTION(BlueprintCallable, meta = (HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject", BlueprintInternalUseOnly = "true"), Category = "AbilityFramework|Abilities|Tasks")
-		static UGAAbilityTask_PlayMontage* AbilityPlayMontage(UObject* WorldContextObject,
+		static UGAAbilityTask_PlayMontage* AbilityPlayMontage(UGAAbilityBase* WorldContextObject,
 			FName InTaskName, UAnimMontage* MontageIn, FName SectionNameIn, float PlayRateIn,
 			bool bInUseActivationTime);
 

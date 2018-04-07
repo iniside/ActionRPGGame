@@ -31,13 +31,13 @@ public:
 public:
 
 	template <class T>
-	static T* NewAbilityTask(UObject* WorldContextObject, FName InTaskName = FName(), FName InstanceName = FName())
+	static T* NewAbilityTask(UGAAbilityBase* WorldContextObject, FName InTaskName = FName(), FName InstanceName = FName())
 	{
 		check(WorldContextObject);
 
 		T* MyObj = nullptr;
 		UGAAbilityBase* ThisAbility = CastChecked<UGAAbilityBase>(WorldContextObject);
-		MyObj = NewTask<T>(WorldContextObject, WorldContextObject, InTaskName);
+		MyObj = NewTask2<T, UGAAbilityBase>(WorldContextObject, WorldContextObject, InTaskName);
 
 		MyObj->Ability = ThisAbility;
 		MyObj->AbilityComponent = ThisAbility->AbilityComponent;

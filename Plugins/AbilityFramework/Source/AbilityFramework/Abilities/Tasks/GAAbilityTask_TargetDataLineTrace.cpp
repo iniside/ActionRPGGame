@@ -5,7 +5,7 @@
 #include "GAAbilityTask_TargetDataLineTrace.h"
 
 
-UGAAbilityTask_TargetDataLineTrace* UGAAbilityTask_TargetDataLineTrace::CreateTargetDataLineTrace(UObject* WorldContextObject
+UGAAbilityTask_TargetDataLineTrace* UGAAbilityTask_TargetDataLineTrace::CreateTargetDataLineTrace(UGAAbilityBase* WorldContextObject
 	, FName InTaskName
 	, ETraceTypeQuery InTraceChannel
 	, USkeletalMeshComponent* InSocketComponent
