@@ -21,7 +21,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Config")
 		EAMSlot Slot;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Config")
-		FGameplayTag AbilityTag;
+		TSoftClassPtr<UGAAbilityBase> AbilityTag;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Config")
 		TArray<FGameplayTag> InputTag;
 };
@@ -74,10 +74,10 @@ protected:
 		void EndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION()
-		void OnAbilityReady(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput);
+		void OnAbilityReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, TArray<FGameplayTag> InAbilityInput);
 
 	UFUNCTION()
-		void OnAbilityInputReady(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput);
+		void OnAbilityInputReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, TArray<FGameplayTag> InAbilityInput);
 
 	
 };

@@ -131,18 +131,18 @@ protected:
 
 
 	UFUNCTION()
-		void OnWeaponInputRead(FGameplayTag WeaponAbilityTag, TArray<FGameplayTag> InInputTags);
+		void OnWeaponInputRead(TSoftClassPtr<UGAAbilityBase> WeaponAbilityTag, TArray<FGameplayTag> InInputTags);
 
 public:
 	bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags) override;
 protected:
-	virtual void OnAbilityReady(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InAbilityInput,
+	virtual void OnAbilityReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, const TArray<FGameplayTag>& InAbilityInput,
 		EAMGroup InGroup, EAMSlot InSlot) override;
 
-	void EquipWeapon(const FGameplayTag& PreviousWeaponTag, const FGameplayTag& NextWeaponTag, EAMGroup OldGroup);
+	void EquipWeapon(const TSoftClassPtr<UGAAbilityBase>& PreviousWeaponTag, const TSoftClassPtr<UGAAbilityBase>& NextWeaponTag, EAMGroup OldGroup);
 
-	FGameplayTag FindNextValid();
-	FGameplayTag FindPreviousValid();
+	TSoftClassPtr<UGAAbilityBase> FindNextValid();
+	TSoftClassPtr<UGAAbilityBase> FindPreviousValid();
 	public:
 	void ShowHideAbilityManager();
 };

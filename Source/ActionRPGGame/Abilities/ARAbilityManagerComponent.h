@@ -21,7 +21,7 @@ struct FARAbilityItem
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere)
-		FGameplayTag Ability;
+		TSoftClassPtr<UGAAbilityBase> Ability;
 };
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ACTIONRPGGAME_API UARAbilityManagerComponent : public UAMAbilityManagerComponent
@@ -71,5 +71,5 @@ public:
 
 	virtual void OnGroupSelectionConfirmed(EAMGroup ValidGroup, bool bPredictionSuccess) override;
 
-	void OnInputReady(FGameplayTag WeaponAbilityTag, TArray<FGameplayTag> InInputTags);
+	void OnInputReady(TSoftClassPtr<UGAAbilityBase> WeaponAbilityTag, TArray<FGameplayTag> InInputTags);
 };

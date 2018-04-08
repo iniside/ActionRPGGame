@@ -146,7 +146,7 @@ void UAFEffectsComponent::ExecuteEffect(FGAEffectHandle HandleIn
 
 	//apply execution events:
 	const FGameplayTagContainer& ExecuteEventTags = Property.GetSpec()->ExecuteEventTags;
-	FAFEventData Data;
+	FAFEventData Data(Params);
 	for (const FGameplayTag& Tag : ExecuteEventTags)
 	{
 		TriggerExecuteEvent(Tag, Data);

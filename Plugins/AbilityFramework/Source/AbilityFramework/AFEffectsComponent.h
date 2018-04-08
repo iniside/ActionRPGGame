@@ -56,6 +56,7 @@ private:
 public:
 	FAFApplicationDelegate OnAppliedToTarget;
 	FAFApplicationDelegate OnAppliedToSelf;
+	FAFApplicationDelegate OnEffectExecuted;
 public:	
 	// Sets default values for this component's properties
 	UAFEffectsComponent(const FObjectInitializer& ObjectInitializer);

@@ -5,7 +5,7 @@
 
 #include "ARPlayerController.h"
 
-void UARAbilityListWidget::AddItem(TSubclassOf<class UARAbilityListSlotDragWidget> DragWidgetClass, const FGameplayTag& Ability)
+void UARAbilityListWidget::AddItem(TSubclassOf<class UARAbilityListSlotDragWidget> DragWidgetClass, const TSoftClassPtr<UGAAbilityBase>& Ability)
 {
 	UARAbilityListSlotDragWidget* Item = CreateWidget<UARAbilityListSlotDragWidget>(ARPC.Get(), DragWidgetClass);
 	Item->AbilityTag = Ability;

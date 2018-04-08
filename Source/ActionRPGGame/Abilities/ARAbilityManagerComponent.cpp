@@ -96,7 +96,7 @@ void UARAbilityManagerComponent::OnGroupSelectionConfirmed(EAMGroup ValidGroup, 
 		for (int32 Idx = 0; Idx < AbilityTagsSet[AMEnumToInt<EAMGroup>(ValidGroup)].Num(); Idx++)
 		{
 			TArray<FGameplayTag> WeaponInput = GetInputTag(Group, AMIntToEnum<EAMSlot>(Idx));
-			FGameplayTag NextWeaponAbility = GetAbilityTag(Group, AMIntToEnum<EAMSlot>(Idx));
+			TSoftClassPtr<UGAAbilityBase> NextWeaponAbility = GetAbilityTag(Group, AMIntToEnum<EAMSlot>(Idx));
 
 			FAFAbilityActionSet Set;
 			Set.AbilityInputs = WeaponInput;
@@ -119,7 +119,7 @@ void UARAbilityManagerComponent::OnGroupSelectionConfirmed(EAMGroup ValidGroup, 
 		for (int32 Idx = 0; Idx < AbilityTagsSet[AMEnumToInt<EAMGroup>(ValidGroup)].Num(); Idx++)
 		{
 			TArray<FGameplayTag> WeaponInput = GetInputTag(Group, AMIntToEnum<EAMSlot>(Idx));
-			FGameplayTag NextWeaponAbility = GetAbilityTag(Group, AMIntToEnum<EAMSlot>(Idx));
+			TSoftClassPtr<UGAAbilityBase> NextWeaponAbility = GetAbilityTag(Group, AMIntToEnum<EAMSlot>(Idx));
 
 			FAFAbilityActionSet Set;
 			Set.AbilityInputs = WeaponInput;
@@ -136,7 +136,7 @@ void UARAbilityManagerComponent::OnGroupSelectionConfirmed(EAMGroup ValidGroup, 
 	}
 }
 
-void UARAbilityManagerComponent::OnInputReady(FGameplayTag WeaponAbilityTag, TArray<FGameplayTag> InInputTags)
+void UARAbilityManagerComponent::OnInputReady(TSoftClassPtr<UGAAbilityBase> WeaponAbilityTag, TArray<FGameplayTag> InInputTags)
 {
 	OnAbilitySetChanged.Broadcast(ActiveGroup);
 }

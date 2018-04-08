@@ -53,46 +53,46 @@ void AARPlayerController::SetPawn(APawn* InPawn)
 			bInputBount = true;
 		}
 		//doesn't matter. Internally ability component make sure abilities are instanced on server and replicated back.
-		if (AbilitytNextWeapon.IsValid())
+		if (!AbilitytNextWeapon.IsNull())
 		{
 			FAFOnAbilityReady del1 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, AbilitytNextWeapon, InputNextWeapon);
 			AbilityComp->AddOnAbilityReadyDelegate(AbilitytNextWeapon, del1);
 			TArray<FGameplayTag> NextWeap;
 			NextWeap.Add(InputNextWeapon);
-			AbilityComp->NativeAddAbilityFromTag(AbilitytNextWeapon, nullptr, NextWeap);
+			AbilityComp->NativeAddAbility(AbilitytNextWeapon, NextWeap);
 		}
-		if (AbilitytPreviousWeapon.IsValid())
+		if (!AbilitytPreviousWeapon.IsNull())
 		{
 			FAFOnAbilityReady del2 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, AbilitytPreviousWeapon, InputPreviousWeapon);
 			AbilityComp->AddOnAbilityReadyDelegate(AbilitytPreviousWeapon, del2);
 			TArray<FGameplayTag> PrevWeap;
 			PrevWeap.Add(InputPreviousWeapon);
-			AbilityComp->NativeAddAbilityFromTag(AbilitytPreviousWeapon, nullptr, PrevWeap);
+			AbilityComp->NativeAddAbility(AbilitytPreviousWeapon, PrevWeap);
 		}
-		if (AbilitytHolstersWeapon.IsValid())
+		if (!AbilitytHolstersWeapon.IsNull())
 		{
 			FAFOnAbilityReady del3 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, AbilitytHolstersWeapon, InputHolsterWeapon);
 			AbilityComp->AddOnAbilityReadyDelegate(AbilitytHolstersWeapon, del3);
 			TArray<FGameplayTag> HolsterInput;
 			HolsterInput.Add(InputHolsterWeapon);
-			AbilityComp->NativeAddAbilityFromTag(AbilitytHolstersWeapon, nullptr, HolsterInput);
+			AbilityComp->NativeAddAbility(AbilitytHolstersWeapon, HolsterInput);
 		}
 
-		if (SetAbilityGroup01.IsValid())
+		if (!SetAbilityGroup01.IsNull())
 		{
 			FAFOnAbilityReady del3 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, SetAbilityGroup01, InputSetAbilityGroup01);
 			AbilityComp->AddOnAbilityReadyDelegate(SetAbilityGroup01, del3);
 			TArray<FGameplayTag> HolsterInput;
 			HolsterInput.Add(InputSetAbilityGroup01);
-			AbilityComp->NativeAddAbilityFromTag(SetAbilityGroup01, nullptr, HolsterInput);
+			AbilityComp->NativeAddAbility(SetAbilityGroup01, HolsterInput);
 		}
-		if (SetAbilityGroup02.IsValid())
+		if (!SetAbilityGroup02.IsNull())
 		{
 			FAFOnAbilityReady del3 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, SetAbilityGroup02, InputSetAbilityGroup02);
 			AbilityComp->AddOnAbilityReadyDelegate(SetAbilityGroup02, del3);
 			TArray<FGameplayTag> HolsterInput;
 			HolsterInput.Add(InputSetAbilityGroup02);
-			AbilityComp->NativeAddAbilityFromTag(SetAbilityGroup02, nullptr, HolsterInput);
+			AbilityComp->NativeAddAbility(SetAbilityGroup02, HolsterInput);
 		}
 		
 	}
@@ -118,7 +118,7 @@ void AARPlayerController::InputShowHideInventory()
 {
 	WeaponManager->ShowHideAbilityManager();
 }
-void AARPlayerController::OnInputAbilityReady(FGameplayTag InAbilityTag, FGameplayTag InInputTag)
+void AARPlayerController::OnInputAbilityReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, FGameplayTag InInputTag)
 {
 	IAFAbilityInterface* ABInt = Cast<IAFAbilityInterface>(GetPawn());
 	if (!ABInt)

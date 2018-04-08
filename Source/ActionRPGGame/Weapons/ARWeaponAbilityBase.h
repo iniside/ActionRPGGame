@@ -46,6 +46,18 @@ public:
 	void AddDamageEffects(const TArray<FAFPropertytHandle>& InEffects);
 	void ResetDamageEffects();
 
+	/*
+		Replaces current DamageEffects with the one provided as Paremeter.
+	*/
+	virtual void InstallAmmoType(TSubclassOf<UAFEffectSpecBase> AmmoType) {};
+
+	virtual void InstallAmmoType(TSoftClassPtr<UAFEffectSpecBase> AmmoType) {};
+
+	virtual void InstallMagazineUpgrade(TSubclassOf<UAFEffectSpecBase> MagazineUpgrade) {};
+	/*
+	*/
+	virtual void OnAmmoTypeInstalled(TSubclassOf<UAFEffectSpecBase> AmmoType) {};
+
 	UFUNCTION(BlueprintCallable, Category = "ActionRPGGame|Weapon")
 		void ApplyDamageEffect(UObject* Target, FAFFunctionModifier Modifier);
 };

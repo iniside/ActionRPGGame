@@ -38,5 +38,5 @@ protected:
 	UPROPERTY()
 		TArray<class UARAbilityListSlotDragWidget*> Items;
 public:
-	void AddItem(TSubclassOf<class UARAbilityListSlotDragWidget> DragWidgetClass, const FGameplayTag& Ability);
+	void AddItem(TSubclassOf<class UARAbilityListSlotDragWidget> DragWidgetClass, const TSoftClassPtr<UGAAbilityBase>& Ability);
 };

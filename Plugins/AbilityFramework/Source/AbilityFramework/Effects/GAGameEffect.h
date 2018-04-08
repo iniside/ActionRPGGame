@@ -124,6 +124,12 @@ class ABILITYFRAMEWORK_API UGAGameEffectSpec : public UObject
 	GENERATED_BODY()
 public:
 	/*
+		Replicate effect back to clients ?
+	*/
+	UPROPERTY(EditAnywhere, Category = "Network")
+		bool bReplicate;
+	
+	/*
 		Individual Tag descrbing effect type.
 		ie. Condition.Burning
 	*/
@@ -1023,6 +1029,38 @@ public:
 
 	UAFEffectsComponent* GetTargetEffectsComponent();
 	UAFEffectsComponent* GetTargetEffectsComponent() const;
+
+};
+
+USTRUCT(BlueprintType)
+struct FAFEventData
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(BlueprintReadOnly)
+		FAFContextHandle ContextHandle;
+	UPROPERTY(BlueprintReadOnly)
+		FAFEffectSpecHandle SpecHandle;
+	UPROPERTY(BlueprintReadOnly)
+		FAFPropertytHandle PropertyHandle;
+
+	FAFEventData()
+	{};
+
+	FAFEventData(FAFContextHandle InContextHandle
+		, FAFEffectSpecHandle InSpecHandle
+		, FAFPropertytHandle InPropertyHandle
+	)
+		: ContextHandle(InContextHandle)
+		, SpecHandle(InSpecHandle)
+		, PropertyHandle(InPropertyHandle)
+	{};
+
+	FAFEventData(const FAFEffectParams& EffectParams)
+		: ContextHandle(EffectParams.Context)
+		, SpecHandle(EffectParams.EffectSpec)
+		, PropertyHandle(EffectParams.Property)
+	{};
 
 };
 

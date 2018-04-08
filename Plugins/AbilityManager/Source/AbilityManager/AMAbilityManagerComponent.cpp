@@ -74,24 +74,21 @@ void UAMAbilityManagerComponent::SetInputTag(EAMGroup InGroup, EAMSlot InSlot, T
 {
 
 }
-void UAMAbilityManagerComponent::BP_EquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, bool bBindInput)
-{
-	NativeEquipAbility(InAbilityTag, InGroup, InSlot, nullptr, bBindInput);
-}
-FGameplayTag UAMAbilityManagerComponent::GetAbilityTag(EAMGroup InGroup, EAMSlot InSlot)
+
+TSoftClassPtr<UGAAbilityBase> UAMAbilityManagerComponent::GetAbilityTag(EAMGroup InGroup, EAMSlot InSlot)
 {
 	if (AbilityTagsSet.IsValidIndex(AMEnumToInt<EAMGroup>(InGroup))
 		&& AbilityTagsSet[AMEnumToInt<EAMGroup>(InGroup)].IsValidIndex(AMEnumToInt<EAMSlot>(InSlot)))
 	{
 		return AbilityTagsSet[AMEnumToInt<EAMGroup>(InGroup)][AMEnumToInt<EAMSlot>(InSlot)];
 	}
-	return FGameplayTag();
+	return TSoftClassPtr<UGAAbilityBase>();
 }
-void UAMAbilityManagerComponent::SetAbilityTag(EAMGroup InGroup, EAMSlot InSlot, FGameplayTag InAbilityTag)
+void UAMAbilityManagerComponent::SetAbilityTag(EAMGroup InGroup, EAMSlot InSlot, TSoftClassPtr<UGAAbilityBase> InAbilityTag)
 {
 	AbilityTagsSet[AMEnumToInt<EAMGroup>(InGroup)][AMEnumToInt<EAMSlot>(InSlot)] = InAbilityTag;
 }
-void UAMAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, AActor* InAvatar, bool bBindInput)
+void UAMAbilityManagerComponent::NativeEquipAbility(const TSoftClassPtr<UGAAbilityBase>& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, AActor* InAvatar, bool bBindInput)
 {
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
 	if (!MyPC)
@@ -117,9 +114,9 @@ void UAMAbilityManagerComponent::NativeEquipAbility(const FGameplayTag& InAbilit
 		AbilityComp->AddOnAbilityReadyDelegate(InAbilityTag, del);
 	}
 
-	AbilityComp->NativeAddAbilityFromTag(InAbilityTag, InAvatar, IAbilityInput);// , /*Input*/ ShootInput);
+	AbilityComp->NativeAddAbility(InAbilityTag, IAbilityInput);// , /*Input*/ ShootInput);
 }
-void UAMAbilityManagerComponent::OnAbilityReadyInternal(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput,
+void UAMAbilityManagerComponent::OnAbilityReadyInternal(TSoftClassPtr<UGAAbilityBase> InAbilityTag, TArray<FGameplayTag> InAbilityInput,
 	EAMGroup InGroup, EAMSlot InSlot)
 {
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
@@ -154,7 +151,7 @@ void UAMAbilityManagerComponent::OnAbilityReadyInternal(FGameplayTag InAbilityTa
 	OnAbilityReady(InAbilityTag, InAbilityInput, InGroup, InSlot);
 }
 
-void UAMAbilityManagerComponent::OnAbilityInputReady(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput,
+void UAMAbilityManagerComponent::OnAbilityInputReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, TArray<FGameplayTag> InAbilityInput,
 	EAMGroup InGroup, EAMSlot InSlot)
 {
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
@@ -398,7 +395,7 @@ bool UAMAbilityManagerComponent::IsClient() const
 	return false;
 }
 
-void UAMAbilityManagerComponent::BindOnAbilityReadDelegate(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput,
+void UAMAbilityManagerComponent::BindOnAbilityReadDelegate(TSoftClassPtr<UGAAbilityBase> InAbilityTag, TArray<FGameplayTag> InAbilityInput,
 	EAMGroup InGroup, EAMSlot InSlot)
 {
 

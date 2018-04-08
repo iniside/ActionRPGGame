@@ -154,12 +154,6 @@ enum class EGAEffectAggregation : uint8
 };
 
 USTRUCT()
-struct FAFEventData
-{
-	GENERATED_USTRUCT_BODY()
-};
-
-USTRUCT()
 struct FAFAtributeRowData : public FTableRowBase
 {
 	GENERATED_BODY()

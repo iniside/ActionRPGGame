@@ -16,7 +16,7 @@ class ACTIONRPGGAME_API UARAbilityListSlotDragWidget : public UARAbilityWidget
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, Category = "Config")
-		FGameplayTag AbilityTag;
+		TSoftClassPtr<UGAAbilityBase> AbilityTag;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 		UImage* IconImage;
@@ -26,12 +26,12 @@ public:
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry
 		, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
 
-	inline const FGameplayTag& GetAbilityTag() const
+	inline const TSoftClassPtr<UGAAbilityBase>& GetAbilityTag() const
 	{
 		return AbilityTag;
 	}
 	
 	void OnItemAdded();
 protected:
-	void OnItemLoaded(FPrimaryAssetId InPrimaryAssetId);
+	void OnItemLoaded(TSoftClassPtr<UGAAbilityBase> InPrimaryAssetId);
 };

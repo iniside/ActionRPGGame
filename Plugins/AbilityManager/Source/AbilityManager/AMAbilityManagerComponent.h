@@ -90,10 +90,10 @@ protected:
 
 	EAMGroup ActiveGroup;
 
-	TArray<TArray<FGameplayTag>> AbilityTagsSet;
+	TArray<TArray<TSoftClassPtr<UGAAbilityBase>>> AbilityTagsSet;
 	TArray<TArray<TWeakObjectPtr<class UGAAbilityBase>>> AbilitySet;
 	TArray<TArray<bool>> ValidGroups;
-	TMap<FGameplayTag, FSimpleDelegate> AbilityReadyEvents;
+	TMap<TSoftClassPtr<UGAAbilityBase>, FSimpleDelegate> AbilityReadyEvents;
 
 	DECLARE_DELEGATE_TwoParams(FGroupConfirmDelegate, int32, bool)
 
@@ -115,27 +115,24 @@ public:
 	UGAAbilityBase* GetAbility(EAMGroup InGroup, EAMSlot InSlot);
 	void SetAbility(EAMGroup InGroup, EAMSlot InSlot, UGAAbilityBase* InAbility);
 
-	FGameplayTag GetAbilityTag(EAMGroup InGroup, EAMSlot InSlot);
-	void SetAbilityTag(EAMGroup InGroup, EAMSlot InSlot, FGameplayTag InAbilityTag);
+	TSoftClassPtr<UGAAbilityBase> GetAbilityTag(EAMGroup InGroup, EAMSlot InSlot);
+	void SetAbilityTag(EAMGroup InGroup, EAMSlot InSlot, TSoftClassPtr<UGAAbilityBase> InAbilityTag);
 		
 	TArray<FGameplayTag> GetInputTag(EAMGroup InGroup, EAMSlot InSlot);
 	void SetInputTag(EAMGroup InGroup, EAMSlot InSlot, TArray<FGameplayTag> InAbilityTag);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Equip Ability"), Category = "Ability Manager")
-		void BP_EquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, bool bBindInput = true);
-
-	void NativeEquipAbility(const FGameplayTag& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, AActor* InAvatar = nullptr, bool bBindInput = true);
+	void NativeEquipAbility(const TSoftClassPtr<UGAAbilityBase>& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, AActor* InAvatar = nullptr, bool bBindInput = true);
 protected:
-	virtual void OnAbilityReady(const FGameplayTag& InAbilityTag, const TArray<FGameplayTag>& InAbilityInput,
+	virtual void OnAbilityReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, const TArray<FGameplayTag>& InAbilityInput,
 		EAMGroup InGroup, EAMSlot InSlot) {};
 private:
 	UFUNCTION()
-		void OnAbilityReadyInternal(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput,
+		void OnAbilityReadyInternal(TSoftClassPtr<UGAAbilityBase> InAbilityTag, TArray<FGameplayTag> InAbilityInput,
 			EAMGroup InGroup, EAMSlot InSlot);
 
 public:
 	UFUNCTION()
-		void OnAbilityInputReady(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput,
+		void OnAbilityInputReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, TArray<FGameplayTag> InAbilityInput,
 			EAMGroup InGroup, EAMSlot InSlot);
 	
 	UFUNCTION(BlueprintCallable)
@@ -175,7 +172,7 @@ public:
 	void ClientSelectGroup_Implementation(EAMGroup InGroup, bool bPredictionSuccess);
 
 
-	void AddOnAbilityReadyEvent(const FGameplayTag& Ability, const FSimpleDelegate& Delegate)
+	void AddOnAbilityReadyEvent(const TSoftClassPtr<UGAAbilityBase>& Ability, const FSimpleDelegate& Delegate)
 	{
 		if (!AbilityReadyEvents.Contains(Ability))
 		{
@@ -183,7 +180,7 @@ public:
 		}
 	}
 
-	void ExecuteAbilityReadyEvent(const FGameplayTag& Ability)
+	void ExecuteAbilityReadyEvent(const TSoftClassPtr<UGAAbilityBase>& Ability)
 	{
 		if (FSimpleDelegate* Event = AbilityReadyEvents.Find(Ability))
 		{
@@ -193,7 +190,7 @@ public:
 	}
 protected:
 	class UAFAbilityComponent* GetAbilityComponent();
-	void BindOnAbilityReadDelegate(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput,
+	void BindOnAbilityReadDelegate(TSoftClassPtr<UGAAbilityBase>, TArray<FGameplayTag> InAbilityInput,
 		EAMGroup InGroup, EAMSlot InSlot);
 	bool IsServerOrStandalone() const;
 	bool IsClientOrStandalone() const;

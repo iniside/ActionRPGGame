@@ -16,7 +16,7 @@ class ACTIONRPGGAME_API UARItemWeapon : public UObject
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, Category = "Ability")
-		FGameplayTag Ability;
+		TSoftClassPtr<class UGAAbilityBase> Ability;
 	
 	UPROPERTY(EditAnywhere, Category = "Visual")
 		TSoftClassPtr<class AARWeaponBase> Weapon;

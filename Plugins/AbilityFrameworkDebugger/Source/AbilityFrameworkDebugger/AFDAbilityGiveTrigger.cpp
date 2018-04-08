@@ -66,7 +66,7 @@ void AAFDAbilityGiveTrigger::BeginOverlap(UPrimitiveComponent* OverlappedCompone
 			}
 			
 			if(AbilityManager)
-				AbilityManager->BP_EquipAbility(AbilityConfig.AbilityTag, AbilityConfig.Group, AbilityConfig.Slot);
+				AbilityManager->NativeEquipAbility(AbilityConfig.AbilityTag, AbilityConfig.Group, AbilityConfig.Slot);
 		}
 	}
 
@@ -84,7 +84,7 @@ void AAFDAbilityGiveTrigger::EndOverlap(UPrimitiveComponent* OverlappedComponent
 		return;
 }
 
-void AAFDAbilityGiveTrigger::OnAbilityReady(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput)
+void AAFDAbilityGiveTrigger::OnAbilityReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, TArray<FGameplayTag> InAbilityInput)
 {
 	UGAAbilityBase* Ability = Cast<UGAAbilityBase>(CurrentComponent->BP_GetAbilityByTag(InAbilityTag));
 	if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
@@ -101,7 +101,7 @@ void AAFDAbilityGiveTrigger::OnAbilityReady(FGameplayTag InAbilityTag, TArray<FG
 }
 
 
-void AAFDAbilityGiveTrigger::OnAbilityInputReady(FGameplayTag InAbilityTag, TArray<FGameplayTag> InAbilityInput)
+void AAFDAbilityGiveTrigger::OnAbilityInputReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, TArray<FGameplayTag> InAbilityInput)
 {
 	
 }

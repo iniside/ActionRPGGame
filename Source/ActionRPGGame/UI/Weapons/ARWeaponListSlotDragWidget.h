@@ -33,5 +33,5 @@ public:
 	}
 	void OnItemAdded();
 protected:
-	void OnItemLoaded(FPrimaryAssetId InPrimaryAssetId);
+	void OnItemLoaded(TSoftClassPtr<UGAAbilityBase> InPrimaryAssetId);
 };

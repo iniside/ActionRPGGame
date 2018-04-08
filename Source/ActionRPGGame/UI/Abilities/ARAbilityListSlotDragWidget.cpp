@@ -34,41 +34,27 @@ void UARAbilityListSlotDragWidget::NativeOnDragDetected(const FGeometry& InGeome
 
 void UARAbilityListSlotDragWidget::OnItemAdded()
 {
-	if (UAssetManager* Manager = UAssetManager::GetIfValid())
+	FStreamableManager& Manager = UAssetManager::GetStreamableManager();
 	{
-		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-		IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+		FStreamableDelegate del = FStreamableDelegate::CreateUObject(this, &UARAbilityListSlotDragWidget::OnItemLoaded, AbilityTag);
 
-		TArray<FAssetData> AssetData;
-		FARFilter Filter;
-		Filter.TagsAndValues.Add("AbilityTagSearch", AbilityTag.ToString());
-		AssetRegistryModule.Get().GetAssets(Filter, AssetData);
-		FPrimaryAssetId PrimaryAssetId = FPrimaryAssetId(FPrimaryAssetType("Ability"), AssetData[0].AssetName);
-		FPrimaryAssetTypeInfo Info;
-		if (Manager->GetPrimaryAssetTypeInfo(PrimaryAssetId.PrimaryAssetType, Info))
-		{
-			FStreamableDelegate del = FStreamableDelegate::CreateUObject(this, &UARAbilityListSlotDragWidget::OnItemLoaded, PrimaryAssetId);
-
-			Manager->LoadPrimaryAsset(PrimaryAssetId,
-				TArray<FName>(),
-				del);
-		}
+		Manager.RequestAsyncLoad(AbilityTag.ToSoftObjectPath()
+			, del);
 	}
 }
 
-void UARAbilityListSlotDragWidget::OnItemLoaded(FPrimaryAssetId InPrimaryAssetId)
+void UARAbilityListSlotDragWidget::OnItemLoaded(TSoftClassPtr<UGAAbilityBase> InPrimaryAssetId)
 {
-	if (UAssetManager* Manager = UAssetManager::GetIfValid())
+	FStreamableManager& Manager = UAssetManager::GetStreamableManager();
 	{
-		UObject* loaded = Manager->GetPrimaryAssetObject(InPrimaryAssetId);
-		TSubclassOf<UARAbilityBase> AbilityClass = Cast<UClass>(loaded);
+		TSubclassOf<UARAbilityBase> AbilityClass = InPrimaryAssetId.Get();
 		if (AbilityClass)
 		{
 			IconImage->SetBrushFromTexture(AbilityClass.GetDefaultObject()->UIData->Icon);
 		}
 
 		{
-			Manager->UnloadPrimaryAsset(InPrimaryAssetId);
+			Manager.Unload(InPrimaryAssetId.ToSoftObjectPath());
 		}
 	}
 }

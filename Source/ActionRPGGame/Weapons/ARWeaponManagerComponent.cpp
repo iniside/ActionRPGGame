@@ -127,7 +127,7 @@ bool UARWeaponManagerComponent::ServerAddWeaponToManager_Validate(EAMGroup Group
 void UARWeaponManagerComponent::NextWeapon()
 {
 	EAMGroup OldGroup = ActiveGroup;
-	FGameplayTag CurrentWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
+	TSoftClassPtr<UGAAbilityBase> CurrentWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
 	ENetMode NetMode = GetOwner()->GetNetMode();
 	if (NetMode == ENetMode::NM_Client
 		|| NetMode == ENetMode::NM_Standalone)
@@ -145,7 +145,7 @@ void UARWeaponManagerComponent::NextWeapon()
 
 	}
 
-	FGameplayTag NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
+	TSoftClassPtr<UGAAbilityBase> NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
 	if (!NextWeaponAbility.IsValid())
 	{
 		NextWeaponAbility = FindNextValid();
@@ -160,7 +160,7 @@ void UARWeaponManagerComponent::NextWeapon()
 void UARWeaponManagerComponent::PreviousWeapon()
 {
 	EAMGroup OldGroup = ActiveGroup;
-	FGameplayTag CurrentWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
+	TSoftClassPtr<UGAAbilityBase> CurrentWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
 	int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
 	CurrentIndex--;
 	ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
@@ -168,7 +168,7 @@ void UARWeaponManagerComponent::PreviousWeapon()
 	{
 		ActiveGroup = AMIntToEnum<EAMGroup>(Groups.Num() - 1);
 	}
-	FGameplayTag NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
+	TSoftClassPtr<UGAAbilityBase> NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
 	if (!NextWeaponAbility.IsValid())
 	{
 		NextWeaponAbility = FindPreviousValid();
@@ -197,7 +197,7 @@ void UARWeaponManagerComponent::HolsterWeapon()
 void UARWeaponManagerComponent::ServerNextWeapon_Implementation(int32 WeaponIndex)
 {
 	EAMGroup OldGroup = ActiveGroup;
-	FGameplayTag CurrentWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
+	TSoftClassPtr<UGAAbilityBase> CurrentWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
 
 	int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
 	if(WeaponIndex > CurrentIndex)
@@ -212,7 +212,7 @@ void UARWeaponManagerComponent::ServerNextWeapon_Implementation(int32 WeaponInde
 		ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
 	}
 
-	FGameplayTag NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
+	TSoftClassPtr<UGAAbilityBase> NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
 	if (!NextWeaponAbility.IsValid())
 	{
 		NextWeaponAbility = FindNextValid();
@@ -253,7 +253,7 @@ void UARWeaponManagerComponent::ServerPreviousWeapon_Implementation(int32 Weapon
 		ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
 	}
 
-	FGameplayTag NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
+	TSoftClassPtr<UGAAbilityBase> NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
 	if (!NextWeaponAbility.IsValid())
 	{
 		NextWeaponAbility = FindPreviousValid();
@@ -295,14 +295,14 @@ bool UARWeaponManagerComponent::ServerHolsterWeapon_Validate(int32 WeaponIndex)
 	return true;
 }
 
-void UARWeaponManagerComponent::OnWeaponInputRead(FGameplayTag WeaponAbilityTag, TArray<FGameplayTag> InInputTags)
+void UARWeaponManagerComponent::OnWeaponInputRead(TSoftClassPtr<UGAAbilityBase> WeaponAbilityTag, TArray<FGameplayTag> InInputTags)
 {
 	UAFAbilityComponent* AbilityComp = GetAbilityComponent();
 
 	//AbilityComp->SetAbilityToAction(NextWeaponAbility, WeaponInput, FAFOnAbilityReady());
 }
 
-void UARWeaponManagerComponent::EquipWeapon(const FGameplayTag& PreviousWeaponTag, const FGameplayTag& NextWeaponTag, EAMGroup OldGroup)
+void UARWeaponManagerComponent::EquipWeapon(const TSoftClassPtr<UGAAbilityBase>& PreviousWeaponTag, const TSoftClassPtr<UGAAbilityBase>& NextWeaponTag, EAMGroup OldGroup)
 {
 	if (!NextWeaponTag.IsValid())
 	{
@@ -334,9 +334,9 @@ void UARWeaponManagerComponent::EquipWeapon(const FGameplayTag& PreviousWeaponTa
 		ExecuteAbilityReadyEvent(NextWeaponTag);
 	}
 }
-FGameplayTag UARWeaponManagerComponent::FindNextValid()
+TSoftClassPtr<UGAAbilityBase> UARWeaponManagerComponent::FindNextValid()
 {
-	FGameplayTag WeaponAbilityTag;
+	TSoftClassPtr<UGAAbilityBase> WeaponAbilityTag;
 
 	int32 Idx = AMEnumToInt<EAMGroup>(ActiveGroup);
 	while (!WeaponAbilityTag.IsValid())
@@ -362,9 +362,9 @@ FGameplayTag UARWeaponManagerComponent::FindNextValid()
 	return WeaponAbilityTag;
 }
 
-FGameplayTag UARWeaponManagerComponent::FindPreviousValid()
+TSoftClassPtr<UGAAbilityBase> UARWeaponManagerComponent::FindPreviousValid()
 {
-	FGameplayTag WeaponAbilityTag;
+	TSoftClassPtr<UGAAbilityBase> WeaponAbilityTag;
 	int32 Idx = AMEnumToInt<EAMGroup>(ActiveGroup);
 	while (!WeaponAbilityTag.IsValid())
 	{
@@ -402,7 +402,7 @@ bool UARWeaponManagerComponent::ReplicateSubobjects(class UActorChannel *Channel
 	
 	return WroteSomething;
 }
-void UARWeaponManagerComponent::OnAbilityReady(const FGameplayTag& InAbilityTag
+void UARWeaponManagerComponent::OnAbilityReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag
 	, const TArray<FGameplayTag>& InAbilityInput
 	, EAMGroup InGroup, EAMSlot InSlot)
 {

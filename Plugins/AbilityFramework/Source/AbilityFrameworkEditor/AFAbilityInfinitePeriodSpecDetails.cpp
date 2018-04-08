@@ -42,17 +42,17 @@ void FAFAbilityInfinitePeriodSpecDetails::CustomizeDetails(IDetailLayoutBuilder&
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "bTickOnApplication");
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "bExecuteOnApplication");
 
-			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "Extension");
-			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "OnAppliedEffects");
-			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "OnExpiredEffects");
-			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "OnRemovedEffects");
+			//FAFEffectCustomizationCommon::HideProperty(DetailLayout, "Extension");
+			//FAFEffectCustomizationCommon::HideProperty(DetailLayout, "OnAppliedEffects");
+			//FAFEffectCustomizationCommon::HideProperty(DetailLayout, "OnExpiredEffects");
+			//FAFEffectCustomizationCommon::HideProperty(DetailLayout, "OnRemovedEffects");
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "ConditonalEffects");
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "RemoveEffectWithTags");
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "AtributeModifier");
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "Modifiers");
 
-			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "AppliedEventTags");
-			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "ExecuteEventTags");
+			//FAFEffectCustomizationCommon::HideProperty(DetailLayout, "AppliedEventTags");
+			//FAFEffectCustomizationCommon::HideProperty(DetailLayout, "ExecuteEventTags");
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "AttributeTags");
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "DenyTags");
 			FAFEffectCustomizationCommon::HideProperty(DetailLayout, "AppliedImmunityTags");

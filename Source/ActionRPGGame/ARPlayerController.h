@@ -26,27 +26,27 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
 		FGameplayTag InputNextWeapon;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
-		FGameplayTag AbilitytNextWeapon;
+		TSoftClassPtr<UGAAbilityBase> AbilitytNextWeapon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
 		FGameplayTag InputPreviousWeapon;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
-		FGameplayTag AbilitytPreviousWeapon;
+		TSoftClassPtr<UGAAbilityBase> AbilitytPreviousWeapon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
 		FGameplayTag InputHolsterWeapon;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
-		FGameplayTag AbilitytHolstersWeapon;
+		TSoftClassPtr<UGAAbilityBase> AbilitytHolstersWeapon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
 		FGameplayTag InputSetAbilityGroup01;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
-		FGameplayTag SetAbilityGroup01;
+		TSoftClassPtr<UGAAbilityBase> SetAbilityGroup01;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
 		FGameplayTag InputSetAbilityGroup02;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
-		FGameplayTag SetAbilityGroup02;
+		TSoftClassPtr<UGAAbilityBase> SetAbilityGroup02;
 
 	bool bInputBount;
 public:
@@ -57,7 +57,7 @@ public:
 	void InputSwitchAbilitySet();
 	void InputShowHideAbilityManager();
 	void InputShowHideInventory();
-	void OnInputAbilityReady(FGameplayTag InAbilityTag, FGameplayTag InInputTag);
+	void OnInputAbilityReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, FGameplayTag InInputTag);
 
 	UFUNCTION(BlueprintPure, Category = "Hud")
 		float GetObjectScreenRadius(AActor* InActor);
