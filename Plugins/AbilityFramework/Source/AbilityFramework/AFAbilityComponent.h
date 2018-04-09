@@ -177,7 +177,6 @@ public:
 
 	void SetAbilityToAction(const TSoftClassPtr<UGAAbilityBase>& InAbiltyPtr, const TArray<FGameplayTag>& InInputTag);
 	TSoftClassPtr<UGAAbilityBase> IsAbilityBoundToAction(const FGameplayTag& InInputTag);
-	void RemoveAbilityFromAction(const TSoftClassPtr<UGAAbilityBase>& InAbiltyPtr);
 	
 	UGAAbilityBase* GetAbility(TSoftClassPtr<UGAAbilityBase> InAbiltyPtr);
 	
@@ -600,7 +599,7 @@ public:
 	void SetAbilityToAction(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, const TArray<FGameplayTag>& InInputTag, const FAFOnAbilityReady& InputDelegate);
 
 	TSoftClassPtr<UGAAbilityBase> IsAbilityBoundToAction(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, const TArray<FGameplayTag>& InInputTag);
-	void RemoveAbilityFromAction(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, const FGameplayTag& InInputTag);
+	
 protected:
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerSetAbilityToAction(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, const TArray<FGameplayTag>& InInputTag);

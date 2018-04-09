@@ -218,7 +218,7 @@ void FGASAbilityItem::PreReplicatedRemove(const struct FGASAbilityContainer& InA
 		//remove attributes
 		//UGAAttributesBase* attr = InArraySerializer.AbilitiesComp->RepAttributes.AttributeMap.FindRef(Ability->AbilityTag);
 		Ability->Attributes = nullptr;
-		InArraySerializerC.RemoveAbilityFromAction(AbilityClass);
+		InArraySerializerC.AbilityToAction.Remove(AbilityClass);
 		InArraySerializerC.AbilitiesInputs.Remove(AbilityClass);
 		InArraySerializerC.TagToAbility.Remove(AbilityClass);
 	}
@@ -320,7 +320,6 @@ void FGASAbilityContainer::RemoveAbility(const TSoftClassPtr<UGAAbilityBase>& Ab
 
 	TagToAbility.Remove(AbilityIn);
 	MarkItemDirty(AbilitiesItems[Index]);
-	RemoveAbilityFromAction(AbilityIn);
 	AbilitiesItems.RemoveAt(Index);
 	MarkArrayDirty();
 }
@@ -335,33 +334,11 @@ TSoftClassPtr<UGAAbilityBase> FGASAbilityContainer::IsAbilityBoundToAction(const
 	
 	return Ability;
 }
-void FGASAbilityContainer::RemoveAbilityFromAction(const TSoftClassPtr<UGAAbilityBase>& InAbiltyPtr)
-{
-	/*TArray<FGameplayTag> OutActions;
-	AbilityToAction.RemoveAndCopyValue(InAbilityTag, OutActions);
 
-	for(const FGameplayTag& Action : OutActions)
-	{
-		ActionToAbility.Remove(Action);
-	}*/
-
-	//AbilitiesInputs.Remove(InAbilityTag);
-}
 void FGASAbilityContainer::SetAbilityToAction(const TSoftClassPtr<UGAAbilityBase>& InAbiltyPtr, const TArray<FGameplayTag>& InInputTag)
 {
 	for (const FGameplayTag& InputTag : InInputTag)
 	{
-		if (ActionToAbility.Contains(InputTag))
-		{
-			TSoftClassPtr<UGAAbilityBase> AbilityTag = ActionToAbility.FindRef(InputTag);
-			UE_LOG(AbilityFramework, Log, TEXT("FGASAbilityContainer: Input %s is already abount to Ability %s"),
-				*InputTag.ToString(),
-				*AbilityTag.ToString()
-			);
-
-			//return;
-		}
-
 		TSoftClassPtr<UGAAbilityBase>& AbilityClassPtr = ActionToAbility.FindOrAdd(InputTag);
 		AbilityClassPtr = InAbiltyPtr;
 		TArray<FGameplayTag>& ActionTag = AbilityToAction.FindOrAdd(InAbiltyPtr);
@@ -508,14 +485,6 @@ void UAFAbilityComponent::BindAbilityToAction(UInputComponent* InputComponent, F
 void UAFAbilityComponent::SetAbilityToAction(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, const TArray<FGameplayTag>& InInputTag
 	, const FAFOnAbilityReady& InputDelegate)
 {
-	for (const FGameplayTag& Tag : InInputTag)
-	{
-		if (AbilityContainer.IsAbilityBoundToAction(Tag).IsValid())
-		{
-			RemoveAbilityFromAction(InAbilityPtr, FGameplayTag());
-		}
-	}
-
 	AbilityContainer.SetAbilityToAction(InAbilityPtr, InInputTag);
 	ENetRole role = GetOwnerRole();
 
@@ -539,10 +508,7 @@ TSoftClassPtr<UGAAbilityBase> UAFAbilityComponent::IsAbilityBoundToAction(const 
 	}
 	return TSoftClassPtr<UGAAbilityBase>();
 }
-void UAFAbilityComponent::RemoveAbilityFromAction(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, const FGameplayTag& InInputTag)
-{
-	AbilityContainer.RemoveAbilityFromAction(InAbilityPtr);
-}
+
 void UAFAbilityComponent::ServerSetAbilityToAction_Implementation(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, const TArray<FGameplayTag>& InInputTag)
 {
 	if (GetOwner()->GetNetMode() == ENetMode::NM_DedicatedServer)
@@ -568,16 +534,6 @@ void UAFAbilityComponent::ClientNotifyAbilityInputReady_Implementation(const TSo
 void UAFAbilityComponent::SetAbilitiesToActions(const TArray<FAFAbilityActionSet>& InAbilitiesActions
 	, const TArray<FAFOnAbilityReady>& InputDelegate)
 {
-	for (const FAFAbilityActionSet& Set : InAbilitiesActions)
-	{
-		for (const FGameplayTag& Tag : Set.AbilityInputs)
-		{
-			if (AbilityContainer.IsAbilityBoundToAction(Tag).IsValid())
-			{
-				RemoveAbilityFromAction(Set.AbilityTag, FGameplayTag());
-			}
-		}
-	}
 	for (const FAFAbilityActionSet& Set : InAbilitiesActions)
 	{
 		AbilityContainer.SetAbilityToAction(Set.AbilityTag, Set.AbilityInputs);
