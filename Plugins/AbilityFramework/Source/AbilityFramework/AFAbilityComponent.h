@@ -106,106 +106,6 @@ public:
 };
 
 USTRUCT()
-struct ABILITYFRAMEWORK_API FGASAbilityItem : public FFastArraySerializerItem
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY()
-		UGAAbilityBase* Ability;
-	UPROPERTY()
-		TSoftClassPtr<UGAAbilityBase> AbilityClass;
-
-	FGASAbilityItem()
-	{};
-
-	FGASAbilityItem(UGAAbilityBase* InAbility, TSoftClassPtr<UGAAbilityBase> InAbilityClass)
-		: Ability(InAbility)
-		, AbilityClass(InAbilityClass)
-	{}
-
-	void PreReplicatedRemove(const struct FGASAbilityContainer& InArraySerializer);
-	void PostReplicatedAdd(const struct FGASAbilityContainer& InArraySerializer);
-	void PostReplicatedChange(const struct FGASAbilityContainer& InArraySerializer);
-
-	const bool operator==(const TSoftClassPtr<UGAAbilityBase>& OtherAbility) const
-	{
-		return AbilityClass == OtherAbility;
-	}
-
-	const bool operator==(UGAAbilityBase* OtherAbility) const
-	{
-		return Ability == OtherAbility;
-	}
-	const bool operator==(const FGASAbilityItem& OtherItem) const
-	{
-		return Ability == OtherItem.Ability;
-	}
-};
-USTRUCT()
-struct ABILITYFRAMEWORK_API FGASAbilityContainer : public FFastArraySerializer
-{
-	GENERATED_BODY()
-public:
-
-	UPROPERTY()
-		TArray<FGASAbilityItem> AbilitiesItems;
-
-	TWeakObjectPtr<class UAFAbilityComponent> AbilitiesComp;
-	TMap<FGameplayTag, bool> BlockedInput;
-
-	TMap<TSoftClassPtr<UGAAbilityBase>, FGameplayTag> AbilityToInput;
-	
-	//Custom binding, for server side validation.
-
-	//ActionInput, AbilityClassPtr
-	TMap<FGameplayTag, TSoftClassPtr<UGAAbilityBase>> ActionToAbility;
-
-	//AbilityTag, ActionInput 
-	TMap<TSoftClassPtr<UGAAbilityBase>, TArray<FGameplayTag>> AbilityToAction;
-
-	//abilityTag, Ability Ptr
-	TMap<TSoftClassPtr<UGAAbilityBase>, UGAAbilityBase*> AbilitiesInputs;
-
-	TMap<TSoftClassPtr<UGAAbilityBase>, UGAAbilityBase*> TagToAbility;
-
-	void SetBlockedInput(const FGameplayTag& InActionName, bool bBlock);
-	UGAAbilityBase* AddAbility(TSubclassOf<class UGAAbilityBase> AbilityIn
-		, TSoftClassPtr<class UGAAbilityBase> InClassPtr);
-
-	void RemoveAbility(const TSoftClassPtr<UGAAbilityBase>& AbilityIn);
-
-	void SetAbilityToAction(const TSoftClassPtr<UGAAbilityBase>& InAbiltyPtr, const TArray<FGameplayTag>& InInputTag);
-	TSoftClassPtr<UGAAbilityBase> IsAbilityBoundToAction(const FGameplayTag& InInputTag);
-	
-	UGAAbilityBase* GetAbility(TSoftClassPtr<UGAAbilityBase> InAbiltyPtr);
-	
-	void HandleInputPressed(FGameplayTag ActionName, const FAFPredictionHandle& InPredictionHandle);
-	void HandleInputReleased(FGameplayTag ActionName);
-
-	void TriggerAbylityByTag(TSoftClassPtr<UGAAbilityBase> InTag);
-
-	bool AbilityExists(TSoftClassPtr<UGAAbilityBase> InAbiltyPtr) const
-	{
-		return AbilityToInput.Contains(InAbiltyPtr);
-	}
-	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
-	{
-		return FFastArraySerializer::FastArrayDeltaSerialize<FGASAbilityItem, FGASAbilityContainer>(AbilitiesItems, DeltaParms, *this);
-	}
-};
-
-template<>
-struct TStructOpsTypeTraits< FGASAbilityContainer > : public TStructOpsTypeTraitsBase2<FGASAbilityContainer>
-{
-	enum
-	{
-		WithNetDeltaSerializer = true,
-	};
-};
-
-
-USTRUCT()
 struct FAFReplicatedAttributeItem : public FFastArraySerializerItem
 {
 	GENERATED_BODY()
@@ -450,7 +350,7 @@ public:
 	UFUNCTION()
 		void OnRep_InstancedAbilities();
 	UPROPERTY(Replicated)
-		FGASAbilityContainer AbilityContainer;
+		FAFAbilityContainer AbilityContainer;
 	UPROPERTY()
 		TArray<UGAAbilityBase*> AbilitiesRefs;
 
