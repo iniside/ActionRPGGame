@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "Effects/GAGameEffect.h"
 #include "GameplayTags.h"
 #include "ARItemWeapon.generated.h"
 
@@ -16,7 +17,7 @@ class ACTIONRPGGAME_API UARItemWeapon : public UObject
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, Category = "Ability")
-		TSoftClassPtr<class UGAAbilityBase> Ability;
+		TSoftClassPtr<class UARWeaponAbilityBase> Ability;
 	
 	UPROPERTY(EditAnywhere, Category = "Visual")
 		TSoftClassPtr<class AARWeaponBase> Weapon;
@@ -31,13 +32,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Transforms")
 		FRotator EquipedRotation;
 
-	/* Wrap it later into it's own item. */
-	UPROPERTY(EditAnywhere, Category = "Upgrades")
-		TSoftClassPtr<class UARMagazineUpgradeEffect> MagazineUpgrade;
+	UPROPERTY(EditAnywhere, Category = "Ability")
+		UARWeaponAbilityBase* AbilityInstance;
 
-	void AddMagazineUpgrade(const TSoftClassPtr<class UARMagazineUpgradeEffect>& InMagazineUpgrade)
-	{
-		MagazineUpgrade = InMagazineUpgrade;
-	}
+	FAFPropertytHandle MagazineEffect;
+	FGAEffectHandle MagazineEffectHandle;
+
+	void AddMagazineUpgrade(const TSoftClassPtr<class UARMagazineUpgradeItem>& InMagazineUpgrade);
 	void OnMagazineUpdateAdded();
 };

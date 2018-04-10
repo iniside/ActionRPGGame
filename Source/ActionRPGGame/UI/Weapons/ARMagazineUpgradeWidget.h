@@ -16,6 +16,6 @@ class ACTIONRPGGAME_API UARMagazineUpgradeWidget : public UARUpgradeBaseWidget
 public:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 		UImage* Icon;
-	
+	TSoftClassPtr<class UARMagazineUpgradeItem> WeaponUpgrade;
 	virtual FReply NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 };

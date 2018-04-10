@@ -18,5 +18,5 @@ public:
 		UTexture2D* Icon;
 
 	UPROPERTY(EditAnywhere)
-		TSoftClassPtr<UARMagazineUpgradeEffect> UpgradeEffect;
+		TSoftClassPtr<class UARMagazineUpgradeEffect> UpgradeEffect;
 };

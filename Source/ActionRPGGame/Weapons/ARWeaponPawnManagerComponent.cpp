@@ -143,7 +143,7 @@ void UARWeaponPawnManagerComponent::Holster(EAMGroup Group, class UARItemWeapon*
 		SetWeapon(*WeaponHelper[AMEnumToInt<EAMGroup>(Group)], GroupToComponent[Group]);
 		if (Group == EAMGroup::Group001)
 		{
-			Character->WeaponRightItem = DuplicateObject<UARItemWeapon>(InWeapon, Character);
+			Character->WeaponRightItem = InWeapon;
 		}
 	}
 }

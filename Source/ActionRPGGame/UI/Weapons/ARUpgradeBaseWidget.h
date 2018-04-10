@@ -14,7 +14,7 @@ class ACTIONRPGGAME_API UARUpgradeBaseWidget : public UARWeaponBaseWidget
 {
 	GENERATED_BODY()
 public:
-		TSoftClassPtr<class UARWeaponUpgradeItem> WeaponUpgrade;
+
 	
 	
 };

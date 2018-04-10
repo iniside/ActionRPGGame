@@ -96,10 +96,11 @@ void UARWeaponManagerComponent::BP_AddWeaponToManager(EAMGroup Group, EAMSlot Sl
 void UARWeaponManagerComponent::AddWeaponToManager(EAMGroup Group, EAMSlot Slot, int32 Idx)
 {
 	AARCharacter* Character = Cast<AARCharacter>(POwner);
+	UARItemWeapon* Item = DuplicateObject<UARItemWeapon>(WeaponClasses[Idx].GetDefaultObject(), Character);
 	if (Character)
 	{
-		Character->GetWeapons()->Holster(Group, WeaponClasses[Idx].GetDefaultObject());
-		EquipedWeapons[AMEnumToInt<EAMGroup>(Group)] = WeaponClasses[Idx].GetDefaultObject();
+		Character->GetWeapons()->Holster(Group, Item);
+		EquipedWeapons[AMEnumToInt<EAMGroup>(Group)] = Item;
 		ActiveGroup = EAMGroup::Group005;
 	}
 	NativeEquipAbility(WeaponClasses[Idx].GetDefaultObject()->Ability,
@@ -119,8 +120,8 @@ void UARWeaponManagerComponent::AddWeaponToManager(EAMGroup Group, EAMSlot Slot,
 		if (!ABInt)
 			return;
 
-		Character->GetWeapons()->Holster(Group, WeaponClasses[Idx].GetDefaultObject());
-		EquipedWeapons[AMEnumToInt<EAMGroup>(Group)] = WeaponClasses[Idx].GetDefaultObject();
+		Character->GetWeapons()->Holster(Group, Item);
+		EquipedWeapons[AMEnumToInt<EAMGroup>(Group)] = Item;
 		ActiveGroup = EAMGroup::Group005;
 	}
 
@@ -416,13 +417,7 @@ void UARWeaponManagerComponent::OnAbilityReady(TSoftClassPtr<UGAAbilityBase> InA
 	, const TArray<FGameplayTag>& InAbilityInput
 	, EAMGroup InGroup, EAMSlot InSlot)
 {
-	/*UAFAbilityComponent* AbilityComponent = GetAbilityComponent();
-	if (!AbilityComponent)
-		return;
-
-	UGAAbilityBase* Ability = Cast<UGAAbilityBase>(AbilityComponent->BP_GetAbilityByTag(InAbilityTag));
-	SetAbility(InGroup, EAMSlot::Slot001, Ability);
-	SetAbilityTag(InGroup, EAMSlot::Slot001, InAbilityTag);*/
+	EquipedWeapons[AMEnumToInt<EAMGroup>(InGroup)]->AbilityInstance = Cast<UARWeaponAbilityBase>(GetAbility(InGroup, InSlot));
 }
 
 
