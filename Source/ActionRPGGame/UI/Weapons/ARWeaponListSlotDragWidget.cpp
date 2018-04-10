@@ -25,7 +25,7 @@ void UARWeaponListSlotDragWidget::NativeOnDragDetected(const FGeometry& InGeomet
 		//DragIcon->AbilityManager = AbilityManager;
 
 		DragDropOp->Payload = this;
-		//DragDropOp->DefaultDragVisual = DragIcon;
+		DragDropOp->DefaultDragVisual = IconImage;
 
 		OutOperation = DragDropOp;
 	}

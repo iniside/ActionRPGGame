@@ -20,6 +20,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Attachment Test")
 		TSoftClassPtr<class AARWeaponBase> Weapon;
 	UPROPERTY(EditAnywhere, Category = "Attachment Test")
+		TSubclassOf<class UARItemWeapon> Item;
+
+	UPROPERTY(EditAnywhere, Category = "Attachment Test")
 		FName SocketName;
 
 	UPROPERTY(EditAnywhere, Category = "Attachment Test")
@@ -53,7 +56,9 @@ protected:
 		class APawn* POwner;
 
 	TMap<EAMGroup, UChildActorComponent*> GroupToComponent;
-	
+	TMap<EAMGroup, UARItemWeapon*> GroupToItem;
+
+
 	TArray<FARWeapon*> WeaponHelper;
 
 public:	

@@ -3,6 +3,7 @@
 #include "ARWeaponListWidget.h"
 
 #include "ARPlayerController.h"
+#include "ARWeaponUpgradeListWidget.h"
 #include "Weapons/ARWeaponManagerComponent.h"
 
 
@@ -23,6 +24,7 @@ void UARWeaponListWidget::NativeConstruct()
 		ARPC = MyPC;
 		WeaponManager = MyPC->WeaponManager;
 	}
+	Magazine->OnClicked.AddDynamic(this, &UARWeaponListWidget::OnMagazineClicked);
 	Super::NativeConstruct();
 }
 void UARWeaponListWidget::AddItem(TSubclassOf<class UARWeaponListSlotDragWidget> DragWidgetClass, int32 WeaponIdx)
@@ -30,8 +32,17 @@ void UARWeaponListWidget::AddItem(TSubclassOf<class UARWeaponListSlotDragWidget>
 	UARWeaponListSlotDragWidget* Item = CreateWidget<UARWeaponListSlotDragWidget>(ARPC.Get(), DragWidgetClass);
 	Item->WeaponManager = WeaponManager;
 	Item->WeaponIdx = WeaponIdx;
+	Item->WeaponList = this;
 	Items.Add(Item);
 	Item->OnItemAdded();
 	ItemContainer->AddChild(Item);
 }
 
+void UARWeaponListWidget::OnMagazineClicked()
+{
+	if (WeaponManager->WeaponToModify.IsValid())
+	{
+		WeaponManager->MagazineUpgradeListWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		WeaponManager->MagazineUpgradeListWidget->OnShow();
+	}
+}

@@ -32,6 +32,11 @@ void UARWeaponPawnManagerComponent::BeginPlay()
 		GroupToComponent.Add(EAMGroup::Group002, Character->GetHolsteredLeftWeapon());
 		GroupToComponent.Add(EAMGroup::Group003, Character->GetHolsteredBackDownWeapon());
 		GroupToComponent.Add(EAMGroup::Group004, Character->GetHolsteredSideLeftWeapon());
+
+		GroupToItem.Add(EAMGroup::Group001, Character->WeaponRightItem);
+		GroupToItem.Add(EAMGroup::Group002, Character->WeaponLeftItem);
+		GroupToItem.Add(EAMGroup::Group003, Character->WeaponBackItem);
+		GroupToItem.Add(EAMGroup::Group004, Character->WeaponSideItem);
 	}
 }
 
@@ -127,6 +132,7 @@ void UARWeaponPawnManagerComponent::EquipInactive(EAMGroup Group, UARItemWeapon*
 void UARWeaponPawnManagerComponent::Holster(EAMGroup Group, class UARItemWeapon* InWeapon)
 {
 	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Weapon = InWeapon->Weapon;
+	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Item = InWeapon->GetClass();
 	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Position = InWeapon->HolsteredPosition;
 	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Rotation = InWeapon->HolsteredRotation;
 	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Group = Group;
@@ -135,6 +141,10 @@ void UARWeaponPawnManagerComponent::Holster(EAMGroup Group, class UARItemWeapon*
 	{
 		//Character->GetHolsteredRightWeapon()->SetSkeletalMesh(nullptr);
 		SetWeapon(*WeaponHelper[AMEnumToInt<EAMGroup>(Group)], GroupToComponent[Group]);
+		if (Group == EAMGroup::Group001)
+		{
+			Character->WeaponRightItem = DuplicateObject<UARItemWeapon>(InWeapon, Character);
+		}
 	}
 }
 void UARWeaponPawnManagerComponent::HolsterActive(EAMGroup Group)

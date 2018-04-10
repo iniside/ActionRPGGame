@@ -49,6 +49,9 @@ public:
 		TArray<TSubclassOf<class UARItemWeapon>> WeaponClasses;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapons")
+		TArray<TSubclassOf<class UARMagazineUpgradeItem>> MagazineUpgradesClasses;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapons")
 		TArray<UARItemWeapon*> EquipedWeapons;
 
 	UPROPERTY(EditAnywhere, Category = "Attachment Config")
@@ -61,12 +64,23 @@ public:
 		TSubclassOf<class UARWeaponListWidget> WeaponListClass;
 
 
-	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+	UPROPERTY(BlueprintReadOnly, Category = "ActionRPGGame|Weapon|Widgets")
 		UARWeaponListWidget* WeaponListWidget;
 
 	UPROPERTY(EditAnywhere, Category = "Widgets")
 		TSubclassOf<class UARWeaponListSlotDragWidget> DragSlotClass;
 
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+		TSubclassOf<class UARWeaponUpgradeListWidget> MagazineUpgradeListClass;
+
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+		TSubclassOf<class UARMagazineUpgradeWidget> MagazineUpgradeClass;
+
+	UPROPERTY(BlueprintReadOnly, Category = "ActionRPGGame|Weapon|Widgets")
+		class UARWeaponUpgradeListWidget* MagazineUpgradeListWidget;
+
+	//maybe not reference directly ?
+	TWeakObjectPtr<class UARItemWeapon> WeaponToModify;
 
 	FDWWWindowHandle WeaponListWindowHandle;
 

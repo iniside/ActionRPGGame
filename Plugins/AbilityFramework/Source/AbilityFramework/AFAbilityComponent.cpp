@@ -99,6 +99,7 @@ void UAFAbilityComponent::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHa
 	Data.Location = Context.HitResult.Location;
 	OnAttributeModifed.Broadcast(Data);
 	NotifyInstigatorTargetAttributeChanged(Data, Context);
+	//add default replication (PropertyRep) that attribute changed.
 };
 void UAFAbilityComponent::NotifyInstigatorTargetAttributeChanged(const FAFAttributeChangedData& InData,
 	const FGAEffectContext& InContext)

@@ -30,4 +30,14 @@ public:
 		FVector EquipedPosition;
 	UPROPERTY(EditAnywhere, Category = "Transforms")
 		FRotator EquipedRotation;
+
+	/* Wrap it later into it's own item. */
+	UPROPERTY(EditAnywhere, Category = "Upgrades")
+		TSoftClassPtr<class UARMagazineUpgradeEffect> MagazineUpgrade;
+
+	void AddMagazineUpgrade(const TSoftClassPtr<class UARMagazineUpgradeEffect>& InMagazineUpgrade)
+	{
+		MagazineUpgrade = InMagazineUpgrade;
+	}
+	void OnMagazineUpdateAdded();
 };

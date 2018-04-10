@@ -133,12 +133,17 @@ class AARCharacter : public ACharacter, public IAFAbilityInterface, public IOrio
 		UChildActorComponent* HolsteredBackDown;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons", meta = (AllowPrivateAccess = "true"))
 		UChildActorComponent* WeaponHolsteredSideLeft;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons", meta = (AllowPrivateAccess = "true"))
 		UChildActorComponent* WeaponEquipedMain;
-
-
-	
+public:
+	UPROPERTY()
+		class UARItemWeapon* WeaponRightItem;
+	UPROPERTY()
+		class UARItemWeapon* WeaponLeftItem;
+	UPROPERTY()
+		class UARItemWeapon* WeaponBackItem;
+	UPROPERTY()
+		class UARItemWeapon* WeaponSideItem;
 public:
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Player Character Camera")
 		FARCameraTransform CameraTransform;

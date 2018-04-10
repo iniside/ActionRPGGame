@@ -56,3 +56,7 @@ void UARWeaponAbilityBase::ApplyDamageEffect(UObject* Target, FAFFunctionModifie
 			, Modifier);
 	}
 }
+void UARWeaponAbilityBase::ReloadWeapon()
+{
+
+}

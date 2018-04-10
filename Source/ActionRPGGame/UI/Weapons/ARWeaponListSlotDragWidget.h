@@ -21,6 +21,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 		UImage* IconImage;
 
+	TWeakObjectPtr<class UARWeaponListWidget> WeaponList;
 public:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry
 		, const FPointerEvent& InMouseEvent) override;

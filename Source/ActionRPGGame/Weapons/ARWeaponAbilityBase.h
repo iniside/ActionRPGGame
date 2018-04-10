@@ -17,6 +17,16 @@ class ACTIONRPGGAME_API UARWeaponAbilityBase : public UARAbilityBase
 	GENERATED_BODY()
 protected:
 
+	/* Amount of ammunition to add to magazine */
+	UPROPERTY(EditAnywhere, Category = "Weapon Reload Effects")
+		FAFPropertytHandle AmmoToAdd;
+	FGAEffectHandle AmmoToAddHandle;
+
+	/* Amount of ammo to take from owner */
+	UPROPERTY(EditAnywhere, Category = "Weapon Reload Effects")
+		FAFPropertytHandle AmmoToTake;
+	FGAEffectHandle AmmoToTakeHandle;
+
 	/*
 		Default damage effects used, when no upgrades are present for this weapon ability.
 	*/
@@ -58,6 +68,10 @@ public:
 	*/
 	virtual void OnAmmoTypeInstalled(TSubclassOf<UAFEffectSpecBase> AmmoType) {};
 
+
 	UFUNCTION(BlueprintCallable, Category = "ActionRPGGame|Weapon")
 		void ApplyDamageEffect(UObject* Target, FAFFunctionModifier Modifier);
+
+	UFUNCTION(BlueprintCallable, Category = "ActionRPGGame|Weapon")
+		void ReloadWeapon();
 };

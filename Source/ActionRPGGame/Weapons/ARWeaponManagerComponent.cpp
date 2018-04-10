@@ -7,6 +7,7 @@
 #include "ARItemWeapon.h"
 #include "ARCharacter.h"
 #include "UI/Weapons/ARWeaponListWidget.h"
+#include "UI/Weapons/ARWeaponUpgradeListWidget.h"
 
 #include "DWBPFunctionLibrary.h"
 #include "SDraggableWindowWidget.h"
@@ -56,6 +57,15 @@ void UARWeaponManagerComponent::BeginPlay()
 		WeaponListWindowHandle = UDWBPFunctionLibrary::CreateWindowWithContent(WeaponListWidget, "Weapon List");
 		WeaponListWindowHandle.Window.Pin()->bDestroyOnClose = false;
 		WeaponListWindowHandle.Window.Pin()->SetVisibility(EVisibility::Collapsed);
+	}
+
+	if (MagazineUpgradeListClass)
+	{
+		MagazineUpgradeListWidget = CreateWidget<UARWeaponUpgradeListWidget>(MyPC, MagazineUpgradeListClass);
+		MagazineUpgradeListWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		//MagazineUpgradeListWidget->ARPC = Cast<AARPlayerController>(GetOwner());
+		MagazineUpgradeListWidget->WeaponManager = this;
+		MagazineUpgradeListWidget->AddToViewport();
 	}
 
 	//POwner = MyPC->GetPawn();

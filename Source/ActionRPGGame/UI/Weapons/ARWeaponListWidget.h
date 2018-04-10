@@ -27,6 +27,12 @@ protected:
 		class UARWeaponListSlotDropWidget* BackDownWeapon;
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 		class UARWeaponListSlotDropWidget* SideLeftWeapon;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+		UButton* Magazine;
+public:
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+		UTextBlock* SelectedWeaponName;
 protected:
 	
 	UPROPERTY()
@@ -36,4 +42,7 @@ public:
 	void NativeConstruct();
 public:
 	void AddItem(TSubclassOf<class UARWeaponListSlotDragWidget> DragWidgetClass, int32 WeaponIdx);
+
+	UFUNCTION()
+		void OnMagazineClicked();
 };

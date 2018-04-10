@@ -59,10 +59,10 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	//CameraBoom->SetupAttachment(GetMesh());
 	CameraBoom->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("headSocket"));
 	
-	CameraBoom->TargetArmLength = 265; // The camera follows at this distance behind the character	
+	CameraBoom->TargetArmLength = 275; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
-	CameraBoom->SocketOffset = FVector(0, 25, 95);
-	CameraBoom->TargetOffset = FVector(0, 0, -75);
+	CameraBoom->SocketOffset = FVector(0, 25, 65);
+	CameraBoom->TargetOffset = FVector(0, 0, -45);
 	CameraBoom->bEnableCameraLag = true;
 	CameraBoom->bEnableCameraRotationLag = true;
 	CameraBoom->CameraLagSpeed = 8;
