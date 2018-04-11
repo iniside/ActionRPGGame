@@ -60,7 +60,8 @@ public class ActionRPGGame : ModuleRules
             //"OnlineSubsystemUtils",
             "ActorSequence",
             "AbilityManager",
-            "DraggableWindow"
+            "DraggableWindow",
+            "InventoryFramework"
         });
         if (Target.Type == TargetRules.TargetType.Editor)
         {

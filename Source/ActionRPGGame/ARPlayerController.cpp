@@ -18,11 +18,17 @@ AARPlayerController::AARPlayerController(const FObjectInitializer& ObjectInitial
 	UIComponent = ObjectInitializer.CreateDefaultSubobject<UARUIComponent>(this, "UIComponent");
 	WeaponManager = ObjectInitializer.CreateDefaultSubobject<UARWeaponManagerComponent>(this, "WeaponManager");
 	AbilityManager = ObjectInitializer.CreateDefaultSubobject<UARAbilityManagerComponent>(this, "AbilityManager");
-
+	MainInventory = ObjectInitializer.CreateDefaultSubobject<UIFInventoryComponent>(this, "MainInventory");
+	MainInventory->SetIsReplicated(true);
+	
 	AbilityManager->ComponentTags.Add(TEXT("AbilityManager"));
 	bInputBount = false;
 }
-
+void AARPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+	MainInventory->SetIsReplicated(true);
+}
 void AARPlayerController::SetPawn(APawn* InPawn)
 {
 	Super::SetPawn(InPawn);

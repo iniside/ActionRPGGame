@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "GameplayTags.h"
+#include "IFInventoryComponent.h"
 #include "ARPlayerController.generated.h"
 
 /**
@@ -22,6 +23,10 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
 		class UARAbilityManagerComponent* AbilityManager;
+
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
+		class UIFInventoryComponent* MainInventory;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
 		FGameplayTag InputNextWeapon;
@@ -51,6 +56,7 @@ public:
 	bool bInputBount;
 public:
 	AARPlayerController(const FObjectInitializer& ObjectInitializer);
+	virtual void BeginPlay() override;
 	virtual void SetPawn(APawn* InPawn) override;
 	void SetupInputComponent();
 
