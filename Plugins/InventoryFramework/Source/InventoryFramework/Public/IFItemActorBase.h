@@ -10,7 +10,11 @@ UCLASS()
 class INVENTORYFRAMEWORK_API AIFItemActorBase : public AActor
 {
 	GENERATED_BODY()
-	
+		friend class UIFInventoryComponent;
+protected:
+	//temp
+	UPROPERTY(EditAnywhere, Category = "Loot")
+		TArray<TSoftClassPtr<class UIFItemBase>> Items;
 public:	
 	// Sets default values for this actor's properties
 	AIFItemActorBase();
@@ -23,6 +27,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	
+protected:
+
+	TArray<TSoftClassPtr<class UIFItemBase>> GetAllItems();
 	
 };

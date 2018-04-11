@@ -6,7 +6,7 @@
 #include "Engine/AssetManager.h"
 
 #include "IFItemBase.h"
-
+#include "IFItemActorBase.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
 
@@ -48,6 +48,18 @@ void FIFItemContainer::AddItem(class UIFItemBase* InItem, uint8 InNetIndex)
 	Item.Item = InItem;
 	MarkItemDirty(Item);
 }
+void FIFItemContainer::AddItemToFreeSlot(class UIFItemBase* InItem)
+{
+	for (FIFItemData& Item : Items)
+	{
+		if (!Item.Item)
+		{
+			Item.Item = InItem;
+			MarkItemDirty(Item);
+			break;
+		}
+	}
+}
 // Sets default values for this component's properties
 UIFInventoryComponent::UIFInventoryComponent()
 {
@@ -65,6 +77,8 @@ UIFInventoryComponent::UIFInventoryComponent()
 void UIFInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	Inventory.IC = this;
 
 	ENetMode NM = GetOwner()->GetNetMode();
 	ENetRole NR = GetOwnerRole();
@@ -114,21 +128,53 @@ void UIFInventoryComponent::AddItemFromActor(class AIFItemActorBase* Source
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
 		uint8 NetIndex = Inventory.GetNetIndex(InLocalIndex);
-		ServerAddItem(NetIndex);
+		ServerAddItemFromActor(Source, SourceIndex, NetIndex);
 		return;
 	}
 	Inventory.AddItem(InLocalIndex);
 
 }
-void UIFInventoryComponent::ServerAddItem_Implementation(uint8 InNetIndex)
+void UIFInventoryComponent::ServerAddItemFromActor_Implementation(class AIFItemActorBase* Source
+	, uint8 SourceIndex
+	, uint8 InNetIndex)
 {
-	Inventory.AddItem(InNetIndex);
+	TArray<TSoftClassPtr<UIFItemBase>> Items = Source->GetAllItems();
+	for (const TSoftClassPtr<UIFItemBase> Item : Items)
+	{
+		FStreamableManager& Manager = UAssetManager::GetStreamableManager();
+
+		FStreamableDelegate Delegate = FStreamableDelegate::CreateUObject(this, &UIFInventoryComponent::OnItemLoadedFreeSlot, Item);
+
+		Manager.RequestAsyncLoad(Item.ToSoftObjectPath(), Delegate);
+	}
+	
 }
-bool UIFInventoryComponent::ServerAddItem_Validate(uint8 InNetIndex)
+bool UIFInventoryComponent::ServerAddItemFromActor_Validate(class AIFItemActorBase* Source
+	, uint8 SourceIndex
+	, uint8 InNetIndex)
 {
 	return true;
 }
 
+
+void UIFInventoryComponent::AddItemFromOtherInventory(class UIFInventoryComponent* Source
+	, uint8 SourceNetIndex
+	, uint8 InLocalIndex)
+{
+
+}
+void UIFInventoryComponent::ServerAddItemFromOtherInventory_Implementation(class UIFInventoryComponent* Source
+	, uint8 SourceNetIndex
+	, uint8 InLocalIndex)
+{
+
+}
+bool UIFInventoryComponent::ServerAddItemFromOtherInventory_Validate(class UIFInventoryComponent* Source
+	, uint8 SourceNetIndex
+	, uint8 InLocalIndex)
+{
+	return true;
+}
 void UIFInventoryComponent::AddItemFromClass(TSoftClassPtr<class UIFItemBase> Item, uint8 InLocalIndex)
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
@@ -142,6 +188,12 @@ void UIFInventoryComponent::AddItemFromClass(TSoftClassPtr<class UIFItemBase> It
 	FStreamableDelegate Delegate = FStreamableDelegate::CreateUObject(this, &UIFInventoryComponent::OnItemLoaded, Item, NetIndex);
 	Manager.RequestAsyncLoad(Item.ToSoftObjectPath(), Delegate);
 }
+void UIFInventoryComponent::BP_AddAllItemsFromActor(class AIFItemActorBase* Source)
+{
+	AddItemFromActor(Source, 0, 0);
+}
+
+
 void UIFInventoryComponent::ServerAddItemFromClass_Implementation(FSoftObjectPath Item, uint8 InNetIndex)
 {
 	FStreamableManager& Manager =  UAssetManager::GetStreamableManager();
@@ -158,6 +210,16 @@ bool UIFInventoryComponent::ServerAddItemFromClass_Validate(FSoftObjectPath Item
 void UIFInventoryComponent::BP_AddItemFromClass(TSoftClassPtr<class UIFItemBase> Item, uint8 InLocalIndex)
 {
 	AddItemFromClass(Item, InLocalIndex);
+}
+void UIFInventoryComponent::OnItemLoadedFreeSlot(TSoftClassPtr<class UIFItemBase> InItem)
+{
+	TSubclassOf<UIFItemBase> ItemClass = InItem.Get();
+
+	UIFItemBase* Item = NewObject<UIFItemBase>(this, ItemClass);
+	Inventory.AddItemToFreeSlot(Item);
+
+	FStreamableManager& Manager = UAssetManager::GetStreamableManager();
+	Manager.Unload(InItem.ToSoftObjectPath());
 }
 void UIFInventoryComponent::OnItemLoaded(TSoftClassPtr<class UIFItemBase> InItem, uint8 InNetIndex)
 {

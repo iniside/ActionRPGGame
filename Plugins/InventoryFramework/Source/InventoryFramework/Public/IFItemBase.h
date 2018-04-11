@@ -13,7 +13,7 @@ UCLASS(Blueprintable, BlueprintType)
 class INVENTORYFRAMEWORK_API UIFItemBase : public UObject
 {
 	GENERATED_BODY()
-	
+public:
 	bool IsNameStableForNetworking() const override
 	{
 		return false;

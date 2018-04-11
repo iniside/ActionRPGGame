@@ -6,6 +6,9 @@
 #include "Components/ActorComponent.h"
 #include "IFInventoryComponent.generated.h"
 
+//local index
+DECLARE_MULTICAST_DELEGATE_OneParam(FIFOnItemChanged, uint8);
+DECLARE_MULTICAST_DELEGATE(FIFOnInventoryChanged);
 
 USTRUCT()
 struct FIFItemData : public FFastArraySerializerItem
@@ -85,6 +88,7 @@ struct FIFItemContainer : public FFastArraySerializer
 	UPROPERTY()
 		TArray<FIFItemData> Items;
 
+	TWeakObjectPtr<class UIFInventoryComponent> IC;
 	/* NetIndex, LocalIndex */
 	TMap<uint8, uint8> NetToLocal;
 	TMap<uint8, uint8> LocalToNet;
@@ -105,7 +109,7 @@ protected:
 	}
 	void AddItem(uint8 InNetIndex);
 	void AddItem(class UIFItemBase* InItem, uint8 InNetIndex);
-
+	void AddItemToFreeSlot(class UIFItemBase* InItem);
 public:
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
 	{
@@ -130,6 +134,10 @@ class INVENTORYFRAMEWORK_API UIFInventoryComponent : public UActorComponent
 protected:
 	UPROPERTY(Replicated)
 		FIFItemContainer Inventory;
+
+	FIFOnItemChanged OnItemChanged;
+	FIFOnInventoryChanged OnInventoryChanged;
+
 public:	
 	// Sets default values for this component's properties
 	UIFInventoryComponent();
@@ -149,12 +157,34 @@ public:
 	*/
 	void AddItemFromActor(class AIFItemActorBase* Source
 		, uint8 SourceIndex
-		, uint8 InNetIndex);
+		, uint8 InLocalIndex);
 	
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerAddItem(uint8 LocalIndex);
-	void ServerAddItem_Implementation(uint8 InNetIndex);
-	bool ServerAddItem_Validate(uint8 InNetIndex);
+		void ServerAddItemFromActor(class AIFItemActorBase* Source
+			, uint8 SourceIndex
+			, uint8 InLocalIndex);
+	void ServerAddItemFromActor_Implementation(class AIFItemActorBase* Source
+		, uint8 SourceIndex
+		, uint8 InNetIndex);
+	bool ServerAddItemFromActor_Validate(class AIFItemActorBase* Source
+		, uint8 SourceIndex
+		, uint8 InNetIndex);
+	UFUNCTION(BlueprintCallable, Category = "InventoryFramework")
+		void BP_AddAllItemsFromActor(class AIFItemActorBase* Source);
+
+	void AddItemFromOtherInventory(class UIFInventoryComponent* Source
+		, uint8 SourceNetIndex
+		, uint8 InLocalIndex);
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerAddItemFromOtherInventory(class UIFInventoryComponent* Source
+			, uint8 SourceNetIndex
+			, uint8 InLocalIndex);
+	void ServerAddItemFromOtherInventory_Implementation(class UIFInventoryComponent* Source
+		, uint8 SourceNetIndex
+		, uint8 InLocalIndex);
+	bool ServerAddItemFromOtherInventory_Validate(class UIFInventoryComponent* Source
+		, uint8 SourceNetIndex
+		, uint8 InLocalIndex);
 
 	/* Adds item from class. Realistically you should never call it on client. */
 	void AddItemFromClass(TSoftClassPtr<class UIFItemBase> Item, uint8 InLocalIndex);
@@ -166,6 +196,9 @@ public:
 	bool ServerAddItemFromClass_Validate(FSoftObjectPath Item, uint8 InNetIndex);
 	UFUNCTION(BlueprintCallable, Category = "InventoryFramework")
 		void BP_AddItemFromClass(TSoftClassPtr<class UIFItemBase> Item, uint8 InLocalIndex);
+
+	UFUNCTION()
+		void OnItemLoadedFreeSlot(TSoftClassPtr<class UIFItemBase> InItem);
 
 	UFUNCTION()
 		void OnItemLoaded(TSoftClassPtr<class UIFItemBase> InItem, uint8 InNetIndex);
