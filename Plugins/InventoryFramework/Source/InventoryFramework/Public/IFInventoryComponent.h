@@ -110,6 +110,7 @@ protected:
 	void AddItem(uint8 InNetIndex);
 	void AddItem(class UIFItemBase* InItem, uint8 InNetIndex);
 	void AddItemToFreeSlot(class UIFItemBase* InItem);
+	void MoveItem(uint8 NewPosition, uint8 OldPosition);
 public:
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
 	{
@@ -150,25 +151,28 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	
+	/*
+		Move item from old position to new position.
+		If there was already item in new position it will be swapped with the moved item;
+	*/
+	void MoveItemInInventory(uint8 NewLocalPostion, uint8 OldLocalPositin);
+	
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerMoveItemInInventory(uint8 NewNetPostion, uint8 OldNetPositin);
+	void ServerMoveItemInInventory_Implementation(uint8 NewNetPostion, uint8 OldNetPositin);
+	bool ServerMoveItemInInventory_Validate(uint8 NewNetPostion, uint8 OldNetPositin);
 	/* 
 		Adds new item at slot specified slot 
 		Source - Droped item from which we will transfer item
 		SourceIndex - Index
 	*/
-	void AddItemFromActor(class AIFItemActorBase* Source
-		, uint8 SourceIndex
-		, uint8 InLocalIndex);
+	void AddAllItemsFromActor(class AIFItemActorBase* Source);
 	
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerAddItemFromActor(class AIFItemActorBase* Source
-			, uint8 SourceIndex
-			, uint8 InLocalIndex);
-	void ServerAddItemFromActor_Implementation(class AIFItemActorBase* Source
-		, uint8 SourceIndex
-		, uint8 InNetIndex);
-	bool ServerAddItemFromActor_Validate(class AIFItemActorBase* Source
-		, uint8 SourceIndex
-		, uint8 InNetIndex);
+		void ServerAddAllItemsFromActor(class AIFItemActorBase* Source);
+	void ServerAddAllItemsFromActor_Implementation(class AIFItemActorBase* Source);
+	bool ServerAddAllItemsFromActor_Validate(class AIFItemActorBase* Source);
 	UFUNCTION(BlueprintCallable, Category = "InventoryFramework")
 		void BP_AddAllItemsFromActor(class AIFItemActorBase* Source);
 

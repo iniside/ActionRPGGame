@@ -31,4 +31,7 @@ protected:
 
 	TArray<TSoftClassPtr<class UIFItemBase>> GetAllItems();
 	
+	void GiveAllItemsToInstigator(class UIFInventoryComponent* Inventory);
+	UFUNCTION(BlueprintCallable, Category = "InventoryFramework")
+		void BP_GiveAllItemsToInstigator(class UIFInventoryComponent* Inventory);
 };

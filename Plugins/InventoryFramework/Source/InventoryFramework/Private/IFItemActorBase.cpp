@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "IFItemActorBase.h"
-
+#include "IFInventoryComponent.h"
 
 // Sets default values
 AIFItemActorBase::AIFItemActorBase()
@@ -29,4 +29,13 @@ TArray<TSoftClassPtr<class UIFItemBase>> AIFItemActorBase::GetAllItems()
 {
 	Destroy();
 	return Items;
+}
+
+void AIFItemActorBase::GiveAllItemsToInstigator(class UIFInventoryComponent* Inventory)
+{
+	Inventory->AddAllItemsFromActor(this);
+}
+void AIFItemActorBase::BP_GiveAllItemsToInstigator(class UIFInventoryComponent* Inventory)
+{
+	GiveAllItemsToInstigator(Inventory);
 }

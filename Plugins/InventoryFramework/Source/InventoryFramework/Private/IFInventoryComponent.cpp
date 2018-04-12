@@ -60,6 +60,31 @@ void FIFItemContainer::AddItemToFreeSlot(class UIFItemBase* InItem)
 		}
 	}
 }
+void FIFItemContainer::MoveItem(uint8 NewPosition, uint8 OldPosition)
+{
+	uint8 NewLocal = NetToLocal[NewPosition];
+	uint8 OldLocal = NetToLocal[OldPosition];
+
+	UIFItemBase* NewItem = Items[NewLocal].Item;
+	UIFItemBase* OldItem = Items[OldLocal].Item;
+	UIFItemBase* NewSlotBackup = nullptr;
+
+	if (NewItem)
+	{
+		NewSlotBackup = DuplicateObject<UIFItemBase>(NewItem, IC.Get());
+		NewItem->MarkPendingKill();
+		Items[NewLocal].Item = nullptr;
+	}
+
+	NewItem = DuplicateObject<UIFItemBase>(OldItem, IC.Get());
+	OldItem->MarkPendingKill();
+	OldItem = nullptr;
+	if (NewSlotBackup)
+	{
+		OldItem = NewSlotBackup; //duplicate ?
+	}
+
+}
 // Sets default values for this component's properties
 UIFInventoryComponent::UIFInventoryComponent()
 {
@@ -104,7 +129,6 @@ void UIFInventoryComponent::BeginPlay()
 	
 }
 
-
 // Called every frame
 void UIFInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -121,22 +145,48 @@ void UIFInventoryComponent::GetLifetimeReplicatedProps(TArray< class FLifetimePr
 	DOREPLIFETIME_CONDITION(UIFInventoryComponent, Inventory, COND_OwnerOnly);
 }
 
-void UIFInventoryComponent::AddItemFromActor(class AIFItemActorBase* Source
-	, uint8 SourceIndex
-	, uint8 InLocalIndex)
+void UIFInventoryComponent::MoveItemInInventory(uint8 NewLocalPostion, uint8 OldLocalPositin)
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
-		uint8 NetIndex = Inventory.GetNetIndex(InLocalIndex);
-		ServerAddItemFromActor(Source, SourceIndex, NetIndex);
+		uint8 NewNetPosition = Inventory.GetNetIndex(NewLocalPostion);
+		uint8 OldNetPosition = Inventory.GetNetIndex(OldLocalPositin);
+
+		ServerMoveItemInInventory(NewNetPosition, OldNetPosition);
 		return;
 	}
-	Inventory.AddItem(InLocalIndex);
-
+	uint8 NewNetPosition = Inventory.GetNetIndex(NewLocalPostion);
+	uint8 OldNetPosition = Inventory.GetNetIndex(OldLocalPositin);
+	Inventory.MoveItem(NewNetPosition, OldNetPosition);
 }
-void UIFInventoryComponent::ServerAddItemFromActor_Implementation(class AIFItemActorBase* Source
-	, uint8 SourceIndex
-	, uint8 InNetIndex)
+
+void UIFInventoryComponent::ServerMoveItemInInventory_Implementation(uint8 NewNetPostion, uint8 OldNetPositin)
+{
+	Inventory.MoveItem(NewNetPostion, OldNetPositin);
+}
+bool UIFInventoryComponent::ServerMoveItemInInventory_Validate(uint8 NewNetPostion, uint8 OldNetPositin)
+{
+	return true;
+}
+
+void UIFInventoryComponent::AddAllItemsFromActor(class AIFItemActorBase* Source)
+{
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		ServerAddAllItemsFromActor(Source);
+		return;
+	}
+	TArray<TSoftClassPtr<UIFItemBase>> Items = Source->GetAllItems();
+	for (const TSoftClassPtr<UIFItemBase> Item : Items)
+	{
+		FStreamableManager& Manager = UAssetManager::GetStreamableManager();
+
+		FStreamableDelegate Delegate = FStreamableDelegate::CreateUObject(this, &UIFInventoryComponent::OnItemLoadedFreeSlot, Item);
+
+		Manager.RequestAsyncLoad(Item.ToSoftObjectPath(), Delegate);
+	}
+}
+void UIFInventoryComponent::ServerAddAllItemsFromActor_Implementation(class AIFItemActorBase* Source)
 {
 	TArray<TSoftClassPtr<UIFItemBase>> Items = Source->GetAllItems();
 	for (const TSoftClassPtr<UIFItemBase> Item : Items)
@@ -147,11 +197,8 @@ void UIFInventoryComponent::ServerAddItemFromActor_Implementation(class AIFItemA
 
 		Manager.RequestAsyncLoad(Item.ToSoftObjectPath(), Delegate);
 	}
-	
 }
-bool UIFInventoryComponent::ServerAddItemFromActor_Validate(class AIFItemActorBase* Source
-	, uint8 SourceIndex
-	, uint8 InNetIndex)
+bool UIFInventoryComponent::ServerAddAllItemsFromActor_Validate(class AIFItemActorBase* Sourcex)
 {
 	return true;
 }
@@ -190,7 +237,7 @@ void UIFInventoryComponent::AddItemFromClass(TSoftClassPtr<class UIFItemBase> It
 }
 void UIFInventoryComponent::BP_AddAllItemsFromActor(class AIFItemActorBase* Source)
 {
-	AddItemFromActor(Source, 0, 0);
+	AddAllItemsFromActor(Source);
 }
 
 
