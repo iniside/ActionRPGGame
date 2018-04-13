@@ -22,7 +22,15 @@ void UIFItemWidget::OnItemChanged(uint8 InNetIndex, uint8 InLocalIndex)
 FReply UIFItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 	, const FPointerEvent& InMouseEvent)
 {
-	return UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton).NativeReply;
+	const UIFItemBase* Item = Inventory->GetItem(LocalIndex);
+	if (Item)
+	{
+		return UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton).NativeReply;
+	}
+	else
+	{
+		return FReply::Unhandled();
+	}
 }
 void UIFItemWidget::NativeOnDragDetected(const FGeometry& InGeometry
 	, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
