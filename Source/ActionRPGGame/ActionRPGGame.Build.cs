@@ -61,7 +61,8 @@ public class ActionRPGGame : ModuleRules
             "ActorSequence",
             "AbilityManager",
             "DraggableWindow",
-            "InventoryFramework"
+            "InventoryFramework",
+            "InventoryFrameworkUI"
         });
         if (Target.Type == TargetRules.TargetType.Editor)
         {

@@ -36,9 +36,11 @@ public class InventoryFrameworkUI : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
+                "Core",
 				"CoreUObject",
 				"Engine",
-				"Slate",
+                "InputCore",
+                "Slate",
 				"SlateCore",
                 "InventoryFramework",
                 "UMG"

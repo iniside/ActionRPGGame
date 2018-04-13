@@ -55,6 +55,14 @@ void UARUIComponent::BeginPlay()
 			HUDWidget->AddToViewport();
 		}
 
+		if (InventoryWidgetClass)
+		{
+			InventoryWidget = CreateWidget<UIFItemContainerWidget>(MyPC, InventoryWidgetClass);
+			InventoryWidget->SetInventory(MyPC->MainInventory);
+			
+			InventoryWidget->AddToViewport();
+		}
+
 		//DrawWidget = SNew(SHorizontalBox)
 		//			+SHorizontalBox::Slot()
 		//			.HAlign(EHorizontalAlignment::HAlign_Fill)

@@ -7,6 +7,7 @@
 void UIFItemContainerWidget::SetInventory(UIFInventoryComponent* InInventory)
 {
 	Inventory = InInventory;
+	Inventory->GetOnInventoryRead().AddUObject(this, &UIFItemContainerWidget::CreateInventory);
 }
 
 void UIFItemContainerWidget::CreateInventory()
@@ -17,11 +18,21 @@ void UIFItemContainerWidget::CreateInventory()
 	for (uint8 Idx = 0; Idx < MaxSlots; Idx++)
 	{
 		UIFItemWidget* Widget = CreateWidget<UIFItemWidget>(PC, ItemClass);
-		const FIFItemData Slot = Inventory->GetSlot(Idx);
+		Widget->Inventory = Inventory;
+		
+		const FIFItemData& Slot = Inventory->GetSlot(Idx);
+		
+		FIFOnItemChangedEvent Event = FIFOnItemChangedEvent::CreateUObject(Widget, &UIFItemWidget::OnItemChanged);
+		const_cast<FIFItemData&>(Slot).SetOnItemChanged(Event);
 
 		Widget->OnSlotCreated(Slot.GetNetIndex(), Slot.GetLocalIndex());
 
 		InventoryWidgets.Add(Widget);
 	}
+	NativeOnInventoryCreated();
+}
 
+void UIFItemContainerWidget::NativeOnInventoryCreated()
+{
+	BP_OnInventoryCreated();
 }

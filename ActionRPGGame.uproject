@@ -60,6 +60,10 @@
       "Enabled": true
     },
     {
+      "Name": "InventoryFrameworkUI",
+      "Enabled": true
+    },
+    {
       "Name": "ActorSequenceEditor",
       "Enabled": true
     },

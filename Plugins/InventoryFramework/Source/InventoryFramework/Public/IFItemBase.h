@@ -24,5 +24,16 @@ public:
 		return true;
 	}
 	
-	
+	/*
+		Called after item has been added to inventory.
+	*/
+	virtual void OnItemAdded() {};
+	/*
+		Called when item changed slots within THE SAME inventory;
+	*/
+	virtual void OnItemChanged() {};
+	/*
+		Called after item has been removed from inventory;
+	*/
+	virtual void OnItemRemoved() {};
 };

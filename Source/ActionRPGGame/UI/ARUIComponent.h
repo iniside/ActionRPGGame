@@ -8,6 +8,8 @@
 #include "ARHUDWidget.h"
 #include "SARDrawTestWidget.h"
 
+#include "IFItemContainerWidget.h"
+
 #include "ARUIComponent.generated.h"
 
 
@@ -39,6 +41,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Widgets")
 		TSubclassOf<class UARHUDWidget> HUDWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+		TSubclassOf<class UIFItemContainerWidget> InventoryWidgetClass;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UIFItemContainerWidget* InventoryWidget;
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		UARHUDWidget* HUDWidget;

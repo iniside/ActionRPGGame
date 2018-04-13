@@ -11,8 +11,8 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FIFOnItemChanged, uint8, uint8);
 DECLARE_MULTICAST_DELEGATE(FIFOnInventoryChanged);
 DECLARE_DELEGATE_TwoParams(FIFOnItemChangedEvent, uint8, uint8);
 
-USTRUCT()
-struct FIFItemData : public FFastArraySerializerItem
+USTRUCT(BlueprintType)
+struct INVENTORYFRAMEWORK_API FIFItemData : public FFastArraySerializerItem
 {
 	GENERATED_BODY()
 		friend class UIFInventoryComponent;
@@ -29,14 +29,18 @@ protected:
 	/*
 		Index in Array of this item on Server.
 	*/
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 		uint8 NetIndex;
 
 	/*
 		LIndex in Array of this item on Client.
 	*/
-	UPROPERTY(NotReplicated)
+	UPROPERTY(NotReplicated, BlueprintReadOnly)
 		uint8 LocalIndex;
+
+	/* Is slot currently available */
+	UPROPERTY(BlueprintReadOnly)
+		bool bAvailable;
 
 	FIFOnItemChangedEvent OnItemChanged;
 public:
@@ -45,12 +49,14 @@ public:
 		: Item(nullptr)
 		, NetIndex(INDEX_NONE)
 		, LocalIndex(INDEX_NONE)
+		, bAvailable(false)
 	{}
 
 	FIFItemData(uint8 InNetIndex, uint8 InLocalIndex)
 		: Item(nullptr)
 		, NetIndex(InNetIndex)
 		, LocalIndex(InLocalIndex)
+		, bAvailable(false)
 	{}
 	inline uint8 GetNetIndex() const
 	{
@@ -59,6 +65,11 @@ public:
 	inline uint8 GetLocalIndex() const
 	{
 		return LocalIndex;
+	}
+
+	void OnSlotChanged() const
+	{
+		OnItemChanged.ExecuteIfBound(NetIndex, LocalIndex);
 	}
 
 	void SetOnItemChanged(FIFOnItemChangedEvent& Event);
@@ -94,7 +105,7 @@ public:
 };
 
 USTRUCT()
-struct FIFItemContainer : public FFastArraySerializer
+struct INVENTORYFRAMEWORK_API FIFItemContainer : public FFastArraySerializer
 {	
 	GENERATED_BODY()
 		friend class UIFInventoryComponent;
@@ -156,6 +167,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 		uint8 MaxSlots;
 
+	/*
+		Currently available slots (must be smaller or equal to max slots);
+	*/
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+		uint8 AvailableSlots;
+
 	/* Called when all alots are created */
 	FSimpleMulticastDelegate OnInventoryReady;
 
@@ -179,6 +196,16 @@ public:
 	inline const FIFItemData& GetSlot(uint8 Idx)
 	{
 		return Inventory.Items[Idx];
+	}
+	
+	inline const UIFItemBase* GetItem(uint8 InLocalIndex)
+	{
+		return Inventory.Items[InLocalIndex].Item;
+	}
+	template<typename T>
+	const T* GetItem(uint8 InLocalIndex)
+	{
+		return Cast<T>(Inventory.Items[InLocalIndex].Item);
 	}
 	/*
 		Move item from old position to new position.

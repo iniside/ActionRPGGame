@@ -65,6 +65,8 @@ void FIFItemContainer::AddItemToFreeSlot(class UIFItemBase* InItem)
 		{
 			Item.Item = InItem;
 			MarkItemDirty(Item);
+			//should be safe to call. On server it probabaly won't do anything and on standalone/clients will update widget.
+			Item.OnSlotChanged();
 			break;
 		}
 	}
@@ -74,23 +76,27 @@ void FIFItemContainer::MoveItem(uint8 NewPosition, uint8 OldPosition)
 	uint8 NewLocal = NetToLocal[NewPosition];
 	uint8 OldLocal = NetToLocal[OldPosition];
 
-	UIFItemBase* NewItem = Items[NewLocal].Item;
-	UIFItemBase* OldItem = Items[OldLocal].Item;
+	FIFItemData& NewItem = Items[NewLocal];
+	FIFItemData& OldItem = Items[OldLocal];
+	if (!OldItem.Item)
+	{
+		return;
+	}
 	UIFItemBase* NewSlotBackup = nullptr;
 
-	if (NewItem)
+	if (NewItem.Item)
 	{
-		NewSlotBackup = DuplicateObject<UIFItemBase>(NewItem, IC.Get());
-		NewItem->MarkPendingKill();
+		NewSlotBackup = DuplicateObject<UIFItemBase>(NewItem.Item, IC.Get());
+		NewItem.Item->MarkPendingKill();
 		Items[NewLocal].Item = nullptr;
 	}
 
-	NewItem = DuplicateObject<UIFItemBase>(OldItem, IC.Get());
-	OldItem->MarkPendingKill();
-	OldItem = nullptr;
+	NewItem.Item = DuplicateObject<UIFItemBase>(OldItem.Item, IC.Get());
+	OldItem.Item->MarkPendingKill();
+	OldItem.Item = nullptr;
 	if (NewSlotBackup)
 	{
-		OldItem = NewSlotBackup; //duplicate ?
+		OldItem.Item = NewSlotBackup; //duplicate ?
 	}
 
 }
@@ -105,6 +111,7 @@ UIFInventoryComponent::UIFInventoryComponent()
 	bAutoRegister = true;
 
 	MaxSlots = 8;
+	AvailableSlots = 8;
 	// ...
 }
 
@@ -125,10 +132,15 @@ void UIFInventoryComponent::BeginPlay()
 		|| (NM == ENetMode::NM_ListenServer)
 		|| (NM == ENetMode::NM_Standalone))
 	{
+		uint8 AvailableCounter = 0;
 		for (uint8 Idx = 0; Idx < MaxSlots; Idx++)
 		{
 			FIFItemData NewItem(Idx, Idx);
-
+			if (AvailableCounter < AvailableSlots)
+			{
+				NewItem.bAvailable = true;
+			}
+			AvailableCounter++;
 			Inventory.AddData(NewItem);
 		}
 		OnInventoryReady.Broadcast();
@@ -170,6 +182,12 @@ void UIFInventoryComponent::MoveItemInInventory(uint8 NewLocalPostion, uint8 Old
 	uint8 NewNetPosition = Inventory.GetNetIndex(NewLocalPostion);
 	uint8 OldNetPosition = Inventory.GetNetIndex(OldLocalPositin);
 	Inventory.MoveItem(NewNetPosition, OldNetPosition);
+
+	const FIFItemData& NewSlot = GetSlot(NewLocalPostion);
+	const FIFItemData& OldSlot = GetSlot(OldLocalPositin);
+
+	NewSlot.OnSlotChanged();
+	OldSlot.OnSlotChanged();
 }
 
 void UIFInventoryComponent::ServerMoveItemInInventory_Implementation(uint8 NewNetPostion, uint8 OldNetPositin)
