@@ -16,7 +16,7 @@ void UIFItemContainerWidget::CreateInventory()
 
 	for (uint8 Idx = 0; Idx < MaxSlots; Idx++)
 	{
-		UIFItemWidget* Widget = CreateWidget<UIFItemWidget>(PC, UIFItemWidget::StaticClass());
+		UIFItemWidget* Widget = CreateWidget<UIFItemWidget>(PC, ItemClass);
 		const FIFItemData Slot = Inventory->GetSlot(Idx);
 
 		Widget->OnSlotCreated(Slot.GetNetIndex(), Slot.GetLocalIndex());

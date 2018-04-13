@@ -18,6 +18,9 @@ class INVENTORYFRAMEWORKUI_API UIFItemContainerWidget : public UUserWidget
 	
 	TArray<class UIFItemWidget*> InventoryWidgets;
 
+	UPROPERTY(EditAnywhere, CAtegory = "Widgets")
+		TSubclassOf<class UIFItemWidget> ItemClass;
+
 public:
 	void SetInventory(UIFInventoryComponent* InInventory);
 
