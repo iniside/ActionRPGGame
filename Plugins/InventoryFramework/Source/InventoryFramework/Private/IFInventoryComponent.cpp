@@ -10,7 +10,10 @@
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
 
-
+void FIFItemData::SetOnItemChanged(FIFOnItemChangedEvent& Event)
+{
+	OnItemChanged = Event;
+}
 void FIFItemData::PreReplicatedRemove(const struct FIFItemContainer& InArraySerializer)
 {
 
@@ -23,10 +26,16 @@ void FIFItemData::PostReplicatedAdd(const struct FIFItemContainer& InArraySerial
 	LocalIndex = static_cast<uint8>(Idx);
 	const_cast<FIFItemContainer&>(InArraySerializer).NetToLocal.Add(NetIndex, LocalIndex);
 	const_cast<FIFItemContainer&>(InArraySerializer).LocalToNet.Add(LocalIndex, NetIndex);
+	if (InArraySerializer.IC->MaxSlots == (InArraySerializer.Items.Num()))
+	{
+		InArraySerializer.IC->OnInventoryReady.Broadcast();
+	}
 }
 
 void FIFItemData::PostReplicatedChange(const struct FIFItemContainer& InArraySerializer)
 {
+	InArraySerializer.IC->OnItemChanged.Broadcast(NetIndex, LocalIndex);
+	OnItemChanged.ExecuteIfBound(NetIndex, LocalIndex);
 	int asd = 0;
 	if (asd)
 	{
@@ -94,6 +103,8 @@ UIFInventoryComponent::UIFInventoryComponent()
 	bWantsInitializeComponent = true;
 	bAutoActivate = true;
 	bAutoRegister = true;
+
+	MaxSlots = 8;
 	// ...
 }
 
@@ -114,12 +125,13 @@ void UIFInventoryComponent::BeginPlay()
 		|| (NM == ENetMode::NM_ListenServer)
 		|| (NM == ENetMode::NM_Standalone))
 	{
-		for (int32 Idx = 0; Idx < 8; Idx++)
+		for (uint8 Idx = 0; Idx < MaxSlots; Idx++)
 		{
 			FIFItemData NewItem(Idx, Idx);
 
 			Inventory.AddData(NewItem);
 		}
+		OnInventoryReady.Broadcast();
 	}
 	/*
 		Further steps
@@ -278,7 +290,15 @@ void UIFInventoryComponent::OnItemLoaded(TSoftClassPtr<class UIFItemBase> InItem
 	FStreamableManager& Manager = UAssetManager::GetStreamableManager();
 	Manager.Unload(InItem.ToSoftObjectPath());
 }
+FSimpleMulticastDelegate& UIFInventoryComponent::GetOnInventoryRead()
+{
+	return OnInventoryReady;
+}
 
+FIFOnItemChanged& UIFInventoryComponent::GetItemChangedEvent()
+{
+	return OnItemChanged;
+}
 bool UIFInventoryComponent::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
 {
 	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);

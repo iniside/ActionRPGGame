@@ -136,9 +136,7 @@ class AARCharacter : public ACharacter, public IAFAbilityInterface, public IOrio
 		UChildActorComponent* WeaponHolsteredSideLeft;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons", meta = (AllowPrivateAccess = "true"))
 		UChildActorComponent* WeaponEquipedMain;
-public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
-		class UIFInventoryComponent* MainInventory;
+
 public:
 	UPROPERTY()
 		class UARItemWeapon* WeaponRightItem;

@@ -6,9 +6,10 @@
 #include "Components/ActorComponent.h"
 #include "IFInventoryComponent.generated.h"
 
-//local index
-DECLARE_MULTICAST_DELEGATE_OneParam(FIFOnItemChanged, uint8);
+//NetIndex, LocalIndex
+DECLARE_MULTICAST_DELEGATE_TwoParams(FIFOnItemChanged, uint8, uint8);
 DECLARE_MULTICAST_DELEGATE(FIFOnInventoryChanged);
+DECLARE_DELEGATE_TwoParams(FIFOnItemChangedEvent, uint8, uint8);
 
 USTRUCT()
 struct FIFItemData : public FFastArraySerializerItem
@@ -36,6 +37,8 @@ protected:
 	*/
 	UPROPERTY(NotReplicated)
 		uint8 LocalIndex;
+
+	FIFOnItemChangedEvent OnItemChanged;
 public:
 
 	FIFItemData()
@@ -49,6 +52,16 @@ public:
 		, NetIndex(InNetIndex)
 		, LocalIndex(InLocalIndex)
 	{}
+	inline uint8 GetNetIndex() const
+	{
+		return NetIndex;
+	}
+	inline uint8 GetLocalIndex() const
+	{
+		return LocalIndex;
+	}
+
+	void SetOnItemChanged(FIFOnItemChangedEvent& Event);
 
 	/**
 	* Called right before deleting element during replication.
@@ -131,13 +144,20 @@ UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class INVENTORYFRAMEWORK_API UIFInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
-
+	friend struct FIFItemContainer;
+	friend struct FIFItemData;
 protected:
 	UPROPERTY(Replicated)
 		FIFItemContainer Inventory;
 
 	FIFOnItemChanged OnItemChanged;
 	FIFOnInventoryChanged OnInventoryChanged;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+		uint8 MaxSlots;
+
+	/* Called when all alots are created */
+	FSimpleMulticastDelegate OnInventoryReady;
 
 public:	
 	// Sets default values for this component's properties
@@ -151,7 +171,15 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	
+	inline uint8 GetMaxSlots()
+	{
+		return MaxSlots;
+	}
+
+	inline const FIFItemData& GetSlot(uint8 Idx)
+	{
+		return Inventory.Items[Idx];
+	}
 	/*
 		Move item from old position to new position.
 		If there was already item in new position it will be swapped with the moved item;
@@ -206,6 +234,10 @@ public:
 
 	UFUNCTION()
 		void OnItemLoaded(TSoftClassPtr<class UIFItemBase> InItem, uint8 InNetIndex);
+
+	FSimpleMulticastDelegate& GetOnInventoryRead();
+
+	FIFOnItemChanged& GetItemChangedEvent();
 
 	bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags) override;
 };
