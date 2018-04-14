@@ -550,7 +550,6 @@ void AARCharacter::PossessedBy(AController* NewController)
 	ClientPossesedBy(NewController);
 	if (AARPlayerController* PC = Cast<AARPlayerController>(Controller))
 	{
-		
 		WeaponInventory->InitializeInventory();
 	}
 }

@@ -264,6 +264,12 @@ public:
 	{
 		return Cast<T>(Inventory.Items[InLocalIndex].Item);
 	}
+
+	/* 
+		Check if item can be droped/added to this inventory/slot.
+		First check if inventory accepts, If it passes it will check slot.
+	*/
+	bool AcceptItem(UIFItemBase* Item, uint8 InLocaLIndex);
 	/*
 		Move item from old position to new position.
 		If there was already item in new position it will be swapped with the moved item;

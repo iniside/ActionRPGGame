@@ -74,15 +74,6 @@ void UARWeaponInventoryComponent::SetWeapon(const FARWeapon& InWeapon, UChildAct
 void UARWeaponInventoryComponent::OnItemAdded(UIFItemBase* Item, uint8 LocalIndex)
 {
 	UARItemWeapon* InWeapon = Cast<UARItemWeapon>(Item);
-	//if (InOldWeapon)
-	//{
-	//	WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)]->Weapon = MainHandWeapon.Weapon;
-	//	//WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)]->Position = InOldWeapon->HolsteredPosition;
-	//	//WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)]->Rotation = InOldWeapon->HolsteredRotation;
-	//	WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)]->RepCounter++;
-	//	//GroupToComponent[OldGroup]->SetChildActorClass(WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)]->Weapon.Get());
-	//	SetWeapon(*WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)], GroupToComponent[OldGroup]);
-	//}
 
 	WeaponHelper[LocalIndex]->Weapon.Reset();
 	WeaponHelper[LocalIndex]->Weapon = InWeapon->Weapon;
@@ -99,19 +90,6 @@ void UARWeaponInventoryComponent::OnItemAdded(UIFItemBase* Item, uint8 LocalInde
 			
 		}
 	}
-	//if (!InOldWeapon)
-	//{
-	//	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Weapon.Reset();
-	//	WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->RepCounter++;
-	//	//GroupToComponent[Group]->SetChildActorClass(WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Weapon.Get());
-	//	SetWeapon(*WeaponHelper[AMEnumToInt<EAMGroup>(Group)], GroupToComponent[Group]);
-	//}
-	//if (AARCharacter* Character = Cast<AARCharacter>(POwner))
-	//{
-
-	//	SetWeapon(MainHandWeapon, Character->GetEquipedMainWeapon());
-	//	//GroupToComponent[Group]->SetChildActorClass(nullptr);
-	//}
 }
 
 void UARWeaponInventoryComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const

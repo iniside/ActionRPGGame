@@ -258,6 +258,58 @@ void UIFInventoryComponent::GetLifetimeReplicatedProps(TArray< class FLifetimePr
 	DOREPLIFETIME_CONDITION(UIFInventoryComponent, Inventory, COND_OwnerOnly);
 }
 
+bool UIFInventoryComponent::AcceptItem(UIFItemBase* Item, uint8 InLocaLIndex)
+{
+	bool bAccept = false;
+
+	if (AcceptedClasses.Num() == 0)
+	{
+		bAccept = true;
+	}
+	else
+	{
+		for (TSubclassOf<UIFItemBase>& ItemClass : AcceptedClasses)
+		{
+			bAccept = false;
+			if (Item->IsA(ItemClass))
+			{
+				bAccept = true;
+				break; //no reason to check further.
+			}
+		}
+	}
+
+	if (bAccept)
+	{
+		if (AcceptedSlotClasses.Num() == 0)
+		{
+			bAccept = true;
+		}
+		else
+		{
+			FIFSlotAcceptedClasses AC = AcceptedSlotClasses[InLocaLIndex];
+			if (AC.AcceptedClasses.Num() == 0)
+			{
+				bAccept = true;
+			}
+			else
+			{
+				for (TSubclassOf<UIFItemBase>& ItemClass : AC.AcceptedClasses)
+				{
+					bAccept = false;
+					if (Item->IsA(ItemClass))
+					{
+						bAccept = true;
+						break; //no reason to check further.
+					}
+				}
+			}
+		}
+		
+	}
+	return bAccept;
+}
+
 void UIFInventoryComponent::MoveItemInInventory(uint8 NewLocalPostion, uint8 OldLocalPositin)
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
@@ -327,6 +379,12 @@ void UIFInventoryComponent::AddItemFromOtherInventory(class UIFInventoryComponen
 	, uint8 SourceLocalIndex
 	, uint8 InLocalIndex)
 {
+	UIFItemBase* ItemToCheck = Source->GetItem(SourceLocalIndex);
+	if (!AcceptItem(ItemToCheck, InLocalIndex))
+	{
+		return;
+	}
+
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
 		uint8 SourceNetIndex = Source->Inventory.GetNetIndex(SourceLocalIndex);
@@ -340,6 +398,13 @@ void UIFInventoryComponent::ServerAddItemFromOtherInventory_Implementation(class
 	, uint8 SourceNetIndex
 	, uint8 InNetIndex)
 {
+	uint8 SourceLocalIdx = Source->Inventory.NetToLocal[SourceNetIndex];
+	uint8 LocalIdx = Inventory.NetToLocal[InNetIndex];
+	UIFItemBase* ItemToCheck = Source->GetItem(SourceLocalIdx);
+	if (!AcceptItem(ItemToCheck, LocalIdx))
+	{
+		return;
+	}
 	Inventory.AddFromOtherInventory(Source, SourceNetIndex, InNetIndex);
 }
 bool UIFInventoryComponent::ServerAddItemFromOtherInventory_Validate(class UIFInventoryComponent* Source
