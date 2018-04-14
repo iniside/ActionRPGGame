@@ -20,14 +20,16 @@ AARPlayerController::AARPlayerController(const FObjectInitializer& ObjectInitial
 	AbilityManager = ObjectInitializer.CreateDefaultSubobject<UARAbilityManagerComponent>(this, "AbilityManager");
 	MainInventory = ObjectInitializer.CreateDefaultSubobject<UIFInventoryComponent>(this, "MainInventory");
 	MainInventory->SetIsReplicated(true);
-	
+
 	AbilityManager->ComponentTags.Add(TEXT("AbilityManager"));
 	bInputBount = false;
 }
 void AARPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	
 	MainInventory->SetIsReplicated(true);
+
 }
 void AARPlayerController::SetPawn(APawn* InPawn)
 {
@@ -103,6 +105,9 @@ void AARPlayerController::SetPawn(APawn* InPawn)
 		
 	}
 	WeaponManager->POwner = InPawn;
+	
+	MainInventory->InitializeInventory();
+	
 	//UIAbilityManagerComponent->BindInputs();
 }
 
@@ -198,3 +203,14 @@ void AARPlayerController::GetObjectBoundSphere(float Distance, AActor* InActor, 
 	Radius = InActor->GetRootComponent()->Bounds.SphereRadius;
 	SphereRadius = ScreenMultiple * Radius / FMath::Max(1.0f, Distance);
 }
+
+
+/* IIFInventoryInterface */
+void AARPlayerController::OnInventoryReplicated(class UIFInventoryComponent* Inventory)
+{
+	if (Inventory == MainInventory)
+	{
+		UIComponent->InitializeInventory();
+	}
+}
+/* IIFInventoryInterface */

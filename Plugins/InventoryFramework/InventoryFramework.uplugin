@@ -16,7 +16,7 @@
 	"Modules": [
 		{
 			"Name": "InventoryFramework",
-			"Type": "Developer",
+			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}
 	]

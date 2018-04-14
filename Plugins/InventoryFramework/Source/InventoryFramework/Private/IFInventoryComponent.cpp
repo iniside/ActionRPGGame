@@ -7,6 +7,7 @@
 
 #include "IFItemBase.h"
 #include "IFItemActorBase.h"
+#include "IFInventoryInterface.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
 
@@ -27,9 +28,13 @@ void FIFItemData::PostReplicatedAdd(const struct FIFItemContainer& InArraySerial
 	LocalIndex = static_cast<uint8>(Idx);
 	const_cast<FIFItemContainer&>(InArraySerializer).NetToLocal.Add(NetIndex, LocalIndex);
 	const_cast<FIFItemContainer&>(InArraySerializer).LocalToNet.Add(LocalIndex, NetIndex);
-	if (InArraySerializer.IC->MaxSlots == (InArraySerializer.Items.Num()))
+	if (InArraySerializer.IC.IsValid() && InArraySerializer.IC->MaxSlots == (NetIndex+1))
 	{
 		InArraySerializer.IC->OnInventoryReady.Broadcast();
+		if (IIFInventoryInterface* Interface = Cast<IIFInventoryInterface>(InArraySerializer.IC->GetOwner()))
+		{
+			Interface->OnInventoryReplicated(InArraySerializer.IC.Get());
+		}
 	}
 	if (Item)
 	{
@@ -62,7 +67,10 @@ void FIFItemData::PostReplicatedChange(const struct FIFItemContainer& InArraySer
 		
 	}
 }
+void FIFItemContainer::PostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize)
+{
 
+}
 void FIFItemContainer::AddItem(uint8 InNetIndex)
 {
 	uint8 LocalIndex = NetToLocal.FindRef(InNetIndex);
@@ -76,9 +84,10 @@ void FIFItemContainer::AddItem(class UIFItemBase* InItem, uint8 InNetIndex)
 	FIFItemData& Item = Items[LocalIndex];
 	Item.Item = InItem;
 	Item.ChangeType = EIFChangeType::Added;
-	MarkItemDirty(Item);
 	Item.Item->OnItemAdded(LocalIndex);
 	IC->OnItemAdded(Item.Item, Item.LocalIndex);
+
+	MarkItemDirty(Item);
 }
 void FIFItemContainer::AddItemToFreeSlot(class UIFItemBase* InItem)
 {
@@ -87,12 +96,12 @@ void FIFItemContainer::AddItemToFreeSlot(class UIFItemBase* InItem)
 		if (!Item.Item)
 		{
 			Item.Item = InItem;
-			MarkItemDirty(Item);
 			//should be safe to call. On server it probabaly won't do anything and on standalone/clients will update widget.
 			Item.OnSlotChanged();
 			Item.Item->OnItemAdded(Item.LocalIndex);
 			IC->OnItemAdded(Item.Item, Item.LocalIndex);
 			Item.ChangeType = EIFChangeType::Added;
+			MarkItemDirty(Item);
 			break;
 		}
 	}
@@ -135,22 +144,33 @@ void FIFItemContainer::MoveItem(uint8 NewPosition, uint8 OldPosition)
 		OldItem.ChangeType = EIFChangeType::Updated;
 	}
 
+	MarkItemDirty(NewItem);
+	MarkItemDirty(OldItem);
+
 }
 void FIFItemContainer::AddFromOtherInventory(class UIFInventoryComponent* Source
 	, uint8 SourceNetIndex
 	, uint8 InNetIndex)
 {
 	uint8 SourceLocalIdx = Source->Inventory.NetToLocal[SourceNetIndex];
-	uint8 LocalIdx = Source->Inventory.NetToLocal[InNetIndex];
+	uint8 LocalIdx = NetToLocal[InNetIndex];
 
 	FIFItemData& SourceItem = const_cast<FIFItemData&>(Source->GetSlot(SourceLocalIdx));
 	FIFItemData& LocalItem = Items[LocalIdx];
 
 	LocalItem.Item = DuplicateObject<UIFItemBase>(SourceItem.Item, IC.Get());
 	LocalItem.Item->OnItemAdded(LocalItem.LocalIndex);
+	LocalItem.ChangeType = EIFChangeType::Added;
+	LocalItem.Counter++;
+
 	IC->OnItemAdded(LocalItem.Item, LocalItem.LocalIndex);
 	LocalItem.OnSlotChanged();
+	SourceItem.Item->MarkPendingKill();
+	SourceItem.Item = nullptr;
+	SourceItem.OnSlotChanged();
 
+	MarkItemDirty(LocalItem);
+	Source->Inventory.MarkItemDirty(SourceItem);
 }
 
 // Sets default values for this component's properties
@@ -168,14 +188,37 @@ UIFInventoryComponent::UIFInventoryComponent()
 	// ...
 }
 
+void UIFInventoryComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+	Inventory.IC = this;
+}
 
 // Called when the game starts
 void UIFInventoryComponent::BeginPlay()
 {
+	Inventory.IC = this;
 	Super::BeginPlay();
 	
-	Inventory.IC = this;
 
+	/*
+		Further steps
+		2. Load Properties from external data source (JSON);
+	*/
+	// ...
+	
+}
+
+// Called every frame
+void UIFInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	// ...
+}
+
+void UIFInventoryComponent::InitializeInventory()
+{
 	ENetMode NM = GetOwner()->GetNetMode();
 	ENetRole NR = GetOwnerRole();
 
@@ -198,20 +241,13 @@ void UIFInventoryComponent::BeginPlay()
 		}
 		OnInventoryReady.Broadcast();
 	}
-	/*
-		Further steps
-		2. Load Properties from external data source (JSON);
-	*/
-	// ...
-	
-}
-
-// Called every frame
-void UIFInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
+	if (NM == ENetMode::NM_Standalone)
+	{
+		if (IIFInventoryInterface* Interface = Cast<IIFInventoryInterface>(GetOwner()))
+		{
+			Interface->OnInventoryReplicated(this);
+		}
+	}
 }
 
 void UIFInventoryComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
@@ -304,7 +340,7 @@ void UIFInventoryComponent::ServerAddItemFromOtherInventory_Implementation(class
 	, uint8 SourceNetIndex
 	, uint8 InNetIndex)
 {
-
+	Inventory.AddFromOtherInventory(Source, SourceNetIndex, InNetIndex);
 }
 bool UIFInventoryComponent::ServerAddItemFromOtherInventory_Validate(class UIFInventoryComponent* Source
 	, uint8 SourceNetIndex

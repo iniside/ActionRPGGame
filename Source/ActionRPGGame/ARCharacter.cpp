@@ -11,6 +11,7 @@
 #include "Engine/ActorChannel.h"
 
 #include "Weapons/ARWeaponBase.h"
+#include "UI/ARUIComponent.h"
 
 #include "Weapons/ARWeaponInventoryComponent.h"
 #include "ARCharacterMovementComponent.h"
@@ -80,9 +81,10 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	EffectsComponent = CreateDefaultSubobject<UAFEffectsComponent>(TEXT("EffectsComponent"));
 	EffectsComponent->SetIsReplicated(true);
 	
-	FollowCamera->TransformUpdated.AddUObject(this, &AARCharacter::OnCameraTransformUpdate);
+	WeaponInventory = ObjectInitializer.CreateDefaultSubobject<UARWeaponInventoryComponent>(this, TEXT("WeaponInventory"));
+	WeaponInventory->SetIsReplicated(true);
 
-	Weapons2 = CreateDefaultSubobject<UARWeaponInventoryComponent>(TEXT("Weapons2"));
+	FollowCamera->TransformUpdated.AddUObject(this, &AARCharacter::OnCameraTransformUpdate);
 
 	Head = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Head"));
 	Head->SetupAttachment(GetMesh());
@@ -152,8 +154,8 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 void AARCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	Weapons2->SetPOwner(this);
+	WeaponInventory->SetIsReplicated(true);
+	WeaponInventory->InitializeWeapons(this);
 }
 
 FString DirToString(EFourCardinalDirection dir)
@@ -420,10 +422,7 @@ void AARCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 	Abilities->BindInputs(PlayerInputComponent);
 }
 
-void AARCharacter::PossessedBy(AController* NewController)
-{
-	Super::PossessedBy(NewController);
-}
+
 void AARCharacter::TurnAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
@@ -545,3 +544,34 @@ FVector AARCharacter::GetMainWeaponSocket(const FName& Socket) const
 
 	return Component->GetSocketLocation(Socket);
 }
+void AARCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	ClientPossesedBy(NewController);
+	if (AARPlayerController* PC = Cast<AARPlayerController>(Controller))
+	{
+		
+		WeaponInventory->InitializeInventory();
+	}
+}
+void AARCharacter::ClientPossesedBy_Implementation(AController* NewController)
+{
+
+}
+void AARCharacter::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+
+}
+/* IIFInventoryInterface */
+void AARCharacter::OnInventoryReplicated(class UIFInventoryComponent* Inventory)
+{
+	if (Cast<UARWeaponInventoryComponent>(Inventory))
+	{
+		if (AARPlayerController* PC = Cast<AARPlayerController>(Controller))
+		{
+			PC->UIComponent->InitializeWeaponInventory();
+		}
+	}
+}
+/* IIFInventoryInterface */

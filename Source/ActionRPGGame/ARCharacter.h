@@ -11,7 +11,8 @@
 #include "AFAbilityInterface.h"
 #include "OrionInterface.h"
 #include "OrionAnimComponent.h"
-#include "IFInventoryComponent.h"
+#include "IFInventoryInterface.h"
+#include "Weapons/ARWeaponInventoryComponent.h"
 #include "ARCharacter.generated.h"
 
 UENUM(BlueprintType)
@@ -73,7 +74,7 @@ struct WeaponSocket
 	static const FName EquipedMainWeapon;
 };
 UCLASS(config=Game)
-class AARCharacter : public ACharacter, public IAFAbilityInterface, public IOrionInterface
+class AARCharacter : public ACharacter, public IAFAbilityInterface, public IOrionInterface, public IIFInventoryInterface
 {
 	GENERATED_BODY()
 
@@ -91,7 +92,8 @@ class AARCharacter : public ACharacter, public IAFAbilityInterface, public IOrio
 		class UAFEffectsComponent* EffectsComponent;
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		class UARWeaponInventoryComponent* Weapons2;
+		class UARWeaponInventoryComponent* WeaponInventory;
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "Default Abilities")
 		TArray<FGameplayTag> AbilitiesToGive;
@@ -219,7 +221,6 @@ protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// End of APawn interface
-	virtual void PossessedBy(AController* NewController) override;
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -246,11 +247,6 @@ public:
 	/* IAFAbilityInterface- END */
 
 	void OnCameraTransformUpdate(USceneComponent* UpdatedComponent, EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport);
-
-	inline UARWeaponInventoryComponent* GetWeapons()
-	{
-		return Weapons2;
-	}
 
 	inline UChildActorComponent* GetHolsteredRightWeapon()
 	{
@@ -288,5 +284,19 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Character | Weapons")
 		FVector GetMainWeaponSocket(const FName& Socket) const;
+
+	virtual void PossessedBy(AController* NewController) override;
+
+	UFUNCTION(Client, Reliable)
+		void ClientPossesedBy(AController* NewController);
+	void ClientPossesedBy_Implementation(AController* NewController);
+
+	UFUNCTION()
+	virtual void OnRep_Controller() override;
+	
+	/* IIFInventoryInterface */
+	virtual void OnInventoryReplicated(class UIFInventoryComponent* Inventory) override;
+	/* IIFInventoryInterface */
+
 };
 

@@ -7,7 +7,6 @@
 void UIFItemContainerWidget::SetInventory(UIFInventoryComponent* InInventory)
 {
 	Inventory = InInventory;
-	Inventory->GetOnInventoryRead().AddUObject(this, &UIFItemContainerWidget::CreateInventory);
 }
 
 void UIFItemContainerWidget::CreateInventory()

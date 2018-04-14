@@ -56,24 +56,7 @@ void UARUIComponent::BeginPlay()
 			HUDWidget->AddToViewport();
 		}
 
-		if (InventoryWidgetClass)
-		{
-			InventoryWidget = CreateWidget<UIFItemContainerWidget>(MyPC, InventoryWidgetClass);
-			InventoryWidget->SetInventory(MyPC->MainInventory);
-			
-			InventoryWidget->AddToViewport();
-		}
-
-		if (WeaponInventoryWidgetClass)
-		{
-			WeaponInventoryWidget = CreateWidget<UIFItemContainerWidget>(MyPC, WeaponInventoryWidgetClass);
-			if (AARCharacter* Character = Cast<AARCharacter>(MyPC->GetPawn()))
-			{
-				WeaponInventoryWidget->SetInventory(Character->Weapons2);
-
-				WeaponInventoryWidget->AddToViewport();
-			}
-		}
+		
 
 		//DrawWidget = SNew(SHorizontalBox)
 		//			+SHorizontalBox::Slot()
@@ -103,6 +86,48 @@ void UARUIComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	// ...
 }
 
+void UARUIComponent::InitializeInventory()
+{
+	if (GetOwner()->GetNetMode() == ENetMode::NM_Client
+		|| GetOwner()->GetNetMode() == ENetMode::NM_Standalone)
+	{
+		AARPlayerController* MyPC = Cast<AARPlayerController>(GetOwner());
+		if (InventoryWidgetClass)
+		{
+			InventoryWidget = CreateWidget<UIFItemContainerWidget>(MyPC, InventoryWidgetClass);
+			InventoryWidget->SetInventory(MyPC->MainInventory);
+			InventoryWidget->CreateInventory();
+			InventoryWidget->AddToViewport();
+		}
+
+		/*if (WeaponInventoryWidgetClass)
+		{
+			WeaponInventoryWidget = CreateWidget<UIFItemContainerWidget>(MyPC, WeaponInventoryWidgetClass);
+			
+			WeaponInventoryWidget->SetInventory(MyPC->WeaponInventory);
+			WeaponInventoryWidget->CreateInventory();
+			WeaponInventoryWidget->AddToViewport();	
+		}*/
+	}
+}
+void UARUIComponent::InitializeWeaponInventory()
+{
+	if (GetOwner()->GetNetMode() == ENetMode::NM_Client
+		|| GetOwner()->GetNetMode() == ENetMode::NM_Standalone)
+	{
+		AARPlayerController* MyPC = Cast<AARPlayerController>(GetOwner());
+		AARCharacter* Character = Cast<AARCharacter>(MyPC->GetPawn());
+		if (WeaponInventoryWidgetClass && Character)
+		{
+			WeaponInventoryWidget = CreateWidget<UIFItemContainerWidget>(MyPC, WeaponInventoryWidgetClass);
+			
+			WeaponInventoryWidget->SetInventory(Character->WeaponInventory);
+			WeaponInventoryWidget->CreateInventory();
+			WeaponInventoryWidget->AddToViewport();
+			
+		}
+	}
+}
 void UARUIComponent::ShowHideInventory()
 {
 	if (InventoryManagerWidget->GetVisibility() == ESlateVisibility::Collapsed)

@@ -6,6 +6,7 @@
 #include "ARWeaponAbilityBase.h"
 #include "ARItemWeapon.h"
 #include "ARCharacter.h"
+#include "ARPlayerController.h"
 #include "UI/Weapons/ARWeaponUpgradeListWidget.h"
 
 #include "DWBPFunctionLibrary.h"
@@ -97,7 +98,6 @@ void UARWeaponManagerComponent::AddWeaponToManager(EAMGroup Group, EAMSlot Slot,
 	UARItemWeapon* Item = DuplicateObject<UARItemWeapon>(WeaponClasses[Idx].GetDefaultObject(), Character);
 	if (Character)
 	{
-		Character->GetWeapons()->Holster(Group, Item);
 		ActiveGroup = EAMGroup::Group005;
 	}
 	NativeEquipAbility(WeaponClasses[Idx].GetDefaultObject()->Ability,
@@ -117,7 +117,6 @@ void UARWeaponManagerComponent::AddWeaponToManager(EAMGroup Group, EAMSlot Slot,
 		if (!ABInt)
 			return;
 
-		Character->GetWeapons()->Holster(Group, Item);
 		ActiveGroup = EAMGroup::Group005;
 	}
 
@@ -145,10 +144,14 @@ void UARWeaponManagerComponent::OnAbilityReady(TSoftClassPtr<UGAAbilityBase> InA
 	, const TArray<FGameplayTag>& InAbilityInput
 	, EAMGroup InGroup, EAMSlot InSlot)
 {
-	AARCharacter* Character = Cast<AARCharacter>(POwner);
-	if (Character)
+	AARPlayerController* PC = Cast<AARPlayerController>(GetOwner());
+	if (PC)
 	{
-		UGAAbilityBase* AbilityInstance = GetAbility(InGroup, InSlot);
-		Character->Weapons2->SetAbilityToItem(static_cast<uint8>(InGroup), AbilityInstance);
+		if (AARCharacter* Character = Cast<AARCharacter>(PC->GetPawn()))
+		{
+			UGAAbilityBase* AbilityInstance = GetAbility(InGroup, InSlot);
+			Character->WeaponInventory->SetAbilityToItem(static_cast<uint8>(InGroup), AbilityInstance);
+		}
+		
 	}
 }

@@ -6,13 +6,14 @@
 #include "GameFramework/PlayerController.h"
 #include "GameplayTags.h"
 #include "IFInventoryComponent.h"
+#include "IFInventoryInterface.h"
 #include "ARPlayerController.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ACTIONRPGGAME_API AARPlayerController : public APlayerController
+class ACTIONRPGGAME_API AARPlayerController : public APlayerController, public IIFInventoryInterface
 {
 	GENERATED_BODY()
 public:
@@ -23,7 +24,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
 		class UARAbilityManagerComponent* AbilityManager;
-
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
 		class UIFInventoryComponent* MainInventory;
@@ -71,4 +71,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Hud")
 		void GetObjectBoundSphere(float Distance, AActor* InActor, FVector& Origin, float& Radius, float& Scale
 			, float& SphereRadius);
+
+	/* IIFInventoryInterface */
+	virtual void OnInventoryReplicated(class UIFInventoryComponent* Inventory) override;
+	/* IIFInventoryInterface */
+
 };

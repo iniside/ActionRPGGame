@@ -60,6 +60,9 @@ protected:
 	UPROPERTY()
 		EIFChangeType ChangeType;
 
+	UPROPERTY()
+		uint8 Counter;
+
 	FIFOnItemChangedEvent OnItemChanged;
 public:
 
@@ -68,6 +71,7 @@ public:
 		, NetIndex(INDEX_NONE)
 		, LocalIndex(INDEX_NONE)
 		, bAvailable(false)
+		, Counter(0)
 	{}
 
 	FIFItemData(uint8 InNetIndex, uint8 InLocalIndex)
@@ -75,6 +79,7 @@ public:
 		, NetIndex(InNetIndex)
 		, LocalIndex(InLocalIndex)
 		, bAvailable(false)
+		, Counter(0)
 	{}
 	inline uint8 GetNetIndex() const
 	{
@@ -136,6 +141,8 @@ struct INVENTORYFRAMEWORK_API FIFItemContainer : public FFastArraySerializer
 	TMap<uint8, uint8> LocalToNet;
 
 protected:
+	
+
 	void AddData(const FIFItemData& InItem)
 	{
 		
@@ -158,6 +165,7 @@ protected:
 		, uint8 SourceNetIndex
 		, uint8 InNetIndex);
 public:
+	void PostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize);
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
 	{
 		return FFastArraySerializer::FastArrayDeltaSerialize<FIFItemData, FIFItemContainer>(Items, DeltaParms, *this);
@@ -173,6 +181,16 @@ struct TStructOpsTypeTraits< FIFItemContainer > : public TStructOpsTypeTraitsBas
 	};
 };
 
+USTRUCT(BlueprintType)
+struct FIFSlotAcceptedClasses
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere)
+		TArray<TSubclassOf<UIFItemBase>> AcceptedClasses;
+
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class INVENTORYFRAMEWORK_API UIFInventoryComponent : public UActorComponent
 {
@@ -185,6 +203,20 @@ protected:
 
 	FIFOnItemChanged OnItemChangedEvent;
 	FIFOnInventoryChanged OnInventoryChanged;
+
+	/*
+		Which items this inventory accept.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+		TArray<TSubclassOf<class UIFItemBase>> AcceptedClasses;
+
+	/*
+		Which items slot will accept.
+
+		Order is Equvalent to slot order on server.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+		TArray<FIFSlotAcceptedClasses> AcceptedSlotClasses;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 		uint8 MaxSlots;
@@ -203,12 +235,15 @@ public:
 	UIFInventoryComponent();
 
 protected:
+	virtual void InitializeComponent() override;;
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	void InitializeInventory();
 
 	inline uint8 GetMaxSlots()
 	{

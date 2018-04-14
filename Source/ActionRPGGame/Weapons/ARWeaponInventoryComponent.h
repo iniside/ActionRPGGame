@@ -74,6 +74,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+	void InitializeWeapons(APawn* Pawn);
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void OnItemAdded(UIFItemBase* Item, uint8 LocalIndex) override;

@@ -32,16 +32,20 @@ void UARWeaponInventoryComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	if (AARCharacter* Character = Cast<AARCharacter>(GetOwner()))
+	
+}
+
+void UARWeaponInventoryComponent::InitializeWeapons(APawn* Pawn)
+{
+	if (AARCharacter* Character = Cast<AARCharacter>(Pawn))
 	{
 		GroupToComponent.Add(0, Character->GetHolsteredRightWeapon());
 		GroupToComponent.Add(1, Character->GetHolsteredLeftWeapon());
 		GroupToComponent.Add(2, Character->GetHolsteredBackDownWeapon());
 		GroupToComponent.Add(3, Character->GetHolsteredSideLeftWeapon());
+		POwner = Character;
 	}
 }
-
-
 // Called every frame
 void UARWeaponInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -80,18 +84,12 @@ void UARWeaponInventoryComponent::OnItemAdded(UIFItemBase* Item, uint8 LocalInde
 	//	SetWeapon(*WeaponHelper[AMEnumToInt<EAMGroup>(OldGroup)], GroupToComponent[OldGroup]);
 	//}
 
-	MainHandWeapon.Weapon = InWeapon->Weapon;
-	MainHandWeapon.Position = InWeapon->EquipedPosition;
-	MainHandWeapon.Rotation = InWeapon->EquipedRotation;
-	MainHandWeapon.NetIndex = Inventory.LocalToNet[LocalIndex];
-	MainHandWeapon.RepCounter++;
-
 	WeaponHelper[LocalIndex]->Weapon.Reset();
 	WeaponHelper[LocalIndex]->Weapon = InWeapon->Weapon;
 	WeaponHelper[LocalIndex]->RepCounter++;
-	//GroupToComponent[Group]->SetChildActorClass(WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Weapon.Get());
+	
 	SetWeapon(*WeaponHelper[LocalIndex], GroupToComponent[LocalIndex]);
-	if (AARCharacter* Character = Cast<AARCharacter>(GetOwner()))
+	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
 	{
 		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
 		{
