@@ -50,7 +50,13 @@ bool UIFItemWidget::NativeOnDrop(const FGeometry& InGeometry
 	, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
 	UIFItemWidget* Payload = Cast<UIFItemWidget>(InOperation->Payload);
-
-	Inventory->MoveItemInInventory(LocalIndex, Payload->LocalIndex);
+	if (Payload->Inventory == Inventory)
+	{
+		Inventory->MoveItemInInventory(LocalIndex, Payload->LocalIndex);
+	}
+	else if (Payload->Inventory != Inventory)
+	{
+		Inventory->AddItemFromOtherInventory(Payload->Inventory.Get(), Payload->LocalIndex, LocalIndex);
+	}
 	return true;
 }

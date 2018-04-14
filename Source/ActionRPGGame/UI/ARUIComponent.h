@@ -47,6 +47,14 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		UIFItemContainerWidget* InventoryWidget;
+
+
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+		TSubclassOf<class UIFItemContainerWidget> WeaponInventoryWidgetClass;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UIFItemContainerWidget* WeaponInventoryWidget;
+
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		UARHUDWidget* HUDWidget;

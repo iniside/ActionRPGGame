@@ -12,7 +12,7 @@
 
 #include "Weapons/ARWeaponBase.h"
 
-#include "Weapons/ARWeaponPawnManagerComponent.h"
+#include "Weapons/ARWeaponInventoryComponent.h"
 #include "ARCharacterMovementComponent.h"
 #include "ARPlayerController.h"
 
@@ -82,7 +82,7 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	
 	FollowCamera->TransformUpdated.AddUObject(this, &AARCharacter::OnCameraTransformUpdate);
 
-	Weapons = CreateDefaultSubobject<UARWeaponPawnManagerComponent>(TEXT("Weapons"));
+	Weapons2 = CreateDefaultSubobject<UARWeaponInventoryComponent>(TEXT("Weapons2"));
 
 	Head = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Head"));
 	Head->SetupAttachment(GetMesh());
@@ -153,7 +153,7 @@ void AARCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Weapons->SetPOwner(this);
+	Weapons2->SetPOwner(this);
 }
 
 FString DirToString(EFourCardinalDirection dir)

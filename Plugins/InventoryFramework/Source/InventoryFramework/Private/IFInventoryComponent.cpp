@@ -16,7 +16,8 @@ void FIFItemData::SetOnItemChanged(FIFOnItemChangedEvent& Event)
 }
 void FIFItemData::PreReplicatedRemove(const struct FIFItemContainer& InArraySerializer)
 {
-
+	if(Item)
+		Item->OnItemRemoved(LocalIndex);
 }
 
 void FIFItemData::PostReplicatedAdd(const struct FIFItemContainer& InArraySerializer)
@@ -30,16 +31,35 @@ void FIFItemData::PostReplicatedAdd(const struct FIFItemContainer& InArraySerial
 	{
 		InArraySerializer.IC->OnInventoryReady.Broadcast();
 	}
+	if (Item)
+	{
+		Item->OnItemAdded(LocalIndex);
+		InArraySerializer.IC->OnItemAdded(Item, LocalIndex);
+	}
 }
 
 void FIFItemData::PostReplicatedChange(const struct FIFItemContainer& InArraySerializer)
 {
-	InArraySerializer.IC->OnItemChanged.Broadcast(NetIndex, LocalIndex);
+	InArraySerializer.IC->OnItemChangedEvent.Broadcast(NetIndex, LocalIndex);
 	OnItemChanged.ExecuteIfBound(NetIndex, LocalIndex);
-	int asd = 0;
-	if (asd)
+	if (Item)
 	{
-
+		switch (ChangeType)
+		{
+		case EIFChangeType::Added:
+			Item->OnItemAdded(LocalIndex);
+			InArraySerializer.IC->OnItemAdded(Item, LocalIndex);
+			break;
+		case EIFChangeType::Updated:
+			Item->OnItemChanged(LocalIndex);
+			break;
+		case EIFChangeType::Removed:
+			Item->OnItemRemoved(LocalIndex);
+			break;
+		default:
+			break;
+		}
+		
 	}
 }
 
@@ -55,7 +75,10 @@ void FIFItemContainer::AddItem(class UIFItemBase* InItem, uint8 InNetIndex)
 	uint8 LocalIndex = NetToLocal.FindRef(InNetIndex);
 	FIFItemData& Item = Items[LocalIndex];
 	Item.Item = InItem;
+	Item.ChangeType = EIFChangeType::Added;
 	MarkItemDirty(Item);
+	Item.Item->OnItemAdded(LocalIndex);
+	IC->OnItemAdded(Item.Item, Item.LocalIndex);
 }
 void FIFItemContainer::AddItemToFreeSlot(class UIFItemBase* InItem)
 {
@@ -67,6 +90,9 @@ void FIFItemContainer::AddItemToFreeSlot(class UIFItemBase* InItem)
 			MarkItemDirty(Item);
 			//should be safe to call. On server it probabaly won't do anything and on standalone/clients will update widget.
 			Item.OnSlotChanged();
+			Item.Item->OnItemAdded(Item.LocalIndex);
+			IC->OnItemAdded(Item.Item, Item.LocalIndex);
+			Item.ChangeType = EIFChangeType::Added;
 			break;
 		}
 	}
@@ -83,7 +109,7 @@ void FIFItemContainer::MoveItem(uint8 NewPosition, uint8 OldPosition)
 		return;
 	}
 	UIFItemBase* NewSlotBackup = nullptr;
-
+	
 	if (NewItem.Item)
 	{
 		NewSlotBackup = DuplicateObject<UIFItemBase>(NewItem.Item, IC.Get());
@@ -98,8 +124,35 @@ void FIFItemContainer::MoveItem(uint8 NewPosition, uint8 OldPosition)
 	{
 		OldItem.Item = NewSlotBackup; //duplicate ?
 	}
+	if (NewItem.Item)
+	{
+		NewItem.Item->OnItemChanged(NewItem.LocalIndex);
+		NewItem.ChangeType = EIFChangeType::Updated;
+	}
+	if (OldItem.Item)
+	{
+		OldItem.Item->OnItemChanged(OldItem.LocalIndex);
+		OldItem.ChangeType = EIFChangeType::Updated;
+	}
 
 }
+void FIFItemContainer::AddFromOtherInventory(class UIFInventoryComponent* Source
+	, uint8 SourceNetIndex
+	, uint8 InNetIndex)
+{
+	uint8 SourceLocalIdx = Source->Inventory.NetToLocal[SourceNetIndex];
+	uint8 LocalIdx = Source->Inventory.NetToLocal[InNetIndex];
+
+	FIFItemData& SourceItem = const_cast<FIFItemData&>(Source->GetSlot(SourceLocalIdx));
+	FIFItemData& LocalItem = Items[LocalIdx];
+
+	LocalItem.Item = DuplicateObject<UIFItemBase>(SourceItem.Item, IC.Get());
+	LocalItem.Item->OnItemAdded(LocalItem.LocalIndex);
+	IC->OnItemAdded(LocalItem.Item, LocalItem.LocalIndex);
+	LocalItem.OnSlotChanged();
+
+}
+
 // Sets default values for this component's properties
 UIFInventoryComponent::UIFInventoryComponent()
 {
@@ -235,20 +288,27 @@ bool UIFInventoryComponent::ServerAddAllItemsFromActor_Validate(class AIFItemAct
 
 
 void UIFInventoryComponent::AddItemFromOtherInventory(class UIFInventoryComponent* Source
-	, uint8 SourceNetIndex
+	, uint8 SourceLocalIndex
 	, uint8 InLocalIndex)
 {
-
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		uint8 SourceNetIndex = Source->Inventory.GetNetIndex(SourceLocalIndex);
+		uint8 NetIndex = Inventory.GetNetIndex(InLocalIndex);
+		ServerAddItemFromOtherInventory(Source, SourceNetIndex, NetIndex);
+		return;
+	}
+	Inventory.AddFromOtherInventory(Source, SourceLocalIndex, InLocalIndex);
 }
 void UIFInventoryComponent::ServerAddItemFromOtherInventory_Implementation(class UIFInventoryComponent* Source
 	, uint8 SourceNetIndex
-	, uint8 InLocalIndex)
+	, uint8 InNetIndex)
 {
 
 }
 bool UIFInventoryComponent::ServerAddItemFromOtherInventory_Validate(class UIFInventoryComponent* Source
 	, uint8 SourceNetIndex
-	, uint8 InLocalIndex)
+	, uint8 InNetIndex)
 {
 	return true;
 }
@@ -288,6 +348,12 @@ void UIFInventoryComponent::BP_AddItemFromClass(TSoftClassPtr<class UIFItemBase>
 {
 	AddItemFromClass(Item, InLocalIndex);
 }
+
+void UIFInventoryComponent::RemoveItem(uint8 InLocalIndex)
+{
+
+}
+
 void UIFInventoryComponent::OnItemLoadedFreeSlot(TSoftClassPtr<class UIFItemBase> InItem)
 {
 	TSubclassOf<UIFItemBase> ItemClass = InItem.Get();
@@ -315,7 +381,7 @@ FSimpleMulticastDelegate& UIFInventoryComponent::GetOnInventoryRead()
 
 FIFOnItemChanged& UIFInventoryComponent::GetItemChangedEvent()
 {
-	return OnItemChanged;
+	return OnItemChangedEvent;
 }
 bool UIFInventoryComponent::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
 {

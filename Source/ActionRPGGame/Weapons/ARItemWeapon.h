@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "Effects/GAGameEffect.h"
+#include "ARItemBase.h"
 #include "GameplayTags.h"
 #include "ARItemWeapon.generated.h"
 
@@ -12,7 +13,7 @@
  * 
  */
 UCLASS(Blueprintable, BlueprintType)
-class ACTIONRPGGAME_API UARItemWeapon : public UObject
+class ACTIONRPGGAME_API UARItemWeapon : public UARItemBase
 {
 	GENERATED_BODY()
 public:
@@ -40,4 +41,8 @@ public:
 
 	void AddMagazineUpgrade(const TSoftClassPtr<class UARMagazineUpgradeItem>& InMagazineUpgrade);
 	void OnMagazineUpdateAdded();
+
+
+	virtual void OnItemAdded(uint8 LocalIndex) override;
+	virtual void OnItemRemoved(uint8 LocalIndex) override;
 };

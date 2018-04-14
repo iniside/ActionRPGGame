@@ -89,10 +89,10 @@ class AARCharacter : public ACharacter, public IAFAbilityInterface, public IOrio
 		class UAFAbilityComponent* Abilities;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UAFEffectsComponent* EffectsComponent;
-
+public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		class UARWeaponPawnManagerComponent* Weapons;
-	
+		class UARWeaponInventoryComponent* Weapons2;
+protected:
 	UPROPERTY(EditAnywhere, Category = "Default Abilities")
 		TArray<FGameplayTag> AbilitiesToGive;
 
@@ -257,9 +257,9 @@ public:
 
 	void OnCameraTransformUpdate(USceneComponent* UpdatedComponent, EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport);
 
-	inline UARWeaponPawnManagerComponent* GetWeapons()
+	inline UARWeaponInventoryComponent* GetWeapons()
 	{
-		return Weapons;
+		return Weapons2;
 	}
 
 	inline UChildActorComponent* GetHolsteredRightWeapon()

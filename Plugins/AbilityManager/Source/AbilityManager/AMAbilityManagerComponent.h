@@ -121,7 +121,7 @@ public:
 	TArray<FGameplayTag> GetInputTag(EAMGroup InGroup, EAMSlot InSlot);
 	void SetInputTag(EAMGroup InGroup, EAMSlot InSlot, TArray<FGameplayTag> InAbilityTag);
 
-	void NativeEquipAbility(const TSoftClassPtr<UGAAbilityBase>& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, AActor* InAvatar = nullptr, bool bBindInput = true);
+	void NativeEquipAbility(TSoftClassPtr<UGAAbilityBase> InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, AActor* InAvatar = nullptr, bool bBindInput = true);
 protected:
 	virtual void OnAbilityReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, const TArray<FGameplayTag>& InAbilityInput,
 		EAMGroup InGroup, EAMSlot InSlot) {};

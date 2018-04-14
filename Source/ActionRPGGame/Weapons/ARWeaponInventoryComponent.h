@@ -7,10 +7,10 @@
 
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
-
+#include "IFInventoryComponent.h"
 #include "AMTypes.h"
 
-#include "ARWeaponPawnManagerComponent.generated.h"
+#include "ARWeaponInventoryComponent.generated.h"
 
 USTRUCT()
 struct FARWeapon
@@ -30,14 +30,17 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Attachment Test")
 		FRotator Rotation;
 	UPROPERTY(EditAnywhere, Category = "Attachment Test")
-		EAMGroup Group;
+		uint8 NetIndex;
 
 	UPROPERTY(EditAnywhere, Category = "Attachment Test")
 		uint8 RepCounter;
 };
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class ACTIONRPGGAME_API UARWeaponPawnManagerComponent : public UActorComponent
+/*
+	Manages currently equipped weapons (holstered and unholstered).
+*/
+UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) )
+class ACTIONRPGGAME_API UARWeaponInventoryComponent : public UIFInventoryComponent
 {
 	GENERATED_BODY()
 protected:
@@ -55,15 +58,17 @@ protected:
 	UPROPERTY()
 		class APawn* POwner;
 
-	TMap<EAMGroup, UChildActorComponent*> GroupToComponent;
+	TMap<uint8, UChildActorComponent*> GroupToComponent;
 	TMap<EAMGroup, UARItemWeapon*> GroupToItem;
 
 
 	TArray<FARWeapon*> WeaponHelper;
 
+	uint8 CurrentWeaponIndex;
+
 public:	
 	// Sets default values for this component's properties
-	UARWeaponPawnManagerComponent();
+	UARWeaponInventoryComponent();
 
 protected:
 	// Called when the game starts
@@ -72,9 +77,9 @@ protected:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
+	virtual void OnItemAdded(UIFItemBase* Item, uint8 LocalIndex) override;
 	
-	void Equip(EAMGroup Group, class UARItemWeapon* InWeapon);
+	void Equip(uint8 WeaponIndex, class UARItemWeapon* InWeapon);
 	void EquipInactive(EAMGroup Group, UARItemWeapon* InWeapon, EAMGroup OldGroup, UARItemWeapon* InOldWeapon);
 	void Holster(EAMGroup Group, class UARItemWeapon* InWeapon);
 	void HolsterActive(EAMGroup Group);
@@ -82,6 +87,39 @@ public:
 	{
 		POwner = InPawn;
 	}
+	void SetAbilityToItem(uint8 InLocalIndex, class UGAAbilityBase* InAbility) {}
+	UFUNCTION(BlueprintCallable)
+		void NextWeapon();
+	UFUNCTION(BlueprintCallable)
+		void PreviousWeapon();
+
+	UFUNCTION(BlueprintCallable)
+		void HolsterWeapon();
+
+protected:
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerNextWeapon(uint8 WeaponIndex);
+	void ServerNextWeapon_Implementation(uint8 WeaponIndex);
+	bool ServerNextWeapon_Validate(uint8 WeaponIndex);
+	UFUNCTION(Client, Reliable)
+		void ClientNextWeapon(uint8 WeaponIndex, bool bPredictionSuccess);
+	void ClientNextWeapon_Implementation(uint8 WeaponIndex, bool bPredictionSuccess);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerPreviousWeapon(uint8 WeaponIndex);
+	void ServerPreviousWeapon_Implementation(uint8 WeaponIndex);
+	bool ServerPreviousWeapon_Validate(uint8 WeaponIndex);
+	UFUNCTION(Client, Reliable)
+		void ClientPreviousWeapon(uint8 WeaponIndex, bool bPredictionSuccess);
+	void ClientPreviousWeapon_Implementation(uint8 WeaponIndex, bool bPredictionSuccess);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerHolsterWeapon(uint8 WeaponIndex);
+	void ServerHolsterWeapon_Implementation(uint8 WeaponIndex);
+	bool ServerHolsterWeapon_Validate(uint8 WeaponIndex);
+
+	UARItemWeapon* FindNextValid();
+	UARItemWeapon* FindPreviousValid();
 
 protected:
 	void SetWeapon(const FARWeapon& InWeapon, UChildActorComponent* Component);

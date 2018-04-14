@@ -88,7 +88,7 @@ void UAMAbilityManagerComponent::SetAbilityTag(EAMGroup InGroup, EAMSlot InSlot,
 {
 	AbilityTagsSet[AMEnumToInt<EAMGroup>(InGroup)][AMEnumToInt<EAMSlot>(InSlot)] = InAbilityTag;
 }
-void UAMAbilityManagerComponent::NativeEquipAbility(const TSoftClassPtr<UGAAbilityBase>& InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, AActor* InAvatar, bool bBindInput)
+void UAMAbilityManagerComponent::NativeEquipAbility(TSoftClassPtr<UGAAbilityBase> InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, AActor* InAvatar, bool bBindInput)
 {
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
 	if (!MyPC)

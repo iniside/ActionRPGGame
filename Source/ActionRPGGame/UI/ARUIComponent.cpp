@@ -3,6 +3,7 @@
 #include "ARUIComponent.h"
 #include "Blueprint/UserWidget.h"
 
+#include "ARCharacter.h"
 #include "ARPlayerController.h"
 #include "Inventory/ARInventoryManagerWidget.h"
 
@@ -61,6 +62,17 @@ void UARUIComponent::BeginPlay()
 			InventoryWidget->SetInventory(MyPC->MainInventory);
 			
 			InventoryWidget->AddToViewport();
+		}
+
+		if (WeaponInventoryWidgetClass)
+		{
+			WeaponInventoryWidget = CreateWidget<UIFItemContainerWidget>(MyPC, WeaponInventoryWidgetClass);
+			if (AARCharacter* Character = Cast<AARCharacter>(MyPC->GetPawn()))
+			{
+				WeaponInventoryWidget->SetInventory(Character->Weapons2);
+
+				WeaponInventoryWidget->AddToViewport();
+			}
 		}
 
 		//DrawWidget = SNew(SHorizontalBox)

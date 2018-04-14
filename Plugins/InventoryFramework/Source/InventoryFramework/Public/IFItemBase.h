@@ -27,13 +27,13 @@ public:
 	/*
 		Called after item has been added to inventory.
 	*/
-	virtual void OnItemAdded() {};
+	virtual void OnItemAdded(uint8 LocalIndex) {};
 	/*
 		Called when item changed slots within THE SAME inventory;
 	*/
-	virtual void OnItemChanged() {};
+	virtual void OnItemChanged(uint8 LocalIndex) {};
 	/*
 		Called after item has been removed from inventory;
 	*/
-	virtual void OnItemRemoved() {};
+	virtual void OnItemRemoved(uint8 LocalIndex) {};
 };

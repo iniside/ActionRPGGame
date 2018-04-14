@@ -79,6 +79,34 @@ void UARWeaponManagerComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 
 	// ...
 }
+void UARWeaponManagerComponent::EquipWeapon(TSoftClassPtr<UGAAbilityBase> WeaponAbility)
+{
+	if (!WeaponAbility.IsValid())
+	{
+		return;
+	}
+
+	TArray<FGameplayTag> WeaponInput = GetInputTag(EAMGroup::Group001, EAMSlot::Slot001);
+	UAFAbilityComponent* AbilityComp = GetAbilityComponent();
+	if (!AbilityComp)
+		return;
+
+	UGAAbilityBase* Ability = Cast<UGAAbilityBase>(AbilityComp->BP_GetAbilityByTag(WeaponAbility));
+	AARCharacter* Character = Cast<AARCharacter>(POwner);
+	
+	if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
+	{
+		FAFOnAbilityReady ReadyDelegate = FAFOnAbilityReady::CreateUObject(this, &UARWeaponManagerComponent::OnWeaponInputRead,
+			WeaponAbility, WeaponInput);
+
+		AbilityComp->SetAbilityToAction(WeaponAbility, WeaponInput, ReadyDelegate);
+	}
+	else
+	{
+		AbilityComp->SetAbilityToAction(WeaponAbility, WeaponInput, FAFOnAbilityReady());
+		ExecuteAbilityReadyEvent(WeaponAbility);
+	}
+}
 UGAAbilityBase* UARWeaponManagerComponent::GetCurrentWeapon()
 {
 	return GetAbility(ActiveGroup, EAMSlot::Slot001);
@@ -121,7 +149,6 @@ void UARWeaponManagerComponent::AddWeaponToManager(EAMGroup Group, EAMSlot Slot,
 			return;
 
 		Character->GetWeapons()->Holster(Group, Item);
-		EquipedWeapons[AMEnumToInt<EAMGroup>(Group)] = Item;
 		ActiveGroup = EAMGroup::Group005;
 	}
 
@@ -135,176 +162,7 @@ bool UARWeaponManagerComponent::ServerAddWeaponToManager_Validate(EAMGroup Group
 	return true;
 }
 
-void UARWeaponManagerComponent::NextWeapon()
-{
-	EAMGroup OldGroup = ActiveGroup;
-	TSoftClassPtr<UGAAbilityBase> CurrentWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
-	ENetMode NetMode = GetOwner()->GetNetMode();
-	if (NetMode == ENetMode::NM_Client
-		|| NetMode == ENetMode::NM_Standalone)
-	{
-		int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
-		CurrentIndex++;
-		if (CurrentIndex > MAX_WEAPONS)
-		{
-			ActiveGroup = EAMGroup::Group001;
-		}
-		else
-		{
-			ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
-		}
 
-	}
-
-	TSoftClassPtr<UGAAbilityBase> NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
-	if (!NextWeaponAbility.IsValid())
-	{
-		NextWeaponAbility = FindNextValid();
-	}
-	if (GetOwnerRole() < ENetRole::ROLE_Authority)
-	{
-		ServerNextWeapon(AMEnumToInt<EAMGroup>(ActiveGroup));
-	}
-
-	EquipWeapon(CurrentWeaponAbility, NextWeaponAbility, OldGroup);
-}
-void UARWeaponManagerComponent::PreviousWeapon()
-{
-	EAMGroup OldGroup = ActiveGroup;
-	TSoftClassPtr<UGAAbilityBase> CurrentWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
-	int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
-	CurrentIndex--;
-	ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
-	if (CurrentIndex < 0)
-	{
-		ActiveGroup = AMIntToEnum<EAMGroup>(Groups.Num() - 1);
-	}
-	TSoftClassPtr<UGAAbilityBase> NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
-	if (!NextWeaponAbility.IsValid())
-	{
-		NextWeaponAbility = FindPreviousValid();
-	}
-	if (GetOwnerRole() < ENetRole::ROLE_Authority)
-	{
-		ServerPreviousWeapon(static_cast<int32>(ActiveGroup));
-	}
-	
-	EquipWeapon(CurrentWeaponAbility, NextWeaponAbility, OldGroup);
-}
-
-void UARWeaponManagerComponent::HolsterWeapon()
-{
-	ActiveGroup = EAMGroup::Group005;
-	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
-	{
-		Character->GetWeapons()->HolsterActive(ActiveGroup);
-	}
-	if (GetOwnerRole() < ENetRole::ROLE_Authority)
-	{
-		ServerHolsterWeapon(static_cast<int32>(ActiveGroup));
-	}
-}
-
-void UARWeaponManagerComponent::ServerNextWeapon_Implementation(int32 WeaponIndex)
-{
-	EAMGroup OldGroup = ActiveGroup;
-	TSoftClassPtr<UGAAbilityBase> CurrentWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
-
-	int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
-	if(WeaponIndex > CurrentIndex)
-		CurrentIndex++;
-
-	if (CurrentIndex > MAX_WEAPONS)
-	{
-		ActiveGroup = EAMGroup::Group001;
-	}
-	else
-	{
-		ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
-	}
-
-	TSoftClassPtr<UGAAbilityBase> NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
-	if (!NextWeaponAbility.IsValid())
-	{
-		NextWeaponAbility = FindNextValid();
-	}
-	if (WeaponIndex == AMEnumToInt<EAMGroup>(ActiveGroup))
-	{
-		ClientNextWeapon(AMEnumToInt<EAMGroup>(ActiveGroup), true);
-	}
-	else
-	{
-		ClientNextWeapon(AMEnumToInt<EAMGroup>(ActiveGroup), false);
-	}
-
-	EquipWeapon(CurrentWeaponAbility, NextWeaponAbility, OldGroup);
-}
-bool UARWeaponManagerComponent::ServerNextWeapon_Validate(int32 WeaponIndex)
-{
-	return true;
-}
-void UARWeaponManagerComponent::ClientNextWeapon_Implementation(int32 WeaponIndex, bool bPredictionSuccess)
-{
-	if (bPredictionSuccess)
-		return;
-}
-
-void UARWeaponManagerComponent::ServerPreviousWeapon_Implementation(int32 WeaponIndex)
-{
-	int32 CurrentIndex = AMEnumToInt<EAMGroup>(ActiveGroup);
-	if(CurrentIndex > WeaponIndex)
-		CurrentIndex--;
-
-	if (CurrentIndex < 0)
-	{
-		ActiveGroup = AMIntToEnum<EAMGroup>(MAX_WEAPONS - 1);
-	}
-	else
-	{
-		ActiveGroup = AMIntToEnum<EAMGroup>(CurrentIndex);
-	}
-
-	TSoftClassPtr<UGAAbilityBase> NextWeaponAbility = GetAbilityTag(ActiveGroup, EAMSlot::Slot001);
-	if (!NextWeaponAbility.IsValid())
-	{
-		NextWeaponAbility = FindPreviousValid();
-	}
-	//so Server index is different. Client might tried to cheat
-	//or sometrhing. We will override it.
-	//situation where client can chage multiple weapons within second
-	//should not have place, as there is animation and/or internal cooldown on weapon change.
-	//since it will be done trough ability.
-	if (ActiveGroup != AMIntToEnum<EAMGroup>(WeaponIndex))
-	{
-		ClientNextGroup(AMEnumToInt<EAMGroup>(ActiveGroup), false);
-	}
-	else
-	{
-		ClientNextGroup(AMEnumToInt<EAMGroup>(ActiveGroup), true);
-	}
-}
-bool UARWeaponManagerComponent::ServerPreviousWeapon_Validate(int32 WeaponIndex)
-{
-	return true;
-}
-void UARWeaponManagerComponent::ClientPreviousWeapon_Implementation(int32 WeaponIndex, bool bPredictionSuccess)
-{
-	if (bPredictionSuccess)
-		return;
-}
-
-void UARWeaponManagerComponent::ServerHolsterWeapon_Implementation(int32 WeaponIndex)
-{
-	ActiveGroup = EAMGroup::Group005;
-	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
-	{
-		Character->GetWeapons()->HolsterActive(ActiveGroup);
-	}
-}
-bool UARWeaponManagerComponent::ServerHolsterWeapon_Validate(int32 WeaponIndex)
-{
-	return true;
-}
 
 void UARWeaponManagerComponent::OnWeaponInputRead(TSoftClassPtr<UGAAbilityBase> WeaponAbilityTag, TArray<FGameplayTag> InInputTags)
 {
@@ -313,111 +171,17 @@ void UARWeaponManagerComponent::OnWeaponInputRead(TSoftClassPtr<UGAAbilityBase> 
 	//AbilityComp->SetAbilityToAction(NextWeaponAbility, WeaponInput, FAFOnAbilityReady());
 }
 
-void UARWeaponManagerComponent::EquipWeapon(const TSoftClassPtr<UGAAbilityBase>& PreviousWeaponTag, const TSoftClassPtr<UGAAbilityBase>& NextWeaponTag, EAMGroup OldGroup)
-{
-	if (!NextWeaponTag.IsValid())
-	{
-		return;
-	}
-	TArray<FGameplayTag> WeaponInput = GetInputTag(EAMGroup::Group001, EAMSlot::Slot001);
-	UAFAbilityComponent* AbilityComp = GetAbilityComponent();
-	if (!AbilityComp)
-		return;
 
-	UGAAbilityBase* Ability = Cast<UGAAbilityBase>(AbilityComp->BP_GetAbilityByTag(NextWeaponTag));
-	AARCharacter* Character = Cast<AARCharacter>(POwner);
-	if (Character)
-	{
-		Character->GetWeapons()->EquipInactive(ActiveGroup, EquipedWeapons[AMEnumToInt<EAMGroup>(ActiveGroup)]	
-			, OldGroup
-			, EquipedWeapons[AMEnumToInt<EAMGroup>(OldGroup)]);
-	}
-	if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
-	{
-		FAFOnAbilityReady ReadyDelegate = FAFOnAbilityReady::CreateUObject(this, &UARWeaponManagerComponent::OnWeaponInputRead,
-			NextWeaponTag, WeaponInput);
-
-		AbilityComp->SetAbilityToAction(NextWeaponTag, WeaponInput, ReadyDelegate);
-	}
-	else
-	{
-		AbilityComp->SetAbilityToAction(NextWeaponTag, WeaponInput, FAFOnAbilityReady());
-		ExecuteAbilityReadyEvent(NextWeaponTag);
-	}
-}
-TSoftClassPtr<UGAAbilityBase> UARWeaponManagerComponent::FindNextValid()
-{
-	TSoftClassPtr<UGAAbilityBase> WeaponAbilityTag;
-
-	int32 Idx = AMEnumToInt<EAMGroup>(ActiveGroup);
-	while (!WeaponAbilityTag.IsValid())
-	{
-		Idx++;
-		if (Idx > MAX_WEAPONS - 1)
-		{
-			Idx = 0;
-		}
-		WeaponAbilityTag = GetAbilityTag(AMIntToEnum<EAMGroup>(Idx), EAMSlot::Slot001);
-
-		//no weapon at first index, just assume there is nothing equipped.
-		if ((Idx == 0) && !WeaponAbilityTag.IsValid())
-		{
-			SelectGroup(EAMGroup::Group005);
-			break;
-		}
-	}
-	if (WeaponAbilityTag.IsValid())
-	{
-		SelectGroup(AMIntToEnum<EAMGroup>(Idx));
-	}
-	return WeaponAbilityTag;
-}
-
-TSoftClassPtr<UGAAbilityBase> UARWeaponManagerComponent::FindPreviousValid()
-{
-	TSoftClassPtr<UGAAbilityBase> WeaponAbilityTag;
-	int32 Idx = AMEnumToInt<EAMGroup>(ActiveGroup);
-	while (!WeaponAbilityTag.IsValid())
-	{
-		Idx--;
-		if (Idx < 0)
-		{
-			Idx = MAX_WEAPONS - 1;
-		}
-
-		//again no ability for weapon.
-		if ((Idx == (MAX_WEAPONS - 1) ) && !WeaponAbilityTag.IsValid())
-		{
-			SelectGroup(EAMGroup::Group005);
-			break;
-		}
-		WeaponAbilityTag = GetAbilityTag(AMIntToEnum<EAMGroup>(Idx), EAMSlot::Slot001);
-	}
-	if (WeaponAbilityTag.IsValid())
-	{
-		SelectGroup(AMIntToEnum<EAMGroup>(Idx));
-	}
-	return WeaponAbilityTag;
-}
-
-//void UARWeaponManagerComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
-//{
-//	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-//
-//	DOREPLIFETIME(UARWeaponManagerComponent, EquippedWeapons);
-//}
-
-bool UARWeaponManagerComponent::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
-{
-	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
-	
-	return WroteSomething;
-}
 void UARWeaponManagerComponent::OnAbilityReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag
 	, const TArray<FGameplayTag>& InAbilityInput
 	, EAMGroup InGroup, EAMSlot InSlot)
 {
-	EquipedWeapons[AMEnumToInt<EAMGroup>(InGroup)]->AbilityInstance = Cast<UARWeaponAbilityBase>(GetAbility(InGroup, InSlot));
+	AARCharacter* Character = Cast<AARCharacter>(POwner);
+	if (Character)
+	{
+		UGAAbilityBase* AbilityInstance = GetAbility(InGroup, InSlot);
+		Character->Weapons2->SetAbilityToItem(static_cast<uint8>(InGroup), AbilityInstance);
+	}
 }
 
 

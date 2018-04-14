@@ -11,6 +11,14 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FIFOnItemChanged, uint8, uint8);
 DECLARE_MULTICAST_DELEGATE(FIFOnInventoryChanged);
 DECLARE_DELEGATE_TwoParams(FIFOnItemChangedEvent, uint8, uint8);
 
+UENUM()
+enum class EIFChangeType : uint8
+{
+	Added,
+	Updated,
+	Removed
+};
+
 USTRUCT(BlueprintType)
 struct INVENTORYFRAMEWORK_API FIFItemData : public FFastArraySerializerItem
 {
@@ -40,7 +48,17 @@ protected:
 
 	/* Is slot currently available */
 	UPROPERTY(BlueprintReadOnly)
-		bool bAvailable;
+		uint8 bAvailable:1;
+
+	/* 
+		Do Not set Item to nullptr instead set this item to dirty, to indicate that items has been "removed", so we have a Chance
+		to call OnItemRemoved() on item on clients.
+	*/
+	UPROPERTY(BlueprintReadOnly)
+		uint8 bDirty : 1;
+
+	UPROPERTY()
+		EIFChangeType ChangeType;
 
 	FIFOnItemChangedEvent OnItemChanged;
 public:
@@ -135,6 +153,10 @@ protected:
 	void AddItem(class UIFItemBase* InItem, uint8 InNetIndex);
 	void AddItemToFreeSlot(class UIFItemBase* InItem);
 	void MoveItem(uint8 NewPosition, uint8 OldPosition);
+
+	void AddFromOtherInventory(class UIFInventoryComponent* Source
+		, uint8 SourceNetIndex
+		, uint8 InNetIndex);
 public:
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
 	{
@@ -161,7 +183,7 @@ protected:
 	UPROPERTY(Replicated)
 		FIFItemContainer Inventory;
 
-	FIFOnItemChanged OnItemChanged;
+	FIFOnItemChanged OnItemChangedEvent;
 	FIFOnInventoryChanged OnInventoryChanged;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
@@ -197,13 +219,13 @@ public:
 	{
 		return Inventory.Items[Idx];
 	}
-	
-	inline const UIFItemBase* GetItem(uint8 InLocalIndex)
+
+	inline UIFItemBase* GetItem(uint8 InLocalIndex)
 	{
 		return Inventory.Items[InLocalIndex].Item;
 	}
 	template<typename T>
-	const T* GetItem(uint8 InLocalIndex)
+	T* GetItem(uint8 InLocalIndex)
 	{
 		return Cast<T>(Inventory.Items[InLocalIndex].Item);
 	}
@@ -231,6 +253,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "InventoryFramework")
 		void BP_AddAllItemsFromActor(class AIFItemActorBase* Source);
 
+
+	/*
+		Moves item to this inventory from the source Inventory. If item already exist it will be swapped (if possible).
+	*/
 	void AddItemFromOtherInventory(class UIFInventoryComponent* Source
 		, uint8 SourceNetIndex
 		, uint8 InLocalIndex);
@@ -240,10 +266,10 @@ public:
 			, uint8 InLocalIndex);
 	void ServerAddItemFromOtherInventory_Implementation(class UIFInventoryComponent* Source
 		, uint8 SourceNetIndex
-		, uint8 InLocalIndex);
+		, uint8 InNetIndex);
 	bool ServerAddItemFromOtherInventory_Validate(class UIFInventoryComponent* Source
 		, uint8 SourceNetIndex
-		, uint8 InLocalIndex);
+		, uint8 InNetIndex);
 
 	/* Adds item from class. Realistically you should never call it on client. */
 	void AddItemFromClass(TSoftClassPtr<class UIFItemBase> Item, uint8 InLocalIndex);
@@ -255,6 +281,12 @@ public:
 	bool ServerAddItemFromClass_Validate(FSoftObjectPath Item, uint8 InNetIndex);
 	UFUNCTION(BlueprintCallable, Category = "InventoryFramework")
 		void BP_AddItemFromClass(TSoftClassPtr<class UIFItemBase> Item, uint8 InLocalIndex);
+
+	virtual void OnItemAdded(UIFItemBase* Item, uint8 LocalIndex) {};
+	virtual void OnItemChanged(UIFItemBase* Item, uint8 LocalIndex) {};
+
+	void RemoveItem(uint8 InLocalIndex);
+
 
 	UFUNCTION()
 		void OnItemLoadedFreeSlot(TSoftClassPtr<class UIFItemBase> InItem);

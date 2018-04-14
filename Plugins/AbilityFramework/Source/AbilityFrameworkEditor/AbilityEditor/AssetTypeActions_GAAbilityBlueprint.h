@@ -3,7 +3,7 @@
 #include "Toolkits/IToolkitHost.h"
 #include "AssetTypeCategories.h"
 //#include "Developer/AssetTools/Private/AssetTypeActions/AssetTypeActions_ClassTypeBase.h"
-#include "Developer/AssetTools/Private/AssetTypeActions/AssetTypeActions_Blueprint.h"
+#include "Developer/AssetTools/Public/AssetTypeActions/AssetTypeActions_Blueprint.h"
 
 class UFactory;
 

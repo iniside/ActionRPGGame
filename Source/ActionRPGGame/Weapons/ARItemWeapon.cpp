@@ -13,3 +13,11 @@ void UARItemWeapon::OnMagazineUpdateAdded()
 {
 
 }
+void UARItemWeapon::OnItemAdded(uint8 LocalIndex)
+{
+
+}
+void UARItemWeapon::OnItemRemoved(uint8 LocalIndex)
+{
+
+}
