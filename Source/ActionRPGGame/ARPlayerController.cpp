@@ -122,7 +122,6 @@ void AARPlayerController::InputShowHideAbilityManager()
 }
 void AARPlayerController::InputShowHideInventory()
 {
-	WeaponManager->ShowHideAbilityManager();
 }
 void AARPlayerController::OnInputAbilityReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, FGameplayTag InInputTag)
 {

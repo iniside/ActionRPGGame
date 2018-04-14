@@ -79,14 +79,12 @@ public:
 	virtual void OnItemAdded(UIFItemBase* Item, uint8 LocalIndex) override;
 	
 	void Equip(uint8 WeaponIndex, class UARItemWeapon* InWeapon);
-	void EquipInactive(EAMGroup Group, UARItemWeapon* InWeapon, EAMGroup OldGroup, UARItemWeapon* InOldWeapon);
 	void Holster(EAMGroup Group, class UARItemWeapon* InWeapon);
-	void HolsterActive(EAMGroup Group);
 	inline void SetPOwner(APawn* InPawn)
 	{
 		POwner = InPawn;
 	}
-	void SetAbilityToItem(uint8 InLocalIndex, class UGAAbilityBase* InAbility) {}
+	void SetAbilityToItem(uint8 InLocalIndex, class UGAAbilityBase* InAbility);
 	UFUNCTION(BlueprintCallable)
 		void NextWeapon();
 	UFUNCTION(BlueprintCallable)

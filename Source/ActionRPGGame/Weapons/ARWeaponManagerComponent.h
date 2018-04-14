@@ -53,19 +53,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Attachment Config")
 		FName EquipSocketName;
-	UPROPERTY(EditAnywhere, Category = "Attachment Config")
-		TArray<FARWeaponAttachment> WeaponAttachment;
-
-	//Widgets
-	UPROPERTY(EditAnywhere, Category = "Widgets")
-		TSubclassOf<class UARWeaponListWidget> WeaponListClass;
-
-
-	UPROPERTY(BlueprintReadOnly, Category = "ActionRPGGame|Weapon|Widgets")
-		UARWeaponListWidget* WeaponListWidget;
-
-	UPROPERTY(EditAnywhere, Category = "Widgets")
-		TSubclassOf<class UARWeaponListSlotDragWidget> DragSlotClass;
 
 	UPROPERTY(EditAnywhere, Category = "Widgets")
 		TSubclassOf<class UARWeaponUpgradeListWidget> MagazineUpgradeListClass;
@@ -79,7 +66,6 @@ public:
 	//maybe not reference directly ?
 	TWeakObjectPtr<class UARItemWeapon> WeaponToModify;
 
-	FDWWWindowHandle WeaponListWindowHandle;
 
 public:	
 	UPROPERTY()
@@ -117,8 +103,4 @@ public:
 protected:
 	virtual void OnAbilityReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, const TArray<FGameplayTag>& InAbilityInput,
 		EAMGroup InGroup, EAMSlot InSlot) override;
-
-
-	public:
-	void ShowHideAbilityManager();
 };

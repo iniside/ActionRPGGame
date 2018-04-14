@@ -6,7 +6,6 @@
 #include "ARWeaponAbilityBase.h"
 #include "ARItemWeapon.h"
 #include "ARCharacter.h"
-#include "UI/Weapons/ARWeaponListWidget.h"
 #include "UI/Weapons/ARWeaponUpgradeListWidget.h"
 
 #include "DWBPFunctionLibrary.h"
@@ -40,34 +39,6 @@ void UARWeaponManagerComponent::BeginPlay()
 	if (!AbilityComp)
 		return;
 	
-	if (WeaponListClass)
-	{
-		WeaponListWidget = CreateWidget<UARWeaponListWidget>(MyPC, WeaponListClass);
-		WeaponListWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		WeaponListWidget->ARPC = Cast<AARPlayerController>(GetOwner());
-		WeaponListWidget->WeaponManager = this;
-		int32 Idx = 0;
-		for (const TSubclassOf<class UARItemWeapon>& Weapon : WeaponClasses)
-		{
-			WeaponListWidget->AddItem(DragSlotClass, Idx);
-			Idx++;
-		}
-
-		WeaponListWindowHandle = UDWBPFunctionLibrary::CreateWindowWithContent(WeaponListWidget, "Weapon List");
-		WeaponListWindowHandle.Window.Pin()->bDestroyOnClose = false;
-		WeaponListWindowHandle.Window.Pin()->SetVisibility(EVisibility::Collapsed);
-	}
-
-	if (MagazineUpgradeListClass)
-	{
-		MagazineUpgradeListWidget = CreateWidget<UARWeaponUpgradeListWidget>(MyPC, MagazineUpgradeListClass);
-		MagazineUpgradeListWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		//MagazineUpgradeListWidget->ARPC = Cast<AARPlayerController>(GetOwner());
-		MagazineUpgradeListWidget->WeaponManager = this;
-		MagazineUpgradeListWidget->AddToViewport();
-	}
-
-	//POwner = MyPC->GetPawn();
 }
 
 
@@ -179,23 +150,5 @@ void UARWeaponManagerComponent::OnAbilityReady(TSoftClassPtr<UGAAbilityBase> InA
 	{
 		UGAAbilityBase* AbilityInstance = GetAbility(InGroup, InSlot);
 		Character->Weapons2->SetAbilityToItem(static_cast<uint8>(InGroup), AbilityInstance);
-	}
-}
-
-
-void UARWeaponManagerComponent::ShowHideAbilityManager()
-{
-	if (!WeaponListWidget)
-		return;
-
-	EVisibility Visibility = WeaponListWindowHandle.Window.Pin()->GetVisibility();
-
-	if (Visibility == EVisibility::Collapsed)
-	{
-		WeaponListWindowHandle.Window.Pin()->SetVisibility(EVisibility::SelfHitTestInvisible);
-	}
-	else if (Visibility == EVisibility::SelfHitTestInvisible)
-	{
-		WeaponListWindowHandle.Window.Pin()->SetVisibility(EVisibility::Collapsed);
 	}
 }
