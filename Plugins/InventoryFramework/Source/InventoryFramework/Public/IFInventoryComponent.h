@@ -325,7 +325,7 @@ public:
 
 	virtual void OnItemAdded(UIFItemBase* Item, uint8 LocalIndex) {};
 	virtual void OnItemChanged(UIFItemBase* Item, uint8 LocalIndex) {};
-
+	virtual void OnItemRemoved(uint8 LocalIndex) {};
 	void RemoveItem(uint8 InLocalIndex);
 
 

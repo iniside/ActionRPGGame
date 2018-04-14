@@ -57,9 +57,11 @@ void FIFItemData::PostReplicatedChange(const struct FIFItemContainer& InArraySer
 			break;
 		case EIFChangeType::Updated:
 			Item->OnItemChanged(LocalIndex);
+			InArraySerializer.IC->OnItemChanged(Item, LocalIndex);
 			break;
 		case EIFChangeType::Removed:
 			Item->OnItemRemoved(LocalIndex);
+			InArraySerializer.IC->OnItemRemoved(LocalIndex);
 			break;
 		default:
 			break;
@@ -136,12 +138,20 @@ void FIFItemContainer::MoveItem(uint8 NewPosition, uint8 OldPosition)
 	if (NewItem.Item)
 	{
 		NewItem.Item->OnItemChanged(NewItem.LocalIndex);
+		IC->OnItemChanged(NewItem.Item, NewItem.LocalIndex);
 		NewItem.ChangeType = EIFChangeType::Updated;
 	}
 	if (OldItem.Item)
 	{
 		OldItem.Item->OnItemChanged(OldItem.LocalIndex);
+		IC->OnItemChanged(OldItem.Item, OldItem.LocalIndex);
 		OldItem.ChangeType = EIFChangeType::Updated;
+	}
+	else
+	{
+		OldItem.ChangeType = EIFChangeType::Removed;
+		IC->OnItemRemoved(OldItem.LocalIndex);
+		OldItem.Counter++;
 	}
 
 	MarkItemDirty(NewItem);
@@ -158,6 +168,12 @@ void FIFItemContainer::AddFromOtherInventory(class UIFInventoryComponent* Source
 	FIFItemData& SourceItem = const_cast<FIFItemData&>(Source->GetSlot(SourceLocalIdx));
 	FIFItemData& LocalItem = Items[LocalIdx];
 
+	UIFItemBase* LocalOld = nullptr;
+	if (LocalItem.Item)
+	{
+		LocalOld = LocalItem.Item;
+	}
+
 	LocalItem.Item = DuplicateObject<UIFItemBase>(SourceItem.Item, IC.Get());
 	LocalItem.Item->OnItemAdded(LocalItem.LocalIndex);
 	LocalItem.ChangeType = EIFChangeType::Added;
@@ -168,6 +184,20 @@ void FIFItemContainer::AddFromOtherInventory(class UIFInventoryComponent* Source
 
 	SourceItem.Item->MarkPendingKill();
 	SourceItem.Item = nullptr;
+	if (LocalOld)
+	{
+		SourceItem.Item = DuplicateObject<UIFItemBase>(LocalOld, Source);
+		LocalOld->MarkPendingKill();
+		LocalOld = nullptr;
+		SourceItem.ChangeType = EIFChangeType::Added;
+		SourceItem.Counter++;
+	}
+	else
+	{
+		SourceItem.ChangeType = EIFChangeType::Removed;
+		SourceItem.Counter++;
+		Source->OnItemRemoved(SourceItem.LocalIndex);
+	}
 	SourceItem.OnSlotChanged();
 
 	MarkItemDirty(LocalItem);

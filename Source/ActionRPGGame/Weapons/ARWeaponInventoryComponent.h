@@ -78,8 +78,9 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void OnItemAdded(UIFItemBase* Item, uint8 LocalIndex) override;
-	
+	virtual void OnItemRemoved(uint8 LocalIndex) override;
 	void Equip(uint8 WeaponIndex, class UARItemWeapon* InWeapon);
+	void Unequip(uint8 WeaponIndex);
 	void Holster(EAMGroup Group, class UARItemWeapon* InWeapon);
 	inline void SetPOwner(APawn* InPawn)
 	{

@@ -57,7 +57,7 @@ void UARWeaponInventoryComponent::SetWeapon(const FARWeapon& InWeapon, UChildAct
 {
 	if (InWeapon.Weapon.IsValid() || InWeapon.Weapon.IsNull())
 	{
-		Component->SetChildActorClass(InWeapon.Weapon.LoadSynchronous());
+		Component->SetChildActorClass(InWeapon.Weapon.Get());
 		Component->SetRelativeLocation(FVector(0, 0, 0));
 		Component->SetRelativeRotation(FRotator(0, 0, 0));
 
@@ -89,6 +89,23 @@ void UARWeaponInventoryComponent::OnItemAdded(UIFItemBase* Item, uint8 LocalInde
 			PC->WeaponManager->NativeEquipAbility(dd, AMIntToEnum<EAMGroup>(LocalIndex), EAMSlot::Slot001);
 			
 		}
+	}
+}
+void UARWeaponInventoryComponent::OnItemRemoved(uint8 LocalIndex)
+{
+	WeaponHelper[LocalIndex]->Weapon.Reset();
+	WeaponHelper[LocalIndex]->RepCounter++;
+	SetWeapon(*WeaponHelper[LocalIndex], GroupToComponent[LocalIndex]);
+	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+	{
+		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
+		{
+			//remove ability.
+		}
+	}
+	if (LocalIndex == CurrentWeaponIndex)
+	{
+		Unequip(LocalIndex);
 	}
 }
 
@@ -124,7 +141,26 @@ void UARWeaponInventoryComponent::Equip(uint8 WeaponIndex, class UARItemWeapon* 
 		}
 	}
 }
+void UARWeaponInventoryComponent::Unequip(uint8 WeaponIndex)
+{
+	MainHandWeapon.Weapon.Reset();
+	MainHandWeapon.Position = FVector(0,0,0);
+	MainHandWeapon.Rotation = FRotator(0,0,0);
+	MainHandWeapon.NetIndex = 0;
+	MainHandWeapon.RepCounter++;
+	WeaponHelper[WeaponIndex]->Weapon.Reset();
+	WeaponHelper[WeaponIndex]->RepCounter++;
 
+	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+	{
+		SetWeapon(MainHandWeapon, Character->GetEquipedMainWeapon());
+		GroupToComponent[WeaponIndex]->SetChildActorClass(nullptr);
+		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
+		{
+			//remove ability (bindings ?)
+		}
+	}
+}
 void UARWeaponInventoryComponent::Holster(EAMGroup Group, class UARItemWeapon* InWeapon)
 {
 
