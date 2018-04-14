@@ -55,25 +55,6 @@ void UARUIComponent::BeginPlay()
 			HUDWidget = CreateWidget<UARHUDWidget>(MyPC, HUDWidgetClass);
 			HUDWidget->AddToViewport();
 		}
-
-		
-
-		//DrawWidget = SNew(SHorizontalBox)
-		//			+SHorizontalBox::Slot()
-		//			.HAlign(EHorizontalAlignment::HAlign_Fill)
-		//			.VAlign(EVerticalAlignment::VAlign_Center)
-		//			[
-		//				SNew(SVerticalBox)
-		//				+SVerticalBox::Slot()
-		//				.HAlign(EHorizontalAlignment::HAlign_Center)
-		//				.VAlign(EVerticalAlignment::VAlign_Fill)
-		//				[
-		//					SAssignNew(CrosshairWidget2, SARDrawTestWidget)
-		//				]
-		//			];
-
-		//CrosshairWidget2->Brush = &Brush;
-		//GEngine->GameViewport->AddViewportWidgetContent(DrawWidget.ToSharedRef());
 	}
 }
 
@@ -99,15 +80,6 @@ void UARUIComponent::InitializeInventory()
 			InventoryWidget->CreateInventory();
 			InventoryWidget->AddToViewport();
 		}
-
-		/*if (WeaponInventoryWidgetClass)
-		{
-			WeaponInventoryWidget = CreateWidget<UIFItemContainerWidget>(MyPC, WeaponInventoryWidgetClass);
-			
-			WeaponInventoryWidget->SetInventory(MyPC->WeaponInventory);
-			WeaponInventoryWidget->CreateInventory();
-			WeaponInventoryWidget->AddToViewport();	
-		}*/
 	}
 }
 void UARUIComponent::InitializeWeaponInventory()

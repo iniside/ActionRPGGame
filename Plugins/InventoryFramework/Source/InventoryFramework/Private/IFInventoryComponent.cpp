@@ -165,6 +165,7 @@ void FIFItemContainer::AddFromOtherInventory(class UIFInventoryComponent* Source
 
 	IC->OnItemAdded(LocalItem.Item, LocalItem.LocalIndex);
 	LocalItem.OnSlotChanged();
+
 	SourceItem.Item->MarkPendingKill();
 	SourceItem.Item = nullptr;
 	SourceItem.OnSlotChanged();
@@ -200,7 +201,6 @@ void UIFInventoryComponent::BeginPlay()
 	Inventory.IC = this;
 	Super::BeginPlay();
 	
-
 	/*
 		Further steps
 		2. Load Properties from external data source (JSON);
