@@ -61,7 +61,6 @@ protected:
 	TMap<uint8, UChildActorComponent*> GroupToComponent;
 	TMap<EAMGroup, UARItemWeapon*> GroupToItem;
 
-
 	TArray<FARWeapon*> WeaponHelper;
 
 	uint8 CurrentWeaponIndex;

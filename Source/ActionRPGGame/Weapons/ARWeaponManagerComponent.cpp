@@ -28,7 +28,6 @@ UARWeaponManagerComponent::UARWeaponManagerComponent()
 void UARWeaponManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	EquipedWeapons.SetNum(MAX_WEAPONS+1);
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
 	if (!MyPC)
 		return;
@@ -128,7 +127,6 @@ void UARWeaponManagerComponent::AddWeaponToManager(EAMGroup Group, EAMSlot Slot,
 	if (Character)
 	{
 		Character->GetWeapons()->Holster(Group, Item);
-		EquipedWeapons[AMEnumToInt<EAMGroup>(Group)] = Item;
 		ActiveGroup = EAMGroup::Group005;
 	}
 	NativeEquipAbility(WeaponClasses[Idx].GetDefaultObject()->Ability,

@@ -58,7 +58,7 @@ void UARWeaponInventoryComponent::SetWeapon(const FARWeapon& InWeapon, UChildAct
 {
 	if (InWeapon.Weapon.IsValid() || InWeapon.Weapon.IsNull())
 	{
-		Component->SetChildActorClass(InWeapon.Weapon.Get());
+		Component->SetChildActorClass(InWeapon.Weapon.LoadSynchronous());
 		Component->SetRelativeLocation(FVector(0, 0, 0));
 		Component->SetRelativeRotation(FRotator(0, 0, 0));
 
@@ -92,6 +92,7 @@ void UARWeaponInventoryComponent::OnItemAdded(UIFItemBase* Item, uint8 LocalInde
 	MainHandWeapon.RepCounter++;
 
 	WeaponHelper[LocalIndex]->Weapon.Reset();
+	WeaponHelper[LocalIndex]->Weapon = InWeapon->Weapon;
 	WeaponHelper[LocalIndex]->RepCounter++;
 	//GroupToComponent[Group]->SetChildActorClass(WeaponHelper[AMEnumToInt<EAMGroup>(Group)]->Weapon.Get());
 	SetWeapon(*WeaponHelper[LocalIndex], GroupToComponent[LocalIndex]);
@@ -143,6 +144,12 @@ void UARWeaponInventoryComponent::Equip(uint8 WeaponIndex, class UARItemWeapon* 
 	{
 		SetWeapon(MainHandWeapon, Character->GetEquipedMainWeapon());
 		GroupToComponent[WeaponIndex]->SetChildActorClass(nullptr);
+		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
+		{
+			FSoftObjectPath Path = InWeapon->Ability.ToSoftObjectPath();
+			TSoftClassPtr<UGAAbilityBase> ab(Path);
+			PC->WeaponManager->EquipWeapon(ab);
+		}
 	}
 }
 void UARWeaponInventoryComponent::EquipInactive(EAMGroup Group, UARItemWeapon* InWeapon, EAMGroup OldGroup, UARItemWeapon* InOldWeapon)
@@ -234,7 +241,6 @@ void UARWeaponInventoryComponent::NextWeapon()
 		{
 			CurrentWeaponIndex = CurrentIndex;
 		}
-
 	}
 
 	UARItemWeapon* NextWeaponAbility = GetItem<UARItemWeapon>(CurrentWeaponIndex);
@@ -242,6 +248,7 @@ void UARWeaponInventoryComponent::NextWeapon()
 	{
 		NextWeaponAbility = FindNextValid();
 	}
+	Equip(CurrentWeaponIndex, NextWeaponAbility);
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
 		ServerNextWeapon(CurrentWeaponIndex);
@@ -315,6 +322,7 @@ void UARWeaponInventoryComponent::ServerNextWeapon_Implementation(uint8 WeaponIn
 	{
 		NextWeaponAbility = FindNextValid();
 	}
+	
 	if (WeaponIndex == CurrentWeaponIndex)
 	{
 		ClientNextWeapon(CurrentWeaponIndex, true);
@@ -332,6 +340,10 @@ void UARWeaponInventoryComponent::ClientNextWeapon_Implementation(uint8 WeaponIn
 {
 	if (bPredictionSuccess)
 		return;
+
+	CurrentWeaponIndex = WeaponIndex;
+	UARItemWeapon* NextWeaponAbility = GetItem<UARItemWeapon>(WeaponIndex);
+	Equip(WeaponIndex, NextWeaponAbility);
 }
 
 void UARWeaponInventoryComponent::ServerPreviousWeapon_Implementation(uint8 WeaponIndex)
