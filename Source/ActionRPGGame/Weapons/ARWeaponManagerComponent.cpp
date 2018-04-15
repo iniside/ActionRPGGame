@@ -52,7 +52,7 @@ void UARWeaponManagerComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 }
 void UARWeaponManagerComponent::EquipWeapon(TSoftClassPtr<UGAAbilityBase> WeaponAbility)
 {
-	if (!WeaponAbility.IsValid())
+	if (WeaponAbility.IsNull())
 	{
 		return;
 	}

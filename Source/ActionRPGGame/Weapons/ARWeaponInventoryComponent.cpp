@@ -84,25 +84,22 @@ void UARWeaponInventoryComponent::OnItemAdded(UIFItemBase* Item, uint8 LocalInde
 	{
 		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
 		{
-			FSoftObjectPath d = InWeapon->Ability.ToSoftObjectPath();
-			TSoftClassPtr<UGAAbilityBase> dd(d);
-			PC->WeaponManager->NativeEquipAbility(dd, AMIntToEnum<EAMGroup>(LocalIndex), EAMSlot::Slot001);
-			
+			PC->WeaponManager->NativeEquipAbility(InWeapon->Ability, static_cast<EAMGroup>(LocalIndex), EAMSlot::Slot001, false);
 		}
 	}
 }
 void UARWeaponInventoryComponent::OnItemRemoved(uint8 LocalIndex)
 {
-	WeaponHelper[LocalIndex]->Weapon.Reset();
-	WeaponHelper[LocalIndex]->RepCounter++;
-	SetWeapon(*WeaponHelper[LocalIndex], GroupToComponent[LocalIndex]);
 	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
 	{
 		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
 		{
-			//remove ability.
+			PC->WeaponManager->NativeRemoveAbility(TSoftClassPtr<UGAAbilityBase>(), static_cast<EAMGroup>(LocalIndex), EAMSlot::Slot001);
 		}
 	}
+	WeaponHelper[LocalIndex]->Weapon.Reset();
+	WeaponHelper[LocalIndex]->RepCounter++;
+	SetWeapon(*WeaponHelper[LocalIndex], GroupToComponent[LocalIndex]);
 	if (LocalIndex == CurrentWeaponIndex)
 	{
 		Unequip(LocalIndex);
@@ -157,7 +154,7 @@ void UARWeaponInventoryComponent::Unequip(uint8 WeaponIndex)
 		GroupToComponent[WeaponIndex]->SetChildActorClass(nullptr);
 		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
 		{
-			//remove ability (bindings ?)
+			PC->WeaponManager->RemoveAbility(static_cast<EAMGroup>(WeaponIndex), EAMSlot::Slot001);
 		}
 	}
 }
@@ -268,7 +265,7 @@ void UARWeaponInventoryComponent::ServerNextWeapon_Implementation(uint8 WeaponIn
 	{
 		NextWeaponAbility = FindNextValid();
 	}
-	
+	Equip(CurrentWeaponIndex, NextWeaponAbility);
 	if (WeaponIndex == CurrentWeaponIndex)
 	{
 		ClientNextWeapon(CurrentWeaponIndex, true);
@@ -317,6 +314,7 @@ void UARWeaponInventoryComponent::ServerPreviousWeapon_Implementation(uint8 Weap
 	//situation where client can chage multiple weapons within second
 	//should not have place, as there is animation and/or internal cooldown on weapon change.
 	//since it will be done trough ability.
+	Equip(CurrentWeaponIndex, NextWeaponAbility);
 	if (CurrentWeaponIndex != WeaponIndex)
 	{
 		ClientPreviousWeapon(CurrentWeaponIndex, false);

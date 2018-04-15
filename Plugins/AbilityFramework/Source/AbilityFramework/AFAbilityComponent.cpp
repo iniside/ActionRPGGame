@@ -506,11 +506,15 @@ void UAFAbilityComponent::BP_RemoveAbility(TSoftClassPtr<UGAAbilityBase> TagIn)
 }
 void UAFAbilityComponent::NativeRemoveAbility(TSoftClassPtr<UGAAbilityBase> InAbilityTag)
 {
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		ServerNativeRemoveAbility(InAbilityTag);
+	}
 	AbilityContainer.RemoveAbility(InAbilityTag);
 }
 void UAFAbilityComponent::ServerNativeRemoveAbility_Implementation(const TSoftClassPtr<UGAAbilityBase>& InAbilityTag)
 {
-	NativeRemoveAbility(InAbilityTag);
+	AbilityContainer.RemoveAbility(InAbilityTag);
 }
 
 bool UAFAbilityComponent::ServerNativeRemoveAbility_Validate(const TSoftClassPtr<UGAAbilityBase>& InAbilityTag)

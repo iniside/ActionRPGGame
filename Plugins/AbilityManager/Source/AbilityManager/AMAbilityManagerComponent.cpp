@@ -54,6 +54,7 @@ void UAMAbilityManagerComponent::BindInputs(UInputComponent* InputComponent, cla
 		AbilityComponent->BindAbilityToAction(InputComponent, Input);
 	}
 }
+
 UGAAbilityBase* UAMAbilityManagerComponent::GetAbility(EAMGroup InGroup, EAMSlot InSlot)
 {
 	return AbilitySet.Num() >= Groups.Num() ? AbilitySet[AMEnumToInt<EAMGroup>(InGroup)][AMEnumToInt<EAMSlot>(InSlot)].Get() : nullptr;
@@ -64,6 +65,13 @@ void UAMAbilityManagerComponent::SetAbility(EAMGroup InGroup, EAMSlot InSlot, UG
 		return;
 
 	AbilitySet[AMEnumToInt<EAMGroup>(InGroup)][AMEnumToInt<EAMSlot>(InSlot)] = InAbility;
+}
+void UAMAbilityManagerComponent::RemoveAbility(EAMGroup InGroup, EAMSlot InSlot)
+{
+	if (AbilitySet.Num() < Groups.Num())
+		return;
+
+	AbilitySet[AMEnumToInt<EAMGroup>(InGroup)][AMEnumToInt<EAMSlot>(InSlot)].Reset();;
 }
 
 TArray<FGameplayTag> UAMAbilityManagerComponent::GetInputTag(EAMGroup InGroup, EAMSlot InSlot)
@@ -88,7 +96,12 @@ void UAMAbilityManagerComponent::SetAbilityTag(EAMGroup InGroup, EAMSlot InSlot,
 {
 	AbilityTagsSet[AMEnumToInt<EAMGroup>(InGroup)][AMEnumToInt<EAMSlot>(InSlot)] = InAbilityTag;
 }
-void UAMAbilityManagerComponent::NativeEquipAbility(TSoftClassPtr<UGAAbilityBase> InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, AActor* InAvatar, bool bBindInput)
+void UAMAbilityManagerComponent::RemoveAbilityTag(EAMGroup InGroup, EAMSlot InSlot)
+{
+	AbilityTagsSet[AMEnumToInt<EAMGroup>(InGroup)][AMEnumToInt<EAMSlot>(InSlot)].Reset();
+}
+
+void UAMAbilityManagerComponent::NativeEquipAbility(TSoftClassPtr<UGAAbilityBase> InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, bool bBindInput)
 {
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
 	if (!MyPC)
@@ -110,14 +123,43 @@ void UAMAbilityManagerComponent::NativeEquipAbility(TSoftClassPtr<UGAAbilityBase
 	//if (IsClient())
 	{
 		del = FAFOnAbilityReady::CreateUObject(this, &UAMAbilityManagerComponent::OnAbilityReadyInternal, InAbilityTag,
-			IAbilityInput, InGroup, InSlot);
+			IAbilityInput, InGroup, InSlot, bBindInput);
 		AbilityComp->AddOnAbilityReadyDelegate(InAbilityTag, del);
 	}
 
 	AbilityComp->NativeAddAbility(InAbilityTag, IAbilityInput);// , /*Input*/ ShootInput);
 }
+void UAMAbilityManagerComponent::NativeRemoveAbility(TSoftClassPtr<UGAAbilityBase> InAbilityTag, EAMGroup InGroup, EAMSlot InSlot)
+{
+	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
+	if (!MyPC)
+		return;
+
+	IAFAbilityInterface* ABInt = Cast<IAFAbilityInterface>(MyPC->GetPawn());
+	if (!ABInt)
+		return;
+
+	UAFAbilityComponent* AbilityComp = ABInt->GetAbilityComp();
+	if (!AbilityComp)
+		return;
+
+	FAFOnAbilityReady del;
+	//if (IsClient())
+	{
+		//del = FAFOnAbilityReady::CreateUObject(this, &UAMAbilityManagerComponent::OnAbilityReadyInternal, InAbilityTag,
+		//	IAbilityInput, InGroup, InSlot);
+		//AbilityComp->AddOnAbilityReadyDelegate(InAbilityTag, del);
+	}
+	if (InAbilityTag.IsNull())
+		InAbilityTag = GetAbilityTag(InGroup, InSlot);
+
+	RemoveAbility(InGroup, InSlot);
+	RemoveAbilityTag(InGroup, InSlot);
+
+	AbilityComp->NativeRemoveAbility(InAbilityTag);
+}
 void UAMAbilityManagerComponent::OnAbilityReadyInternal(TSoftClassPtr<UGAAbilityBase> InAbilityTag, TArray<FGameplayTag> InAbilityInput,
-	EAMGroup InGroup, EAMSlot InSlot)
+	EAMGroup InGroup, EAMSlot InSlot, bool bBindInput)
 {
 	APlayerController* MyPC = Cast<APlayerController>(GetOwner());
 	if (!MyPC)
@@ -134,19 +176,26 @@ void UAMAbilityManagerComponent::OnAbilityReadyInternal(TSoftClassPtr<UGAAbility
 	UGAAbilityBase* Ability = Cast<UGAAbilityBase>(AbilityComp->BP_GetAbilityByTag(InAbilityTag));
 	if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
 	{
-		FAFOnAbilityReady ReadyDelegate = FAFOnAbilityReady::CreateUObject(this, &UAMAbilityManagerComponent::OnAbilityInputReady,
-			InAbilityTag, InAbilityInput, InGroup, InSlot);
+		if (bBindInput)
+		{
+			FAFOnAbilityReady ReadyDelegate = FAFOnAbilityReady::CreateUObject(this, &UAMAbilityManagerComponent::OnAbilityInputReady,
+				InAbilityTag, InAbilityInput, InGroup, InSlot);
+			AbilityComp->SetAbilityToAction(InAbilityTag, InAbilityInput, ReadyDelegate);
 
-		AbilityComp->SetAbilityToAction(InAbilityTag, InAbilityInput, ReadyDelegate);
-		ExecuteAbilityReadyEvent(InAbilityTag);
+			ExecuteAbilityReadyEvent(InAbilityTag);
+		}
+		
 	}
 	else
 	{
 		SetAbility(InGroup, InSlot, Ability);
 		SetAbilityTag(InGroup, InSlot, InAbilityTag);
 		SetInputTag(InGroup, InSlot, InAbilityInput);
-		AbilityComp->SetAbilityToAction(InAbilityTag, InAbilityInput, FAFOnAbilityReady());
-		ExecuteAbilityReadyEvent(InAbilityTag);
+		if (bBindInput)
+		{
+			AbilityComp->SetAbilityToAction(InAbilityTag, InAbilityInput, FAFOnAbilityReady());
+			ExecuteAbilityReadyEvent(InAbilityTag);
+		}
 	}
 	OnAbilityReady(InAbilityTag, InAbilityInput, InGroup, InSlot);
 }

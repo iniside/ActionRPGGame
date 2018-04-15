@@ -109,12 +109,16 @@ void FAFAbilityContainer::RemoveAbility(const TSoftClassPtr<UGAAbilityBase>& Abi
 		return;
 
 	UGAAbilityBase* Ability = TagToAbility.FindRef(AbilityIn);
+	
 
 	for (auto It = Ability->AbilityTasks.CreateIterator(); It; ++It)
 	{
 		AbilitiesComp->ReplicatedTasks.Remove(It->Value);
 	}
+	Ability->AbilityTasks.Reset();
 
+	AbilityToAction.Remove(AbilityIn);
+	AbilitiesInputs.Remove(AbilityIn);
 	TagToAbility.Remove(AbilityIn);
 	MarkItemDirty(AbilitiesItems[Index]);
 	AbilitiesItems.RemoveAt(Index);

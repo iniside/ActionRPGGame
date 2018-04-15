@@ -114,21 +114,24 @@ public:
 	void BindInputs(UInputComponent* InputComponent, class UAFAbilityComponent* AbilityComponent);
 	UGAAbilityBase* GetAbility(EAMGroup InGroup, EAMSlot InSlot);
 	void SetAbility(EAMGroup InGroup, EAMSlot InSlot, UGAAbilityBase* InAbility);
+	void RemoveAbility(EAMGroup InGroup, EAMSlot InSlot);
 
 	TSoftClassPtr<UGAAbilityBase> GetAbilityTag(EAMGroup InGroup, EAMSlot InSlot);
 	void SetAbilityTag(EAMGroup InGroup, EAMSlot InSlot, TSoftClassPtr<UGAAbilityBase> InAbilityTag);
-		
+	void RemoveAbilityTag(EAMGroup InGroup, EAMSlot InSlot);
+
 	TArray<FGameplayTag> GetInputTag(EAMGroup InGroup, EAMSlot InSlot);
 	void SetInputTag(EAMGroup InGroup, EAMSlot InSlot, TArray<FGameplayTag> InAbilityTag);
 
-	void NativeEquipAbility(TSoftClassPtr<UGAAbilityBase> InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, AActor* InAvatar = nullptr, bool bBindInput = true);
+	void NativeEquipAbility(TSoftClassPtr<UGAAbilityBase> InAbilityTag, EAMGroup InGroup, EAMSlot InSlot, bool bBindInput = true);
+	void NativeRemoveAbility(TSoftClassPtr<UGAAbilityBase> InAbilityTag, EAMGroup InGroup, EAMSlot InSlot);
 protected:
 	virtual void OnAbilityReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, const TArray<FGameplayTag>& InAbilityInput,
 		EAMGroup InGroup, EAMSlot InSlot) {};
 private:
 	UFUNCTION()
 		void OnAbilityReadyInternal(TSoftClassPtr<UGAAbilityBase> InAbilityTag, TArray<FGameplayTag> InAbilityInput,
-			EAMGroup InGroup, EAMSlot InSlot);
+			EAMGroup InGroup, EAMSlot InSlot, bool bBindInput);
 
 public:
 	UFUNCTION()
