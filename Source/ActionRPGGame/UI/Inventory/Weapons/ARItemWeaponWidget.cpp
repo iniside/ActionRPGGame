@@ -7,9 +7,9 @@
 #include "Weapons/ARItemWeapon.h"
 #include "Weapons/ARWeaponInventoryComponent.h"
 
-#include "UI/Inventory/ARWeaponContainerWidget.h"
 #include "UI/Inventory/ARInventoryScreenWidget.h"
-#include "UI/Inventory/ARListItemWeaponWidget.h"
+#include "UI/Inventory/Weapons/ARWeaponContainerWidget.h"
+#include "UI/Inventory/Weapons/ARListItemWeaponWidget.h"
 
 
 void UARItemWeaponWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)

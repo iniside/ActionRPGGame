@@ -6,9 +6,8 @@
 #include "ARCharacter.h"
 #include "ARPlayerController.h"
 
-#include "Inventory/ARInventoryManagerWidget.h"
-#include "Inventory/ARWeaponContainerWidget.h"
-#include "Inventory/ARItemWeaponWidget.h"
+#include "Inventory/Weapons/ARWeaponContainerWidget.h"
+#include "Inventory/Weapons/ARItemWeaponWidget.h"
 #include "Inventory/ARInventoryScreenWidget.h"
 
 // Sets default values for this component's properties
