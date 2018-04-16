@@ -8,7 +8,6 @@
 #include "DWBPFunctionLibrary.h"
 #include "SDraggableWindowWidget.h"
 #include "ARPlayerController.h"
-#include "UI/Abilities/ARAbilityListWidget.h"
 
 // Sets default values for this component's properties
 UARAbilityManagerComponent::UARAbilityManagerComponent()
@@ -30,21 +29,6 @@ void UARAbilityManagerComponent::BeginPlay()
 	{
 		APlayerController* OwnerPC = Cast<APlayerController>(GetOwner());
 		// ...
-		if (ManagerWidgetClass)
-		{
-			ManagerWidget = CreateWidget<UARAbilityListWidget>(OwnerPC, ManagerWidgetClass);
-			ManagerWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-			ManagerWidget->ARPC = Cast<AARPlayerController>(GetOwner());
-			for (const FARAbilityItem& Ability : AvailableAbilities)
-			{
-				ManagerWidget->AddItem(DragWidgetClass, Ability.Ability);
-			}
-			
-			ManagerWindowHandle = UDWBPFunctionLibrary::CreateWindowWithContent(ManagerWidget, "Ability Manager");
-			ManagerWindowHandle.Window.Pin()->bDestroyOnClose = false;
-			ManagerWindowHandle.Window.Pin()->SetVisibility(EVisibility::Collapsed);
-			//ManagerWidget->AddToViewport();
-		}
 	}
 }
 
@@ -59,19 +43,6 @@ void UARAbilityManagerComponent::TickComponent(float DeltaTime, ELevelTick TickT
 
 void UARAbilityManagerComponent::ShowHideAbilityManager()
 {
-	if (!ManagerWidget)
-		return;
-
-	EVisibility Visibility = ManagerWindowHandle.Window.Pin()->GetVisibility();
-	
-	if (Visibility == EVisibility::Collapsed)
-	{
-		ManagerWindowHandle.Window.Pin()->SetVisibility(EVisibility::SelfHitTestInvisible);
-	}
-	else if (Visibility == EVisibility::SelfHitTestInvisible)
-	{
-		ManagerWindowHandle.Window.Pin()->SetVisibility(EVisibility::Collapsed);
-	}
 }
 
 void UARAbilityManagerComponent::SetCurrentSet(int32 SetIndex)

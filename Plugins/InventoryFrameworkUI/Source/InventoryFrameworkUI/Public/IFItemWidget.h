@@ -37,11 +37,4 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "On Item Changed"))
 		void BP_OnItemChanged(class UIFItemBase* Item);
-
-	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry
-		, const FPointerEvent& InMouseEvent) override;
-	virtual void NativeOnDragDetected(const FGeometry& InGeometry
-		, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
-	virtual bool NativeOnDrop(const FGeometry& InGeometry
-		, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)  override;
 };

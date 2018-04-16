@@ -9,6 +9,8 @@
 
 #include "UI/Inventory/ARWeaponContainerWidget.h"
 #include "UI/Inventory/ARInventoryScreenWidget.h"
+#include "UI/Inventory/ARListItemWeaponWidget.h"
+
 
 void UARItemWeaponWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
@@ -20,7 +22,7 @@ void UARItemWeaponWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const 
 	{
 		InventoryWidget->SetWeaponName(CurrentItem->GetName());
 	}
-	InventoryWidget->UpdateItemList(Items);
+	InventoryWidget->UpdateItemList<UARItemWeapon, UARListItemWeaponWidget>(Items, UI->ItemWeaponWidgetClass);
 }
 void UARItemWeaponWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {

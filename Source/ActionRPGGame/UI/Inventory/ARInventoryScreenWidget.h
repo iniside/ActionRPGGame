@@ -4,6 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "UI/ARUMGWidgetBase.h"
+
+#include "Components/WrapBox.h"
+
+#include "IFInventoryComponent.h"
+#include "IFItemWidget.h"
+
+#include "UI/ARUIComponent.h"
+
 #include "ARInventoryScreenWidget.generated.h"
 
 /**
@@ -43,5 +51,27 @@ public:
 	void SetWeaponName(const FString& Name);
 
 	void UpdateItemList(const TArray<uint8>& LocalIdxs);
+
+	template<typename ItemType, typename WidgetType>
+	void UpdateItemList(const TArray<uint8>& LocalIdxs, TSubclassOf<WidgetType> WidgetClass)
+	{
+		SelectedItemsContainer->ClearChildren();
+
+		for (uint8 Idx : LocalIdxs)
+		{
+			ItemType* Item = Inventory->GetItem<ItemType>(Idx);
+
+			if (Item)
+			{
+				const FIFItemData& Slot = Inventory->GetSlot(Idx);
+				WidgetType* ItemWidget = CreateWidget<WidgetType>(PC.Get(), WidgetClass);
+				ItemWidget->Inventory = Inventory;
+				ItemWidget->OnSlotCreated(Slot.GetNetIndex(), Slot.GetLocalIndex());
+				ItemWidget->OnItemChanged(Slot.GetNetIndex(), Slot.GetLocalIndex());
+
+				SelectedItemsContainer->AddChild(ItemWidget);
+			}
+		}
+	}
 
 };

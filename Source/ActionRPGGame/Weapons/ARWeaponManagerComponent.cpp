@@ -7,7 +7,6 @@
 #include "ARItemWeapon.h"
 #include "ARCharacter.h"
 #include "ARPlayerController.h"
-#include "UI/Weapons/ARWeaponUpgradeListWidget.h"
 
 #include "DWBPFunctionLibrary.h"
 #include "SDraggableWindowWidget.h"
@@ -85,7 +84,6 @@ UGAAbilityBase* UARWeaponManagerComponent::GetCurrentWeapon()
 
 void UARWeaponManagerComponent::AddToWeaponInventory(TSubclassOf<class UARItemWeapon> InWeapon)
 {
-	WeaponClasses.Add(InWeapon);
 }
 
 void UARWeaponManagerComponent::BP_AddWeaponToManager(EAMGroup Group, EAMSlot Slot, int32 Idx)
@@ -94,32 +92,6 @@ void UARWeaponManagerComponent::BP_AddWeaponToManager(EAMGroup Group, EAMSlot Sl
 }
 void UARWeaponManagerComponent::AddWeaponToManager(EAMGroup Group, EAMSlot Slot, int32 Idx)
 {
-	AARCharacter* Character = Cast<AARCharacter>(POwner);
-	UARItemWeapon* Item = DuplicateObject<UARItemWeapon>(WeaponClasses[Idx].GetDefaultObject(), Character);
-	if (Character)
-	{
-		ActiveGroup = EAMGroup::Group005;
-	}
-	NativeEquipAbility(WeaponClasses[Idx].GetDefaultObject()->Ability,
-		Group, EAMSlot::Slot001, POwner);
-
-	if (IsClient())
-	{
-		ServerAddWeaponToManager(Group, Slot, Idx);
-	}
-	else
-	{
-		APlayerController* MyPC = Cast<APlayerController>(GetOwner());
-		if (!MyPC)
-			return;
-		
-		IAFAbilityInterface* ABInt = Cast<IAFAbilityInterface>(POwner);
-		if (!ABInt)
-			return;
-
-		ActiveGroup = EAMGroup::Group005;
-	}
-
 }
 void UARWeaponManagerComponent::ServerAddWeaponToManager_Implementation(EAMGroup Group, EAMSlot Slot, int32 Idx)
 {

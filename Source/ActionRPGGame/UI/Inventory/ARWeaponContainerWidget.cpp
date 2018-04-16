@@ -8,7 +8,6 @@
 #include "ARCharacter.h"
 
 #include "UI/ARUIComponent.h"
-#include "UI/Weapons/ARItemWeaponWidget.h"
 
 
 void UARWeaponContainerWidget::InitializeWeaponItems(class UARUIComponent* UIComponent)

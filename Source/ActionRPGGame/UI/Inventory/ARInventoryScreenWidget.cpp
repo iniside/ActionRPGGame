@@ -3,12 +3,7 @@
 #include "ARInventoryScreenWidget.h"
 
 #include "Components/TextBlock.h"
-#include "Components/WrapBox.h"
 
-#include "IFInventoryComponent.h"
-#include "IFItemWidget.h"
-
-#include "UI/ARUIComponent.h"
 #include "ARPlayerController.h"
 
 void UARInventoryScreenWidget::SetWeaponName(const FString& Name)

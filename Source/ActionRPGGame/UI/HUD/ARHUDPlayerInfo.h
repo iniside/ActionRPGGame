@@ -7,8 +7,6 @@
 #include "Components/ProgressBar.h"
 
 #include "UI/ARUMGWidgetBase.h"
-#include "UI/Weapons/ARWeaponSlotWidget.h"
-#include "UI/Abilities/ARAbilitySlotWidget.h"
 #include "ARHUDPlayerInfo.generated.h"
 
 /**
@@ -26,19 +24,19 @@ protected:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 		UProgressBar* PlayerEnergy;
 public:
-	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
-		UARAbilitySlotWidget* AbilityGroup001Slot001;
-	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
-		UARAbilitySlotWidget* AbilityGroup001Slot002;
-	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
-		UARAbilitySlotWidget* AbilityGroup001Slot003;
+	//UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	//	UARAbilitySlotWidget* AbilityGroup001Slot001;
+	//UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	//	UARAbilitySlotWidget* AbilityGroup001Slot002;
+	//UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	//	UARAbilitySlotWidget* AbilityGroup001Slot003;
 
-	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
-		UARAbilitySlotWidget* AbilityGroup002Slot001;
-	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
-		UARAbilitySlotWidget* AbilityGroup002Slot002;
-	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
-		UARAbilitySlotWidget* AbilityGroup002Slot003;
+	//UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	//	UARAbilitySlotWidget* AbilityGroup002Slot001;
+	//UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	//	UARAbilitySlotWidget* AbilityGroup002Slot002;
+	//UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	//	UARAbilitySlotWidget* AbilityGroup002Slot003;
 
 	//UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 	//	UARWeaponSlotWidget* Weapon001;

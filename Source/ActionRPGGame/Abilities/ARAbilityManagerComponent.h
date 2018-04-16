@@ -28,22 +28,8 @@ class ACTIONRPGGAME_API UARAbilityManagerComponent : public UAMAbilityManagerCom
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(EditAnywhere, Category = "Widget Config")
-		TSubclassOf<class UARAbilityDragVisual> DragVisualClass;
-
-	UPROPERTY(EditAnywhere, Category = "Widget Config")
-		TSubclassOf<class UARAbilityListWidget> ManagerWidgetClass;
-
-	UPROPERTY(EditAnywhere, Category = "Widget Config")
-		TSubclassOf<class UARAbilityListSlotDragWidget> DragWidgetClass;
-
-	UPROPERTY()
-		class UARAbilityListWidget* ManagerWidget;
-
 	UPROPERTY(EditAnywhere)
 		TArray<FARAbilityItem> AvailableAbilities;
-
-	FDWWWindowHandle ManagerWindowHandle;
 public:
 	UPROPERTY(BlueprintAssignable)
 		FAROnAbilitySetChanged OnAbilitySetChanged;
@@ -61,11 +47,6 @@ public:
 
 	void ShowHideAbilityManager();
 	
-	inline TSubclassOf<class UARAbilityDragVisual> GetDragVisualClass()
-	{
-		return DragVisualClass;
-	}
-
 	UFUNCTION(BlueprintCallable, Category = "ActionRPGGame|Ability Manager")
 		void SetCurrentSet(int32 SetIndex);
 

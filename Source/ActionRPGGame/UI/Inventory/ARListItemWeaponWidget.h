@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UI/ARUMGWidgetBase.h"
-#include "ARCharacterEquipmentWidget.generated.h"
+#include "IFItemWidget.h"
+#include "ARListItemWeaponWidget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ACTIONRPGGAME_API UARCharacterEquipmentWidget : public UARUMGWidgetBase
+class ACTIONRPGGAME_API UARListItemWeaponWidget : public UIFItemWidget
 {
 	GENERATED_BODY()
 	

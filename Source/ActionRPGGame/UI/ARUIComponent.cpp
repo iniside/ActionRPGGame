@@ -8,9 +8,8 @@
 
 #include "Inventory/ARInventoryManagerWidget.h"
 #include "Inventory/ARWeaponContainerWidget.h"
-
+#include "Inventory/ARItemWeaponWidget.h"
 #include "Inventory/ARInventoryScreenWidget.h"
-#include "UI/Weapons/ARItemWeaponWidget.h"
 
 // Sets default values for this component's properties
 UARUIComponent::UARUIComponent()
@@ -44,12 +43,6 @@ void UARUIComponent::BeginPlay()
 			CrosshairWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 			CrosshairWidget->AddToViewport();
 		}
-		/*if (InventoryManagerClass)
-		{
-			InventoryManagerWidget = CreateWidget<UARInventoryManagerWidget>(MyPC, InventoryManagerClass);
-			InventoryManagerWidget->SetVisibility(ESlateVisibility::Collapsed);
-			InventoryManagerWidget->AddToViewport();
-		}*/
 
 		if (EnemyHealthBarClass)
 		{
@@ -64,12 +57,6 @@ void UARUIComponent::BeginPlay()
 			HUDWidget->AddToViewport();
 		}
 
-		if (InventoryScreenWidgetClass)
-		{
-			InventoryScreenWidget = CreateWidget<UARInventoryScreenWidget>(MyPC, InventoryScreenWidgetClass);
-			InventoryScreenWidget->SetVisibility(ESlateVisibility::Collapsed);
-			InventoryScreenWidget->AddToViewport();
-		}
 		AARCharacter* Character = Cast<AARCharacter>(MyPC->GetPawn());
 		if (WeaponInventoryWidgetClass && Character)
 		{
@@ -114,7 +101,7 @@ void UARUIComponent::BeginPlay()
 					InventoryScreenWidget->SideWeaponWidget->Inventory = MyPC->MainInventory;
 					InventoryScreenWidget->SideWeaponWidget->WeaponInventory = WeapInv;
 					InventoryScreenWidget->SideWeaponWidget->UI = this;
-					InventoryScreenWidget->RightWeaponWidget->InventoryWidget = InventoryScreenWidget;
+					InventoryScreenWidget->SideWeaponWidget->InventoryWidget = InventoryScreenWidget;
 
 					InventoryScreenWidget->SideWeaponWidget->LocalIndex = Item.GetLocalIndex();
 					InventoryScreenWidget->SideWeaponWidget->NetIndex = Item.GetNetIndex();
@@ -152,18 +139,7 @@ void UARUIComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 
 void UARUIComponent::InitializeInventory()
 {
-	if (GetOwner()->GetNetMode() == ENetMode::NM_Client
-		|| GetOwner()->GetNetMode() == ENetMode::NM_Standalone)
-	{
-		AARPlayerController* MyPC = Cast<AARPlayerController>(GetOwner());
-		if (InventoryWidgetClass)
-		{
-			InventoryWidget = CreateWidget<UIFItemContainerWidget>(MyPC, InventoryWidgetClass);
-			InventoryWidget->SetInventory(MyPC->MainInventory);
-			InventoryWidget->CreateInventory();
-			InventoryWidget->AddToViewport();
-		}
-	}
+
 }
 void UARUIComponent::InitializeWeaponInventory()
 {

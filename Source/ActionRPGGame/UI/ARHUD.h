@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
-#include "ARAbilityManagerWidget.generated.h"
+#include "GameFramework/HUD.h"
+#include "ARHUD.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ACTIONRPGGAME_API UARAbilityManagerWidget : public UUserWidget
+class ACTIONRPGGAME_API AARHUD : public AHUD
 {
 	GENERATED_BODY()
 	

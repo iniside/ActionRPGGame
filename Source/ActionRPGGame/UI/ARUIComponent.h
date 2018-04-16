@@ -28,12 +28,6 @@ protected:
 		UUserWidget* CrosshairWidget;
 
 	UPROPERTY(EditAnywhere, Category = "Widgets")
-		TSubclassOf<class UARInventoryManagerWidget> InventoryManagerClass;
-	UPROPERTY()
-		class UARInventoryManagerWidget* InventoryManagerWidget;
-
-
-	UPROPERTY(EditAnywhere, Category = "Widgets")
 		TSubclassOf<class UAREnemyHealthBar> EnemyHealthBarClass;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
@@ -43,13 +37,6 @@ protected:
 		TSubclassOf<class UARHUDWidget> HUDWidgetClass;
 
 	UPROPERTY(EditAnywhere, Category = "Widgets")
-		TSubclassOf<class UIFItemContainerWidget> InventoryWidgetClass;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
-		UIFItemContainerWidget* InventoryWidget;
-
-
-	UPROPERTY(EditAnywhere, Category = "Widgets")
 		TSubclassOf<class UARWeaponContainerWidget> WeaponInventoryWidgetClass;
 
 	UPROPERTY(EditAnywhere, Category = "Widgets")
@@ -57,6 +44,9 @@ protected:
 public:
 	UPROPERTY(EditAnywhere, Category = "Widgets")
 		TSubclassOf<class UIFItemWidget> ItemWidgetClass;
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+		TSubclassOf<class UARListItemWeaponWidget> ItemWeaponWidgetClass;
+
 
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")

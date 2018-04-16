@@ -45,23 +45,8 @@ class ACTIONRPGGAME_API UARWeaponManagerComponent : public UAMAbilityManagerComp
 protected:
 	static constexpr int32 MAX_WEAPONS = 4; //maximum weapon + empty hands
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapons")
-		TArray<TSubclassOf<class UARItemWeapon>> WeaponClasses;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapons")
-		TArray<TSubclassOf<class UARMagazineUpgradeItem>> MagazineUpgradesClasses;
-
 	UPROPERTY(EditAnywhere, Category = "Attachment Config")
 		FName EquipSocketName;
-
-	UPROPERTY(EditAnywhere, Category = "Widgets")
-		TSubclassOf<class UARWeaponUpgradeListWidget> MagazineUpgradeListClass;
-
-	UPROPERTY(EditAnywhere, Category = "Widgets")
-		TSubclassOf<class UARMagazineUpgradeWidget> MagazineUpgradeClass;
-
-	UPROPERTY(BlueprintReadOnly, Category = "ActionRPGGame|Weapon|Widgets")
-		class UARWeaponUpgradeListWidget* MagazineUpgradeListWidget;
 
 	//maybe not reference directly ?
 	TWeakObjectPtr<class UARItemWeapon> WeaponToModify;
