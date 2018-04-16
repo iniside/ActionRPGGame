@@ -34,6 +34,13 @@ void AARPlayerController::BeginPlay()
 void AARPlayerController::SetPawn(APawn* InPawn)
 {
 	Super::SetPawn(InPawn);
+
+	
+	//UIAbilityManagerComponent->BindInputs();
+}
+void AARPlayerController::Possess(APawn* aPawn)
+{
+	Super::Possess(aPawn);
 	ENetMode NetMode = GetNetMode();
 	if (NetMode == ENetMode::NM_Client
 		|| NetMode == ENetMode::NM_Standalone)
@@ -102,13 +109,23 @@ void AARPlayerController::SetPawn(APawn* InPawn)
 			HolsterInput.Add(InputSetAbilityGroup02);
 			AbilityComp->NativeAddAbility(SetAbilityGroup02, HolsterInput);
 		}
-		
+
 	}
-	WeaponManager->POwner = InPawn;
+
+	if (NetMode == ENetMode::NM_DedicatedServer
+		|| NetMode == ENetMode::NM_ListenServer)
+	{
+		ClientPossesed(aPawn);
+	}
 	
+	WeaponManager->POwner = aPawn;
+
 	MainInventory->InitializeInventory();
-	
-	//UIAbilityManagerComponent->BindInputs();
+}
+
+void AARPlayerController::ClientPossesed_Implementation(APawn* InPawn)
+{
+
 }
 
 void AARPlayerController::SetupInputComponent()
@@ -127,6 +144,7 @@ void AARPlayerController::InputShowHideAbilityManager()
 }
 void AARPlayerController::InputShowHideInventory()
 {
+	UIComponent->ShowHideInventory();
 }
 void AARPlayerController::OnInputAbilityReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, FGameplayTag InInputTag)
 {

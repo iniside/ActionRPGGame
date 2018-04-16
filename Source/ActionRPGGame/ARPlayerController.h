@@ -58,12 +58,17 @@ public:
 	AARPlayerController(const FObjectInitializer& ObjectInitializer);
 	virtual void BeginPlay() override;
 	virtual void SetPawn(APawn* InPawn) override;
+	virtual void Possess(APawn* aPawn) override;
 	void SetupInputComponent();
 
 	void InputSwitchAbilitySet();
 	void InputShowHideAbilityManager();
 	void InputShowHideInventory();
 	void OnInputAbilityReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, FGameplayTag InInputTag);
+
+	UFUNCTION(Client, Reliable)
+		void ClientPossesed(APawn* InPawn);
+	void ClientPossesed_Implementation(APawn* InPawn);
 
 	UFUNCTION(BlueprintPure, Category = "Hud")
 		float GetObjectScreenRadius(AActor* InActor);

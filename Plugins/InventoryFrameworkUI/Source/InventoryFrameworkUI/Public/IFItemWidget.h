@@ -14,11 +14,12 @@ class INVENTORYFRAMEWORKUI_API UIFItemWidget : public UUserWidget
 {
 	GENERATED_BODY()
 		friend class UIFItemContainerWidget;
-protected:
+public:
 	TWeakObjectPtr<class UIFInventoryComponent> Inventory;
 	/*
 		Those indexes correponds to the client copy of items;
 	*/
+
 	UPROPERTY()
 		uint8 NetIndex;
 	UPROPERTY()
@@ -26,7 +27,7 @@ protected:
 	
 	UPROPERTY(BlueprintReadWrite, Category = "InventoryFramework")
 		UWidget* DragVisual;
-
+public:
 	void OnSlotCreated(uint8 InNetIndex, uint8 InLocalIndex);
 
 	void OnItemChanged(uint8 InNetIndex, uint8 InLocalIndex);

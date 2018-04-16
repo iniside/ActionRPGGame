@@ -141,8 +141,6 @@ struct INVENTORYFRAMEWORK_API FIFItemContainer : public FFastArraySerializer
 	TMap<uint8, uint8> LocalToNet;
 
 protected:
-	
-
 	void AddData(const FIFItemData& InItem)
 	{
 		
@@ -164,7 +162,27 @@ protected:
 	void AddFromOtherInventory(class UIFInventoryComponent* Source
 		, uint8 SourceNetIndex
 		, uint8 InNetIndex);
+
+	TArray<uint8> GetLocalItemIdxs(TSubclassOf<UIFItemBase> ItemClass);
+
+	template<typename T>
+	TArray<T*> GetItems(TSubclassOf<T> ItemClass)
+	{
+		TArray<T*> Indexes;
+		for (uint8 Idx = 0; Idx < Items.Num(); Idx++)
+		{
+			if (Items[Idx].Item && Items[Idx].Item->IsA(ItemClass))
+			{
+				Indexes.Add(Cast<T>(Items[Idx].Item));
+			}
+		}
+		return Indexes;
+	}
+
 public:
+	inline TArray<FIFItemData>& GetItems() { return Items; }
+
+
 	void PostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize);
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
 	{
@@ -245,6 +263,8 @@ public:
 
 	void InitializeInventory();
 
+	inline FIFItemContainer& GetInventory() { return Inventory; }
+
 	inline uint8 GetMaxSlots()
 	{
 		return MaxSlots;
@@ -263,6 +283,17 @@ public:
 	T* GetItem(uint8 InLocalIndex)
 	{
 		return Cast<T>(Inventory.Items[InLocalIndex].Item);
+	}
+
+	TArray<uint8> GetLocalItemIdxs(TSubclassOf<UIFItemBase> ItemClass)
+	{
+		return Inventory.GetLocalItemIdxs(ItemClass);
+	}
+
+	template<typename T>
+	TArray<T*> GetItems(TSubclassOf<T> ItemClass)
+	{
+		return Inventory.GetItems<T>(ItemClass);
 	}
 
 	/* 

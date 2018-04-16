@@ -13,7 +13,7 @@ UCLASS()
 class ACTIONRPGGAME_API UARItemBase : public UIFItemBase
 {
 	GENERATED_BODY()
-protected:
+public:
 	//obviously we want TSoftObjectPtr<>
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
 		UTexture2D* Icon;

@@ -15,8 +15,5 @@ class ACTIONRPGGAME_API UARMagazineUpgradeItem : public UARWeaponUpgradeItem
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere)
-		UTexture2D* Icon;
-
-	UPROPERTY(EditAnywhere)
 		TSoftClassPtr<class UARMagazineUpgradeEffect> UpgradeEffect;
 };

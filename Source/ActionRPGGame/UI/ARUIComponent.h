@@ -50,10 +50,17 @@ protected:
 
 
 	UPROPERTY(EditAnywhere, Category = "Widgets")
-		TSubclassOf<class UIFItemContainerWidget> WeaponInventoryWidgetClass;
+		TSubclassOf<class UARWeaponContainerWidget> WeaponInventoryWidgetClass;
 
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+		TSubclassOf<class UARInventoryScreenWidget> InventoryScreenWidgetClass;
+public:
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+		TSubclassOf<class UIFItemWidget> ItemWidgetClass;
+
+public:
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
-		UIFItemContainerWidget* WeaponInventoryWidget;
+		UARInventoryScreenWidget* InventoryScreenWidget;
 
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
@@ -67,6 +74,7 @@ public:
 	UARUIComponent();
 
 protected:
+	virtual void InitializeComponent() override;
 	// Called when the game starts
 	virtual void BeginPlay() override;
 

@@ -204,6 +204,19 @@ void FIFItemContainer::AddFromOtherInventory(class UIFInventoryComponent* Source
 	Source->Inventory.MarkItemDirty(SourceItem);
 }
 
+TArray<uint8> FIFItemContainer::GetLocalItemIdxs(TSubclassOf<UIFItemBase> ItemClass)
+{
+	TArray<uint8> Indexes;
+	for (uint8 Idx = 0; Idx < Items.Num(); Idx++)
+	{
+		if (Items[Idx].Item && Items[Idx].Item->IsA(ItemClass))
+		{
+			Indexes.Add(Items[Idx].LocalIndex);
+		}
+	}
+	return Indexes;
+}
+
 // Sets default values for this component's properties
 UIFInventoryComponent::UIFInventoryComponent()
 {
