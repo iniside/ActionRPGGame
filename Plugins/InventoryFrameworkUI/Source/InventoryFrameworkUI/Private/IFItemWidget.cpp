@@ -5,16 +5,19 @@
 
 #include "IFInventoryComponent.h"
 
-void UIFItemWidget::OnSlotCreated(uint8 InNetIndex, uint8 InLocalIndex)
+void UIFItemWidget::OnSlotCreated(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* Item)
 {
 	NetIndex = InNetIndex;
 	LocalIndex = InLocalIndex;
-	//const UIFItemBase* Item = Inventory->GetItem(InLocalIndex);
-	//BP_OnItemCreated(const_cast<UIFItemBase*>(Item));
+	BP_OnItemCreated(Item);
 }
 
-void UIFItemWidget::OnItemChanged(uint8 InNetIndex, uint8 InLocalIndex)
+void UIFItemWidget::OnItemChanged(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* Item)
 {
-	const UIFItemBase* Item = Inventory->GetItem(InLocalIndex);
 	BP_OnItemChanged(const_cast<UIFItemBase*>(Item));
+}
+
+void UIFItemWidget::OnItemRemoved(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* Item)
+{
+	BP_OnItemRemoved(const_cast<UIFItemBase*>(Item));
 }

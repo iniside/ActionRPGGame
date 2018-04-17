@@ -13,8 +13,20 @@ UCLASS()
 class ACTIONRPGGAME_API AARHUD : public AHUD
 {
 	GENERATED_BODY()
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
+		class UARUIInventoryComponent* UIInventoryComponent;
 	
-	
-	
-	
+public:
+	AARHUD(const FObjectInitializer& ObjectInitializer);
+
+	virtual void BeginPlay() override;
+
+	inline UARUIInventoryComponent* GetUIInventory()
+	{
+		return UIInventoryComponent;
+	}
+
+
+	void ShowHideInventory();
 };

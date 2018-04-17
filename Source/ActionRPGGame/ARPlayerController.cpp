@@ -10,7 +10,7 @@
 #include "Weapons/ARWeaponManagerComponent.h"
 #include "Abilities/ARAbilityManagerComponent.h"
 
-
+#include "UI/ARHUD.h"
 
 AARPlayerController::AARPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -144,7 +144,10 @@ void AARPlayerController::InputShowHideAbilityManager()
 }
 void AARPlayerController::InputShowHideInventory()
 {
-	UIComponent->ShowHideInventory();
+	if (AARHUD* MyHUD = Cast<AARHUD>(GetHUD()))
+	{
+		MyHUD->ShowHideInventory();
+	}
 }
 void AARPlayerController::OnInputAbilityReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, FGameplayTag InInputTag)
 {

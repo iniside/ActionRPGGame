@@ -4,31 +4,33 @@
 
 #include "Components/TextBlock.h"
 
+#include "UI/Inventory/Weapons/ARItemWeaponWidget.h"
+
 #include "ARPlayerController.h"
+
+void UARInventoryScreenWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+	WeaponSlots.Add(RightWeaponWidget);
+	WeaponSlots.Add(LeftWeaponWidget);
+	WeaponSlots.Add(SideWeaponWidget);
+	WeaponSlots.Add(BottomBackWeaponWidget);
+}
 
 void UARInventoryScreenWidget::SetWeaponName(const FString& Name)
 {
 	SelectedWeapon->SetText(FText::FromString(Name));
 }
 
-void UARInventoryScreenWidget::UpdateItemList(const TArray<uint8>& LocalIdxs)
+void UARInventoryScreenWidget::OnWeaponAdded(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item)
 {
-	SelectedItemsContainer->ClearChildren();
-
-	for (uint8 Idx : LocalIdxs)
-	{
-		UIFItemBase* Item = Inventory->GetItem(Idx);
-
-		if (Item)
-		{
-			const FIFItemData& Slot = Inventory->GetSlot(Idx);
-			UIFItemWidget* ItemWidget = CreateWidget<UIFItemWidget>(PC.Get(), UI->ItemWidgetClass);
-			ItemWidget->Inventory = Inventory;
-			ItemWidget->OnSlotCreated(Slot.GetNetIndex(), Slot.GetLocalIndex());
-			ItemWidget->OnItemChanged(Slot.GetNetIndex(), Slot.GetLocalIndex());
-
-			SelectedItemsContainer->AddChild(ItemWidget);
-		}
-	}
-
+	WeaponSlots[NetIndex]->OnSlotCreated(NetIndex, LocalIndex, Item);
+}
+void UARInventoryScreenWidget::OnWeaponUpdated(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item)
+{
+	WeaponSlots[NetIndex]->OnItemChanged(NetIndex, LocalIndex, Item);
+}
+void UARInventoryScreenWidget::OnWeaponRemoved(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item)
+{
+	WeaponSlots[NetIndex]->OnItemRemoved(NetIndex, LocalIndex, Item);
 }

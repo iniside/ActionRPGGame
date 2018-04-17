@@ -3,23 +3,25 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "IFItemWidget.h"
+#include "UI/Inventory/ARItemView.h"
 #include "ARItemWeaponWidget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ACTIONRPGGAME_API UARItemWeaponWidget : public UIFItemWidget
+class ACTIONRPGGAME_API UARItemWeaponWidget : public UARItemView
 {
 	GENERATED_BODY()
 public:
-	TWeakObjectPtr<class UARWeaponInventoryComponent> WeaponInventory;
-	TWeakObjectPtr<class UARUIComponent> UI;
-	TWeakObjectPtr<class UARInventoryScreenWidget> InventoryWidget;
+	TWeakObjectPtr<class UARUIInventoryComponent> InventoryComponent;
+
+public:
+	virtual void NativeConstruct() override;
 public:
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 	
+	virtual FReply NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	
 };

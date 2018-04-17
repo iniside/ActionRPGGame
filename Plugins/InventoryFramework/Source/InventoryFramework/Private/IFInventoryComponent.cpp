@@ -11,10 +11,6 @@
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
 
-void FIFItemData::SetOnItemChanged(FIFOnItemChangedEvent& Event)
-{
-	OnItemChanged = Event;
-}
 void FIFItemData::PreReplicatedRemove(const struct FIFItemContainer& InArraySerializer)
 {
 	if(Item)
@@ -45,22 +41,23 @@ void FIFItemData::PostReplicatedAdd(const struct FIFItemContainer& InArraySerial
 
 void FIFItemData::PostReplicatedChange(const struct FIFItemContainer& InArraySerializer)
 {
-	InArraySerializer.IC->OnItemChangedEvent.Broadcast(NetIndex, LocalIndex);
-	OnItemChanged.ExecuteIfBound(NetIndex, LocalIndex);
 	if (Item)
 	{
 		switch (ChangeType)
 		{
 		case EIFChangeType::Added:
 			Item->OnItemAdded(LocalIndex);
+			InArraySerializer.IC->OnItemAddedEvent.Broadcast(NetIndex, LocalIndex, Item);
 			InArraySerializer.IC->OnItemAdded(Item, LocalIndex);
 			break;
 		case EIFChangeType::Updated:
 			Item->OnItemChanged(LocalIndex);
+			InArraySerializer.IC->OnItemUpdatedEvent.Broadcast(NetIndex, LocalIndex, Item);
 			InArraySerializer.IC->OnItemChanged(Item, LocalIndex);
 			break;
 		case EIFChangeType::Removed:
 			Item->OnItemRemoved(LocalIndex);
+			InArraySerializer.IC->OnItemRemovedEvent.Broadcast(NetIndex, LocalIndex, Item);
 			InArraySerializer.IC->OnItemRemoved(LocalIndex);
 			break;
 		default:
@@ -88,6 +85,7 @@ void FIFItemContainer::AddItem(class UIFItemBase* InItem, uint8 InNetIndex)
 	Item.ChangeType = EIFChangeType::Added;
 	Item.Item->OnItemAdded(LocalIndex);
 	IC->OnItemAdded(Item.Item, Item.LocalIndex);
+	IC->OnItemAddedEvent.Broadcast(Item.NetIndex, Item.LocalIndex, Item.Item);
 
 	MarkItemDirty(Item);
 }
@@ -98,10 +96,10 @@ void FIFItemContainer::AddItemToFreeSlot(class UIFItemBase* InItem)
 		if (!Item.Item)
 		{
 			Item.Item = InItem;
-			//should be safe to call. On server it probabaly won't do anything and on standalone/clients will update widget.
-			Item.OnSlotChanged();
+			
 			Item.Item->OnItemAdded(Item.LocalIndex);
 			IC->OnItemAdded(Item.Item, Item.LocalIndex);
+			IC->OnItemAddedEvent.Broadcast(Item.NetIndex, Item.LocalIndex, Item.Item);
 			Item.ChangeType = EIFChangeType::Added;
 			MarkItemDirty(Item);
 			break;
@@ -139,17 +137,20 @@ void FIFItemContainer::MoveItem(uint8 NewPosition, uint8 OldPosition)
 	{
 		NewItem.Item->OnItemChanged(NewItem.LocalIndex);
 		IC->OnItemChanged(NewItem.Item, NewItem.LocalIndex);
+		IC->OnItemUpdatedEvent.Broadcast(NewItem.NetIndex, NewItem.LocalIndex, NewItem.Item);
 		NewItem.ChangeType = EIFChangeType::Updated;
 	}
 	if (OldItem.Item)
 	{
 		OldItem.Item->OnItemChanged(OldItem.LocalIndex);
 		IC->OnItemChanged(OldItem.Item, OldItem.LocalIndex);
+		IC->OnItemUpdatedEvent.Broadcast(OldItem.NetIndex, OldItem.LocalIndex, OldItem.Item);
 		OldItem.ChangeType = EIFChangeType::Updated;
 	}
 	else
 	{
 		OldItem.ChangeType = EIFChangeType::Removed;
+		IC->OnItemRemovedEvent.Broadcast(OldItem.NetIndex, OldItem.LocalIndex, OldItem.Item);
 		IC->OnItemRemoved(OldItem.LocalIndex);
 		OldItem.Counter++;
 	}
@@ -180,7 +181,7 @@ void FIFItemContainer::AddFromOtherInventory(class UIFInventoryComponent* Source
 	LocalItem.Counter++;
 
 	IC->OnItemAdded(LocalItem.Item, LocalItem.LocalIndex);
-	LocalItem.OnSlotChanged();
+	IC->OnItemAddedEvent.Broadcast(LocalItem.NetIndex, LocalItem.LocalIndex, LocalItem.Item);
 
 	SourceItem.Item->MarkPendingKill();
 	SourceItem.Item = nullptr;
@@ -198,10 +199,34 @@ void FIFItemContainer::AddFromOtherInventory(class UIFInventoryComponent* Source
 		SourceItem.Counter++;
 		Source->OnItemRemoved(SourceItem.LocalIndex);
 	}
-	SourceItem.OnSlotChanged();
 
 	MarkItemDirty(LocalItem);
 	Source->Inventory.MarkItemDirty(SourceItem);
+}
+void FIFItemContainer::AddFromOtherInventoryAny(class UIFInventoryComponent* Source
+	, uint8 SourceNetIndex)
+{
+	
+	uint8 LocalIndex = NetToLocal[SourceNetIndex];
+	FIFItemData& SourceItem = Source->Inventory.Items[LocalIndex];
+	if (!SourceItem.Item)
+		return;
+
+	for (FIFItemData& Item : Items)
+	{
+		if (!Item.Item)
+		{
+			Item.Item = DuplicateObject<UIFItemBase>(SourceItem.Item, IC.Get());
+			Item.Counter++;
+			Item.ChangeType = EIFChangeType::Added;
+			IC->OnItemAddedEvent.Broadcast(Item.NetIndex, Item.LocalIndex, Item.Item);
+
+			SourceItem.Item = nullptr;
+			SourceItem.ChangeType = EIFChangeType::Removed;
+			Source->OnItemRemovedEvent.Broadcast(SourceItem.NetIndex, SourceItem.LocalIndex, SourceItem.Item);
+			return;
+		}
+	}
 }
 
 TArray<uint8> FIFItemContainer::GetLocalItemIdxs(TSubclassOf<UIFItemBase> ItemClass)
@@ -369,9 +394,6 @@ void UIFInventoryComponent::MoveItemInInventory(uint8 NewLocalPostion, uint8 Old
 
 	const FIFItemData& NewSlot = GetSlot(NewLocalPostion);
 	const FIFItemData& OldSlot = GetSlot(OldLocalPositin);
-
-	NewSlot.OnSlotChanged();
-	OldSlot.OnSlotChanged();
 }
 
 void UIFInventoryComponent::ServerMoveItemInInventory_Implementation(uint8 NewNetPostion, uint8 OldNetPositin)
@@ -456,6 +478,30 @@ bool UIFInventoryComponent::ServerAddItemFromOtherInventory_Validate(class UIFIn
 {
 	return true;
 }
+
+void UIFInventoryComponent::AddItemFromOtherInventoryAny(class UIFInventoryComponent* Source
+	, uint8 SourceLocalIndex)
+{
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		uint8 SourceLocalIdx = Inventory.NetToLocal[SourceLocalIndex];
+		ServerAddItemFromOtherInventoryAny(Source, SourceLocalIdx);
+		return;
+	}
+
+	uint8 SourceLocalIdx = Inventory.NetToLocal[SourceLocalIndex];
+	Inventory.AddFromOtherInventoryAny(Source, SourceLocalIdx);
+}
+void UIFInventoryComponent::ServerAddItemFromOtherInventoryAny_Implementation(class UIFInventoryComponent* Source
+	, uint8 SourceNetIndex)
+{
+	Inventory.AddFromOtherInventoryAny(Source, SourceNetIndex);
+}
+bool UIFInventoryComponent::ServerAddItemFromOtherInventoryAny_Validate(class UIFInventoryComponent* Source
+	, uint8 SourceNetIndex)
+{
+	return true;
+}
 void UIFInventoryComponent::AddItemFromClass(TSoftClassPtr<class UIFItemBase> Item, uint8 InLocalIndex)
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
@@ -518,15 +564,7 @@ void UIFInventoryComponent::OnItemLoaded(TSoftClassPtr<class UIFItemBase> InItem
 	FStreamableManager& Manager = UAssetManager::GetStreamableManager();
 	Manager.Unload(InItem.ToSoftObjectPath());
 }
-FSimpleMulticastDelegate& UIFInventoryComponent::GetOnInventoryRead()
-{
-	return OnInventoryReady;
-}
 
-FIFOnItemChanged& UIFInventoryComponent::GetItemChangedEvent()
-{
-	return OnItemChangedEvent;
-}
 bool UIFInventoryComponent::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
 {
 	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);

@@ -12,16 +12,5 @@
 
 void UARWeaponContainerWidget::InitializeWeaponItems(class UARUIComponent* UIComponent)
 {
-	for (UIFItemWidget* Widget : InventoryWidgets)
-	{
-		if (UARItemWeaponWidget* Weapon = Cast<UARItemWeaponWidget>(Widget))
-		{
-			AARPlayerController* PC = Cast<AARPlayerController>(UIComponent->GetOwner());
-			AARCharacter* Character = Cast<AARCharacter>(PC->GetPawn());
 
-			Weapon->WeaponInventory = Character->WeaponInventory;
-			Weapon->UI = UIComponent;
-			Weapon->InventoryWidget = UIComponent->InventoryScreenWidget;
-		}
-	}
 }

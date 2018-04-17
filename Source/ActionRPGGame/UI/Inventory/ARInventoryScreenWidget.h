@@ -22,11 +22,6 @@ class ACTIONRPGGAME_API UARInventoryScreenWidget : public UARUMGWidgetBase
 {
 	GENERATED_BODY()
 public:
-	
-	TWeakObjectPtr<class UIFInventoryComponent> Inventory;
-	TWeakObjectPtr<class UARUIComponent> UI;
-	TWeakObjectPtr<class AARPlayerController> PC;
-
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
 		class UARItemWeaponWidget* RightWeaponWidget;
 
@@ -47,10 +42,12 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 		UTextBlock* SelectedWeapon;
-	
-	void SetWeaponName(const FString& Name);
+protected:
+	TArray<UARItemWeaponWidget*> WeaponSlots;
+public:
+	virtual void NativeConstruct() override;
 
-	void UpdateItemList(const TArray<uint8>& LocalIdxs);
+	void SetWeaponName(const FString& Name);
 
 	template<typename ItemType, typename WidgetType>
 	void UpdateItemList(const TArray<uint8>& LocalIdxs, TSubclassOf<WidgetType> WidgetClass)
@@ -74,4 +71,30 @@ public:
 		}
 	}
 
+	template<typename ItemType, typename WidgetType>
+	void AddItems(const TArray<ItemType*>& Items, TSubclassOf<WidgetType> WidgetClass, class AARPlayerController* PC, class UARItemView* ForSlot)
+	{
+		SelectedItemsContainer->ClearChildren();
+
+		uint8 Idx = 0;
+		for (ItemType* Item : Items)
+		{
+			if (Item)
+			{
+				const FIFItemData& Slot = PC->MainInventory->GetSlot(Idx);
+				WidgetType* ItemWidget = CreateWidget<WidgetType>(PC, WidgetClass);
+				
+				ItemWidget->SetTarget(ForSlot);
+				ItemWidget->OnSlotCreated(Slot.GetNetIndex(), Slot.GetLocalIndex(), Item);
+				ItemWidget->OnItemChanged(Slot.GetNetIndex(), Slot.GetLocalIndex(), Item);
+
+				SelectedItemsContainer->AddChild(ItemWidget);
+			}
+			Idx++;
+		}
+	}
+
+	void OnWeaponAdded(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item);
+	void OnWeaponUpdated(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item);
+	void OnWeaponRemoved(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item);
 };

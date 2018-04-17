@@ -565,12 +565,6 @@ void AARCharacter::OnRep_Controller()
 /* IIFInventoryInterface */
 void AARCharacter::OnInventoryReplicated(class UIFInventoryComponent* Inventory)
 {
-	if (Cast<UARWeaponInventoryComponent>(Inventory))
-	{
-		if (AARPlayerController* PC = Cast<AARPlayerController>(Controller))
-		{
-			PC->UIComponent->InitializeWeaponInventory();
-		}
-	}
+
 }
 /* IIFInventoryInterface */

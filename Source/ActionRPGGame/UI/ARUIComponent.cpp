@@ -55,75 +55,6 @@ void UARUIComponent::BeginPlay()
 			HUDWidget = CreateWidget<UARHUDWidget>(MyPC, HUDWidgetClass);
 			HUDWidget->AddToViewport();
 		}
-
-		AARCharacter* Character = Cast<AARCharacter>(MyPC->GetPawn());
-		if (WeaponInventoryWidgetClass && Character)
-		{
-			InventoryScreenWidget->UI = this;
-			InventoryScreenWidget->PC = MyPC;
-			InventoryScreenWidget->Inventory = MyPC->MainInventory;
-
-			UARWeaponInventoryComponent* WeapInv = Character->WeaponInventory;
-
-			for (FIFItemData& Item : WeapInv->GetInventory().GetItems())
-			{
-				switch (Item.GetLocalIndex())
-				{
-				case 0:
-				{
-					InventoryScreenWidget->RightWeaponWidget->Inventory = MyPC->MainInventory;
-					InventoryScreenWidget->RightWeaponWidget->WeaponInventory = WeapInv;
-					InventoryScreenWidget->RightWeaponWidget->UI = this;
-					InventoryScreenWidget->RightWeaponWidget->InventoryWidget = InventoryScreenWidget;
-
-					InventoryScreenWidget->RightWeaponWidget->LocalIndex = Item.GetLocalIndex();
-					InventoryScreenWidget->RightWeaponWidget->NetIndex = Item.GetNetIndex();
-
-					FIFOnItemChangedEvent Event = FIFOnItemChangedEvent::CreateUObject(InventoryScreenWidget->RightWeaponWidget, &UIFItemWidget::OnItemChanged);
-					Item.SetOnItemChanged(Event);
-				}
-				case 1:
-				{
-					InventoryScreenWidget->LeftWeaponWidget->Inventory = MyPC->MainInventory;
-					InventoryScreenWidget->LeftWeaponWidget->WeaponInventory = WeapInv;
-					InventoryScreenWidget->LeftWeaponWidget->UI = this;
-					InventoryScreenWidget->LeftWeaponWidget->InventoryWidget = InventoryScreenWidget;
-
-					InventoryScreenWidget->LeftWeaponWidget->LocalIndex = Item.GetLocalIndex();
-					InventoryScreenWidget->LeftWeaponWidget->NetIndex = Item.GetNetIndex();
-
-					FIFOnItemChangedEvent Event = FIFOnItemChangedEvent::CreateUObject(InventoryScreenWidget->LeftWeaponWidget, &UIFItemWidget::OnItemChanged);
-					Item.SetOnItemChanged(Event);
-				}
-				case 2:
-				{
-					InventoryScreenWidget->SideWeaponWidget->Inventory = MyPC->MainInventory;
-					InventoryScreenWidget->SideWeaponWidget->WeaponInventory = WeapInv;
-					InventoryScreenWidget->SideWeaponWidget->UI = this;
-					InventoryScreenWidget->SideWeaponWidget->InventoryWidget = InventoryScreenWidget;
-
-					InventoryScreenWidget->SideWeaponWidget->LocalIndex = Item.GetLocalIndex();
-					InventoryScreenWidget->SideWeaponWidget->NetIndex = Item.GetNetIndex();
-
-					FIFOnItemChangedEvent Event = FIFOnItemChangedEvent::CreateUObject(InventoryScreenWidget->SideWeaponWidget, &UIFItemWidget::OnItemChanged);
-					Item.SetOnItemChanged(Event);
-				}
-				case 3:
-				{
-					InventoryScreenWidget->BottomBackWeaponWidget->Inventory = MyPC->MainInventory;
-					InventoryScreenWidget->BottomBackWeaponWidget->WeaponInventory = WeapInv;
-					InventoryScreenWidget->BottomBackWeaponWidget->UI = this;
-					InventoryScreenWidget->BottomBackWeaponWidget->InventoryWidget = InventoryScreenWidget;
-
-					InventoryScreenWidget->BottomBackWeaponWidget->LocalIndex = Item.GetLocalIndex();
-					InventoryScreenWidget->BottomBackWeaponWidget->NetIndex = Item.GetNetIndex();
-
-					FIFOnItemChangedEvent Event = FIFOnItemChangedEvent::CreateUObject(InventoryScreenWidget->BottomBackWeaponWidget, &UIFItemWidget::OnItemChanged);
-					Item.SetOnItemChanged(Event);
-				}
-				}
-			}
-		}
 	}
 }
 
@@ -139,37 +70,4 @@ void UARUIComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 void UARUIComponent::InitializeInventory()
 {
 
-}
-void UARUIComponent::InitializeWeaponInventory()
-{
-	//if (GetOwner()->GetNetMode() == ENetMode::NM_Client
-	//	|| GetOwner()->GetNetMode() == ENetMode::NM_Standalone)
-	//{
-	//	AARPlayerController* MyPC = Cast<AARPlayerController>(GetOwner());
-	//	AARCharacter* Character = Cast<AARCharacter>(MyPC->GetPawn());
-	//	if (WeaponInventoryWidgetClass && Character)
-	//	{
-	//		InventoryScreenWidget->WeaponInventoryWidget = CreateWidget<UARWeaponContainerWidget>(MyPC, WeaponInventoryWidgetClass);
-	//		
-	//		InventoryScreenWidget->UI = this;
-	//		InventoryScreenWidget->PC = MyPC;
-	//		InventoryScreenWidget->Inventory = MyPC->MainInventory;
-	//		InventoryScreenWidget->WeaponInventoryWidget->SetInventory(Character->WeaponInventory);
-	//		InventoryScreenWidget->WeaponInventoryWidget->CreateInventory();
-	//		InventoryScreenWidget->WeaponInventoryWidget->InitializeWeaponItems(this);
-	//		InventoryScreenWidget->WeaponInventoryWidget->AddToViewport();
-	//		
-	//	}
-	//}
-}
-void UARUIComponent::ShowHideInventory()
-{
-	if (InventoryScreenWidget->GetVisibility() == ESlateVisibility::Collapsed)
-	{
-		InventoryScreenWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	}
-	else if (InventoryScreenWidget->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
-	{
-		InventoryScreenWidget->SetVisibility(ESlateVisibility::Collapsed);
-	}
 }

@@ -35,23 +35,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Widgets")
 		TSubclassOf<class UARHUDWidget> HUDWidgetClass;
-
-	UPROPERTY(EditAnywhere, Category = "Widgets")
-		TSubclassOf<class UARWeaponContainerWidget> WeaponInventoryWidgetClass;
-
-	UPROPERTY(EditAnywhere, Category = "Widgets")
-		TSubclassOf<class UARInventoryScreenWidget> InventoryScreenWidgetClass;
-public:
-	UPROPERTY(EditAnywhere, Category = "Widgets")
-		TSubclassOf<class UIFItemWidget> ItemWidgetClass;
-	UPROPERTY(EditAnywhere, Category = "Widgets")
-		TSubclassOf<class UARListItemWeaponWidget> ItemWeaponWidgetClass;
-
-
-public:
-	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
-		UARInventoryScreenWidget* InventoryScreenWidget;
-
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		UARHUDWidget* HUDWidget;
@@ -73,7 +56,5 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void InitializeInventory();
-	void InitializeWeaponInventory();
 
-	void ShowHideInventory();
 };

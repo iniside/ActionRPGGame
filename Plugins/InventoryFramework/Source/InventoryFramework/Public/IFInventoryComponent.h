@@ -7,9 +7,8 @@
 #include "IFInventoryComponent.generated.h"
 
 //NetIndex, LocalIndex
-DECLARE_MULTICAST_DELEGATE_TwoParams(FIFOnItemChanged, uint8, uint8);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FIFItemEvent, uint8, uint8, class UIFItemBase*);
 DECLARE_MULTICAST_DELEGATE(FIFOnInventoryChanged);
-DECLARE_DELEGATE_TwoParams(FIFOnItemChangedEvent, uint8, uint8);
 
 UENUM()
 enum class EIFChangeType : uint8
@@ -62,8 +61,6 @@ protected:
 
 	UPROPERTY()
 		uint8 Counter;
-
-	FIFOnItemChangedEvent OnItemChanged;
 public:
 
 	FIFItemData()
@@ -89,13 +86,6 @@ public:
 	{
 		return LocalIndex;
 	}
-
-	void OnSlotChanged() const
-	{
-		OnItemChanged.ExecuteIfBound(NetIndex, LocalIndex);
-	}
-
-	void SetOnItemChanged(FIFOnItemChangedEvent& Event);
 
 	/**
 	* Called right before deleting element during replication.
@@ -163,6 +153,9 @@ protected:
 		, uint8 SourceNetIndex
 		, uint8 InNetIndex);
 
+	void AddFromOtherInventoryAny(class UIFInventoryComponent* Source
+		, uint8 SourceNetIndex);
+
 	TArray<uint8> GetLocalItemIdxs(TSubclassOf<UIFItemBase> ItemClass);
 
 	template<typename T>
@@ -219,7 +212,9 @@ protected:
 	UPROPERTY(Replicated)
 		FIFItemContainer Inventory;
 
-	FIFOnItemChanged OnItemChangedEvent;
+	FIFItemEvent OnItemAddedEvent;
+	FIFItemEvent OnItemUpdatedEvent;
+	FIFItemEvent OnItemRemovedEvent;
 	FIFOnInventoryChanged OnInventoryChanged;
 
 	/*
@@ -264,6 +259,10 @@ public:
 	void InitializeInventory();
 
 	inline FIFItemContainer& GetInventory() { return Inventory; }
+
+	inline FIFItemEvent& GetOnItemAdded() { return OnItemAddedEvent; }
+	inline FIFItemEvent& GetOnItemUpdated() { return OnItemUpdatedEvent; }
+	inline FIFItemEvent& GetOnItemRemoved() { return OnItemRemovedEvent; }
 
 	inline uint8 GetMaxSlots()
 	{
@@ -343,6 +342,17 @@ public:
 		, uint8 SourceNetIndex
 		, uint8 InNetIndex);
 
+
+	void AddItemFromOtherInventoryAny(class UIFInventoryComponent* Source
+		, uint8 SourceLocalIndex);
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerAddItemFromOtherInventoryAny(class UIFInventoryComponent* Source
+			, uint8 SourceNetIndex);
+	void ServerAddItemFromOtherInventoryAny_Implementation(class UIFInventoryComponent* Source
+		, uint8 SourceNetIndex);
+	bool ServerAddItemFromOtherInventoryAny_Validate(class UIFInventoryComponent* Source
+		, uint8 SourceNetIndex);
+
 	/* Adds item from class. Realistically you should never call it on client. */
 	void AddItemFromClass(TSoftClassPtr<class UIFItemBase> Item, uint8 InLocalIndex);
 	
@@ -367,8 +377,6 @@ public:
 		void OnItemLoaded(TSoftClassPtr<class UIFItemBase> InItem, uint8 InNetIndex);
 
 	FSimpleMulticastDelegate& GetOnInventoryRead();
-
-	FIFOnItemChanged& GetItemChangedEvent();
-
+	
 	bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags) override;
 };

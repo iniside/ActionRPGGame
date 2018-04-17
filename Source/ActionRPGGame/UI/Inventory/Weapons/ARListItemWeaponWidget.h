@@ -3,18 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "IFItemWidget.h"
+#include "UI/Inventory/ARListItemView.h"
 #include "ARListItemWeaponWidget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ACTIONRPGGAME_API UARListItemWeaponWidget : public UIFItemWidget
+class ACTIONRPGGAME_API UARListItemWeaponWidget : public UARListItemView
 {
 	GENERATED_BODY()
-	
-	
-	
-	
+public:
+	virtual FReply NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 };
