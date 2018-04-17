@@ -34,6 +34,13 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
 		class UARItemWeaponWidget* BottomBackWeaponWidget;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
+		UButton* ModifySelectedWeapon;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
+		class UARItemMagazineView* MagazineUpgrade;
+
+
 	/*
 		Contains list of items compatibile with selected slot.
 	*/
@@ -41,7 +48,12 @@ public:
 		UWrapBox* SelectedItemsContainer;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+		UWrapBox* WeaponModificationContainer;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 		UTextBlock* SelectedWeapon;
+
+	TWeakObjectPtr<class UARUIInventoryComponent> Inventory;
 protected:
 	TArray<UARItemWeaponWidget*> WeaponSlots;
 public:
@@ -50,21 +62,21 @@ public:
 	void SetWeaponName(const FString& Name);
 
 	template<typename ItemType, typename WidgetType>
-	void UpdateItemList(const TArray<uint8>& LocalIdxs, TSubclassOf<WidgetType> WidgetClass)
+	void UpdateItemList(const TArray<uint8>& LocalIdxs, TSubclassOf<WidgetType> WidgetClass, class AARPlayerController* PC, class UARItemView* ForSlot)
 	{
 		SelectedItemsContainer->ClearChildren();
 
 		for (uint8 Idx : LocalIdxs)
 		{
-			ItemType* Item = Inventory->GetItem<ItemType>(Idx);
+			ItemType* Item = PC->MainInventory->GetItem<ItemType>(Idx);
 
 			if (Item)
 			{
-				const FIFItemData& Slot = Inventory->GetSlot(Idx);
-				WidgetType* ItemWidget = CreateWidget<WidgetType>(PC.Get(), WidgetClass);
-				ItemWidget->Inventory = Inventory;
-				ItemWidget->OnSlotCreated(Slot.GetNetIndex(), Slot.GetLocalIndex());
-				ItemWidget->OnItemChanged(Slot.GetNetIndex(), Slot.GetLocalIndex());
+				const FIFItemData& Slot = PC->MainInventory->GetSlot(Idx);
+				WidgetType* ItemWidget = CreateWidget<WidgetType>(PC, WidgetClass);
+				ItemWidget->SetTarget(ForSlot);
+				ItemWidget->OnSlotCreated(Slot.GetNetIndex(), Slot.GetLocalIndex(), Item);
+				ItemWidget->OnItemChanged(Slot.GetNetIndex(), Slot.GetLocalIndex(), Item);
 
 				SelectedItemsContainer->AddChild(ItemWidget);
 			}
@@ -94,7 +106,32 @@ public:
 		}
 	}
 
+	template<typename ItemType, typename WidgetType>
+	void AddWeaponMods(const TArray<uint8>& Items, TSubclassOf<WidgetType> WidgetClass, class AARPlayerController* PC, class UARItemView* ForSlot)
+	{
+		WeaponModificationContainer->ClearChildren();
+
+		for (uint8 Idx : Items)
+		{
+			ItemType* Item = PC->MainInventory->GetItem<ItemType>(Idx);
+
+			if (Item)
+			{
+				const FIFItemData& Slot = PC->MainInventory->GetSlot(Idx);
+				WidgetType* ItemWidget = CreateWidget<WidgetType>(PC, WidgetClass);
+				
+				ItemWidget->OnSlotCreated(Slot.GetNetIndex(), Slot.GetLocalIndex(), Item);
+				ItemWidget->OnItemChanged(Slot.GetNetIndex(), Slot.GetLocalIndex(), Item);
+
+				WeaponModificationContainer->AddChild(ItemWidget);
+			}
+		}
+	}
+
 	void OnWeaponAdded(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item);
 	void OnWeaponUpdated(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item);
 	void OnWeaponRemoved(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item);
+protected:
+	UFUNCTION()
+		void OnModifyWeaponClicked();
 };

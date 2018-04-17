@@ -40,6 +40,6 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "On Item Changed"))
 		void BP_OnItemChanged(class UIFItemBase* Item);
 
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "On Item Changed"))
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "On Item Removed"))
 		void BP_OnItemRemoved(class UIFItemBase* Item);
 };

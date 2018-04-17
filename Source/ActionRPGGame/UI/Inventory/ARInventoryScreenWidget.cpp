@@ -3,6 +3,7 @@
 #include "ARInventoryScreenWidget.h"
 
 #include "Components/TextBlock.h"
+#include "Components/Button.h"
 
 #include "UI/Inventory/Weapons/ARItemWeaponWidget.h"
 
@@ -15,6 +16,7 @@ void UARInventoryScreenWidget::NativeConstruct()
 	WeaponSlots.Add(LeftWeaponWidget);
 	WeaponSlots.Add(SideWeaponWidget);
 	WeaponSlots.Add(BottomBackWeaponWidget);
+	ModifySelectedWeapon->OnClicked.AddDynamic(this, &UARInventoryScreenWidget::OnModifyWeaponClicked);
 }
 
 void UARInventoryScreenWidget::SetWeaponName(const FString& Name)
@@ -33,4 +35,9 @@ void UARInventoryScreenWidget::OnWeaponUpdated(uint8 NetIndex, uint8 LocalIndex,
 void UARInventoryScreenWidget::OnWeaponRemoved(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item)
 {
 	WeaponSlots[NetIndex]->OnItemRemoved(NetIndex, LocalIndex, Item);
+}
+
+void UARInventoryScreenWidget::OnModifyWeaponClicked()
+{
+	Inventory->ModifyWeapon();
 }

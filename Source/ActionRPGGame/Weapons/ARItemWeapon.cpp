@@ -5,6 +5,7 @@
 
 void UARItemWeapon::AddMagazineUpgrade(const TSoftClassPtr<class UARMagazineUpgradeItem>& InMagazineUpgrade)
 {
+	MagazineModification = InMagazineUpgrade;
 	TSubclassOf<UARMagazineUpgradeItem> clas = InMagazineUpgrade.LoadSynchronous();
 	MagazineEffect = clas->GetDefaultObject<UARMagazineUpgradeItem>()->UpgradeEffect.LoadSynchronous();
 	OnMagazineUpdateAdded();

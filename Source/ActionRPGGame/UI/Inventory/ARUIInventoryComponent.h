@@ -17,8 +17,16 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Views")
 		TSubclassOf<class UARListItemWeaponWidget> ListItemWeaponClass;
 
+	UPROPERTY(EditAnywhere, Category = "Views")
+		TSubclassOf<class UARListItemMagazineView> ListItemMagazinelass;
+
+
 	UPROPERTY(BlueprintReadOnly, Category = "ActionRPGGame|UI|Inventory")
 		class UARInventoryScreenWidget* InventoryView;
+
+	/* NetIndex of selected Weapon. */
+	UPROPERTY(BlueprintReadOnly, Category = "ActionRPGGame|UI|Inventory")
+		uint8 SelectedWeapon;
 public:	
 	// Sets default values for this component's properties
 	UARUIInventoryComponent();
@@ -51,4 +59,8 @@ public:
 		, uint8 SourceLocalIndex);
 
 	void UnequipWeaponFromSlot(uint8 SourceNetIndex, uint8 SourceLocalIndex);
+
+	void ShowUpgradesForWeapon(class UARItemMagazineView* For);
+
+	void ModifyWeapon();
 };

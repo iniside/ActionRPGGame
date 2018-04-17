@@ -36,6 +36,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ability")
 		UARWeaponAbilityBase* AbilityInstance;
 
+	UPROPERTY(EditAnywhere, Category = "Ability")
+		TSoftClassPtr<class UARMagazineUpgradeItem> MagazineModification;
+
+
 	FAFPropertytHandle MagazineEffect;
 	FGAEffectHandle MagazineEffectHandle;
 

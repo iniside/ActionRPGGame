@@ -5,11 +5,14 @@
 #include "ARCharacter.h"
 
 #include "Weapons/ARItemWeapon.h"
+#include "Weapons/ARMagazineUpgradeItem.h"
 
 #include "UI/ARHUD.h"
+#include "UI/Inventory/ARItemView.h"
 #include "UI/Inventory/ARInventoryScreenWidget.h"
 #include "UI/Inventory/Weapons/ARListItemWeaponWidget.h"
-
+#include "UI/Inventory/Weapons/Modifications/ARItemMagazineView.h"
+#include "UI/Inventory/Weapons/Modifications/ARListItemMagazineView.h"
 
 // Sets default values for this component's properties
 UARUIInventoryComponent::UARUIInventoryComponent()
@@ -47,6 +50,7 @@ void UARUIInventoryComponent::CreateInventoryView(AARPlayerController* PC)
 		InventoryView = CreateWidget<UARInventoryScreenWidget>(PC, InventoryViewClass);
 
 		InventoryView->SetVisibility(ESlateVisibility::Collapsed);
+		InventoryView->Inventory = this;
 		InventoryView->AddToViewport();
 
 		if (AARCharacter* Character = Cast<AARCharacter>(PC->GetPawn()))
@@ -85,18 +89,19 @@ void UARUIInventoryComponent::OnWeaponRemoved(uint8 NetIndex, uint8 LocalIndex, 
 
 void UARUIInventoryComponent::ShowWeaponsForSlot(class UARItemView* ForSlot)
 {
-	TArray<UARItemWeapon*> Items;
+	SelectedWeapon = ForSlot->LocalIndex;
+	TArray<uint8> Items;
 	AARPlayerController* PC = nullptr;
 	if (AARHUD* HUD = Cast<AARHUD>(GetOwner()))
 	{
 		PC = Cast<AARPlayerController>(HUD->PlayerOwner);
 		if (PC)
 		{
-			Items = PC->MainInventory->GetItems<UARItemWeapon>(UARItemWeapon::StaticClass());
+			Items = PC->MainInventory->GetLocalItemIdxs(UARItemWeapon::StaticClass());
 		}
 	}
 
-	InventoryView->AddItems<UARItemWeapon, UARListItemWeaponWidget>(Items, ListItemWeaponClass, PC, ForSlot);
+	InventoryView->UpdateItemList<UARItemWeapon, UARListItemWeaponWidget>(Items, ListItemWeaponClass, PC, ForSlot);
 }
 
 void UARUIInventoryComponent::AddWeaponToSlot(uint8 TargetNetIndex
@@ -134,4 +139,45 @@ void UARUIInventoryComponent::UnequipWeaponFromSlot(uint8 SourceNetIndex, uint8 
 
 	PC->MainInventory->AddItemFromOtherInventoryAny(Character->WeaponInventory, SourceLocalIndex);
 	Character->WeaponInventory->Unequip(SourceLocalIndex);
+}
+
+void UARUIInventoryComponent::ShowUpgradesForWeapon(class UARItemMagazineView* For)
+{
+	TArray<uint8> Items;
+	AARPlayerController* PC = nullptr;
+	if (AARHUD* HUD = Cast<AARHUD>(GetOwner()))
+	{
+		PC = Cast<AARPlayerController>(HUD->PlayerOwner);
+		if (PC)
+		{
+			Items = PC->MainInventory->GetLocalItemIdxs(UARMagazineUpgradeItem::StaticClass());
+		}
+	}
+
+	InventoryView->AddWeaponMods<UARMagazineUpgradeItem, UARListItemMagazineView>(Items, ListItemMagazinelass, PC, For);
+}
+
+void UARUIInventoryComponent::ModifyWeapon()
+{
+	AARHUD* HUD = Cast<AARHUD>(GetOwner());
+	if (!HUD)
+		return;
+	AARPlayerController* PC = Cast<AARPlayerController>(HUD->PlayerOwner);
+	if (!PC)
+		return;
+
+	AARCharacter* Character = Cast<AARCharacter>(PC->GetPawn());
+	if (!Character)
+		return;
+
+	UARItemWeapon* Weapon = Character->WeaponInventory->GetItem<UARItemWeapon>(SelectedWeapon);
+
+	if (!Weapon)
+		return;
+
+	if (Weapon->MagazineModification.IsValid())
+	{
+		TSubclassOf<UARMagazineUpgradeItem> Magazine = Weapon->MagazineModification.LoadSynchronous();
+		InventoryView->MagazineUpgrade->OnItemChanged(0, 0, Magazine->GetDefaultObject<UARMagazineUpgradeItem>());
+	}
 }
