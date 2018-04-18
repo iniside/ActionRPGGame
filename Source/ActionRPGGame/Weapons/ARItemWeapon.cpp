@@ -3,17 +3,24 @@
 #include "ARItemWeapon.h"
 #include "Weapons/ARMagazineUpgradeItem.h"
 
-void UARItemWeapon::AddMagazineUpgrade(const TSoftClassPtr<class UARMagazineUpgradeItem>& InMagazineUpgrade)
+void UARItemWeapon::AddMagazineUpgrade(class UARMagazineUpgradeItem* InMagazineUpgrade)
 {
-	MagazineModification = InMagazineUpgrade;
-	TSubclassOf<UARMagazineUpgradeItem> clas = InMagazineUpgrade.LoadSynchronous();
-	MagazineEffect = clas->GetDefaultObject<UARMagazineUpgradeItem>()->UpgradeEffect.LoadSynchronous();
+	MagazineModification = InMagazineUpgrade->GetClass()->GetPathName();
+	MagazineEffect = InMagazineUpgrade->UpgradeEffect.LoadSynchronous();
 	OnMagazineUpdateAdded();
 }
 void UARItemWeapon::OnMagazineUpdateAdded()
 {
 
 }
+
+TSoftClassPtr<class UARMagazineUpgradeItem> UARItemWeapon::RemoveMagazineUpgrade()
+{
+	TSoftClassPtr<class UARMagazineUpgradeItem> Copy = MagazineModification;
+	MagazineModification.Reset();
+	return Copy;
+}
+
 void UARItemWeapon::OnItemAdded(uint8 LocalIndex)
 {
 

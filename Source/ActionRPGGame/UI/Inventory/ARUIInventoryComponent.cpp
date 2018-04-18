@@ -99,6 +99,14 @@ void UARUIInventoryComponent::ShowWeaponsForSlot(class UARItemView* ForSlot)
 		{
 			Items = PC->MainInventory->GetLocalItemIdxs(UARItemWeapon::StaticClass());
 		}
+		if (AARCharacter* Character = Cast<AARCharacter>(PC->GetPawn()))
+		{
+			UIFItemBase* Item = Character->WeaponInventory->GetItem(ForSlot->LocalIndex);
+			if (Item)
+			{
+				InventoryView->SetWeaponName(Item->GetName());
+			}
+		}
 	}
 
 	InventoryView->UpdateItemList<UARItemWeapon, UARListItemWeaponWidget>(Items, ListItemWeaponClass, PC, ForSlot);
@@ -180,4 +188,63 @@ void UARUIInventoryComponent::ModifyWeapon()
 		TSubclassOf<UARMagazineUpgradeItem> Magazine = Weapon->MagazineModification.LoadSynchronous();
 		InventoryView->MagazineUpgrade->OnItemChanged(0, 0, Magazine->GetDefaultObject<UARMagazineUpgradeItem>());
 	}
+}
+
+void UARUIInventoryComponent::AddMagazineUpgrade(uint8 SourceNetIndex, uint8 SourceLocalIndex)
+{
+	//that's prototype. We should handle entire thing on server, either directly on item weapon, or trough WeaponInventory.
+	AARHUD* HUD = Cast<AARHUD>(GetOwner());
+	if (!HUD)
+		return;
+	AARPlayerController* PC = Cast<AARPlayerController>(HUD->PlayerOwner);
+	if (!PC)
+		return;
+
+	AARCharacter* Character = Cast<AARCharacter>(PC->GetPawn());
+	if (!Character)
+		return;
+
+
+	UIFInventoryComponent* MainInventory = PC->MainInventory;
+
+	UARMagazineUpgradeItem* MagazineUpgrade = MainInventory->GetItem<UARMagazineUpgradeItem>(SourceLocalIndex);
+
+	UARWeaponInventoryComponent* WeaponInventory = Character->WeaponInventory;
+
+	UARItemWeapon* Weapon = WeaponInventory->GetItem<UARItemWeapon>(SelectedWeapon);
+
+	Weapon->AddMagazineUpgrade(MagazineUpgrade); // ???
+	MainInventory->RemoveItem(SourceLocalIndex);
+
+	if (Weapon->MagazineModification.IsValid())
+	{
+		TSubclassOf<UARMagazineUpgradeItem> Magazine = Weapon->MagazineModification.LoadSynchronous();
+		InventoryView->MagazineUpgrade->OnItemChanged(0, 0, Magazine->GetDefaultObject<UARMagazineUpgradeItem>());
+	}
+}
+
+void UARUIInventoryComponent::RemoveMagazineUpgrade()
+{
+	AARHUD* HUD = Cast<AARHUD>(GetOwner());
+	if (!HUD)
+		return;
+	AARPlayerController* PC = Cast<AARPlayerController>(HUD->PlayerOwner);
+	if (!PC)
+		return;
+
+	AARCharacter* Character = Cast<AARCharacter>(PC->GetPawn());
+	if (!Character)
+		return;
+
+	UARWeaponInventoryComponent* WeaponInventory = Character->WeaponInventory;
+	UARItemWeapon* Weapon = WeaponInventory->GetItem<UARItemWeapon>(SelectedWeapon);
+
+	TSoftClassPtr<UARMagazineUpgradeItem> Item = Weapon->RemoveMagazineUpgrade();
+
+
+	UIFInventoryComponent* MainInventory = PC->MainInventory;
+
+	MainInventory->AddItemFromClass(Item, 0);
+
+	InventoryView->MagazineUpgrade->OnItemChanged(0, 0, nullptr);
 }

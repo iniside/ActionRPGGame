@@ -36,16 +36,17 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ability")
 		UARWeaponAbilityBase* AbilityInstance;
 
-	UPROPERTY(EditAnywhere, Category = "Ability")
+	UPROPERTY(BlueprintReadOnly, Category = "Ability")
 		TSoftClassPtr<class UARMagazineUpgradeItem> MagazineModification;
 
 
 	FAFPropertytHandle MagazineEffect;
 	FGAEffectHandle MagazineEffectHandle;
 
-	void AddMagazineUpgrade(const TSoftClassPtr<class UARMagazineUpgradeItem>& InMagazineUpgrade);
+	void AddMagazineUpgrade(class UARMagazineUpgradeItem* InMagazineUpgrade);
 	void OnMagazineUpdateAdded();
 
+	TSoftClassPtr<class UARMagazineUpgradeItem> RemoveMagazineUpgrade();
 
 	virtual void OnItemAdded(uint8 LocalIndex) override;
 	virtual void OnItemRemoved(uint8 LocalIndex) override;

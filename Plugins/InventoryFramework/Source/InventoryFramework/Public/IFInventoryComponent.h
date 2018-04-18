@@ -158,6 +158,8 @@ protected:
 
 	TArray<uint8> GetLocalItemIdxs(TSubclassOf<UIFItemBase> ItemClass);
 
+	void RemoveItem(uint8 InNetIndex);
+
 	template<typename T>
 	TArray<T*> GetItems(TSubclassOf<T> ItemClass)
 	{
@@ -368,6 +370,7 @@ public:
 	virtual void OnItemChanged(UIFItemBase* Item, uint8 LocalIndex) {};
 	virtual void OnItemRemoved(uint8 LocalIndex) {};
 	void RemoveItem(uint8 InLocalIndex);
+
 
 
 	UFUNCTION()

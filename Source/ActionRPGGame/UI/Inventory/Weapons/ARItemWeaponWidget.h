@@ -15,11 +15,12 @@ class ACTIONRPGGAME_API UARItemWeaponWidget : public UARItemView
 	GENERATED_BODY()
 public:
 	TWeakObjectPtr<class UARUIInventoryComponent> InventoryComponent;
+	TWeakObjectPtr<class UARWeaponInventoryComponent> WeaponInventory;
 
 public:
 	virtual void NativeConstruct() override;
 public:
-	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 	
 	virtual FReply NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;

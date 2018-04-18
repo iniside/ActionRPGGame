@@ -63,4 +63,6 @@ public:
 	void ShowUpgradesForWeapon(class UARItemMagazineView* For);
 
 	void ModifyWeapon();
+	void AddMagazineUpgrade(uint8 SourceNetIndex, uint8 SourceLocalIndex);
+	void RemoveMagazineUpgrade();
 };

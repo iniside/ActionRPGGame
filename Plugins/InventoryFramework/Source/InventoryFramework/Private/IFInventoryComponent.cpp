@@ -228,7 +228,19 @@ void FIFItemContainer::AddFromOtherInventoryAny(class UIFInventoryComponent* Sou
 		}
 	}
 }
+void FIFItemContainer::RemoveItem(uint8 InNetIndex)
+{
+	uint8 LocalIndex = NetToLocal[InNetIndex];
 
+	FIFItemData& Item = Items[LocalIndex];
+	if(Item.Item)
+		Item.Item->MarkPendingKill();
+
+	Item.Item = nullptr;
+	Item.ChangeType = EIFChangeType::Removed;
+
+	IC->OnItemRemovedEvent.Broadcast(Item.NetIndex, Item.LocalIndex, Item.Item);
+}
 TArray<uint8> FIFItemContainer::GetLocalItemIdxs(TSubclassOf<UIFItemBase> ItemClass)
 {
 	TArray<uint8> Indexes;
@@ -541,7 +553,8 @@ void UIFInventoryComponent::BP_AddItemFromClass(TSoftClassPtr<class UIFItemBase>
 
 void UIFInventoryComponent::RemoveItem(uint8 InLocalIndex)
 {
-
+	uint8 NetIndex = Inventory.LocalToNet[InLocalIndex];
+	Inventory.RemoveItem(NetIndex);
 }
 
 void UIFInventoryComponent::OnItemLoadedFreeSlot(TSoftClassPtr<class UIFItemBase> InItem)

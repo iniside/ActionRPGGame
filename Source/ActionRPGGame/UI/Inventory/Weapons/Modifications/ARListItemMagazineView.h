@@ -14,7 +14,8 @@ class ACTIONRPGGAME_API UARListItemMagazineView : public UARListItemView
 {
 	GENERATED_BODY()
 	
-	
+public:
+	virtual FReply NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	
 	
 };

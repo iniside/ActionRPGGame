@@ -10,3 +10,14 @@ FReply UARItemMagazineView::NativeOnMouseButtonDown(const FGeometry& InGeometry,
 	InventoryComponent->ShowUpgradesForWeapon(this);
 	return FReply::Unhandled();
 }
+
+FReply UARItemMagazineView::NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	FReply Handled = FReply::Unhandled();
+
+	InventoryComponent->RemoveMagazineUpgrade();
+	Handled = FReply::Handled();
+
+	return Handled;
+}
+

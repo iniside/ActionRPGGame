@@ -4,6 +4,9 @@
 
 #include "IFInventoryComponent.h"
 
+#include "ARPlayerController.h"
+#include "ARCharacter.h"
+
 #include "Weapons/ARItemWeapon.h"
 #include "Weapons/ARWeaponInventoryComponent.h"
 
@@ -18,17 +21,29 @@ void UARItemWeaponWidget::NativeConstruct()
 	Super::NativeConstruct();
 	if(GetOwningPlayer())
 	{
+		if (AARPlayerController* PC = Cast<AARPlayerController>(GetOwningPlayer()))
+		{
+			Inventory = PC->MainInventory;
+		}
 		if (AARHUD* HUD = Cast<AARHUD>(GetOwningPlayer()->GetHUD()))
 		{
 			InventoryComponent = HUD->GetUIInventory();
+			if (AARCharacter* Character = Cast<AARCharacter>(GetOwningPlayer()->GetPawn()))
+			{
+				WeaponInventory = Character->WeaponInventory;
+			}
 		}
 	}
 }
 
 
-void UARItemWeaponWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+FReply UARItemWeaponWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
+	UObject* Out = GetOuter();
+	UARInventoryScreenWidget* MainView = Cast<UARInventoryScreenWidget>(Out);
 	InventoryComponent->ShowWeaponsForSlot(this);
+
+	return FReply::Handled();
 }
 void UARItemWeaponWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
