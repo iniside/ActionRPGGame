@@ -204,23 +204,9 @@ void UARUIInventoryComponent::AddMagazineUpgrade(uint8 SourceNetIndex, uint8 Sou
 	if (!Character)
 		return;
 
-
-	UIFInventoryComponent* MainInventory = PC->MainInventory;
-
-	UARMagazineUpgradeItem* MagazineUpgrade = MainInventory->GetItem<UARMagazineUpgradeItem>(SourceLocalIndex);
-
 	UARWeaponInventoryComponent* WeaponInventory = Character->WeaponInventory;
 
-	UARItemWeapon* Weapon = WeaponInventory->GetItem<UARItemWeapon>(SelectedWeapon);
-
-	Weapon->AddMagazineUpgrade(MagazineUpgrade); // ???
-	MainInventory->RemoveItem(SourceLocalIndex);
-
-	if (Weapon->MagazineModification.IsValid())
-	{
-		TSubclassOf<UARMagazineUpgradeItem> Magazine = Weapon->MagazineModification.LoadSynchronous();
-		InventoryView->MagazineUpgrade->OnItemChanged(0, 0, Magazine->GetDefaultObject<UARMagazineUpgradeItem>());
-	}
+	WeaponInventory->AddMagazineMod(SelectedWeapon, SourceLocalIndex);
 }
 
 void UARUIInventoryComponent::RemoveMagazineUpgrade()
@@ -237,14 +223,14 @@ void UARUIInventoryComponent::RemoveMagazineUpgrade()
 		return;
 
 	UARWeaponInventoryComponent* WeaponInventory = Character->WeaponInventory;
-	UARItemWeapon* Weapon = WeaponInventory->GetItem<UARItemWeapon>(SelectedWeapon);
+	//UARItemWeapon* Weapon = WeaponInventory->GetItem<UARItemWeapon>(SelectedWeapon);
 
-	TSoftClassPtr<UARMagazineUpgradeItem> Item = Weapon->RemoveMagazineUpgrade();
+	//TSoftClassPtr<UARMagazineUpgradeItem> Item = Weapon->RemoveMagazineUpgrade();
 
 
-	UIFInventoryComponent* MainInventory = PC->MainInventory;
+	//UIFInventoryComponent* MainInventory = PC->MainInventory;
 
-	MainInventory->AddItemFromClass(Item, 0);
+	//MainInventory->AddItemFromClass(Item, 0);
 
-	InventoryView->MagazineUpgrade->OnItemChanged(0, 0, nullptr);
+	//InventoryView->MagazineUpgrade->OnItemChanged(0, 0, nullptr);
 }

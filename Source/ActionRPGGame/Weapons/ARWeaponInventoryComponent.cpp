@@ -442,3 +442,55 @@ void UARWeaponInventoryComponent::AsynWeaponLoaded(UChildActorComponent* Compone
 	Component->SetRelativeLocation(InWeapon.Position);
 	Component->SetRelativeRotation(InWeapon.Rotation);
 }
+void UARWeaponInventoryComponent::AddMagazineMod(uint8 WeaponIdx, uint8 MagazineModIndex)
+{
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		ServerAddMagazineMod(WeaponIdx, MagazineModIndex);
+		return;
+	}
+
+	if (AARCharacter* Character = Cast<AARCharacter>(GetOwner()))
+	{
+		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
+		{
+			UIFInventoryComponent* MainInventory = PC->MainInventory;
+
+			UARMagazineUpgradeItem* Magazine = MainInventory->GetItem<UARMagazineUpgradeItem>(MagazineModIndex);
+			if (Magazine)
+			{
+				UARItemWeapon* Weapon = GetItem<UARItemWeapon>(WeaponIdx);
+				if (Weapon)
+				{
+					Weapon->AddMagazineUpgrade(Magazine);
+					MainInventory->RemoveItem(MagazineModIndex);
+				}
+			}
+		}
+	}
+}
+void UARWeaponInventoryComponent::ServerAddMagazineMod_Implementation(uint8 WeaponIdx, uint8 MagazineModIndex)
+{
+	if (AARCharacter* Character = Cast<AARCharacter>(GetOwner()))
+	{
+		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
+		{
+			UIFInventoryComponent* MainInventory = PC->MainInventory;
+
+			UARMagazineUpgradeItem* Magazine = MainInventory->GetItem<UARMagazineUpgradeItem>(MagazineModIndex);
+			if (Magazine)
+			{
+				UARItemWeapon* Weapon = GetItem<UARItemWeapon>(WeaponIdx);
+				if (Weapon)
+				{
+					Weapon->AddMagazineUpgrade(Magazine);
+					MainInventory->RemoveItem(MagazineModIndex);
+				}
+			}
+		}
+	}
+}
+bool UARWeaponInventoryComponent::ServerAddMagazineMod_Validate(uint8 WeaponIdx, uint8 MagazineModIndex)
+{
+	return true;
+}

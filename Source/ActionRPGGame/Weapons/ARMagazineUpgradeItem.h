@@ -6,6 +6,13 @@
 #include "Weapons/ARWeaponUpgradeItem.h"
 #include "ARMagazineUpgradeItem.generated.h"
 
+
+USTRUCT()
+struct FARMagazineUpgradeItemData
+{
+	GENERATED_BODY()
+};
+
 /**
  * 
  */

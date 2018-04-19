@@ -9,6 +9,23 @@
 #include "GameplayTags.h"
 #include "ARItemWeapon.generated.h"
 
+UENUM()
+enum class EARWeaponUpgradeType : uint8
+{
+	Magazine
+};
+
+USTRUCT()
+struct FARWeaponModInfo
+{
+	GENERATED_BODY();
+public:
+	UPROPERTY()
+		EARWeaponUpgradeType UpgradeType;
+	UPROPERTY()
+		TSoftObjectPtr<UTexture2D> Icon;
+};
+
 /**
  * 
  */
@@ -22,6 +39,13 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Visual")
 		TSoftClassPtr<class AARWeaponBase> Weapon;
+
+	/* 
+		Values from these attributes will be copied to ability, after ability is instanced.
+		It's here to allow random generation and easily store that information in Database instead of storing ability.
+	*/
+	UPROPERTY(EditAnywhere, Instanced, Category = "Attributes")
+		class UARGunAttributes* Attributes;
 
 	UPROPERTY(EditAnywhere, Category = "Transforms")
 		FVector HolsteredPosition;
@@ -39,6 +63,12 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Ability")
 		TSoftClassPtr<class UARMagazineUpgradeItem> MagazineModification;
 
+	/*
+		So it will actually actor as mini inventory with predefined slots.
+		That way we should be able to generate mods on the fly and store them as json in external database.
+	*/
+	UPROPERTY(BlueprintReadOnly, Category = "Ability")
+		class UARMagazineUpgradeItem* MagazineModificationObj;
 
 	FAFPropertytHandle MagazineEffect;
 	FGAEffectHandle MagazineEffectHandle;
@@ -46,6 +76,10 @@ public:
 	void AddMagazineUpgrade(class UARMagazineUpgradeItem* InMagazineUpgrade);
 	void OnMagazineUpdateAdded();
 
+	UFUNCTION(Client, Reliable)
+		void ClientOnMagazineAdded(const FARWeaponModInfo& ModInfo);
+	void ClientOnMagazineAdded_Implementation(const FARWeaponModInfo& ModInfo);
+	
 	TSoftClassPtr<class UARMagazineUpgradeItem> RemoveMagazineUpgrade();
 
 	virtual void OnItemAdded(uint8 LocalIndex) override;

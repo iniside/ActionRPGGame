@@ -3,8 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Object.h"
 #include "UObject/NoExportTypes.h"
 #include "IFItemBase.generated.h"
+
+/*
+	A Struct where the actuall item is contained (so it can be easy serialized/deserialized from json. 
+	Also allows to easily embed a replicate itemsh within items.
+*/
+USTRUCT()
+struct FIFItemBaseData
+{
+	GENERATED_BODY()
+};
 
 /**
  * 
@@ -24,6 +35,8 @@ public:
 		return true;
 	}
 	
+	bool CallRemoteFunction(UFunction* Function, void* Parameters, FOutParmRec* OutParms, FFrame* Stack) override;
+
 	/*
 		Called after item has been added to inventory.
 	*/

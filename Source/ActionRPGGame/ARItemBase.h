@@ -6,6 +6,14 @@
 #include "IFItemBase.h"
 #include "ARItemBase.generated.h"
 
+USTRUCT()
+struct FIFItemBaseData : public FIFItemBaseData
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
+		|TSoftObjectPtr<UTexture2D> Icon;
+};
 /**
  * 
  */
@@ -17,6 +25,5 @@ public:
 	//obviously we want TSoftObjectPtr<>
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
 		UTexture2D* Icon;
-	
 	
 };

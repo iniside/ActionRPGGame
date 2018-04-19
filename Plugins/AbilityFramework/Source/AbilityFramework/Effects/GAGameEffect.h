@@ -118,7 +118,7 @@ public:
 	Base effect class. You can derive your own specialized classes from it
 	with preset customizations and values. You should never directly inherit blueprints from it.
 */
-UCLASS(Blueprintable, BlueprintType, Abstract)
+UCLASS(Blueprintable, BlueprintType, Abstract, DefaultToInstanced, EditInlineNew)
 class ABILITYFRAMEWORK_API UGAGameEffectSpec : public UObject
 {
 	GENERATED_BODY()

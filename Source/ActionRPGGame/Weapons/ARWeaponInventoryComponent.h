@@ -136,4 +136,14 @@ protected:
 
 	UFUNCTION()
 		void AsynWeaponLoaded(UChildActorComponent* Component, FARWeapon InWeapon);
+
+public:
+	//Local Indexes
+	void AddMagazineMod(uint8 WeaponIdx, uint8 MagazineModIndex);
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerAddMagazineMod(uint8 WeaponIdx, uint8 MagazineModIndex);
+
+	void ServerAddMagazineMod_Implementation(uint8 WeaponIdx, uint8 MagazineModIndex);
+	bool ServerAddMagazineMod_Validate(uint8 WeaponIdx, uint8 MagazineModIndex);
+
 };
