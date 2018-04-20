@@ -7,12 +7,12 @@
 #include "ARItemBase.generated.h"
 
 USTRUCT()
-struct FIFItemBaseData : public FIFItemBaseData
+struct FARItemBaseData : public FIFItemBaseData
 {
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
-		|TSoftObjectPtr<UTexture2D> Icon;
+		TSoftObjectPtr<UTexture2D> Icon;
 };
 /**
  * 

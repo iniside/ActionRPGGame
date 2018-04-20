@@ -11,7 +11,7 @@
 	A Struct where the actuall item is contained (so it can be easy serialized/deserialized from json. 
 	Also allows to easily embed a replicate itemsh within items.
 */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FIFItemBaseData
 {
 	GENERATED_BODY()
