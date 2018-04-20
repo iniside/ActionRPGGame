@@ -49,4 +49,26 @@ public:
 		Called after item has been removed from inventory;
 	*/
 	virtual void OnItemRemoved(uint8 LocalIndex) {};
+
+	virtual void PreItemLoad() {};
+
+	virtual void PostItemLoad() {};
+
+	static UIFItemBase* LoadFromJSON() { return nullptr; }
+
+	template<typename ItemType, typename DataType>
+	static ItemType* CreateItemFromData(DataType InData, class UIFInventoryComponent* Owner)
+	{
+		ItemType* Item = NewObject<ItemType>(Owner, ItemType::StaticClass());
+		Item->Data = InData;
+		return Item;
+	}
+
+	template<typename ItemType, typename DataType>
+	static ItemType* CreateItemFromData(DataType InData, TSubclassOf<ItemType> ItemClass, class UIFInventoryComponent* Owner)
+	{
+		ItemType* Item = NewObject<ItemType>(Owner, ItemClass);
+		Item->Data = InData;
+		return Item;
+	}
 };

@@ -66,6 +66,9 @@ class ACTIONRPGGAME_API UARItemWeapon : public UARItemBase
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(EditAnywhere)
+		FARItemWeaponData Data;
+
 	UPROPERTY(EditAnywhere, Category = "Ability")
 		TSoftClassPtr<class UARWeaponAbilityBase> Ability;
 	

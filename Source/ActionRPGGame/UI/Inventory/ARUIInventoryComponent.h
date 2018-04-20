@@ -38,7 +38,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
+	inline UARInventoryScreenWidget* GetInventoryVieW() { return InventoryView; }
 	void CreateInventoryView(AARPlayerController* PC);
 	void ShowHideInventory();
 
