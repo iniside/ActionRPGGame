@@ -5,7 +5,8 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "Effects/GAGameEffect.h"
-#include "ARItemBase.h"
+#include "ARMagazineUpgradeItem.h"
+
 #include "GameplayTags.h"
 #include "ARItemWeapon.generated.h"
 
@@ -25,6 +26,37 @@ public:
 	UPROPERTY()
 		TSoftObjectPtr<UTexture2D> Icon;
 };
+
+
+USTRUCT()
+struct FARItemWeaponData : public FARItemBaseData
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, Category = "Ability")
+		TSoftClassPtr<class UARWeaponAbilityBase> Ability;
+	
+	UPROPERTY(EditAnywhere, Category = "Visual")
+		TSoftClassPtr<class AARWeaponBase> Weapon;
+
+	/* 
+		Values from these attributes will be copied to ability, after ability is instanced.
+		It's here to allow random generation and easily store that information in Database instead of storing ability.
+	*/
+	UPROPERTY(EditAnywhere, Instanced, Category = "Attributes")
+		class UARGunAttributes* Attributes;
+
+	UPROPERTY(EditAnywhere, Category = "Transforms")
+		FVector HolsteredPosition;
+	UPROPERTY(EditAnywhere, Category = "Transforms")
+		FRotator HolsteredRotation;
+
+	UPROPERTY(EditAnywhere, Category = "Transforms")
+		FVector EquipedPosition;
+	UPROPERTY(EditAnywhere, Category = "Transforms")
+		FRotator EquipedRotation;
+};
+
 
 /**
  * 
@@ -69,6 +101,9 @@ public:
 	*/
 	UPROPERTY(BlueprintReadOnly, Category = "Ability")
 		class UARMagazineUpgradeItem* MagazineModificationObj;
+	
+	UPROPERTY() //replicated
+		FARMagazineUpgradeItemData MagazineUpgrade;
 
 	FAFPropertytHandle MagazineEffect;
 	FGAEffectHandle MagazineEffectHandle;
