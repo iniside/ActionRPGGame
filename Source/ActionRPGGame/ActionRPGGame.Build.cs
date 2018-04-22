@@ -51,6 +51,8 @@ public class ActionRPGGame : ModuleRules
             "InputCore",
             "Slate",
             "SlateCore",
+            "Json",
+            "JsonUtilities",
             "UMG",
             "GameplayTags",
             "AbilityFramework",

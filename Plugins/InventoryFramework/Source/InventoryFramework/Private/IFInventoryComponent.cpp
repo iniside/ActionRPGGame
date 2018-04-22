@@ -11,6 +11,15 @@
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
 
+#include "Json.h"
+#include "JsonObjectConverter.h"
+
+#include "Policies/CondensedJsonPrintPolicy.h"
+#include "Serialization/JsonTypes.h"
+#include "Serialization/JsonReader.h"
+#include "Policies/PrettyJsonPrintPolicy.h"
+#include "Serialization/JsonSerializer.h"
+
 void FIFItemData::PreReplicatedRemove(const struct FIFItemContainer& InArraySerializer)
 {
 	if(Item)
@@ -301,6 +310,14 @@ void UIFInventoryComponent::InitializeInventory()
 {
 	ENetMode NM = GetOwner()->GetNetMode();
 	ENetRole NR = GetOwnerRole();
+	uint8 Counter = 0;
+	for (uint8 Idx = 0; Idx < MaxSlots; Idx++)
+	{
+		FIFItem NewItem;
+		NewItem.Index = Idx;
+		Counter++;
+		InventoryItems.Add(NewItem);
+	}
 
 	//Preallocate inventory items. We are not going to add/remove struct items
 	//but we are going to modify their internals later.
@@ -436,6 +453,28 @@ void UIFInventoryComponent::AddAllItemsFromActor(class AIFItemActorBase* Source)
 }
 void UIFInventoryComponent::ServerAddAllItemsFromActor_Implementation(class AIFItemActorBase* Source)
 {
+	typedef TJsonWriter< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriter;
+	typedef TJsonWriterFactory< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriterFactory;
+
+	TSharedPtr<FJsonObject> Obj = MakeShareable(new FJsonObject());
+	TArray<TSharedPtr<FJsonValue>> Vals;
+
+	TSharedPtr<FJsonValueString> dupa = MakeShareable(new FJsonValueString("dupa string"));
+	Vals.Add(dupa);
+
+	Obj->SetArrayField("TestData", Vals);
+	TSharedPtr<FJsonValueString> dupaData = MakeShareable(new FJsonValueString("dupa asdasd string"));
+	Obj->SetField("DupaData", dupaData);
+	
+	FString OutputString;
+	TSharedRef< FPrettyJsonStringWriter > Writer = FPrettyJsonStringWriterFactory::Create(&OutputString);
+	check(FJsonSerializer::Serialize(Obj.ToSharedRef(), Writer));
+
+	FString asd;
+
+
+
+	//ClientSendJsonData(OutputString);
 	TArray<TSoftClassPtr<UIFItemBase>> Items = Source->GetAllItems();
 	for (const TSoftClassPtr<UIFItemBase> Item : Items)
 	{
@@ -561,11 +600,30 @@ void UIFInventoryComponent::OnItemLoadedFreeSlot(TSoftClassPtr<class UIFItemBase
 {
 	TSubclassOf<UIFItemBase> ItemClass = InItem.Get();
 
-	UIFItemBase* Item = NewObject<UIFItemBase>(this, ItemClass);
-	Inventory.AddItemToFreeSlot(Item);
+	FIFItem Item;
+	Item.Index = 0;
+	Item.Item = NewObject<UIFItemBase>(this, ItemClass);
+	//Inventory.AddItemToFreeSlot(Item);
+	
+	
+	TSharedPtr<FJsonObject> Obj = MakeShareable(new FJsonObject());
+	FJsonObjectConverter::UStructToJsonObject(Item.StaticStruct(), &Item, Obj.ToSharedRef(), 0, 0);
+
+	FakeBackend.Add(Obj);
+
+	InventoryItems[Item.Index] = Item;
+
+
+	typedef TJsonWriter< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriter;
+	typedef TJsonWriterFactory< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriterFactory;
+
+	FString OutputString;
+	TSharedRef< FPrettyJsonStringWriter > Writer = FPrettyJsonStringWriterFactory::Create(&OutputString);
+	check(FJsonSerializer::Serialize(Obj.ToSharedRef(), Writer));
 
 	FStreamableManager& Manager = UAssetManager::GetStreamableManager();
 	Manager.Unload(InItem.ToSoftObjectPath());
+	ClientSendJsonData(OutputString);
 }
 void UIFInventoryComponent::OnItemLoaded(TSoftClassPtr<class UIFItemBase> InItem, uint8 InNetIndex)
 {
@@ -573,6 +631,9 @@ void UIFInventoryComponent::OnItemLoaded(TSoftClassPtr<class UIFItemBase> InItem
 
 	UIFItemBase* Item = NewObject<UIFItemBase>(this, ItemClass);
 	Inventory.AddItem(Item, InNetIndex);
+
+	
+
 
 	FStreamableManager& Manager = UAssetManager::GetStreamableManager();
 	Manager.Unload(InItem.ToSoftObjectPath());
@@ -587,4 +648,25 @@ bool UIFInventoryComponent::ReplicateSubobjects(class UActorChannel *Channel, cl
 			WroteSomething |= Channel->ReplicateSubobject(const_cast<UIFItemBase*>(Item.Item), *Bunch, *RepFlags);
 	}
 	return WroteSomething;
+}
+
+void UIFInventoryComponent::ClientSendJsonData_Implementation(const FString& Data)
+{
+	TSharedRef< TJsonReader<> > Reader = TJsonReaderFactory<>::Create(Data);
+
+	TSharedPtr<FJsonObject> Object = MakeShareable(new FJsonObject());
+
+	bool bSuccessful = FJsonSerializer::Deserialize(Reader, Object);
+
+	TArray< TSharedPtr<FJsonValue> > Array;
+	bool bSuccessful2 = FJsonSerializer::Deserialize(Reader, Array);
+
+	FIFItem Item;
+	FJsonObjectConverter::JsonObjectToUStruct(Object.ToSharedRef(), Item.StaticStruct(), &Item, 0, 0);
+
+	if (Item.Item)
+	{
+
+	}
+	
 }

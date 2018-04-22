@@ -19,6 +19,18 @@ enum class EIFChangeType : uint8
 };
 
 USTRUCT(BlueprintType)
+struct INVENTORYFRAMEWORK_API FIFItem
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY()
+		class UIFItemBase* Item;
+
+	UPROPERTY(BlueprintReadOnly)
+		uint8 Index;
+};
+
+USTRUCT(BlueprintType)
 struct INVENTORYFRAMEWORK_API FIFItemData : public FFastArraySerializerItem
 {
 	GENERATED_BODY()
@@ -219,6 +231,16 @@ protected:
 	FIFItemEvent OnItemRemovedEvent;
 	FIFOnInventoryChanged OnInventoryChanged;
 
+	/* Array faking an database backend (where data is stored as json like DynamoDB, GameSparks, CosmosDB, MongoDB */
+	TArray<TSharedPtr<FJsonObject>> FakeBackend;
+
+	/* Key is deserialized from Json and it stored in backend. */
+	//UPROPERTY()
+	//	TMap<uint8, FIFItem> InventoryItems;
+
+
+	UPROPERTY()
+		TArray<FIFItem> InventoryItems;
 	/*
 		Which items this inventory accept.
 	*/
@@ -382,4 +404,8 @@ public:
 	FSimpleMulticastDelegate& GetOnInventoryRead();
 	
 	bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags) override;
+
+	UFUNCTION(Client, Reliable)
+		void ClientSendJsonData(const FString& Data);
+	void ClientSendJsonData_Implementation(const FString& Data);
 };

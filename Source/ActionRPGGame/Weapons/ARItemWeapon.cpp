@@ -6,6 +6,8 @@
 #include "ARPlayerController.h"
 #include "UI/ARHUD.h"
 #include "UI/Inventory/ARUIInventoryComponent.h"
+#include "UI/Inventory/ARInventoryScreenWidget.h"
+#include "UI/Inventory/Weapons/Modifications/ARItemMagazineView.h"
 
 #include "Weapons/ARMagazineUpgradeItem.h"
 #include "Weapons/ARWeaponInventoryComponent.h"
@@ -45,7 +47,8 @@ void UARItemWeapon::ClientOnMagazineAdded_Implementation(const FARWeaponModInfo&
 				if (AARHUD* HUD = Cast<AARHUD>(PC->GetHUD()))
 				{
 					UARUIInventoryComponent* UIInc = HUD->GetUIInventory();
-
+					//not gonna work over network since we cant replicate uobject from uobject.
+					UIInc->GetInventoryView()->MagazineUpgrade->OnItemChanged(0, 0, MagazineModificationObj);
 				}
 			}
 		}

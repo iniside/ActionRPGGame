@@ -25,6 +25,14 @@ class INVENTORYFRAMEWORK_API UIFItemBase : public UObject
 {
 	GENERATED_BODY()
 public:
+	
+	//Possibly just one index, if we are going to bypass unreal replication
+	//and just send items as json from server and then decode them and insert in map.
+	UPROPERTY()
+		uint8 LocalIndex;
+	UPROPERTY()
+		uint8 NetIndex;
+
 	bool IsNameStableForNetworking() const override
 	{
 		return false;

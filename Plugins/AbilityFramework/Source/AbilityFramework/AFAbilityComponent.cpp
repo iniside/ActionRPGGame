@@ -127,7 +127,7 @@ void UAFAbilityComponent::TickComponent(float DeltaTime, enum ELevelTick TickTyp
 void UAFAbilityComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	FAFEffectTimerManager::Get();
+	//FAFEffectTimerManager::Get();
 }
 void UAFAbilityComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {

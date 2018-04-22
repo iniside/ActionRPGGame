@@ -60,8 +60,7 @@ void AARPlayerController::Possess(APawn* aPawn)
 			AbilityComp->BindAbilityToAction(InputComponent, InputHolsterWeapon);
 			AbilityComp->BindAbilityToAction(InputComponent, InputSetAbilityGroup01);
 			AbilityComp->BindAbilityToAction(InputComponent, InputSetAbilityGroup02);
-			InputComponent->BindAction("InputAbilityManager", IE_Pressed, this, &AARPlayerController::InputShowHideAbilityManager);
-			InputComponent->BindAction("InputInventory", IE_Pressed, this, &AARPlayerController::InputShowHideInventory);
+
 
 			AbilityManager->BindInputs(InputComponent, AbilityComp);
 			WeaponManager->BindInputs(InputComponent, AbilityComp);
@@ -132,7 +131,8 @@ void AARPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 	InputComponent->BindAction("SwitchAbilitySet", IE_Pressed, this, &AARPlayerController::InputSwitchAbilitySet);
-	
+	InputComponent->BindAction("InputAbilityManager", IE_Pressed, this, &AARPlayerController::InputShowHideAbilityManager);
+	InputComponent->BindAction("InputInventory", IE_Pressed, this, &AARPlayerController::InputShowHideInventory);
 }
 
 void AARPlayerController::InputSwitchAbilitySet()
