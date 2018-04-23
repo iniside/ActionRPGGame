@@ -119,7 +119,7 @@ void AARPlayerController::Possess(APawn* aPawn)
 	
 	WeaponManager->POwner = aPawn;
 
-	MainInventory->InitializeInventory();
+	//MainInventory->InitializeInventory();
 }
 
 void AARPlayerController::ClientPossesed_Implementation(APawn* InPawn)

@@ -156,6 +156,7 @@ void AARCharacter::BeginPlay()
 	Super::BeginPlay();
 	WeaponInventory->SetIsReplicated(true);
 	WeaponInventory->InitializeWeapons(this);
+	WeaponInventory->InitializeInventory();
 }
 
 FString DirToString(EFourCardinalDirection dir)
@@ -548,10 +549,10 @@ void AARCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 	ClientPossesedBy(NewController);
-	if (AARPlayerController* PC = Cast<AARPlayerController>(Controller))
-	{
-		WeaponInventory->InitializeInventory();
-	}
+	//if (AARPlayerController* PC = Cast<AARPlayerController>(Controller))
+	//{
+	//	WeaponInventory->InitializeInventory();
+	//}
 }
 void AARCharacter::ClientPossesedBy_Implementation(AController* NewController)
 {

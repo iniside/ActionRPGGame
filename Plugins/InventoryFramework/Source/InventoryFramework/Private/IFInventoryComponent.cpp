@@ -289,6 +289,15 @@ void UIFInventoryComponent::BeginPlay()
 {
 	Inventory.IC = this;
 	Super::BeginPlay();
+	uint8 Counter = 0;
+	for (uint8 Idx = 0; Idx < MaxSlots; Idx++)
+	{
+		FIFItem NewItem;
+		NewItem.Item = nullptr;
+		NewItem.Index = Idx;
+		Counter++;
+		InventoryItems.Add(NewItem);
+	}
 	
 	/*
 		Further steps
@@ -306,54 +315,69 @@ void UIFInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	// ...
 }
 
+TArray<uint8> UIFInventoryComponent::GetLocalItemIdxs(TSubclassOf<UIFItemBase> ItemClass)
+{
+	TArray<uint8> Idxs;
+	for (uint8 Idx = 0; Idx < InventoryItems.Num(); Idx++)
+	{
+		if (InventoryItems[Idx].Item && InventoryItems[Idx].Item->IsA(ItemClass))
+		{
+			Idxs.Add(Idx);
+		}
+	}
+
+	return Idxs;
+	//return Inventory.GetLocalItemIdxs(ItemClass);
+}
+
 void UIFInventoryComponent::InitializeInventory()
 {
 	ENetMode NM = GetOwner()->GetNetMode();
 	ENetRole NR = GetOwnerRole();
 	uint8 Counter = 0;
-	for (uint8 Idx = 0; Idx < MaxSlots; Idx++)
-	{
-		FIFItem NewItem;
-		NewItem.Index = Idx;
-		Counter++;
-		InventoryItems.Add(NewItem);
-	}
+	//for (uint8 Idx = 0; Idx < MaxSlots; Idx++)
+	//{
+	//	FIFItem NewItem;
+	//	NewItem.Index = Idx;
+	//	Counter++;
+	//	InventoryItems.Add(NewItem);
+	//}
 
 	//Preallocate inventory items. We are not going to add/remove struct items
 	//but we are going to modify their internals later.
-	if ((NM == ENetMode::NM_DedicatedServer)
-		|| (NM == ENetMode::NM_ListenServer)
-		|| (NM == ENetMode::NM_Standalone))
-	{
-		uint8 AvailableCounter = 0;
-		for (uint8 Idx = 0; Idx < MaxSlots; Idx++)
-		{
-			FIFItemData NewItem(Idx, Idx);
-			if (AvailableCounter < AvailableSlots)
-			{
-				NewItem.bAvailable = true;
-			}
-			AvailableCounter++;
-			Inventory.AddData(NewItem);
-		}
-		OnInventoryReady.Broadcast();
-	}
-	if (NM == ENetMode::NM_Standalone)
-	{
-		if (IIFInventoryInterface* Interface = Cast<IIFInventoryInterface>(GetOwner()))
-		{
-			Interface->OnInventoryReplicated(this);
-		}
-	}
+	//if ((NM == ENetMode::NM_DedicatedServer)
+	//	|| (NM == ENetMode::NM_ListenServer)
+	//	|| (NM == ENetMode::NM_Standalone))
+	//{
+	//	uint8 AvailableCounter = 0;
+	//	for (uint8 Idx = 0; Idx < MaxSlots; Idx++)
+	//	{
+	//		FIFItemData NewItem(Idx, Idx);
+	//		if (AvailableCounter < AvailableSlots)
+	//		{
+	//			NewItem.bAvailable = true;
+	//		}
+	//		AvailableCounter++;
+	//		Inventory.AddData(NewItem);
+	//	}
+	//	OnInventoryReady.Broadcast();
+	//}
+	//if (NM == ENetMode::NM_Standalone)
+	//{
+	//	if (IIFInventoryInterface* Interface = Cast<IIFInventoryInterface>(GetOwner()))
+	//	{
+	//		Interface->OnInventoryReplicated(this);
+	//	}
+	//}
 }
 
-void UIFInventoryComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	//possibly replicate it to everyone
-	//to allow prediction for UI.
-	DOREPLIFETIME_CONDITION(UIFInventoryComponent, Inventory, COND_OwnerOnly);
-}
+//void UIFInventoryComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
+//{
+//	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+//	//possibly replicate it to everyone
+//	//to allow prediction for UI.
+//	//DOREPLIFETIME_CONDITION(UIFInventoryComponent, Inventory, COND_OwnerOnly);
+//}
 
 bool UIFInventoryComponent::AcceptItem(UIFItemBase* Item, uint8 InLocaLIndex)
 {
@@ -666,7 +690,9 @@ void UIFInventoryComponent::ClientSendJsonData_Implementation(const FString& Dat
 
 	if (Item.Item)
 	{
-
+		InventoryItems[Item.Index] = Item;
+		OnItemAddedEvent.Broadcast(Item.Index, Item.Index, Item.Item);
+		OnItemUpdatedEvent.Broadcast(Item.Index, Item.Index, Item.Item);
 	}
 	
 }

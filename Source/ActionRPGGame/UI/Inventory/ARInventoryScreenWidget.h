@@ -72,11 +72,11 @@ public:
 
 			if (Item)
 			{
-				const FIFItemData& Slot = PC->MainInventory->GetSlot(Idx);
+				const FIFItem& Slot = PC->MainInventory->GetIFItem(Idx);
 				WidgetType* ItemWidget = CreateWidget<WidgetType>(PC, WidgetClass);
 				ItemWidget->SetTarget(ForSlot);
-				ItemWidget->OnSlotCreated(Slot.GetNetIndex(), Slot.GetLocalIndex(), Item);
-				ItemWidget->OnItemChanged(Slot.GetNetIndex(), Slot.GetLocalIndex(), Item);
+				ItemWidget->OnSlotCreated(Slot.Index, Slot.Index, Item);
+				ItemWidget->OnItemChanged(Slot.Index, Slot.Index, Item);
 
 				SelectedItemsContainer->AddChild(ItemWidget);
 			}

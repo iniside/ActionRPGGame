@@ -223,7 +223,7 @@ class INVENTORYFRAMEWORK_API UIFInventoryComponent : public UActorComponent
 	friend struct FIFItemContainer;
 	friend struct FIFItemData;
 protected:
-	UPROPERTY(Replicated)
+	//UPROPERTY(Replicated)
 		FIFItemContainer Inventory;
 
 	FIFItemEvent OnItemAddedEvent;
@@ -298,25 +298,40 @@ public:
 		return Inventory.Items[Idx];
 	}
 
+	inline const FIFItem& GetIFItem(uint8 Idx)
+	{
+		return InventoryItems[Idx];
+
+	}
 	inline UIFItemBase* GetItem(uint8 InLocalIndex)
 	{
-		return Inventory.Items[InLocalIndex].Item;
+		return InventoryItems[InLocalIndex].Item;
+		//return Inventory.Items[InLocalIndex].Item;
 	}
 	template<typename T>
 	T* GetItem(uint8 InLocalIndex)
 	{
-		return Cast<T>(Inventory.Items[InLocalIndex].Item);
+		return Cast<T>(InventoryItems[InLocalIndex].Item);
+		//return Cast<T>(Inventory.Items[InLocalIndex].Item);
 	}
 
-	TArray<uint8> GetLocalItemIdxs(TSubclassOf<UIFItemBase> ItemClass)
-	{
-		return Inventory.GetLocalItemIdxs(ItemClass);
-	}
+	TArray<uint8> GetLocalItemIdxs(TSubclassOf<UIFItemBase> ItemClass);
 
 	template<typename T>
 	TArray<T*> GetItems(TSubclassOf<T> ItemClass)
 	{
-		return Inventory.GetItems<T>(ItemClass);
+		TArray<T*> Items;
+		TArray<uint8> Idxs;
+		for (uint8 Idx = 0; Idx < InventoryItems.Num(); Idx++)
+		{
+			if (InventoryItems[Idx].Item && InventoryItems[Idx].Item->IsA(ItemClass))
+			{
+				Items.Add(Cast<T>(InventoryItems[Idx].Item));
+			}
+		}
+
+		return Items;
+		//return Inventory.GetItems<T>(ItemClass);
 	}
 
 	/* 
