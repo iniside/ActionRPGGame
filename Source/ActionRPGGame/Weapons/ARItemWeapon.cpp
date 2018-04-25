@@ -46,9 +46,6 @@ void UARItemWeapon::ClientOnMagazineAdded_Implementation(const FARWeaponModInfo&
 			{
 				if (AARHUD* HUD = Cast<AARHUD>(PC->GetHUD()))
 				{
-					UARUIInventoryComponent* UIInc = HUD->GetUIInventory();
-					//not gonna work over network since we cant replicate uobject from uobject.
-					UIInc->GetInventoryView()->MagazineUpgrade->OnItemChanged(0, 0, MagazineModificationObj);
 				}
 			}
 		}

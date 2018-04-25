@@ -156,7 +156,6 @@ void AARCharacter::BeginPlay()
 	Super::BeginPlay();
 	WeaponInventory->SetIsReplicated(true);
 	WeaponInventory->InitializeWeapons(this);
-	WeaponInventory->InitializeInventory();
 }
 
 FString DirToString(EFourCardinalDirection dir)

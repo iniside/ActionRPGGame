@@ -122,7 +122,6 @@ void UARWeaponInventoryComponent::Equip(uint8 WeaponIndex, class UARItemWeapon* 
 	MainHandWeapon.Weapon = InWeapon->Weapon;
 	MainHandWeapon.Position = InWeapon->EquipedPosition;
 	MainHandWeapon.Rotation = InWeapon->EquipedRotation;
-	MainHandWeapon.NetIndex = Inventory.LocalToNet[WeaponIndex];
 	MainHandWeapon.RepCounter++;
 	WeaponHelper[WeaponIndex]->Weapon.Reset();
 	WeaponHelper[WeaponIndex]->RepCounter++;
