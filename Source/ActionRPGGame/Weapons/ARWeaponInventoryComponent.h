@@ -8,6 +8,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
 #include "IFInventoryComponent.h"
+#include "IFEquipmentComponent.h"
 #include "AMTypes.h"
 
 #include "ARWeaponInventoryComponent.generated.h"
@@ -36,32 +37,47 @@ public:
 		uint8 RepCounter;
 };
 
+UENUM()
+enum class EARWeaponPosition
+{
+	Right= 0,
+	Left = 1,
+	BottomBack = 2,
+	Side = 3,
+	Equiped = 4
+};
+
+USTRUCT()
+struct FARWeaponRPC
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, Category = "Attachment Test")
+		TSoftClassPtr<class AARWeaponBase> Weapon;
+
+	UPROPERTY(EditAnywhere, Category = "Attachment Test")
+		FVector Position;
+	UPROPERTY(EditAnywhere, Category = "Attachment Test")
+		FRotator Rotation;
+	UPROPERTY(EditAnywhere, Category = "Attachment Test")
+		EARWeaponPosition AttachSlot;
+};
+
+
 /*
 	Manages currently equipped weapons (holstered and unholstered).
 */
 UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) )
-class ACTIONRPGGAME_API UARWeaponInventoryComponent : public UIFInventoryComponent
+class ACTIONRPGGAME_API UARWeaponInventoryComponent : public UIFEquipmentComponent
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(ReplicatedUsing = OnRep_Group001HolsteredAttachment)
-		FARWeapon Group001HolsteredAttachment;
-	UPROPERTY(ReplicatedUsing = OnRep_Group002HolsteredAttachment)
-		FARWeapon Group002HolsteredAttachment;
-	UPROPERTY(ReplicatedUsing = OnRep_Group003HolsteredAttachment)
-		FARWeapon Group003HolsteredAttachment;
-	UPROPERTY(ReplicatedUsing = OnRep_Group004HolsteredAttachment)
-		FARWeapon Group004HolsteredAttachment;
-	UPROPERTY(ReplicatedUsing = OnRep_MainHandWeapon)
-		FARWeapon MainHandWeapon;
 
 	UPROPERTY()
 		class APawn* POwner;
 
 	TMap<uint8, UChildActorComponent*> GroupToComponent;
 	TMap<EAMGroup, UARItemWeapon*> GroupToItem;
-
-	TArray<FARWeapon*> WeaponHelper;
 
 	uint8 CurrentWeaponIndex;
 
@@ -79,6 +95,19 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void OnItemAdded(UIFItemBase* Item, uint8 LocalIndex) override;
 	virtual void OnItemRemoved(uint8 LocalIndex) override;
+
+	virtual void OnServerItemAdded(UIFItemBase* Item, uint8 LocalIndex) override;
+	virtual void OnServerItemRemoved(uint8 LocalIndex) override;
+
+	UFUNCTION(NetMulticast, Reliable)
+		void MulticastAddWeapon(const FARWeaponRPC& WeaponData);
+	void MulticastAddWeapon_Implementation(const FARWeaponRPC& WeaponData);
+	
+	UFUNCTION(NetMulticast, Reliable)
+		void MulticastRemoveWeapon(const FARWeaponRPC& WeaponData);
+	void MulticastRemoveWeapon_Implementation(const FARWeaponRPC& WeaponData);
+
+
 	void Equip(uint8 WeaponIndex, class UARItemWeapon* InWeapon);
 	void Unequip(uint8 WeaponIndex);
 	void Holster(EAMGroup Group, class UARItemWeapon* InWeapon);
@@ -121,21 +150,10 @@ protected:
 	UARItemWeapon* FindPreviousValid();
 
 protected:
-	void SetWeapon(const FARWeapon& InWeapon, UChildActorComponent* Component);
-	UFUNCTION()
-		void OnRep_Group001HolsteredAttachment();
-	UFUNCTION()
-		void OnRep_Group002HolsteredAttachment();
-	UFUNCTION()
-		void OnRep_Group003HolsteredAttachment();
-	UFUNCTION()
-		void OnRep_Group004HolsteredAttachment();
+	void SetWeapon(const FARWeaponRPC& InWeapon, UChildActorComponent* Component);
 
 	UFUNCTION()
-		void OnRep_MainHandWeapon(FARWeapon OldWeapon);
-
-	UFUNCTION()
-		void AsynWeaponLoaded(UChildActorComponent* Component, FARWeapon InWeapon);
+		void AsynWeaponLoaded(UChildActorComponent* Component, FARWeaponRPC InWeapon);
 
 public:
 	//Local Indexes

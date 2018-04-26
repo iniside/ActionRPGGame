@@ -127,6 +127,8 @@ void UARUIInventoryComponent::AddWeaponToSlot(uint8 TargetNetIndex
 	AARCharacter* Character = Cast<AARCharacter>(PC->GetPawn());
 	if (!Character)
 		return;
+
+	Character->WeaponInventory->AddItemFromInventory(PC->MainInventory, SourceNetIndex, TargetNetIndex);
 }
 
 void UARUIInventoryComponent::UnequipWeaponFromSlot(uint8 SourceNetIndex, uint8 SourceLocalIndex)

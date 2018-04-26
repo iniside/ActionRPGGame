@@ -266,7 +266,11 @@ void UIFInventoryComponent::ClientAddItemFromEquipment_Implementation(class UIFE
 
 void UIFInventoryComponent::RemoveItem(uint8 InIndex)
 {
-
+	if(GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		ServerRemoveItem(InIndex);
+		return;
+	}
 	//remove from backend
 }
 void UIFInventoryComponent::ServerRemoveItem_Implementation(uint8 InIndex)
@@ -275,7 +279,7 @@ void UIFInventoryComponent::ServerRemoveItem_Implementation(uint8 InIndex)
 		InventoryItems[InIndex].Item->MarkPendingKill();
 
 	InventoryItems[InIndex].Item = nullptr;
-	OnItemRemoved(InIndex);
+	OnServerItemRemoved(InIndex);
 	ClientRemoveItem(InIndex);
 }
 bool UIFInventoryComponent::ServerRemoveItem_Validate(uint8 InIndex)

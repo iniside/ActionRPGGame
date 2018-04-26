@@ -14,10 +14,6 @@ UARWeaponInventoryComponent::UARWeaponInventoryComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	WeaponHelper.Add(&Group001HolsteredAttachment);
-	WeaponHelper.Add(&Group002HolsteredAttachment);
-	WeaponHelper.Add(&Group003HolsteredAttachment);
-	WeaponHelper.Add(&Group004HolsteredAttachment);
 
 	MaxSlots = 4;
 	AvailableSlots = 4;
@@ -53,7 +49,7 @@ void UARWeaponInventoryComponent::TickComponent(float DeltaTime, ELevelTick Tick
 	// ...
 }
 
-void UARWeaponInventoryComponent::SetWeapon(const FARWeapon& InWeapon, UChildActorComponent* Component)
+void UARWeaponInventoryComponent::SetWeapon(const FARWeaponRPC& InWeapon, UChildActorComponent* Component)
 {
 	if (InWeapon.Weapon.IsValid() || InWeapon.Weapon.IsNull())
 	{
@@ -74,12 +70,13 @@ void UARWeaponInventoryComponent::SetWeapon(const FARWeapon& InWeapon, UChildAct
 void UARWeaponInventoryComponent::OnItemAdded(UIFItemBase* Item, uint8 LocalIndex)
 {
 	UARItemWeapon* InWeapon = Cast<UARItemWeapon>(Item);
-
-	WeaponHelper[LocalIndex]->Weapon.Reset();
-	WeaponHelper[LocalIndex]->Weapon = InWeapon->Weapon;
-	WeaponHelper[LocalIndex]->RepCounter++;
-	
-	SetWeapon(*WeaponHelper[LocalIndex], GroupToComponent[LocalIndex]);
+	FARWeaponRPC Data;
+	Data.Weapon = InWeapon->Weapon;
+	//Data.SocketName = InWeapon->Socket;
+	Data.Position = InWeapon->HolsteredPosition;
+	Data.Rotation = InWeapon->HolsteredRotation;
+	Data.AttachSlot = static_cast<EARWeaponPosition>(LocalIndex);
+	SetWeapon(Data, GroupToComponent[LocalIndex]);
 	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
 	{
 		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
@@ -97,65 +94,105 @@ void UARWeaponInventoryComponent::OnItemRemoved(uint8 LocalIndex)
 			PC->WeaponManager->NativeRemoveAbility(TSoftClassPtr<UGAAbilityBase>(), static_cast<EAMGroup>(LocalIndex), EAMSlot::Slot001);
 		}
 	}
-	WeaponHelper[LocalIndex]->Weapon.Reset();
-	WeaponHelper[LocalIndex]->RepCounter++;
-	SetWeapon(*WeaponHelper[LocalIndex], GroupToComponent[LocalIndex]);
+	FARWeaponRPC Data;
+	Data.Weapon.Reset();
+	//Data.SocketName = InWeapon->Socket;
+	Data.Position = FVector::ZeroVector;
+	Data.Rotation = FRotator::ZeroRotator;
+	Data.AttachSlot = static_cast<EARWeaponPosition>(LocalIndex);
+
+	SetWeapon(Data, GroupToComponent[LocalIndex]);
 	if (LocalIndex == CurrentWeaponIndex)
 	{
 		Unequip(LocalIndex);
 	}
 }
 
-void UARWeaponInventoryComponent::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
+void UARWeaponInventoryComponent::OnServerItemAdded(UIFItemBase* Item, uint8 LocalIndex)
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	UARItemWeapon* InWeapon = Cast<UARItemWeapon>(Item);
+	FARWeaponRPC Data;
+	Data.Weapon = InWeapon->Weapon;
+	//Data.SocketName = InWeapon->Socket;
+	Data.Position = InWeapon->HolsteredPosition;
+	Data.Rotation = InWeapon->HolsteredRotation;
+	Data.AttachSlot = static_cast<EARWeaponPosition>(LocalIndex);
 
-	DOREPLIFETIME_CONDITION(UARWeaponInventoryComponent, Group001HolsteredAttachment, COND_SkipOwner);
-	DOREPLIFETIME_CONDITION(UARWeaponInventoryComponent, Group002HolsteredAttachment, COND_SkipOwner);
-	DOREPLIFETIME_CONDITION(UARWeaponInventoryComponent, Group003HolsteredAttachment, COND_SkipOwner);
-	DOREPLIFETIME_CONDITION(UARWeaponInventoryComponent, Group004HolsteredAttachment, COND_SkipOwner);
-	DOREPLIFETIME_CONDITION(UARWeaponInventoryComponent, MainHandWeapon, COND_SkipOwner);
+	MulticastAddWeapon(Data);
+}
+void UARWeaponInventoryComponent::OnServerItemRemoved(uint8 LocalIndex)
+{
+}
+void UARWeaponInventoryComponent::MulticastAddWeapon_Implementation(const FARWeaponRPC& WeaponData)
+{
+	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+	{
+		switch (WeaponData.AttachSlot)
+		{
+		case EARWeaponPosition::Right:
+			SetWeapon(WeaponData, Character->GetHolsteredRightWeapon());
+			break;
+		case EARWeaponPosition::Left:
+			SetWeapon(WeaponData, Character->GetHolsteredLeftWeapon());
+			break;
+		case EARWeaponPosition::BottomBack:
+			SetWeapon(WeaponData, Character->GetHolsteredBackDownWeapon());
+			break;
+		case EARWeaponPosition::Side:
+			SetWeapon(WeaponData, Character->GetHolsteredSideLeftWeapon());
+			break;
+		case EARWeaponPosition::Equiped:
+			break;
+		default:
+			break;
+		}
+		
+	}
+}
+void UARWeaponInventoryComponent::MulticastRemoveWeapon_Implementation(const FARWeaponRPC& WeaponData)
+{
+
 }
 
 void UARWeaponInventoryComponent::Equip(uint8 WeaponIndex, class UARItemWeapon* InWeapon)
 {
-	MainHandWeapon.Weapon = InWeapon->Weapon;
-	MainHandWeapon.Position = InWeapon->EquipedPosition;
-	MainHandWeapon.Rotation = InWeapon->EquipedRotation;
-	MainHandWeapon.RepCounter++;
-	WeaponHelper[WeaponIndex]->Weapon.Reset();
-	WeaponHelper[WeaponIndex]->RepCounter++;
-	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
-	{
-		SetWeapon(MainHandWeapon, Character->GetEquipedMainWeapon());
-		GroupToComponent[WeaponIndex]->SetChildActorClass(nullptr);
-		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
-		{
-			FSoftObjectPath Path = InWeapon->Ability.ToSoftObjectPath();
-			TSoftClassPtr<UGAAbilityBase> ab(Path);
-			PC->WeaponManager->EquipWeapon(ab);
-		}
-	}
+	//MainHandWeapon.Weapon = InWeapon->Weapon;
+	//MainHandWeapon.Position = InWeapon->EquipedPosition;
+	//MainHandWeapon.Rotation = InWeapon->EquipedRotation;
+	//MainHandWeapon.RepCounter++;
+	//WeaponHelper[WeaponIndex]->Weapon.Reset();
+	//WeaponHelper[WeaponIndex]->RepCounter++;
+	//if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+	//{
+	//	SetWeapon(MainHandWeapon, Character->GetEquipedMainWeapon());
+	//	GroupToComponent[WeaponIndex]->SetChildActorClass(nullptr);
+	//	if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
+	//	{
+	//		FSoftObjectPath Path = InWeapon->Ability.ToSoftObjectPath();
+	//		TSoftClassPtr<UGAAbilityBase> ab(Path);
+	//		PC->WeaponManager->EquipWeapon(ab);
+	//	}
+	//}
 }
 void UARWeaponInventoryComponent::Unequip(uint8 WeaponIndex)
 {
-	MainHandWeapon.Weapon.Reset();
-	MainHandWeapon.Position = FVector(0,0,0);
-	MainHandWeapon.Rotation = FRotator(0,0,0);
-	MainHandWeapon.NetIndex = 0;
-	MainHandWeapon.RepCounter++;
-	WeaponHelper[WeaponIndex]->Weapon.Reset();
-	WeaponHelper[WeaponIndex]->RepCounter++;
+	//MainHandWeapon.Weapon.Reset();
+	//MainHandWeapon.Position = FVector(0,0,0);
+	//MainHandWeapon.Rotation = FRotator(0,0,0);
+	//MainHandWeapon.NetIndex = 0;
+	//MainHandWeapon.RepCounter++;
+	//WeaponHelper[WeaponIndex]->Weapon.Reset();
+	//WeaponHelper[WeaponIndex]->RepCounter++;
 
-	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
-	{
-		SetWeapon(MainHandWeapon, Character->GetEquipedMainWeapon());
-		GroupToComponent[WeaponIndex]->SetChildActorClass(nullptr);
-		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
-		{
-			PC->WeaponManager->RemoveAbility(static_cast<EAMGroup>(WeaponIndex), EAMSlot::Slot001);
-		}
-	}
+	//if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+	//{
+	//	SetWeapon(MainHandWeapon, Character->GetEquipedMainWeapon());
+	//	GroupToComponent[WeaponIndex]->SetChildActorClass(nullptr);
+	//	if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
+	//	{
+	//		PC->WeaponManager->RemoveAbility(static_cast<EAMGroup>(WeaponIndex), EAMSlot::Slot001);
+	//	}
+	//}
 }
 void UARWeaponInventoryComponent::Holster(EAMGroup Group, class UARItemWeapon* InWeapon)
 {
@@ -388,50 +425,7 @@ UARItemWeapon* UARWeaponInventoryComponent::FindPreviousValid()
 	return WeaponAbilityTag;
 }
 
-
-void UARWeaponInventoryComponent::OnRep_Group001HolsteredAttachment()
-{
-	///if (Group001HolsteredAttachment.WeaponMesh.IsPending())
-	///{
-		if (AARCharacter* Character = Cast<AARCharacter>(POwner))
-		{
-			SetWeapon(Group001HolsteredAttachment, Character->GetHolsteredRightWeapon());
-		}
-	///}
-}
-void UARWeaponInventoryComponent::OnRep_Group002HolsteredAttachment()
-{
-	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
-	{
-		SetWeapon(Group002HolsteredAttachment, Character->GetHolsteredLeftWeapon());
-	}
-}
-void UARWeaponInventoryComponent::OnRep_Group003HolsteredAttachment()
-{
-	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
-	{
-		SetWeapon(Group003HolsteredAttachment, Character->GetHolsteredRightWeapon());
-	}
-}
-void UARWeaponInventoryComponent::OnRep_Group004HolsteredAttachment()
-{
-	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
-	{
-		SetWeapon(Group004HolsteredAttachment, Character->GetHolsteredRightWeapon());
-	}
-}
-
-void UARWeaponInventoryComponent::OnRep_MainHandWeapon(FARWeapon OldWeapon)
-{
-	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
-	{
-		//SetWeapon(OldWeapon, GroupToComponent[OldWeapon.Group]);
-		SetWeapon(MainHandWeapon, Character->GetEquipedMainWeapon());
-		//GroupToComponent[MainHandWeapon.Group]->SetChildActorClass(nullptr);
-	}
-}
-
-void UARWeaponInventoryComponent::AsynWeaponLoaded(UChildActorComponent* Component, FARWeapon InWeapon)
+void UARWeaponInventoryComponent::AsynWeaponLoaded(UChildActorComponent* Component, FARWeaponRPC InWeapon)
 {
 	Component->SetChildActorClass(InWeapon.Weapon.Get());
 	
