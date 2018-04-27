@@ -517,7 +517,7 @@ void UAFAbilityComponent::ServerNativeRemoveAbility_Implementation(const FSoftOb
 	AbilityContainer.RemoveAbility(TSoftClassPtr<UGAAbilityBase>(InAbilityTag));
 }
 
-bool UAFAbilityComponent::ServerNativeRemoveAbility_Validate(const FSoftObjectPath InAbilityTag)
+bool UAFAbilityComponent::ServerNativeRemoveAbility_Validate(const FSoftObjectPath& InAbilityTag)
 {
 	return true;
 }
