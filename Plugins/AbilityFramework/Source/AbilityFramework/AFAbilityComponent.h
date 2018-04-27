@@ -572,11 +572,11 @@ public:
 
 	void NativeRemoveAbility(TSoftClassPtr<UGAAbilityBase> InAbilityTag);
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerNativeRemoveAbility(const TSoftClassPtr<UGAAbilityBase>& InAbilityTag);
+		void ServerNativeRemoveAbility(const FSoftObjectPath& InAbilityTag);
 
-	void ServerNativeRemoveAbility_Implementation(const TSoftClassPtr<UGAAbilityBase>& InAbilityTag);
+	void ServerNativeRemoveAbility_Implementation(const FSoftObjectPath& InAbilityTag);
 
-	bool ServerNativeRemoveAbility_Validate(const TSoftClassPtr<UGAAbilityBase>& InAbilityTag);
+	bool ServerNativeRemoveAbility_Validate(const FSoftObjectPath& InAbilityTag);
 
 	//TODO: Make it procted
 
