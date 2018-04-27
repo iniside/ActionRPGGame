@@ -142,6 +142,7 @@ void UARWeaponInventoryComponent::MulticastAddWeapon_Implementation(const FARWea
 			SetWeapon(WeaponData, Character->GetHolsteredSideLeftWeapon());
 			break;
 		case EARWeaponPosition::Equiped:
+			SetWeapon(WeaponData, Character->GetEquipedMainWeapon());
 			break;
 		default:
 			break;
@@ -154,25 +155,29 @@ void UARWeaponInventoryComponent::MulticastRemoveWeapon_Implementation(const FAR
 
 }
 
-void UARWeaponInventoryComponent::Equip(uint8 WeaponIndex, class UARItemWeapon* InWeapon)
+void UARWeaponInventoryComponent::MulticastEquipWeapon_Implementation(uint8 WeaponIndex, const FARWeaponRPC& WeaponData)
 {
-	//MainHandWeapon.Weapon = InWeapon->Weapon;
-	//MainHandWeapon.Position = InWeapon->EquipedPosition;
-	//MainHandWeapon.Rotation = InWeapon->EquipedRotation;
-	//MainHandWeapon.RepCounter++;
-	//WeaponHelper[WeaponIndex]->Weapon.Reset();
-	//WeaponHelper[WeaponIndex]->RepCounter++;
-	//if (AARCharacter* Character = Cast<AARCharacter>(POwner))
-	//{
-	//	SetWeapon(MainHandWeapon, Character->GetEquipedMainWeapon());
-	//	GroupToComponent[WeaponIndex]->SetChildActorClass(nullptr);
-	//	if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
-	//	{
-	//		FSoftObjectPath Path = InWeapon->Ability.ToSoftObjectPath();
-	//		TSoftClassPtr<UGAAbilityBase> ab(Path);
-	//		PC->WeaponManager->EquipWeapon(ab);
-	//	}
-	//}
+	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+	{
+		SetWeapon(WeaponData, Character->GetEquipedMainWeapon());
+		GroupToComponent[WeaponIndex]->SetChildActorClass(nullptr);
+	}
+}
+
+void UARWeaponInventoryComponent::Equip(uint8 WeaponIndex, const FARWeaponRPC& WeaponData)
+{
+	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+	{
+		SetWeapon(WeaponData, Character->GetEquipedMainWeapon());
+		GroupToComponent[WeaponIndex]->SetChildActorClass(nullptr);
+		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
+		{
+			UARItemWeapon* ItemWeapon = GetItem<UARItemWeapon>(WeaponIndex);
+			FSoftObjectPath Path = ItemWeapon->Ability.ToSoftObjectPath();
+			TSoftClassPtr<UGAAbilityBase> ab(Path);
+			PC->WeaponManager->EquipWeapon(ab);
+		}
+	}
 }
 void UARWeaponInventoryComponent::Unequip(uint8 WeaponIndex)
 {
@@ -222,12 +227,18 @@ void UARWeaponInventoryComponent::NextWeapon()
 		}
 	}
 
-	UARItemWeapon* NextWeaponAbility = GetItem<UARItemWeapon>(CurrentWeaponIndex);
-	if (!NextWeaponAbility)
+	UARItemWeapon* InWeapon = GetItem<UARItemWeapon>(CurrentWeaponIndex);
+	if (!InWeapon)
 	{
-		NextWeaponAbility = FindNextValid();
+		InWeapon = FindNextValid();
 	}
-	Equip(CurrentWeaponIndex, NextWeaponAbility);
+	FARWeaponRPC Data;
+	Data.Weapon = InWeapon->Weapon;
+	//Data.SocketName = InWeapon->Socket;
+	Data.Position = InWeapon->EquipedPosition;
+	Data.Rotation = InWeapon->EquipedRotation;
+	Data.AttachSlot = EARWeaponPosition::Equiped;
+	Equip(CurrentWeaponIndex, Data);
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
 		ServerNextWeapon(CurrentWeaponIndex);
@@ -296,12 +307,19 @@ void UARWeaponInventoryComponent::ServerNextWeapon_Implementation(uint8 WeaponIn
 		CurrentWeaponIndex = CurrentIndex;
 	}
 
-	UARItemWeapon* NextWeaponAbility = GetItem<UARItemWeapon>(CurrentWeaponIndex);
-	if (!NextWeaponAbility)
+	UARItemWeapon* InWeapon = GetItem<UARItemWeapon>(CurrentWeaponIndex);
+	if (!InWeapon)
 	{
-		NextWeaponAbility = FindNextValid();
+		InWeapon = FindNextValid();
 	}
-	Equip(CurrentWeaponIndex, NextWeaponAbility);
+	FARWeaponRPC Data;
+	Data.Weapon = InWeapon->Weapon;
+	//Data.SocketName = InWeapon->Socket;
+	Data.Position = InWeapon->EquipedPosition;
+	Data.Rotation = InWeapon->EquipedRotation;
+	Data.AttachSlot = EARWeaponPosition::Equiped;
+
+	MulticastEquipWeapon(CurrentWeaponIndex, Data);
 	if (WeaponIndex == CurrentWeaponIndex)
 	{
 		ClientNextWeapon(CurrentWeaponIndex, true);
@@ -322,7 +340,7 @@ void UARWeaponInventoryComponent::ClientNextWeapon_Implementation(uint8 WeaponIn
 
 	CurrentWeaponIndex = WeaponIndex;
 	UARItemWeapon* NextWeaponAbility = GetItem<UARItemWeapon>(WeaponIndex);
-	Equip(WeaponIndex, NextWeaponAbility);
+	//Equip(WeaponIndex, NextWeaponAbility);
 }
 
 void UARWeaponInventoryComponent::ServerPreviousWeapon_Implementation(uint8 WeaponIndex)
@@ -350,7 +368,7 @@ void UARWeaponInventoryComponent::ServerPreviousWeapon_Implementation(uint8 Weap
 	//situation where client can chage multiple weapons within second
 	//should not have place, as there is animation and/or internal cooldown on weapon change.
 	//since it will be done trough ability.
-	Equip(CurrentWeaponIndex, NextWeaponAbility);
+	//Equip(CurrentWeaponIndex, NextWeaponAbility);
 	if (CurrentWeaponIndex != WeaponIndex)
 	{
 		ClientPreviousWeapon(CurrentWeaponIndex, false);

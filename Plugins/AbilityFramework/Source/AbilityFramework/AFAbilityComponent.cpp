@@ -433,7 +433,7 @@ void UAFAbilityComponent::NativeAddAbility(TSoftClassPtr<UGAAbilityBase> InAbili
 	//FGameplayTag AlreadyBound = IsAbilityBoundToAction(InAbilityTag, InInputTag);
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
-		ServerNativeAddAbility(InAbility, InInputTag);
+		ServerNativeAddAbility(InAbility.ToSoftObjectPath(), InInputTag);
 		/*if (AlreadyBound.IsValid())
 		{
 			for (const FGameplayTag& Input : InInputTag)
@@ -464,13 +464,13 @@ void UAFAbilityComponent::NativeAddAbility(TSoftClassPtr<UGAAbilityBase> InAbili
 }
 
 
-void UAFAbilityComponent::ServerNativeAddAbility_Implementation(const TSoftClassPtr<UGAAbilityBase>& InAbility,
+void UAFAbilityComponent::ServerNativeAddAbility_Implementation(const FSoftObjectPath& InAbility,
 	const TArray<FGameplayTag>& InInputTag)
 {
-	NativeAddAbility(InAbility, InInputTag);
+	NativeAddAbility(TSoftClassPtr<UGAAbilityBase>(InAbility), InInputTag);
 }
 
-bool UAFAbilityComponent::ServerNativeAddAbility_Validate(const TSoftClassPtr<UGAAbilityBase>& InAbility,
+bool UAFAbilityComponent::ServerNativeAddAbility_Validate(const FSoftObjectPath& InAbility,
 	const TArray<FGameplayTag>& InInputTag)
 {
 	return true;
@@ -508,16 +508,16 @@ void UAFAbilityComponent::NativeRemoveAbility(TSoftClassPtr<UGAAbilityBase> InAb
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
-		ServerNativeRemoveAbility(InAbilityTag);
+		ServerNativeRemoveAbility(InAbilityTag.ToSoftObjectPath());
 	}
 	AbilityContainer.RemoveAbility(InAbilityTag);
 }
-void UAFAbilityComponent::ServerNativeRemoveAbility_Implementation(const TSoftClassPtr<UGAAbilityBase>& InAbilityTag)
+void UAFAbilityComponent::ServerNativeRemoveAbility_Implementation(const FSoftObjectPath& InAbilityTag)
 {
-	AbilityContainer.RemoveAbility(InAbilityTag);
+	AbilityContainer.RemoveAbility(TSoftClassPtr<UGAAbilityBase>(InAbilityTag));
 }
 
-bool UAFAbilityComponent::ServerNativeRemoveAbility_Validate(const TSoftClassPtr<UGAAbilityBase>& InAbilityTag)
+bool UAFAbilityComponent::ServerNativeRemoveAbility_Validate(const FSoftObjectPath InAbilityTag)
 {
 	return true;
 }

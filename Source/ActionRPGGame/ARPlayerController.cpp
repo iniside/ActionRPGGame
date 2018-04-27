@@ -27,21 +27,8 @@ AARPlayerController::AARPlayerController(const FObjectInitializer& ObjectInitial
 void AARPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	MainInventory->SetIsReplicated(true);
-
-}
-void AARPlayerController::SetPawn(APawn* InPawn)
-{
-	Super::SetPawn(InPawn);
-
-	
-	//UIAbilityManagerComponent->BindInputs();
-}
-void AARPlayerController::Possess(APawn* aPawn)
-{
-	Super::Possess(aPawn);
 	ENetMode NetMode = GetNetMode();
+	MainInventory->SetIsReplicated(true);
 	if (NetMode == ENetMode::NM_Client
 		|| NetMode == ENetMode::NM_Standalone)
 	{
@@ -110,6 +97,19 @@ void AARPlayerController::Possess(APawn* aPawn)
 		}
 
 	}
+}
+void AARPlayerController::SetPawn(APawn* InPawn)
+{
+	Super::SetPawn(InPawn);
+
+	
+	//UIAbilityManagerComponent->BindInputs();
+}
+void AARPlayerController::Possess(APawn* aPawn)
+{
+	Super::Possess(aPawn);
+	ENetMode NetMode = GetNetMode();
+	
 
 	if (NetMode == ENetMode::NM_DedicatedServer
 		|| NetMode == ENetMode::NM_ListenServer)

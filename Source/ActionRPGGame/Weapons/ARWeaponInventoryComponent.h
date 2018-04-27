@@ -107,8 +107,11 @@ public:
 		void MulticastRemoveWeapon(const FARWeaponRPC& WeaponData);
 	void MulticastRemoveWeapon_Implementation(const FARWeaponRPC& WeaponData);
 
+	UFUNCTION(NetMulticast, Reliable)
+		void MulticastEquipWeapon(uint8 WeaponIndex, const FARWeaponRPC& WeaponData);
+	void MulticastEquipWeapon_Implementation(uint8 WeaponIndex, const FARWeaponRPC& WeaponData);
 
-	void Equip(uint8 WeaponIndex, class UARItemWeapon* InWeapon);
+	void Equip(uint8 WeaponIndex, const FARWeaponRPC& WeaponData);
 	void Unequip(uint8 WeaponIndex);
 	void Holster(EAMGroup Group, class UARItemWeapon* InWeapon);
 	inline void SetPOwner(APawn* InPawn)

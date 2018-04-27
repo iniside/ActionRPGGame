@@ -556,13 +556,13 @@ public:
 		const TArray<FGameplayTag>& InInputTag);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerNativeAddAbility(const TSoftClassPtr<UGAAbilityBase>& InAbility,
+		void ServerNativeAddAbility(const FSoftObjectPath& InAbility,
 			const TArray<FGameplayTag>& InInputTag);
 
-	void ServerNativeAddAbility_Implementation(const TSoftClassPtr<UGAAbilityBase>& InAbility,
+	void ServerNativeAddAbility_Implementation(const FSoftObjectPath& InAbility,
 		const TArray<FGameplayTag>& InInputTag);
 
-	bool ServerNativeAddAbility_Validate(const TSoftClassPtr<UGAAbilityBase>& InAbility,
+	bool ServerNativeAddAbility_Validate(const FSoftObjectPath& InAbility,
 		const TArray<FGameplayTag>& InInputTag);
 
 	void OnFinishedLoad(TSoftClassPtr<UGAAbilityBase> InAbility);
