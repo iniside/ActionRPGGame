@@ -159,7 +159,20 @@ void FAFAbilityContainer::SetAbilityToAction(const TSoftClassPtr<UGAAbilityBase>
 		AbilitiesComp->ClientNotifyAbilityInputReady(InAbiltyPtr);
 	}
 }
+void FAFAbilityContainer::RemoveAbilityFromAction(const TSoftClassPtr<UGAAbilityBase>& InAbiltyPtr)
+{
+	TArray<FGameplayTag>* Inputs = AbilityToAction.Find(InAbiltyPtr);
 
+	if (Inputs)
+	{
+		for (const FGameplayTag& Input : *Inputs)
+		{
+			ActionToAbility.Remove(Input);
+		}
+		
+		AbilityToAction.Remove(InAbiltyPtr);
+	}
+}
 UGAAbilityBase* FAFAbilityContainer::GetAbility(TSoftClassPtr<UGAAbilityBase> InAbiltyPtr)
 {
 	UGAAbilityBase* retAbility = AbilitiesInputs.FindRef(InAbiltyPtr);

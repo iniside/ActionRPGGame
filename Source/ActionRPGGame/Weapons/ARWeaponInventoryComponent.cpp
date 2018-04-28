@@ -162,6 +162,7 @@ void UARWeaponInventoryComponent::MulticastEquipWeapon_Implementation(uint8 Weap
 		SetWeapon(WeaponData, Character->GetEquipedMainWeapon());
 		GroupToComponent[WeaponIndex]->SetChildActorClass(nullptr);
 	}
+	CurrentWeaponIndex = WeaponIndex;
 }
 
 void UARWeaponInventoryComponent::Equip(uint8 WeaponIndex, const FARWeaponRPC& WeaponData)
@@ -177,6 +178,7 @@ void UARWeaponInventoryComponent::Equip(uint8 WeaponIndex, const FARWeaponRPC& W
 			TSoftClassPtr<UGAAbilityBase> ab(Path);
 			PC->WeaponManager->EquipWeapon(ab);
 		}
+		CurrentWeaponIndex = WeaponIndex;
 	}
 }
 void UARWeaponInventoryComponent::Unequip(uint8 WeaponIndex)
@@ -199,9 +201,36 @@ void UARWeaponInventoryComponent::Unequip(uint8 WeaponIndex)
 	//	}
 	//}
 }
-void UARWeaponInventoryComponent::Holster(EAMGroup Group, class UARItemWeapon* InWeapon)
+void UARWeaponInventoryComponent::Holster()
 {
-
+	UARItemWeapon* EquipedWeapon = GetItem<UARItemWeapon>(CurrentWeaponIndex);
+	if (!EquipedWeapon)
+		return;
+	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+	{
+		Character->GetAbilityComp()->RemoveAbilitiesFromActions(EquipedWeapon->Ability);
+		Character->GetEquipedMainWeapon()->SetChildActorClass(nullptr);
+	}
+	FARWeaponRPC Data;
+	Data.Weapon = EquipedWeapon->Weapon;
+	//Data.SocketName = InWeapon->Socket;
+	Data.Position = EquipedWeapon->HolsteredPosition;
+	Data.Rotation = EquipedWeapon->HolsteredRotation;
+	Data.AttachSlot = static_cast<EARWeaponPosition>(CurrentWeaponIndex);
+	SetWeapon(Data, GroupToComponent[CurrentWeaponIndex]);
+	ServerHolster(Data);
+}
+void UARWeaponInventoryComponent::ServerHolster_Implementation(const FARWeaponRPC& WeaponData)
+{
+	MulticastHolster(WeaponData);
+}
+bool UARWeaponInventoryComponent::ServerHolster_Validate(const FARWeaponRPC& WeaponData)
+{
+	return true;
+}
+void UARWeaponInventoryComponent::MulticastHolster_Implementation(const FARWeaponRPC& WeaponData)
+{
+	SetWeapon(WeaponData, GroupToComponent[CurrentWeaponIndex]);
 }
 void UARWeaponInventoryComponent::SetAbilityToItem(uint8 InLocalIndex, class UGAAbilityBase* InAbility)
 {
@@ -268,27 +297,7 @@ void UARWeaponInventoryComponent::PreviousWeapon()
 
 void UARWeaponInventoryComponent::HolsterWeapon()
 {
-	//ActiveGroup = EAMGroup::Group005;
-	//if (AARCharacter* Character = Cast<AARCharacter>(POwner))
-	//{
-	//	Character->GetWeapons()->HolsterActive(ActiveGroup);
-	//}
-	//if (GetOwnerRole() < ENetRole::ROLE_Authority)
-	//{
-	//	ServerHolsterWeapon(static_cast<uint8>(ActiveGroup));
-	//}
-}
-void UARWeaponInventoryComponent::ServerHolsterWeapon_Implementation(uint8 WeaponIndex)
-{
-	//ActiveGroup = EAMGroup::Group005;
-	//if (AARCharacter* Character = Cast<AARCharacter>(POwner))
-	//{
-	//	Character->GetWeapons()->HolsterActive(ActiveGroup);
-	//}
-}
-bool UARWeaponInventoryComponent::ServerHolsterWeapon_Validate(uint8 WeaponIndex)
-{
-	return true;
+	Holster();
 }
 void UARWeaponInventoryComponent::ServerNextWeapon_Implementation(uint8 WeaponIndex)
 {

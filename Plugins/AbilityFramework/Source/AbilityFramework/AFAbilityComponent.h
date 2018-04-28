@@ -518,6 +518,11 @@ public:
 	void ServerSetAbilitiesToActions_Implementation(const TArray<FAFAbilityActionSet>& InAbilitiesActions);
 	bool ServerSetAbilitiesToActions_Validate(const TArray<FAFAbilityActionSet>& InAbilitiesActions);
 
+	void RemoveAbilitiesFromActions(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr);
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerRemoveAbilitiesFromActions(const FSoftObjectPath& InAbilityPtr);
+	void ServerRemoveAbilitiesFromActions_Implementation(const FSoftObjectPath& InAbilityPtr);
+	bool ServerRemoveAbilitiesFromActions_Validate(const FSoftObjectPath& InAbilityPtr);
 
 	UFUNCTION(BlueprintCallable, meta=(DisplayName="Input Pressed"), Category = "AbilityFramework|Abilities")
 		void BP_InputPressed(FGameplayTag ActionName);

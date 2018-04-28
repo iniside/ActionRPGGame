@@ -322,7 +322,22 @@ bool UAFAbilityComponent::ServerSetAbilityToAction_Validate(const TSoftClassPtr<
 {
 	return true;
 }
-
+void UAFAbilityComponent::RemoveAbilitiesFromActions(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr)
+{
+	AbilityContainer.RemoveAbilityFromAction(InAbilityPtr);
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		ServerRemoveAbilitiesFromActions(InAbilityPtr.ToSoftObjectPath());
+	}
+}
+void UAFAbilityComponent::ServerRemoveAbilitiesFromActions_Implementation(const FSoftObjectPath& InAbilityPtr)
+{
+	AbilityContainer.RemoveAbilityFromAction(TSoftClassPtr<UGAAbilityBase>(InAbilityPtr));
+}
+bool UAFAbilityComponent::ServerRemoveAbilitiesFromActions_Validate(const FSoftObjectPath& InAbilityPtr)
+{
+	return true;
+}
 void UAFAbilityComponent::ClientNotifyAbilityInputReady_Implementation(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr)
 {
 	NotifyOnAbilityInputReady(InAbilityPtr);

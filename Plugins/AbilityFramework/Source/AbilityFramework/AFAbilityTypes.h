@@ -79,6 +79,7 @@ public:
 	void RemoveAbility(const TSoftClassPtr<UGAAbilityBase>& AbilityIn);
 
 	void SetAbilityToAction(const TSoftClassPtr<UGAAbilityBase>& InAbiltyPtr, const TArray<FGameplayTag>& InInputTag);
+	void RemoveAbilityFromAction(const TSoftClassPtr<UGAAbilityBase>& InAbiltyPtr);
 	TSoftClassPtr<UGAAbilityBase> IsAbilityBoundToAction(const FGameplayTag& InInputTag);
 
 	UGAAbilityBase* GetAbility(TSoftClassPtr<UGAAbilityBase> InAbiltyPtr);

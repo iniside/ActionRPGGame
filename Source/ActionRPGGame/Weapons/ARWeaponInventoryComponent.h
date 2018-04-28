@@ -113,7 +113,16 @@ public:
 
 	void Equip(uint8 WeaponIndex, const FARWeaponRPC& WeaponData);
 	void Unequip(uint8 WeaponIndex);
-	void Holster(EAMGroup Group, class UARItemWeapon* InWeapon);
+	void Holster();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerHolster(const FARWeaponRPC& WeaponData);
+	void ServerHolster_Implementation(const FARWeaponRPC& WeaponData);
+	bool ServerHolster_Validate(const FARWeaponRPC& WeaponData);
+	UFUNCTION(NetMulticast, Reliable)
+		void MulticastHolster(const FARWeaponRPC& WeaponData);
+	void MulticastHolster_Implementation(const FARWeaponRPC& WeaponData);
+
 	inline void SetPOwner(APawn* InPawn)
 	{
 		POwner = InPawn;
@@ -143,11 +152,6 @@ protected:
 	UFUNCTION(Client, Reliable)
 		void ClientPreviousWeapon(uint8 WeaponIndex, bool bPredictionSuccess);
 	void ClientPreviousWeapon_Implementation(uint8 WeaponIndex, bool bPredictionSuccess);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerHolsterWeapon(uint8 WeaponIndex);
-	void ServerHolsterWeapon_Implementation(uint8 WeaponIndex);
-	bool ServerHolsterWeapon_Validate(uint8 WeaponIndex);
 
 	UARItemWeapon* FindNextValid();
 	UARItemWeapon* FindPreviousValid();
