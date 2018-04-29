@@ -7,40 +7,9 @@ public class ActionRPGGame : ModuleRules
 	public ActionRPGGame(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-        PublicIncludePaths.AddRange(
-        new string[] {
-                "AbilityFramework",
-                "OrionAnimation",
-                "OrionAnimation/Private",
-                "OrionAnimation/Public",
-                "AbilityFramework/Abilities",
-                "AbilityFramework/Attributes",
-                "AbilityFramework/Effects",
-                "AbilityFramework/Public",
-                "ActionRPGGame/Abilities",
-                "ActionRPGGame/AI",
-                "ActionRPGGame/Attributes",
-                "ActionRPGGame/UI",
-                "ActionRPGGame/UI/Abilities"
-            // ... add public include paths required here ...
-            }
-        );
-
+       
             PrivateIncludePaths.AddRange(
             new string[] {
-                    "AbilityFramework",
-                    "OrionAnimation",
-                    "OrionAnimation/Private",
-                    "OrionAnimation/Public",
-                    "AbilityFramework/Abilities",
-                    "AbilityFramework/Attributes",
-                    "AbilityFramework/Effects",
-                    "AbilityFramework/Private",
-                    "ActionRPGGame/Abilities",
-                    "ActionRPGGame/AI",
-                    "ActionRPGGame/Attributes",
-                    "ActionRPGGame/UI",
-                    "ActionRPGGame/UI/Abilities"
                 // ... add other private include paths required here ...
                 }
             );

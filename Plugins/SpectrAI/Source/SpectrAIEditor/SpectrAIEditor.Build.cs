@@ -8,15 +8,6 @@ public class SpectrAIEditor : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
-		PublicIncludePaths.AddRange(
-			new string[] {
-				"SpectrAIEditor/Public",
-                "SpectrAI/Public"
-				// ... add public include paths required here ...
-			}
-			);
-				
-		
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				"SpectrAIEditor/Private",

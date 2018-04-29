@@ -6,27 +6,8 @@ namespace UnrealBuildTool.Rules
 	{
 		public AbilityFramework(ReadOnlyTargetRules Target) : base(Target)
         {
-			PublicIncludePaths.AddRange(
-				new string[] {
-                    "AbilityFramework",
-                    "AbilityFramework/Abilities",
-                    "AbilityFramework/Attributes",
-                    "AbilityFramework/Effects",
-                    "AbilityFramework/Effects/ApplicationRequirement",
-                    "AbilityFramework/Effects/CustomApplications",
-                    "AbilityFramework/Public"
-					// ... add public include paths required here ...
-				}
-				);
-
 			PrivateIncludePaths.AddRange(
 				new string[] {
-                    "AbilityFramework",
-                    "AbilityFramework/Abilities",
-                    "AbilityFramework/Attributes",
-                    "AbilityFramework/Effects",
-                    "AbilityFramework/LatentActions",
-                    "AbilityFramework/Private",
 					// ... add other private include paths required here ...
 				}
 				);

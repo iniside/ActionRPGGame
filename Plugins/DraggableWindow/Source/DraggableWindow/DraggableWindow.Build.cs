@@ -8,14 +8,6 @@ public class DraggableWindow : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
-		PublicIncludePaths.AddRange(
-			new string[] {
-				"DraggableWindow/Public"
-				// ... add public include paths required here ...
-			}
-			);
-				
-		
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				"DraggableWindow/Private",

@@ -7,15 +7,7 @@ public class OrionAnimationEditor : ModuleRules
     public OrionAnimationEditor(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-
-        PublicIncludePaths.AddRange(
-            new string[] {
-                "OrionAnimationEditor/Public"
-				// ... add public include paths required here ...
-			}
-            );
-
-
+		
         PrivateIncludePaths.AddRange(
             new string[] {
                 "OrionAnimationEditor/Private",

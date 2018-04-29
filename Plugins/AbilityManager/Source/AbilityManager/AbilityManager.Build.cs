@@ -8,20 +8,8 @@ public class AbilityManager : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
-		PublicIncludePaths.AddRange(
-			new string[] {
-				"AbilityManager/Public"
-				// ... add public include paths required here ...
-			}
-			);
-				
-		
 		PrivateIncludePaths.AddRange(
 			new string[] {
-				"AbilityManager/Private",
-                "AbilityManager/Abilities",
-                "AbilityManager/Attributes",
-                "AbilityManager/Effects",
 				// ... add other private include paths required here ...
 			}
 			);

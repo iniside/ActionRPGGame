@@ -7,15 +7,7 @@ public class InventoryFrameworkUI : ModuleRules
 	public InventoryFrameworkUI(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		
-		PublicIncludePaths.AddRange(
-			new string[] {
-				"InventoryFrameworkUI/Public"
-				// ... add public include paths required here ...
-			}
-			);
-				
-		
+
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				"InventoryFrameworkUI/Private",

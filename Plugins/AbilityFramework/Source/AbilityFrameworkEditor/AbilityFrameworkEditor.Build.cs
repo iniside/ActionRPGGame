@@ -8,16 +8,6 @@ namespace UnrealBuildTool.Rules
 		public AbilityFrameworkEditor(ReadOnlyTargetRules Target) : base(Target)
         {
             var EngineDir = Path.GetFullPath(Target.RelativeEnginePath);
-            PublicIncludePaths.AddRange(
-				new string[] {
-                    "AbilityFramework",
-                    "AbilityFramework/Abilities",
-                    "AbilityFramework/Attributes",
-                    "AbilityFramework/Effects",
-                    "AbilityFramework/Public"
-					// ... add public include paths required here ...
-				}
-				);
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
@@ -26,11 +16,6 @@ namespace UnrealBuildTool.Rules
                      Path.Combine(EngineDir, @"Source/Editor/Kismet/Private"),
                      Path.Combine(EngineDir, @"Source/Editor/PropertyEditor/Private"),
                      Path.Combine(EngineDir, @"Source/Developer/AssetTools/Private"),
-                     "AbilityFramework",
-                     "AbilityFramework/Abilities",
-                     "AbilityFramework/Attributes",
-                     "AbilityFramework/Effects",
-                     "AbilityFramework/Public"
 					// ... add other private include paths required here ...
 				}
 				);
