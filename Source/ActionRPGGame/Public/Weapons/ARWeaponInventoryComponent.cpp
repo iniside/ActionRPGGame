@@ -216,7 +216,10 @@ void UARWeaponInventoryComponent::MulticastRemoveWeapon_Implementation(const FAR
 
 	if (WeaponData.Index == CurrentWeaponIndex)
 	{
-		Character->GetEquipedMainWeapon()->SetChildActorClass(nullptr);
+		if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+		{
+			Character->GetEquipedMainWeapon()->SetChildActorClass(nullptr);
+		}
 	}
 }
 
