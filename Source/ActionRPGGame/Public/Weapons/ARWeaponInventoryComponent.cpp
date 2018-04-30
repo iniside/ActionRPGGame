@@ -153,6 +153,14 @@ void UARWeaponInventoryComponent::OnServerItemAdded(UIFItemBase* Item, uint8 Loc
 }
 void UARWeaponInventoryComponent::OnServerItemRemoved(uint8 LocalIndex)
 {
+	FARWeaponRPC Data;
+	Data.Weapon.Reset();
+	Data.Index = LocalIndex;
+	//Data.SocketName = InWeapon->Socket;
+	Data.Position = FVector::ZeroVector;
+	Data.Rotation = FRotator::ZeroRotator;
+	Data.AttachSlot = static_cast<EARWeaponPosition>(LocalIndex);
+	MulticastRemoveWeapon(Data);
 }
 void UARWeaponInventoryComponent::MulticastAddWeapon_Implementation(const FARWeaponRPC& WeaponData)
 {
@@ -178,12 +186,38 @@ void UARWeaponInventoryComponent::MulticastAddWeapon_Implementation(const FARWea
 		default:
 			break;
 		}
-		
 	}
 }
 void UARWeaponInventoryComponent::MulticastRemoveWeapon_Implementation(const FARWeaponRPC& WeaponData)
 {
+	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+	{
+		switch (WeaponData.AttachSlot)
+		{
+		case EARWeaponPosition::Right:
+			Character->GetHolsteredRightWeapon()->SetChildActorClass(nullptr);
+			break;
+		case EARWeaponPosition::Left:
+			Character->GetHolsteredLeftWeapon()->SetChildActorClass(nullptr);
+			break;
+		case EARWeaponPosition::BottomBack:
+			Character->GetHolsteredBackDownWeapon()->SetChildActorClass(nullptr);
+			break;
+		case EARWeaponPosition::Side:
+			Character->GetHolsteredSideLeftWeapon()->SetChildActorClass(nullptr);
+			break;
+		case EARWeaponPosition::Equiped:
+			Character->GetEquipedMainWeapon()->SetChildActorClass(nullptr);
+			break;
+		default:
+			break;
+		}
+	}
 
+	if (WeaponData.Index == CurrentWeaponIndex)
+	{
+		Character->GetEquipedMainWeapon()->SetChildActorClass(nullptr);
+	}
 }
 
 void UARWeaponInventoryComponent::MulticastEquipWeapon_Implementation(int8 WeaponIndex, const FARWeaponRPC& WeaponData)

@@ -55,6 +55,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Attachment Test")
 		TSoftClassPtr<class AARWeaponBase> Weapon;
 
+	UPROPERTY()
+		uint8 Index;
+
 	UPROPERTY(EditAnywhere, Category = "Attachment Test")
 		FVector Position;
 	UPROPERTY(EditAnywhere, Category = "Attachment Test")
