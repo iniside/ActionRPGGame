@@ -221,6 +221,7 @@ void UARUIInventoryComponent::RemoveMagazineUpgrade()
 		return;
 
 	UARWeaponInventoryComponent* WeaponInventory = Character->WeaponInventory;
+
 	//UARItemWeapon* Weapon = WeaponInventory->GetItem<UARItemWeapon>(SelectedWeapon);
 
 	//TSoftClassPtr<UARMagazineUpgradeItem> Item = Weapon->RemoveMagazineUpgrade();
