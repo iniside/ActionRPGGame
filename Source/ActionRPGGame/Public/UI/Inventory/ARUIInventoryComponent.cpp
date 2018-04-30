@@ -112,6 +112,25 @@ void UARUIInventoryComponent::ShowWeaponsForSlot(class UARItemView* ForSlot)
 	InventoryView->UpdateItemList<UARItemWeapon, UARListItemWeaponWidget>(Items, ListItemWeaponClass, PC, ForSlot);
 }
 
+void UARUIInventoryComponent::RemoveWeaponFromSlot(int8 Index)
+{
+	AARPlayerController* PC = nullptr;
+	AARCharacter* Character = nullptr;
+	if (AARHUD* HUD = Cast<AARHUD>(GetOwner()))
+	{
+		PC = Cast<AARPlayerController>(HUD->PlayerOwner);
+
+		if (!PC)
+			return;
+		Character = Cast<AARCharacter>(PC->GetPawn());
+		if (!Character)
+			return;
+
+		PC->MainInventory->AddItemFromEquipmentAnySlot(Character->WeaponInventory, Index);
+
+	}
+}
+
 void UARUIInventoryComponent::AddWeaponToSlot(uint8 TargetNetIndex
 	, uint8 TargetLocalIndex
 	, uint8 SourceNetIndex

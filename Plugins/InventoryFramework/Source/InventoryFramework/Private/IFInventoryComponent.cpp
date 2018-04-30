@@ -8,6 +8,7 @@
 #include "IFItemBase.h"
 #include "IFItemActorBase.h"
 #include "IFInventoryInterface.h"
+#include "IFEquipmentComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
 
@@ -264,6 +265,49 @@ void UIFInventoryComponent::ClientAddItemFromEquipment_Implementation(class UIFE
 
 }
 
+void UIFInventoryComponent::AddItemFromEquipmentAnySlot(class UIFEquipmentComponent* Source, uint8 SourceIndex)
+{
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		UIFItemBase* Item = Source->GetItem(SourceIndex);
+		if (!Item)
+			return;
+		ServerAddItemFromEquipmentAnySlot(Source, SourceIndex);
+		return;
+	}
+}
+void UIFInventoryComponent::ServerAddItemFromEquipmentAnySlot_Implementation(class UIFEquipmentComponent* Source, uint8 SourceIndex)
+{
+	UIFItemBase* Item = Source->GetItem(SourceIndex);
+	if (!Item)
+		return;
+
+	uint8 FreeSlot = 0;
+	for (uint8 Idx = 0; Idx < InventoryItems.Num(); Idx++)
+	{
+		if (InventoryItems[Idx].Item == nullptr)
+		{
+			FreeSlot = Idx;
+			break;
+		}
+	}
+
+	InventoryItems[FreeSlot].Item = DuplicateObject<UIFItemBase>(Item, this);
+	ClientAddItemFromEquipmentAnySlot(Source, SourceIndex, FreeSlot);
+}
+bool UIFInventoryComponent::ServerAddItemFromEquipmentAnySlot_Validate(class UIFEquipmentComponent* Source, uint8 SourceIndex)
+{
+	return true;
+}
+void UIFInventoryComponent::ClientAddItemFromEquipmentAnySlot_Implementation(class UIFEquipmentComponent* Source, uint8 SourceIndex, uint8 InventoryIndex)
+{
+	UIFItemBase* Item = Source->GetItem(SourceIndex);
+
+	InventoryItems[InventoryIndex].Item = DuplicateObject<UIFItemBase>(Item, this);
+	Source->RemoveFromEquipment(SourceIndex);
+}
+
+
 void UIFInventoryComponent::RemoveItem(uint8 InIndex)
 {
 	if(GetOwnerRole() < ENetRole::ROLE_Authority)
@@ -321,7 +365,7 @@ void UIFInventoryComponent::OnItemLoadedFreeSlot(TSoftClassPtr<class UIFItemBase
 	
 	
 	TSharedPtr<FJsonObject> Obj = MakeShareable(new FJsonObject());
-	FJsonObjectConverter::UStructToJsonObject(Item.StaticStruct(), &Item, Obj.ToSharedRef(), 0, 0);
+	FJsonObjectConverter::UStructToJsonObject(FIFItemData::StaticStruct(), &Item, Obj.ToSharedRef(), 0, 0);
 
 	FakeBackend.Add(Obj);
 

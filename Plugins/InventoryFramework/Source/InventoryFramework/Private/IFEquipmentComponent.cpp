@@ -84,3 +84,38 @@ void UIFEquipmentComponent::ClientAddItemFromInventory_Implementation(class UIFI
 	OnItemAddedEvent.Broadcast(EquipmentIndex, EquipmentIndex, EquipmentItems[EquipmentIndex].Item);
 	Source->RemoveItem(SourceIndex);
 }
+
+
+void UIFEquipmentComponent::RemoveFromEquipment(uint8 EquipmentIndex)
+{
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		ServerRemoveFromEquipment(EquipmentIndex);
+		return;
+	}
+}
+
+void UIFEquipmentComponent::ServerRemoveFromEquipment_Implementation(uint8 EquipmentIndex)
+{
+	if (EquipmentItems[EquipmentIndex].Item)
+	{
+		EquipmentItems[EquipmentIndex].Item->MarkPendingKill();
+	}
+	EquipmentItems[EquipmentIndex].Item = nullptr;
+	ClientRemoveFromEquipment(EquipmentIndex);
+	OnServerItemRemoved(EquipmentIndex);
+}
+bool UIFEquipmentComponent::ServerRemoveFromEquipment_Validate(uint8 EquipmentIndex)
+{
+	return true;
+}
+
+void UIFEquipmentComponent::ClientRemoveFromEquipment_Implementation(uint8 EquipmentIndex)
+{
+	if (EquipmentItems[EquipmentIndex].Item)
+	{
+		EquipmentItems[EquipmentIndex].Item->MarkPendingKill();
+	}
+	EquipmentItems[EquipmentIndex].Item = nullptr;
+	OnItemRemoved(EquipmentIndex);
+}

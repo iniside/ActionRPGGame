@@ -176,6 +176,20 @@ public:
 		void ClientAddItemFromEquipment(class UIFEquipmentComponent* Source, uint8 SourceIndex, uint8 InventoryIndex);
 	void ClientAddItemFromEquipment_Implementation(class UIFEquipmentComponent* Source, uint8 SourceIndex, uint8 InventoryIndex);
 
+	void AddItemFromEquipmentAnySlot(class UIFEquipmentComponent* Source, uint8 SourceIndex);
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerAddItemFromEquipmentAnySlot(class UIFEquipmentComponent* Source, uint8 SourceIndex);
+	void ServerAddItemFromEquipmentAnySlot_Implementation(class UIFEquipmentComponent* Source, uint8 SourceIndex);
+	bool ServerAddItemFromEquipmentAnySlot_Validate(class UIFEquipmentComponent* Source, uint8 SourceIndex);
+	/*
+	Confirm that change can be made and do the same change on client.
+	We do not predict inventory modifications. Clients MUST wait for server to make changes and send confirmation back.
+	*/
+	UFUNCTION(Client, Reliable)
+		void ClientAddItemFromEquipmentAnySlot(class UIFEquipmentComponent* Source, uint8 SourceIndex, uint8 InventoryIndex);
+	void ClientAddItemFromEquipmentAnySlot_Implementation(class UIFEquipmentComponent* Source, uint8 SourceIndex, uint8 InventoryIndex);
+
+
 	virtual void OnItemAdded(UIFItemBase* Item, uint8 LocalIndex) {};
 	virtual void OnItemChanged(UIFItemBase* Item, uint8 LocalIndex) {};
 	virtual void OnItemRemoved(uint8 LocalIndex) {};

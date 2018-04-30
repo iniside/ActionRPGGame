@@ -68,6 +68,16 @@ public:
 		void ClientAddItemFromInventory(class UIFInventoryComponent* Source, uint8 SourceIndex, uint8 EquipmentIndex);
 	void ClientAddItemFromInventory_Implementation(class UIFInventoryComponent* Source, uint8 SourceIndex, uint8 EquipmentIndex);
 
+	void RemoveFromEquipment(uint8 EquipmentIndex);
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerRemoveFromEquipment(uint8 EquipmentIndex);
+	void ServerRemoveFromEquipment_Implementation(uint8 EquipmentIndex);
+	bool ServerRemoveFromEquipment_Validate(uint8 EquipmentIndex);
+	UFUNCTION(Client, Reliable)
+		void ClientRemoveFromEquipment(uint8 EquipmentIndex);
+	void ClientRemoveFromEquipment_Implementation(uint8 EquipmentIndex);
+
+
 	virtual void OnItemAdded(UIFItemBase* Item, uint8 Index) {};
 	virtual void OnItemChanged(UIFItemBase* Item, uint8 Index) {};
 	virtual void OnItemRemoved(uint8 Index) {};

@@ -52,7 +52,7 @@ protected:
 
 public:
 	void ShowWeaponsForSlot(class UARItemView* ForSlot);
-
+	void RemoveWeaponFromSlot(int8 Index);
 	void AddWeaponToSlot(uint8 TargetNetIndex
 		, uint8 TargetLocalIndex
 		, uint8 SourceNetIndex

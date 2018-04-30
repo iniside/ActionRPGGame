@@ -39,9 +39,17 @@ void UARItemWeaponWidget::NativeConstruct()
 
 FReply UARItemWeaponWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	UObject* Out = GetOuter();
-	UARInventoryScreenWidget* MainView = Cast<UARInventoryScreenWidget>(Out);
-	InventoryComponent->ShowWeaponsForSlot(this);
+	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	{
+		UObject* Out = GetOuter();
+		UARInventoryScreenWidget* MainView = Cast<UARInventoryScreenWidget>(Out);
+		InventoryComponent->ShowWeaponsForSlot(this);
+	}
+	else if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
+	{
+		InventoryComponent->RemoveWeaponFromSlot(LocalIndex);
+	}
+	
 
 	return FReply::Handled();
 }
