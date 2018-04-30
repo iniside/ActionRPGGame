@@ -184,4 +184,8 @@ public:
 	void ServerAddMagazineMod_Implementation(int8 WeaponIdx, int8 MagazineModIndex);
 	bool ServerAddMagazineMod_Validate(int8 WeaponIdx, int8 MagazineModIndex);
 
+	UFUNCTION(Client, Reliable)
+		void ClientAddMagazineMod(int8 WeaponIdx, int8 MagazineModIndex);
+	void ClientAddMagazineMod_Implementation(int8 WeaponIdx, int8 MagazineModIndex);
+
 };

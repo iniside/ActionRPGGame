@@ -648,29 +648,7 @@ void UARWeaponInventoryComponent::AddMagazineMod(int8 WeaponIdx, int8 MagazineMo
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
 		ServerAddMagazineMod(WeaponIdx, MagazineModIndex);
-	}
-
-	//Predictively apply mod on client, and show it on UI.
-	if (AARCharacter* Character = Cast<AARCharacter>(GetOwner()))
-	{
-		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
-		{
-			UIFInventoryComponent* MainInventory = PC->MainInventory;
-
-			UARMagazineUpgradeItem* Magazine = MainInventory->GetItem<UARMagazineUpgradeItem>(MagazineModIndex);
-			if (Magazine)
-			{
-				UARItemWeapon* Weapon = GetItem<UARItemWeapon>(WeaponIdx);
-				if (Weapon)
-				{
-					Weapon->AddMagazineUpgrade(Magazine);
-					FARWeaponModInfo Info;
-					Info.Icon = Magazine->Icon->GetPathName();
-					Info.UpgradeType = EARWeaponUpgradeType::Magazine;
-					Weapon->ClientOnMagazineAdded(Info);
-				}
-			}
-		}
+		return;
 	}
 }
 void UARWeaponInventoryComponent::ServerAddMagazineMod_Implementation(int8 WeaponIdx, int8 MagazineModIndex)
@@ -688,7 +666,7 @@ void UARWeaponInventoryComponent::ServerAddMagazineMod_Implementation(int8 Weapo
 				if (Weapon)
 				{
 					Weapon->AddMagazineUpgrade(Magazine);
-					MainInventory->RemoveItem(MagazineModIndex);
+					ClientAddMagazineMod(WeaponIdx, MagazineModIndex);
 				}
 			}
 		}
@@ -697,4 +675,30 @@ void UARWeaponInventoryComponent::ServerAddMagazineMod_Implementation(int8 Weapo
 bool UARWeaponInventoryComponent::ServerAddMagazineMod_Validate(int8 WeaponIdx, int8 MagazineModIndex)
 {
 	return true;
+}
+
+void UARWeaponInventoryComponent::ClientAddMagazineMod_Implementation(int8 WeaponIdx, int8 MagazineModIndex)
+{
+	if (AARCharacter* Character = Cast<AARCharacter>(GetOwner()))
+	{
+		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
+		{
+			UIFInventoryComponent* MainInventory = PC->MainInventory;
+
+			UARMagazineUpgradeItem* Magazine = MainInventory->GetItem<UARMagazineUpgradeItem>(MagazineModIndex);
+			if (Magazine)
+			{
+				UARItemWeapon* Weapon = GetItem<UARItemWeapon>(WeaponIdx);
+				if (Weapon)
+				{
+					Weapon->AddMagazineUpgrade(Magazine);
+					FARWeaponModInfo Info;
+					Info.Icon = Magazine->Icon->GetPathName();
+					Info.UpgradeType = EARWeaponUpgradeType::Magazine;
+					Weapon->ClientOnMagazineAdded(Info);
+					MainInventory->RemoveItem(MagazineModIndex);
+				}
+			}
+		}
+	}
 }
