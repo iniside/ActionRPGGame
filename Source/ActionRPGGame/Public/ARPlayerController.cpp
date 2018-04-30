@@ -6,6 +6,7 @@
 #include "AssetRegistryModule.h"
 #include "Engine/AssetManager.h"
 #include "ARAbilityBase.h"
+#include "ARCharacter.h"
 
 #include "Weapons/ARWeaponManagerComponent.h"
 #include "Abilities/ARAbilityManagerComponent.h"
@@ -50,7 +51,11 @@ void AARPlayerController::BeginPlay()
 
 
 			AbilityManager->BindInputs(InputComponent, AbilityComp);
-			WeaponManager->BindInputs(InputComponent, AbilityComp);
+			AARCharacter* Character = Cast<AARCharacter>(GetPawn());
+
+			Character->WeaponInventory->BindInputs(InputComponent, AbilityComp);
+
+			//WeaponManager->BindInputs(InputComponent, AbilityComp);
 			bInputBount = true;
 		}
 		//doesn't matter. Internally ability component make sure abilities are instanced on server and replicated back.

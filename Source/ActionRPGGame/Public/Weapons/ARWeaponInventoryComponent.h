@@ -10,7 +10,7 @@
 #include "IFInventoryComponent.h"
 #include "IFEquipmentComponent.h"
 #include "AMTypes.h"
-
+#include "Weapons/ARWeaponAbilityBase.h"
 #include "ARWeaponInventoryComponent.generated.h"
 
 USTRUCT()
@@ -76,6 +76,9 @@ protected:
 	UPROPERTY()
 		class APawn* POwner;
 
+	UPROPERTY(EditAnywhere, CAtegory = "Input")
+		TArray<FGameplayTag> WeaponInput;
+
 	TMap<int8, UChildActorComponent*> GroupToComponent;
 	TMap<EAMGroup, UARItemWeapon*> GroupToItem;
 
@@ -84,11 +87,11 @@ protected:
 public:	
 	// Sets default values for this component's properties
 	UARWeaponInventoryComponent();
-
+	void BindInputs(UInputComponent* InputComponent, class UAFAbilityComponent* AbilityComponent);
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-
+	
 public:	
 	void InitializeWeapons(APawn* Pawn);
 	// Called every frame
@@ -98,6 +101,8 @@ public:
 
 	virtual void OnServerItemAdded(UIFItemBase* Item, uint8 LocalIndex) override;
 	virtual void OnServerItemRemoved(uint8 LocalIndex) override;
+
+	void OnWeaponReady(TSoftClassPtr<UARWeaponAbilityBase> InAbilityTag);
 
 	UFUNCTION(NetMulticast, Reliable)
 		void MulticastAddWeapon(const FARWeaponRPC& WeaponData);

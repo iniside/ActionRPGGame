@@ -5,6 +5,7 @@
 #include "ARItemWeapon.h"
 #include "ARCharacter.h"
 #include "ARPlayerController.h"
+#include "AFAbilityComponent.h"
 #include "Weapons/ARWeaponManagerComponent.h"
 
 // Sets default values for this component's properties
@@ -30,7 +31,16 @@ void UARWeaponInventoryComponent::BeginPlay()
 	// ...
 	
 }
+void UARWeaponInventoryComponent::BindInputs(UInputComponent* InputComponent, class UAFAbilityComponent* AbilityComponent)
+{
+	if (!AbilityComponent)
+		return;
 
+	for (const FGameplayTag& Input : WeaponInput)
+	{
+		AbilityComponent->BindAbilityToAction(InputComponent, Input);
+	}
+}
 void UARWeaponInventoryComponent::InitializeWeapons(APawn* Pawn)
 {
 	if (AARCharacter* Character = Cast<AARCharacter>(Pawn))
@@ -79,10 +89,38 @@ void UARWeaponInventoryComponent::OnItemAdded(UIFItemBase* Item, uint8 LocalInde
 	SetWeapon(Data, GroupToComponent[LocalIndex]);
 	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
 	{
-		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
+		TArray<FGameplayTag> NoInput;
+		FAFOnAbilityReady del;
+		{
+			del = FAFOnAbilityReady::CreateUObject(this, &UARWeaponInventoryComponent::OnWeaponReady, InWeapon->Ability);
+			Character->GetAbilityComp()->AddOnAbilityReadyDelegate(InWeapon->Ability, del);
+		}
+		Character->GetAbilityComp()->NativeAddAbility(InWeapon->Ability, NoInput);
+		/*if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
 		{
 			PC->WeaponManager->NativeEquipAbility(InWeapon->Ability, static_cast<EAMGroup>(LocalIndex), EAMSlot::Slot001, false);
+		}*/
+	}
+}
+void UARWeaponInventoryComponent::OnWeaponReady(TSoftClassPtr<UARWeaponAbilityBase> InAbilityTag)
+{
+	AARCharacter* Character = Cast<AARCharacter>(POwner);
+	if (!Character)
+		return;
+
+	UAFAbilityComponent* AbilityComp = Character->GetAbilityComp();
+
+	UGAAbilityBase* Ability = Cast<UGAAbilityBase>(AbilityComp->BP_GetAbilityByTag(InAbilityTag));
+	
+	AARPlayerController* PC = Cast<AARPlayerController>(GetOwner());
+	if (PC)
+	{
+		if (AARCharacter* Character = Cast<AARCharacter>(PC->GetPawn()))
+		{
+			//UGAAbilityBase* AbilityInstance = GetAbility(InGroup, InSlot);
+			Character->WeaponInventory->SetAbilityToItem(CurrentWeaponIndex, Ability);
 		}
+
 	}
 }
 void UARWeaponInventoryComponent::OnItemRemoved(uint8 LocalIndex)
@@ -157,6 +195,7 @@ void UARWeaponInventoryComponent::MulticastRemoveWeapon_Implementation(const FAR
 
 void UARWeaponInventoryComponent::MulticastEquipWeapon_Implementation(int8 WeaponIndex, const FARWeaponRPC& WeaponData)
 {
+	ENetRole Role = GetOwnerRole();
 	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
 	{
 		SetWeapon(WeaponData, Character->GetEquipedMainWeapon());
@@ -181,17 +220,13 @@ void UARWeaponInventoryComponent::MulticastUnequipWeapon_Implementation(int8 Old
 }
 void UARWeaponInventoryComponent::Equip(int8 WeaponIndex, const FARWeaponRPC& WeaponData)
 {
+	if (WeaponIndex < 0)
+		return;
+
 	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
 	{
 		SetWeapon(WeaponData, Character->GetEquipedMainWeapon());
 		GroupToComponent[WeaponIndex]->SetChildActorClass(nullptr);
-		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
-		{
-			UARItemWeapon* ItemWeapon = GetItem<UARItemWeapon>(WeaponIndex);
-			FSoftObjectPath Path = ItemWeapon->Ability.ToSoftObjectPath();
-			TSoftClassPtr<UGAAbilityBase> ab(Path);
-			PC->WeaponManager->EquipWeapon(ab);
-		}
 		CurrentWeaponIndex = WeaponIndex;
 	}
 }
@@ -217,6 +252,7 @@ void UARWeaponInventoryComponent::Unequip(int8 WeaponIndex)
 	Data.AttachSlot = static_cast<EARWeaponPosition>(WeaponIndex);
 	SetWeapon(Data, GroupToComponent[WeaponIndex]);
 	ServerHolster(Data);
+	CurrentWeaponIndex = -1;
 }
 void UARWeaponInventoryComponent::Holster()
 {
@@ -248,8 +284,13 @@ bool UARWeaponInventoryComponent::ServerHolster_Validate(const FARWeaponRPC& Wea
 }
 void UARWeaponInventoryComponent::MulticastHolster_Implementation(const FARWeaponRPC& WeaponData)
 {
-	SetWeapon(WeaponData, GroupToComponent[CurrentWeaponIndex]);
-	CurrentWeaponIndex = -1;
+	ENetRole Role = GetOwnerRole();
+	if (Role != ENetRole::ROLE_AutonomousProxy
+		&&  Role != ENetRole::ROLE_Authority)
+	{
+		SetWeapon(WeaponData, GroupToComponent[CurrentWeaponIndex]);
+		CurrentWeaponIndex = -1;
+	}
 }
 void UARWeaponInventoryComponent::SetAbilityToItem(int8 InLocalIndex, class UGAAbilityBase* InAbility)
 {
@@ -257,15 +298,40 @@ void UARWeaponInventoryComponent::SetAbilityToItem(int8 InLocalIndex, class UGAA
 }
 void UARWeaponInventoryComponent::NextWeapon()
 {
-	int8 OldGroup = CurrentWeaponIndex;
-	
 	ENetMode NetMode = GetOwner()->GetNetMode();
+	bool bProceed = false;
+	switch (NetMode)
+	{
+	case NM_Standalone:
+		bProceed = true;
+		break;
+	case NM_DedicatedServer:
+		break;
+	case NM_ListenServer:
+		break;
+	case NM_Client:
+		bProceed = true;
+		break;
+	case NM_MAX:
+		break;
+	default:
+		break;
+	}
+
+	if (!bProceed)
+	{
+		return;
+	}
+	int8 OldGroup = CurrentWeaponIndex;
+	if (OldGroup  > -1)
+		Unequip(OldGroup);
+	
 	if (NetMode == ENetMode::NM_Client
 		|| NetMode == ENetMode::NM_Standalone)
 	{
 		int8 CurrentIndex = CurrentWeaponIndex;
 		CurrentIndex++;
-		if (CurrentIndex > 4)
+		if (CurrentIndex > 4 || CurrentIndex < 0)
 		{
 			CurrentWeaponIndex = 0;
 		}
@@ -286,8 +352,7 @@ void UARWeaponInventoryComponent::NextWeapon()
 	Data.Position = InWeapon->EquipedPosition;
 	Data.Rotation = InWeapon->EquipedRotation;
 	Data.AttachSlot = EARWeaponPosition::Equiped;
-	if(OldGroup  > -1)
-		Unequip(OldGroup);
+	
 
 	Equip(CurrentWeaponIndex, Data);
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
@@ -329,7 +394,7 @@ void UARWeaponInventoryComponent::ServerNextWeapon_Implementation(int8 WeaponInd
 	//if (WeaponIndex > CurrentIndex)
 		CurrentIndex++;
 
-	if (CurrentIndex > 4)
+	if (CurrentIndex > 4 || CurrentIndex < 0)
 	{
 		CurrentWeaponIndex = 0;
 	}
@@ -379,11 +444,29 @@ bool UARWeaponInventoryComponent::ServerNextWeapon_Validate(int8 WeaponIndex)
 void UARWeaponInventoryComponent::ClientNextWeapon_Implementation(int8 WeaponIndex, bool bPredictionSuccess)
 {
 	if (bPredictionSuccess)
-		return;
+	{
+		UARItemWeapon* NextWeaponAbility = GetItem<UARItemWeapon>(WeaponIndex);
+		if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+		{
+			UARItemWeapon* Item = GetItem<UARItemWeapon>(WeaponIndex);
 
+			UAFAbilityComponent* AbilityComp = Character->GetAbilityComp();
+			if (!AbilityComp)
+				return;
+
+			if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
+			{
+				AbilityComp->SetAbilityToAction(Item->Ability, WeaponInput, FAFOnAbilityReady());
+			}
+			else
+			{
+				AbilityComp->SetAbilityToAction(Item->Ability, WeaponInput, FAFOnAbilityReady());
+			}
+		}
+		return;
+	}
 	CurrentWeaponIndex = WeaponIndex;
-	UARItemWeapon* NextWeaponAbility = GetItem<UARItemWeapon>(WeaponIndex);
-	//Equip(WeaponIndex, NextWeaponAbility);
+	
 }
 
 void UARWeaponInventoryComponent::ServerPreviousWeapon_Implementation(int8 WeaponIndex)
