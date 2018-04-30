@@ -19,8 +19,6 @@ class ACTIONRPGGAME_API AARPlayerController : public APlayerController, public I
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
 		class UARUIComponent* UIComponent;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
-		class UARWeaponManagerComponent* WeaponManager;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
 		class UARAbilityManagerComponent* AbilityManager;

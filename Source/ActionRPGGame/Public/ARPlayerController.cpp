@@ -8,7 +8,6 @@
 #include "ARAbilityBase.h"
 #include "ARCharacter.h"
 
-#include "Weapons/ARWeaponManagerComponent.h"
 #include "Abilities/ARAbilityManagerComponent.h"
 
 #include "UI/ARHUD.h"
@@ -17,7 +16,6 @@ AARPlayerController::AARPlayerController(const FObjectInitializer& ObjectInitial
 	: Super(ObjectInitializer)
 {
 	UIComponent = ObjectInitializer.CreateDefaultSubobject<UARUIComponent>(this, "UIComponent");
-	WeaponManager = ObjectInitializer.CreateDefaultSubobject<UARWeaponManagerComponent>(this, "WeaponManager");
 	AbilityManager = ObjectInitializer.CreateDefaultSubobject<UARAbilityManagerComponent>(this, "AbilityManager");
 	MainInventory = ObjectInitializer.CreateDefaultSubobject<UIFInventoryComponent>(this, "MainInventory");
 	MainInventory->SetIsReplicated(true);
@@ -55,7 +53,6 @@ void AARPlayerController::BeginPlay()
 
 			Character->WeaponInventory->BindInputs(InputComponent, AbilityComp);
 
-			//WeaponManager->BindInputs(InputComponent, AbilityComp);
 			bInputBount = true;
 		}
 		//doesn't matter. Internally ability component make sure abilities are instanced on server and replicated back.
@@ -121,8 +118,6 @@ void AARPlayerController::Possess(APawn* aPawn)
 	{
 		ClientPossesed(aPawn);
 	}
-	
-	WeaponManager->POwner = aPawn;
 }
 
 void AARPlayerController::ClientPossesed_Implementation(APawn* InPawn)

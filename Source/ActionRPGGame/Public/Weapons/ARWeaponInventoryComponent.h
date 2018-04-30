@@ -82,6 +82,8 @@ protected:
 	TMap<int8, UChildActorComponent*> GroupToComponent;
 	TMap<EAMGroup, UARItemWeapon*> GroupToItem;
 
+	TArray<TSoftClassPtr<UARWeaponAbilityBase>> WeaponAbilities;
+
 	int8 CurrentWeaponIndex;
 
 public:	
@@ -161,6 +163,8 @@ protected:
 	UFUNCTION(Client, Reliable)
 		void ClientPreviousWeapon(int8 WeaponIndex, bool bPredictionSuccess);
 	void ClientPreviousWeapon_Implementation(int8 WeaponIndex, bool bPredictionSuccess);
+
+	void HandleClientPrediction(int8 WeaponIndex, bool bPredictionSuccess);
 
 	UARItemWeapon* FindNextValid();
 	UARItemWeapon* FindPreviousValid();

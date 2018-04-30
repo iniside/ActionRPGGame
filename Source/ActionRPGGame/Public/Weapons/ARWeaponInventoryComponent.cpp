@@ -6,7 +6,6 @@
 #include "ARCharacter.h"
 #include "ARPlayerController.h"
 #include "AFAbilityComponent.h"
-#include "Weapons/ARWeaponManagerComponent.h"
 
 // Sets default values for this component's properties
 UARWeaponInventoryComponent::UARWeaponInventoryComponent()
@@ -18,6 +17,7 @@ UARWeaponInventoryComponent::UARWeaponInventoryComponent()
 
 	MaxSlots = 4;
 	AvailableSlots = 4;
+	WeaponAbilities.SetNum(4);
 	CurrentWeaponIndex = -1;
 	// ...
 }
@@ -96,10 +96,7 @@ void UARWeaponInventoryComponent::OnItemAdded(UIFItemBase* Item, uint8 LocalInde
 			Character->GetAbilityComp()->AddOnAbilityReadyDelegate(InWeapon->Ability, del);
 		}
 		Character->GetAbilityComp()->NativeAddAbility(InWeapon->Ability, NoInput);
-		/*if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
-		{
-			PC->WeaponManager->NativeEquipAbility(InWeapon->Ability, static_cast<EAMGroup>(LocalIndex), EAMSlot::Slot001, false);
-		}*/
+		WeaponAbilities[LocalIndex] = InWeapon->Ability;
 	}
 }
 void UARWeaponInventoryComponent::OnWeaponReady(TSoftClassPtr<UARWeaponAbilityBase> InAbilityTag)
@@ -117,7 +114,6 @@ void UARWeaponInventoryComponent::OnWeaponReady(TSoftClassPtr<UARWeaponAbilityBa
 	{
 		if (AARCharacter* Character = Cast<AARCharacter>(PC->GetPawn()))
 		{
-			//UGAAbilityBase* AbilityInstance = GetAbility(InGroup, InSlot);
 			Character->WeaponInventory->SetAbilityToItem(CurrentWeaponIndex, Ability);
 		}
 
@@ -125,13 +121,10 @@ void UARWeaponInventoryComponent::OnWeaponReady(TSoftClassPtr<UARWeaponAbilityBa
 }
 void UARWeaponInventoryComponent::OnItemRemoved(uint8 LocalIndex)
 {
-	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
-	{
-		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
-		{
-			PC->WeaponManager->NativeRemoveAbility(TSoftClassPtr<UGAAbilityBase>(), static_cast<EAMGroup>(LocalIndex), EAMSlot::Slot001);
-		}
-	}
+	AARCharacter* Character = Cast<AARCharacter>(POwner);
+
+	Character->GetAbilityComp()->NativeRemoveAbility(WeaponAbilities[LocalIndex]);
+
 	FARWeaponRPC Data;
 	Data.Weapon.Reset();
 	//Data.SocketName = InWeapon->Socket;
@@ -322,23 +315,20 @@ void UARWeaponInventoryComponent::NextWeapon()
 	{
 		return;
 	}
+
 	int8 OldGroup = CurrentWeaponIndex;
 	if (OldGroup  > -1)
 		Unequip(OldGroup);
 	
-	if (NetMode == ENetMode::NM_Client
-		|| NetMode == ENetMode::NM_Standalone)
+	int8 CurrentIndex = CurrentWeaponIndex;
+	CurrentIndex++;
+	if (CurrentIndex > 4 || CurrentIndex < 0)
 	{
-		int8 CurrentIndex = CurrentWeaponIndex;
-		CurrentIndex++;
-		if (CurrentIndex > 4 || CurrentIndex < 0)
-		{
-			CurrentWeaponIndex = 0;
-		}
-		else
-		{
-			CurrentWeaponIndex = CurrentIndex;
-		}
+		CurrentWeaponIndex = 0;
+	}
+	else
+	{
+		CurrentWeaponIndex = CurrentIndex;
 	}
 
 	UARItemWeapon* InWeapon = GetItem<UARItemWeapon>(CurrentWeaponIndex);
@@ -362,6 +352,30 @@ void UARWeaponInventoryComponent::NextWeapon()
 }
 void UARWeaponInventoryComponent::PreviousWeapon()
 {
+	ENetMode NetMode = GetOwner()->GetNetMode();
+	bool bProceed = false;
+	switch (NetMode)
+	{
+	case NM_Standalone:
+		bProceed = true;
+		break;
+	case NM_DedicatedServer:
+		break;
+	case NM_ListenServer:
+		break;
+	case NM_Client:
+		bProceed = true;
+		break;
+	case NM_MAX:
+		break;
+	default:
+		break;
+	}
+
+	if (!bProceed)
+	{
+		return;
+	}
 	int8 OldGroup = CurrentWeaponIndex;
 
 	int8 CurrentIndex = CurrentWeaponIndex;
@@ -443,30 +457,7 @@ bool UARWeaponInventoryComponent::ServerNextWeapon_Validate(int8 WeaponIndex)
 }
 void UARWeaponInventoryComponent::ClientNextWeapon_Implementation(int8 WeaponIndex, bool bPredictionSuccess)
 {
-	if (bPredictionSuccess)
-	{
-		UARItemWeapon* NextWeaponAbility = GetItem<UARItemWeapon>(WeaponIndex);
-		if (AARCharacter* Character = Cast<AARCharacter>(POwner))
-		{
-			UARItemWeapon* Item = GetItem<UARItemWeapon>(WeaponIndex);
-
-			UAFAbilityComponent* AbilityComp = Character->GetAbilityComp();
-			if (!AbilityComp)
-				return;
-
-			if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
-			{
-				AbilityComp->SetAbilityToAction(Item->Ability, WeaponInput, FAFOnAbilityReady());
-			}
-			else
-			{
-				AbilityComp->SetAbilityToAction(Item->Ability, WeaponInput, FAFOnAbilityReady());
-			}
-		}
-		return;
-	}
-	CurrentWeaponIndex = WeaponIndex;
-	
+	HandleClientPrediction(WeaponIndex, bPredictionSuccess);
 }
 
 void UARWeaponInventoryComponent::ServerPreviousWeapon_Implementation(int8 WeaponIndex)
@@ -528,11 +519,66 @@ bool UARWeaponInventoryComponent::ServerPreviousWeapon_Validate(int8 WeaponIndex
 }
 void UARWeaponInventoryComponent::ClientPreviousWeapon_Implementation(int8 WeaponIndex, bool bPredictionSuccess)
 {
-	if (bPredictionSuccess)
-		return;
+	HandleClientPrediction(WeaponIndex, bPredictionSuccess);
 }
 
+void UARWeaponInventoryComponent::HandleClientPrediction(int8 WeaponIndex, bool bPredictionSuccess)
+{
+	if (bPredictionSuccess)
+	{
+		if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+		{
+			UARItemWeapon* Item = GetItem<UARItemWeapon>(WeaponIndex);
 
+			UAFAbilityComponent* AbilityComp = Character->GetAbilityComp();
+			if (!AbilityComp)
+				return;
+
+			if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
+			{
+				AbilityComp->SetAbilityToAction(Item->Ability, WeaponInput, FAFOnAbilityReady());
+			}
+			else
+			{
+				AbilityComp->SetAbilityToAction(Item->Ability, WeaponInput, FAFOnAbilityReady());
+			}
+		}
+		return;
+	}
+	else //override client decision.
+	{
+		CurrentWeaponIndex = WeaponIndex;
+		UARItemWeapon* InWeapon = GetItem<UARItemWeapon>(CurrentWeaponIndex);
+		if (!InWeapon)
+		{
+			InWeapon = FindNextValid();
+		}
+		FARWeaponRPC Data;
+		Data.Weapon = InWeapon->Weapon;
+		//Data.SocketName = InWeapon->Socket;
+		Data.Position = InWeapon->EquipedPosition;
+		Data.Rotation = InWeapon->EquipedRotation;
+		Data.AttachSlot = EARWeaponPosition::Equiped;
+
+		Equip(CurrentWeaponIndex, Data);
+
+		if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+		{
+			UAFAbilityComponent* AbilityComp = Character->GetAbilityComp();
+			if (!AbilityComp)
+				return;
+
+			if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
+			{
+				AbilityComp->SetAbilityToAction(InWeapon->Ability, WeaponInput, FAFOnAbilityReady());
+			}
+			else
+			{
+				AbilityComp->SetAbilityToAction(InWeapon->Ability, WeaponInput, FAFOnAbilityReady());
+			}
+		}
+	}
+}
 
 UARItemWeapon* UARWeaponInventoryComponent::FindNextValid()
 {
