@@ -22,7 +22,7 @@ void UARItemWeapon::AddMagazineUpgrade(class UARMagazineUpgradeItem* InMagazineU
 }
 void UARItemWeapon::OnMagazineUpdateAdded()
 {
-	//should be called only fropm server.
+	//should be called only from server.
 	FARWeaponModInfo Info;
 	Info.Icon = MagazineModificationObj->Icon->GetPathName();
 	Info.UpgradeType = EARWeaponUpgradeType::Magazine;
@@ -46,6 +46,8 @@ void UARItemWeapon::ClientOnMagazineAdded_Implementation(const FARWeaponModInfo&
 			{
 				if (AARHUD* HUD = Cast<AARHUD>(PC->GetHUD()))
 				{
+					UTexture2D* Icon = ModInfo.Icon.LoadSynchronous();
+					HUD->GetUIInventory()->GetInventoryView()->MagazineUpgrade->Icon->SetBrushFromTexture(Icon);
 				}
 			}
 		}

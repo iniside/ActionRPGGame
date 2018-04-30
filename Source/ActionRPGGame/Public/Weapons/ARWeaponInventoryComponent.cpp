@@ -648,9 +648,9 @@ void UARWeaponInventoryComponent::AddMagazineMod(int8 WeaponIdx, int8 MagazineMo
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
 		ServerAddMagazineMod(WeaponIdx, MagazineModIndex);
-		return;
 	}
 
+	//Predictively apply mod on client, and show it on UI.
 	if (AARCharacter* Character = Cast<AARCharacter>(GetOwner()))
 	{
 		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
@@ -664,7 +664,10 @@ void UARWeaponInventoryComponent::AddMagazineMod(int8 WeaponIdx, int8 MagazineMo
 				if (Weapon)
 				{
 					Weapon->AddMagazineUpgrade(Magazine);
-					MainInventory->RemoveItem(MagazineModIndex);
+					FARWeaponModInfo Info;
+					Info.Icon = Magazine->Icon->GetPathName();
+					Info.UpgradeType = EARWeaponUpgradeType::Magazine;
+					Weapon->ClientOnMagazineAdded(Info);
 				}
 			}
 		}

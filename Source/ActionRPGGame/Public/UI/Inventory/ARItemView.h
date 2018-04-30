@@ -16,6 +16,9 @@ class ACTIONRPGGAME_API UARItemView : public UIFItemWidget
 public:
 	TWeakObjectPtr<class UARUIInventoryComponent> InventoryComponent;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
+		UImage* Icon;
+
 public:
 	virtual void NativeConstruct() override;
 	

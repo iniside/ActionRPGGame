@@ -272,6 +272,12 @@ void UIFInventoryComponent::RemoveItem(uint8 InIndex)
 		return;
 	}
 	//remove from backend
+	if (InventoryItems[InIndex].Item)
+		InventoryItems[InIndex].Item->MarkPendingKill();
+
+	InventoryItems[InIndex].Item = nullptr;
+	OnServerItemRemoved(InIndex);
+	ClientRemoveItem(InIndex);
 }
 void UIFInventoryComponent::ServerRemoveItem_Implementation(uint8 InIndex)
 {
@@ -299,7 +305,17 @@ void UIFInventoryComponent::OnItemLoadedFreeSlot(TSoftClassPtr<class UIFItemBase
 	TSubclassOf<UIFItemBase> ItemClass = InItem.Get();
 
 	FIFItemData Item;
-	Item.Index = 0;
+	uint8 FreeIndex = 0;
+
+	for (uint8 Idx = 0; Idx < InventoryItems.Num(); Idx++)
+	{
+		if (!InventoryItems[Idx].Item)
+		{
+			FreeIndex = Idx;
+			break;
+		}
+	}
+	Item.Index = FreeIndex;
 	Item.Item = NewObject<UIFItemBase>(this, ItemClass);
 	//Inventory.AddItemToFreeSlot(Item);
 	
