@@ -365,7 +365,7 @@ struct TStructOpsTypeTraits< FGAEffectHandle > : public TStructOpsTypeTraitsBase
 };
 
 USTRUCT()
-struct FAFPredictionHandle
+struct ABILITYFRAMEWORK_API FAFPredictionHandle
 {
 	GENERATED_BODY()
 public:
@@ -448,7 +448,7 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct FGAIndividualMods
+struct ABILITYFRAMEWORK_API FGAIndividualMods
 {
 	GENERATED_BODY()
 public:
@@ -546,7 +546,7 @@ public:
 
 /* Final calculcated mod from effect, which can be modified by Calculation object. */
 USTRUCT()
-struct FGAEffectMod
+struct ABILITYFRAMEWORK_API FGAEffectMod
 {
 	GENERATED_BODY()
 	FGAAttribute Attribute;
@@ -625,7 +625,7 @@ struct FGAEffectMod
 };
 
 USTRUCT(BlueprintType)
-struct FAFAttributeChangedData
+struct ABILITYFRAMEWORK_API FAFAttributeChangedData
 {
 	GENERATED_BODY()
 public:
@@ -761,7 +761,7 @@ public:
 };
 
 USTRUCT()
-struct FAFCueHandle
+struct ABILITYFRAMEWORK_API FAFCueHandle
 {
 	GENERATED_BODY();
 private:

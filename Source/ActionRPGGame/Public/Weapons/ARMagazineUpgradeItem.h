@@ -28,6 +28,14 @@ class ACTIONRPGGAME_API UARMagazineUpgradeItem : public UARWeaponUpgradeItem
 public:
 	UPROPERTY(EditAnywhere)
 		FARMagazineUpgradeItemData Data;
+	/*
+		An actual modifier value of this upgrade.
+	*/
+	UPROPERTY(EditAnywhere)
+		float MagazineUpgradeValue;
+	/*
+		Effect template
+	*/
 	UPROPERTY(EditAnywhere)
 		TSoftClassPtr<class UARMagazineUpgradeEffect> UpgradeEffect;
 };

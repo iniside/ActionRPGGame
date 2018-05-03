@@ -67,6 +67,8 @@ public:
 };
 
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FAROnUpgradeInstalled, class UARItemWeapon*, Weapon, class UARWeaponUpgradeItem*, Upgrade, int8, WeaponIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FAROnUpgradeRemoved, class UARItemWeapon*, Weapon, class UARWeaponUpgradeItem*, Upgrade, int8, WeaponIndex);
 /*
 	Manages currently equipped weapons (holstered and unholstered).
 */
@@ -89,6 +91,9 @@ protected:
 
 	int8 CurrentWeaponIndex;
 
+	FAROnUpgradeInstalled OnUpgradeInstalled;
+	FAROnUpgradeRemoved OnUpgradeRemoved;
+
 public:	
 	// Sets default values for this component's properties
 	UARWeaponInventoryComponent();
@@ -101,13 +106,24 @@ public:
 	void InitializeWeapons(APawn* Pawn);
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	inline FAROnUpgradeInstalled& GetOnUpgradeInstalled()
+	{
+		return OnUpgradeInstalled;
+	}
+	inline FAROnUpgradeRemoved& GetOnUpgradeRemoved()
+	{
+		return OnUpgradeRemoved;
+	}
+
 	virtual void OnItemAdded(UIFItemBase* Item, uint8 LocalIndex) override;
 	virtual void OnItemRemoved(uint8 LocalIndex) override;
 
 	virtual void OnServerItemAdded(UIFItemBase* Item, uint8 LocalIndex) override;
 	virtual void OnServerItemRemoved(uint8 LocalIndex) override;
 
-	void OnWeaponReady(TSoftClassPtr<UARWeaponAbilityBase> InAbilityTag);
+	void OnWeaponReady(TSoftClassPtr<UARWeaponAbilityBase> InAbilityTag, int8 Index);
+	void SetAbilityToItem(int8 InLocalIndex, class UGAAbilityBase* InAbility);
 
 	UFUNCTION(NetMulticast, Reliable)
 		void MulticastAddWeapon(const FARWeaponRPC& WeaponData);
@@ -141,7 +157,7 @@ public:
 	{
 		POwner = InPawn;
 	}
-	void SetAbilityToItem(int8 InLocalIndex, class UGAAbilityBase* InAbility);
+	
 	UFUNCTION(BlueprintCallable)
 		void NextWeapon();
 	UFUNCTION(BlueprintCallable)
@@ -190,5 +206,16 @@ public:
 	UFUNCTION(Client, Reliable)
 		void ClientAddMagazineMod(int8 WeaponIdx, int8 MagazineModIndex);
 	void ClientAddMagazineMod_Implementation(int8 WeaponIdx, int8 MagazineModIndex);
+
+	void RemoveMagazineMod(int8 WeaponIdx);
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerRemoveMagazineMod(int8 WeaponIdx);
+
+	void ServerRemoveMagazineMod_Implementation(int8 WeaponIdx);
+	bool ServerRemoveMagazineMod_Validate(int8 WeaponIdx);
+
+	UFUNCTION(Client, Reliable)
+		void ClientRemoveMagazineMod(int8 WeaponIdx);
+	void ClientRemoveMagazineMod_Implementation(int8 WeaponIdx);
 
 };

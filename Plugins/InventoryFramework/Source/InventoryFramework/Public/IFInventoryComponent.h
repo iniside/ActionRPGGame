@@ -190,6 +190,17 @@ public:
 	void ClientAddItemFromEquipmentAnySlot_Implementation(class UIFEquipmentComponent* Source, uint8 SourceIndex, uint8 InventoryIndex);
 
 
+	//never call on clients.
+	void AddItemAnySlot(class UIFItemBase* Source);
+	/*
+	Confirm that change can be made and do the same change on client.
+	We do not predict inventory modifications. Clients MUST wait for server to make changes and send confirmation back.
+	*/
+	UFUNCTION(Client, Reliable)
+		void ClientAddAnySlot(const FString& JsonData, uint8 InventoryIndex);
+	void ClientAddAnySlot_Implementation(const FString& JsonData, uint8 InventoryIndex);
+
+
 	virtual void OnItemAdded(UIFItemBase* Item, uint8 LocalIndex) {};
 	virtual void OnItemChanged(UIFItemBase* Item, uint8 LocalIndex) {};
 	virtual void OnItemRemoved(uint8 LocalIndex) {};
@@ -221,4 +232,7 @@ public:
 	UFUNCTION(Client, Reliable)
 		void ClientSendJsonData(const FString& Data);
 	void ClientSendJsonData_Implementation(const FString& Data);
+
+	protected:
+		TSharedPtr<FJsonObject> SendToBackend(FIFItemData* Item);
 };

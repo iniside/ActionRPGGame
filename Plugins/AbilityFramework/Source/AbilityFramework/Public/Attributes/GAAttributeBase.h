@@ -77,6 +77,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Value")
 		TSubclassOf<class UGAAttributeExtension> ExtensionClass;
 
+	//Considering amount of bonuses TArray might be better than TMap, for cache coherency.
 	TArray<TMap<FGAEffectHandle, FGAEffectMod>> Modifiers;
 	FAFAttributeBase();
 	FAFAttributeBase(float BaseValueIn);

@@ -16,8 +16,18 @@ class ACTIONRPGGAME_API UARWeaponModificationView : public UARUMGWidgetBase
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
 		class UARItemMagazineView* MagazineUpgrade;
-	
+
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
+		class UButton* CloseUpgradeView;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
+		class UWrapBox* UpgradeList;
+
+	virtual void NativeConstruct() override;
 	void StartModifyWeapon(class UARItemWeapon* WeaponItem);
 	void StopModifyWeapon();
+
+	UFUNCTION()
+		void CloseModificationView();
 	
 };

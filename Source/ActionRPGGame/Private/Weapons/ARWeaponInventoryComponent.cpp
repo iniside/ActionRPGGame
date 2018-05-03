@@ -92,14 +92,35 @@ void UARWeaponInventoryComponent::OnItemAdded(UIFItemBase* Item, uint8 LocalInde
 		TArray<FGameplayTag> NoInput;
 		FAFOnAbilityReady del;
 		{
-			del = FAFOnAbilityReady::CreateUObject(this, &UARWeaponInventoryComponent::OnWeaponReady, InWeapon->Ability);
+			del = FAFOnAbilityReady::CreateUObject(this, &UARWeaponInventoryComponent::OnWeaponReady, InWeapon->Ability, static_cast<int8>(LocalIndex));
 			Character->GetAbilityComp()->AddOnAbilityReadyDelegate(InWeapon->Ability, del);
 		}
 		Character->GetAbilityComp()->NativeAddAbility(InWeapon->Ability, NoInput);
 		WeaponAbilities[LocalIndex] = InWeapon->Ability;
 	}
 }
-void UARWeaponInventoryComponent::OnWeaponReady(TSoftClassPtr<UARWeaponAbilityBase> InAbilityTag)
+void UARWeaponInventoryComponent::OnServerItemAdded(UIFItemBase* Item, uint8 LocalIndex)
+{
+	UARItemWeapon* InWeapon = Cast<UARItemWeapon>(Item);
+	FARWeaponRPC Data;
+	Data.Weapon = InWeapon->Weapon;
+	//Data.SocketName = InWeapon->Socket;
+	Data.Position = InWeapon->HolsteredPosition;
+	Data.Rotation = InWeapon->HolsteredRotation;
+	Data.AttachSlot = static_cast<EARWeaponPosition>(LocalIndex);
+	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+	{
+		TArray<FGameplayTag> NoInput;
+		FAFOnAbilityReady del;
+		{
+			del = FAFOnAbilityReady::CreateUObject(this, &UARWeaponInventoryComponent::OnWeaponReady, InWeapon->Ability, static_cast<int8>(LocalIndex));
+			Character->GetAbilityComp()->AddOnAbilityReadyDelegate(InWeapon->Ability, del);
+		}
+		WeaponAbilities[LocalIndex] = InWeapon->Ability;
+	}
+	MulticastAddWeapon(Data);
+}
+void UARWeaponInventoryComponent::OnWeaponReady(TSoftClassPtr<UARWeaponAbilityBase> InAbilityTag, int8 LocalIndex)
 {
 	AARCharacter* Character = Cast<AARCharacter>(POwner);
 	if (!Character)
@@ -108,16 +129,16 @@ void UARWeaponInventoryComponent::OnWeaponReady(TSoftClassPtr<UARWeaponAbilityBa
 	UAFAbilityComponent* AbilityComp = Character->GetAbilityComp();
 
 	UGAAbilityBase* Ability = Cast<UGAAbilityBase>(AbilityComp->BP_GetAbilityByTag(InAbilityTag));
-	
-	AARPlayerController* PC = Cast<AARPlayerController>(GetOwner());
-	if (PC)
-	{
-		if (AARCharacter* Character = Cast<AARCharacter>(PC->GetPawn()))
-		{
-			Character->WeaponInventory->SetAbilityToItem(CurrentWeaponIndex, Ability);
-		}
+	SetAbilityToItem(LocalIndex, Ability);
+}
+void UARWeaponInventoryComponent::SetAbilityToItem(int8 InLocalIndex, class UGAAbilityBase* InAbility)
+{
+	UARItemWeapon* ItemWeapon = GetItem<UARItemWeapon>(InLocalIndex);
 
-	}
+	if (!ItemWeapon)
+		return;
+
+	ItemWeapon->AbilityInstance = Cast<UARWeaponAbilityBase>(InAbility);
 }
 void UARWeaponInventoryComponent::OnItemRemoved(uint8 LocalIndex)
 {
@@ -139,18 +160,7 @@ void UARWeaponInventoryComponent::OnItemRemoved(uint8 LocalIndex)
 	}
 }
 
-void UARWeaponInventoryComponent::OnServerItemAdded(UIFItemBase* Item, uint8 LocalIndex)
-{
-	UARItemWeapon* InWeapon = Cast<UARItemWeapon>(Item);
-	FARWeaponRPC Data;
-	Data.Weapon = InWeapon->Weapon;
-	//Data.SocketName = InWeapon->Socket;
-	Data.Position = InWeapon->HolsteredPosition;
-	Data.Rotation = InWeapon->HolsteredRotation;
-	Data.AttachSlot = static_cast<EARWeaponPosition>(LocalIndex);
 
-	MulticastAddWeapon(Data);
-}
 void UARWeaponInventoryComponent::OnServerItemRemoved(uint8 LocalIndex)
 {
 	FARWeaponRPC Data;
@@ -322,10 +332,7 @@ void UARWeaponInventoryComponent::MulticastHolster_Implementation(const FARWeapo
 		CurrentWeaponIndex = -1;
 	}
 }
-void UARWeaponInventoryComponent::SetAbilityToItem(int8 InLocalIndex, class UGAAbilityBase* InAbility)
-{
 
-}
 void UARWeaponInventoryComponent::NextWeapon()
 {
 	ENetMode NetMode = GetOwner()->GetNetMode();
@@ -732,9 +739,60 @@ void UARWeaponInventoryComponent::ClientAddMagazineMod_Implementation(int8 Weapo
 					FARWeaponModInfo Info;
 					Info.Icon = Magazine->Icon->GetPathName();
 					Info.UpgradeType = EARWeaponUpgradeType::Magazine;
-					Weapon->ClientOnMagazineAdded(Info);
 					MainInventory->RemoveItem(MagazineModIndex);
+
+					OnUpgradeInstalled.Broadcast(Weapon, Magazine, WeaponIdx);
 				}
+			}
+		}
+	}
+}
+
+void UARWeaponInventoryComponent::RemoveMagazineMod(int8 WeaponIdx)
+{
+	if (GetOwnerRole() < ENetRole::ROLE_Authority)
+	{
+		ServerRemoveMagazineMod(WeaponIdx);
+		return;
+	}
+
+}
+void UARWeaponInventoryComponent::ServerRemoveMagazineMod_Implementation(int8 WeaponIdx)
+{
+	if (AARCharacter* Character = Cast<AARCharacter>(GetOwner()))
+	{
+		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
+		{
+			UIFInventoryComponent* MainInventory = PC->MainInventory;
+
+			UARItemWeapon* Weapon = GetItem<UARItemWeapon>(WeaponIdx);
+			if (Weapon)
+			{
+				UARMagazineUpgradeItem* MagazineUpgrade = Weapon->RemoveMagazineUpgrade();
+				ServerRemoveMagazineMod(WeaponIdx);
+				PC->MainInventory->AddItemAnySlot(MagazineUpgrade);
+				ClientRemoveMagazineMod(WeaponIdx);
+			}
+		}
+	}
+}
+bool UARWeaponInventoryComponent::ServerRemoveMagazineMod_Validate(int8 WeaponIdx)
+{
+	return true;
+}
+void UARWeaponInventoryComponent::ClientRemoveMagazineMod_Implementation(int8 WeaponIdx)
+{
+	if (AARCharacter* Character = Cast<AARCharacter>(GetOwner()))
+	{
+		if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
+		{
+			UIFInventoryComponent* MainInventory = PC->MainInventory;
+
+			UARItemWeapon* Weapon = GetItem<UARItemWeapon>(WeaponIdx);
+			if (Weapon)
+			{
+				UARMagazineUpgradeItem* MagazineUpgrade = Weapon->RemoveMagazineUpgrade();
+				OnUpgradeRemoved.Broadcast(Weapon, MagazineUpgrade, WeaponIdx);
 			}
 		}
 	}

@@ -13,6 +13,7 @@
 #include "UI/Inventory/Weapons/ARListItemWeaponWidget.h"
 #include "UI/Inventory/Weapons/Modifications/ARItemMagazineView.h"
 #include "UI/Inventory/Weapons/Modifications/ARListItemMagazineView.h"
+#include "UI/Inventory/Weapons/ARWeaponModificationView.h"
 
 // Sets default values for this component's properties
 UARUIInventoryComponent::UARUIInventoryComponent()
@@ -30,8 +31,19 @@ void UARUIInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
-	
+	if (WeaponModificationViewClass)
+	{
+		if (AARHUD* HUD = Cast<AARHUD>(GetOwner()))
+		{
+			if (AARPlayerController* PC = Cast<AARPlayerController>(HUD->GetOwningPlayerController()))
+			{
+				WeaponModificationView = CreateWidget<UARWeaponModificationView>(PC, WeaponModificationViewClass);
+
+				WeaponModificationView->SetVisibility(ESlateVisibility::Collapsed);
+				WeaponModificationView->AddToViewport();
+			}
+		}	
+	}
 }
 
 
@@ -101,7 +113,8 @@ void UARUIInventoryComponent::ShowWeaponsForSlot(class UARItemView* ForSlot)
 		}
 		if (AARCharacter* Character = Cast<AARCharacter>(PC->GetPawn()))
 		{
-			UIFItemBase* Item = Character->WeaponInventory->GetItem(ForSlot->LocalIndex);
+			UARItemWeapon* Item = Character->WeaponInventory->GetItem<UARItemWeapon>(ForSlot->LocalIndex);
+			ModifiedWeapon = Item;
 			if (Item)
 			{
 				InventoryView->SetWeaponName(Item->GetName());
@@ -164,6 +177,11 @@ void UARUIInventoryComponent::UnequipWeaponFromSlot(uint8 SourceNetIndex, uint8 
 		return;
 
 	Character->WeaponInventory->Unequip(SourceLocalIndex);
+	
+	if (ModifiedWeapon.IsValid())
+	{
+		ModifiedWeapon.Reset();
+	}
 }
 
 void UARUIInventoryComponent::ShowUpgradesForWeapon(class UARItemMagazineView* For)
@@ -178,7 +196,7 @@ void UARUIInventoryComponent::ShowUpgradesForWeapon(class UARItemMagazineView* F
 			Items = PC->MainInventory->GetLocalItemIdxs(UARMagazineUpgradeItem::StaticClass());
 		}
 	}
-
+	
 	InventoryView->AddWeaponMods<UARMagazineUpgradeItem, UARListItemMagazineView>(Items, ListItemMagazinelass, PC, For);
 }
 
@@ -196,14 +214,15 @@ void UARUIInventoryComponent::ModifyWeapon()
 		return;
 
 	UARItemWeapon* Weapon = Character->WeaponInventory->GetItem<UARItemWeapon>(SelectedWeapon);
-
+	ModifiedWeapon = Weapon;
 	if (!Weapon)
 		return;
 
-	if (Weapon->MagazineModification.IsValid())
+	//WeaponModificationView->StartModifyWeapon(Weapon);
+
+	if (Weapon->MagazineModification)
 	{
-		TSubclassOf<UARMagazineUpgradeItem> Magazine = Weapon->MagazineModification.LoadSynchronous();
-		InventoryView->MagazineUpgrade->OnItemChanged(0, 0, Magazine->GetDefaultObject<UARMagazineUpgradeItem>());
+		InventoryView->MagazineUpgrade->OnItemChanged(0, 0, Weapon->MagazineModification);
 	}
 }
 
@@ -240,4 +259,5 @@ void UARUIInventoryComponent::RemoveMagazineUpgrade()
 		return;
 
 	UARWeaponInventoryComponent* WeaponInventory = Character->WeaponInventory;
+	WeaponInventory->RemoveMagazineMod(SelectedWeapon);
 }

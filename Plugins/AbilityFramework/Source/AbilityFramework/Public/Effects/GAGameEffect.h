@@ -309,6 +309,11 @@ public:
 	FGAEffectClass(TSubclassOf<UGAGameEffectSpec> InClass)
 		: SpecClass(InClass)
 	{}
+
+	void Reset()
+	{
+		SpecClass = nullptr;
+	}
 	const bool operator==(const FGAEffectClass& Other) const
 	{
 		return SpecClass == Other.SpecClass;
@@ -332,7 +337,7 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct FAFContextHandle
+struct ABILITYFRAMEWORK_API FAFContextHandle
 {
 	GENERATED_BODY()
 private:
@@ -417,7 +422,7 @@ struct TStructOpsTypeTraits< FAFContextHandle > : public TStructOpsTypeTraitsBas
 };
 
 /*
-	
+	Dervied from GCObject because Extension property has been garbage collected. Even with UPROPERTY() and non-GC outer.
 */
 
 struct ABILITYFRAMEWORK_API FAFEffectSpec : public FGCObject
@@ -427,6 +432,8 @@ private:
 	UGAEffectExtension* Extension; //week ptr ?
 
 	TSubclassOf<UGAGameEffectSpec> SpecClass;
+
+	FGAEffectMod EffectMod;
 public:
 
 	FGameplayTagContainer OwnedTags;
@@ -444,6 +451,11 @@ public:
 	void OnExpired();
 	void OnRemoved();
 	void OnExecuted();
+
+	FGAEffectMod GetModifier()
+	{
+		return EffectMod;
+	}
 
 	void AddOwnedTags(const FGameplayTagContainer& InTags)
 	{
@@ -463,9 +475,13 @@ public:
 		  const FGAMagnitude& AttributeIn
 		, const FGAEffectContext& InContext) const;
 
+	void OverrideAttributeModifier(float InValue);
+	void CalculateAttributeModifier(const FGAEffectHandle& InHandle);
+
 	float GetDuration(const FGAEffectContext& InContext);
 	float GetPeriod(const FGAEffectContext& InContext);
 
+	
 	const TSubclassOf<UGAGameEffectSpec>& GetEffectClass()
 	{
 		return SpecClass;
@@ -478,7 +494,7 @@ public:
 
 };
 USTRUCT(BlueprintType)
-struct FAFEffectSpecHandle
+struct ABILITYFRAMEWORK_API FAFEffectSpecHandle
 {
 	GENERATED_BODY()
 public:
@@ -509,7 +525,11 @@ public:
 	{
 		return SpecPtr.IsValid();
 	}
-
+	void Reset()
+	{
+		SpecPtr.Reset();
+		ID = 0;
+	}
 	TSharedPtr<FAFEffectSpec> GetPtr()
 	{
 		return SpecPtr;
@@ -521,6 +541,18 @@ public:
 	FAFEffectSpec& GetRef() const
 	{
 		return SpecPtr.ToSharedRef().Get();
+	}
+	FGAEffectMod GetModifier()
+	{
+		return SpecPtr->GetModifier();
+	}
+	void OverrideAttributeModifier(float InValue)
+	{
+		SpecPtr->OverrideAttributeModifier(InValue);
+	}
+	void CalculateAttributeModifier(const FGAEffectHandle& InHandlet)
+	{
+		SpecPtr->CalculateAttributeModifier(InHandlet);
 	}
 };
 template<>
@@ -828,7 +860,7 @@ struct TStructOpsTypeTraits< FGAEffectProperty > : public TStructOpsTypeTraitsBa
 };
 
 USTRUCT(BlueprintType)
-struct FAFPropertytHandle
+struct ABILITYFRAMEWORK_API FAFPropertytHandle
 {
 	GENERATED_BODY()
 public:
@@ -848,6 +880,13 @@ public:
 			DataPtr = MakeShareable<FGAEffectProperty>(new FGAEffectProperty());
 		}
 	};
+
+	void Reset()
+	{
+		SpecClass.Reset();
+		DataPtr.Reset();
+		ID = 0;
+	}
 
 	FAFPropertytHandle(TSubclassOf<UGAGameEffectSpec> InSpecClass)
 		: ID(0)
@@ -986,7 +1025,7 @@ struct TStructOpsTypeTraits< FAFPropertytHandle > : public TStructOpsTypeTraitsB
 };
 
 USTRUCT()
-struct FAFEffectParams
+struct ABILITYFRAMEWORK_API FAFEffectParams
 {
 	GENERATED_BODY()
 	//make this private and allow assign only trough constructr.
@@ -1033,7 +1072,7 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct FAFEventData
+struct ABILITYFRAMEWORK_API FAFEventData
 {
 	GENERATED_BODY()
 public:
@@ -1064,7 +1103,7 @@ public:
 
 };
 
-struct FAFStatics
+struct ABILITYFRAMEWORK_API FAFStatics
 {
 	static float GetFloatFromAttributeMagnitude(const FGAMagnitude& AttributeIn
 		, const FGAEffectContext& InContext
@@ -1124,6 +1163,8 @@ public:
 
 	FGAEffect()
 	{}
+
+	FGAEffect(TSharedPtr<FAFEffectSpec> InSpec, const FGAEffectHandle& InHandle);
 
 	~FGAEffect();
 
@@ -1343,4 +1384,24 @@ struct TStructOpsTypeTraits< FGAEffectContainer > : public TStructOpsTypeTraitsB
 		WithNetDeltaSerializer = true,
 		WithCopy = false
 	};
+};
+
+
+/*
+Simplified effect container, which do not support effect replication.
+*/
+USTRUCT()
+struct ABILITYFRAMEWORK_API FAFEffectContainerSimple
+{
+	GENERATED_BODY()
+protected:
+	UPROPERTY(Transient)
+		TMap<FGAEffectHandle, FGAEffect> Effects;
+
+public:
+	void ApplyEffect(const FGAEffectHandle& InHandle
+		, const FGAEffect& InEffect);
+
+	void RemoveEffect(const FGAEffectHandle& InHandle);
+
 };

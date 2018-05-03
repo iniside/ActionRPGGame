@@ -2,6 +2,8 @@
 
 #include "ARItemWeapon.h"
 
+#include "Effects/GABlueprintLibrary.h"
+
 #include "ARCharacter.h"
 #include "ARPlayerController.h"
 #include "UI/ARHUD.h"
@@ -11,54 +13,84 @@
 
 #include "Weapons/ARMagazineUpgradeItem.h"
 #include "Weapons/ARWeaponInventoryComponent.h"
-
+#include "Weapons/ARMagazineUpgradeEffect.h"
 
 void UARItemWeapon::AddMagazineUpgrade(class UARMagazineUpgradeItem* InMagazineUpgrade)
 {
-	MagazineModification = InMagazineUpgrade->GetClass()->GetPathName();
-	MagazineModificationObj = DuplicateObject<UARMagazineUpgradeItem>(InMagazineUpgrade, this);
-	MagazineEffect = InMagazineUpgrade->UpgradeEffect.LoadSynchronous();
+	UARWeaponInventoryComponent* WeaponComponent = Cast<UARWeaponInventoryComponent>(GetOuter());
+
+	if (!WeaponComponent)
+		return;
+
+	AARCharacter* Character = Cast<AARCharacter>(WeaponComponent->GetOwner());
+	if (!Character)
+		return;
+
+	MagazineModification = DuplicateObject<UARMagazineUpgradeItem>(InMagazineUpgrade, this);
+
+	//this part only on server.
+	if (Character->Role >= ENetRole::ROLE_Authority)
+	{
+		TSubclassOf<UARMagazineUpgradeEffect> SpecClass = InMagazineUpgrade->UpgradeEffect.LoadSynchronous();
+		MagazineUpgradeValue = InMagazineUpgrade->MagazineUpgradeValue;
+		MagazineUpgradeProperty = SpecClass;
+
+		AddUpgrade(MagazineUpgradeProperty, MagazineEffectHandle, MagazineSpecHandle, Character, MagazineUpgradeValue);
+	}
 	OnMagazineUpdateAdded();
 }
 void UARItemWeapon::OnMagazineUpdateAdded()
 {
 	//should be called only from server.
 	FARWeaponModInfo Info;
-	Info.Icon = MagazineModificationObj->Icon->GetPathName();
+	Info.Icon = MagazineModification->Icon->GetPathName();
 	Info.UpgradeType = EARWeaponUpgradeType::Magazine;
-	ClientOnMagazineAdded(Info);
 }
 
-TSoftClassPtr<class UARMagazineUpgradeItem> UARItemWeapon::RemoveMagazineUpgrade()
+void UARItemWeapon::AddUpgrade(FAFPropertytHandle& PropertyHandle
+	, FGAEffectHandle& EffectHandle
+	, FAFEffectSpecHandle& SpecHandle
+	, class AARCharacter* Character
+	, float UpgradeValue)
 {
-	TSoftClassPtr<class UARMagazineUpgradeItem> Copy = MagazineModification;
-	MagazineModification.Reset();
-	return Copy;
+	//causer MagazineUpgrade ?
+	UGABlueprintLibrary::CreateEffectSpec(SpecHandle, PropertyHandle, this, Character, Character);
+
+	EffectHandle = FGAEffectHandle::GenerateHandle();
+	SpecHandle.CalculateAttributeModifier(EffectHandle);
+	SpecHandle.OverrideAttributeModifier(UpgradeValue);
+
+	FGAEffect Effect(SpecHandle.GetPtr(), EffectHandle);
+
+	UpgradeContainer.ApplyEffect(EffectHandle, Effect);
+
+	FGAEffectMod Mod = SpecHandle.GetModifier();
+	AbilityInstance->ModifyAttribute(Mod, EffectHandle, PropertyHandle.GetRef());
 }
 
-void UARItemWeapon::ClientOnMagazineAdded_Implementation(const FARWeaponModInfo& ModInfo)
+UARMagazineUpgradeItem* UARItemWeapon::RemoveMagazineUpgrade()
 {
-	if (UARWeaponInventoryComponent* Inv = Cast<UARWeaponInventoryComponent>(GetOuter()))
-	{
-		if (AARCharacter* Character = Cast<AARCharacter>(Inv->GetOwner()))
-		{
-			if (AARPlayerController* PC = Cast<AARPlayerController>(Character->Controller))
-			{
-				if (AARHUD* HUD = Cast<AARHUD>(PC->GetHUD()))
-				{
-					UTexture2D* Icon = ModInfo.Icon.LoadSynchronous();
-					HUD->GetUIInventory()->GetInventoryView()->MagazineUpgrade->Icon->SetBrushFromTexture(Icon);
-				}
-			}
-		}
-	}
+	FGAEffectMod Mod = MagazineSpecHandle.GetModifier();
+	AbilityInstance->RemoveBonus(Mod.Attribute, MagazineEffectHandle, Mod.AttributeMod);
+	UpgradeContainer.RemoveEffect(MagazineEffectHandle);
+	
+	MagazineUpgradeProperty.Reset();
+	MagazineSpecHandle.Reset();
+
+	return MagazineModification;
 }
+
 
 void UARItemWeapon::OnItemAdded(uint8 LocalIndex)
 {
 
 }
 void UARItemWeapon::OnItemRemoved(uint8 LocalIndex)
+{
+
+}
+
+void UARItemWeapon::PostItemLoad()
 {
 
 }

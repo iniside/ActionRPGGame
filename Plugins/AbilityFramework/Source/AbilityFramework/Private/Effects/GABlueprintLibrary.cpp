@@ -1,4 +1,4 @@
-﻿// Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 
 #include "AbilityFramework.h"
 #include "AFAbilityComponent.h"
@@ -11,6 +11,9 @@
 #include "AFEffectCustomApplication.h"
 
 #include "GAEffectExtension.h"
+
+#include "AFSimpleInterface.h"
+#include "AFAttributeInterface.h"
 
 UGABlueprintLibrary::UGABlueprintLibrary(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -368,4 +371,54 @@ void UGABlueprintLibrary::BroadcastEffectEvent(UObject* Target, FGameplayTag Eve
 
 	//FAFEventData EventData;
 	//TargetComp->NativeTriggerTagEvent(EventTag, EventData);
+}
+void UGABlueprintLibrary::CreateEffectSpec(UPARAM(Ref) FAFEffectSpecHandle& InOutSpec
+	, const FAFPropertytHandle& InEffect
+	, class UObject* Target
+	, class APawn* Instigator
+	, UObject* Causer)
+{
+	IAFAbilityInterface* TargetInterface = Cast<IAFAbilityInterface>(Target);
+	
+	FHitResult HitIn(ForceInit);
+	FAFContextHandle Context;
+	FAFEffectSpecHandle EffectSpecHandle;
+	Context = MakeContext(Target, Instigator, nullptr, Causer, HitIn);
+	
+	UE_LOG(GameAttributesEffects, Log, TEXT("MakeOutgoingSpecObj: Created new Context: %s"), *Context.GetRef().ToString());
+
+	FAFEffectSpec* EffectSpec = new FAFEffectSpec(Context, InEffect.GetClass());
+	AddTagsToEffect(EffectSpec);
+	EffectSpecHandle = FAFEffectSpecHandle::Generate(EffectSpec);
+
+	InOutSpec = EffectSpecHandle;
+}
+void UGABlueprintLibrary::ApplyEffectFromSpec(UPARAM(Ref) FAFPropertytHandle& InEffect, UPARAM(Ref) FAFEffectSpecHandle& InSpec)
+{
+
+}
+void UGABlueprintLibrary::ModifyAttributeSimple(
+	UPARAM(Ref) FAFEffectSpecHandle& InSpec
+	, UObject* Target)
+{
+	if (!InSpec.IsValid())
+	{
+		return;
+	}
+
+	IAFAttributeInterface* Attr = Cast<IAFAttributeInterface>(Target);
+	IAFSimpleInterface* Simpl = Cast<IAFSimpleInterface>(Target);
+
+	if (!Attr || !Simpl)
+		return;
+
+	FGAEffectHandle Handle = FGAEffectHandle::GenerateHandle();
+
+	FGAEffect Effect = FGAEffect(InSpec.GetPtr(), Handle);
+
+	FGAEffectMod Mod = InSpec.GetPtr()->GetModifier();
+
+	//Generate HAndle.
+	//Add to simple container.
+	//Modify Attribute
 }

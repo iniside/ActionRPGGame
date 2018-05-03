@@ -20,13 +20,21 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Views")
 		TSubclassOf<class UARListItemMagazineView> ListItemMagazinelass;
 
+	UPROPERTY(EditAnywhere, Category = "Views")
+		TSubclassOf<class UARWeaponModificationView> WeaponModificationViewClass;
 
 	UPROPERTY(BlueprintReadOnly, Category = "ActionRPGGame|UI|Inventory")
 		class UARInventoryScreenWidget* InventoryView;
 
+	UPROPERTY(BlueprintReadOnly, Category = "ActionRPGGame|UI|Inventory")
+		class UARWeaponModificationView* WeaponModificationView;
+
 	/* NetIndex of selected Weapon. */
 	UPROPERTY(BlueprintReadOnly, Category = "ActionRPGGame|UI|Inventory")
 		uint8 SelectedWeapon;
+
+	TWeakObjectPtr<class UARItemWeapon> ModifiedWeapon;
+
 public:	
 	// Sets default values for this component's properties
 	UARUIInventoryComponent();

@@ -87,6 +87,20 @@ float FAFEffectSpec::GetFloatFromAttributeMagnitude(
 
 	return 0;
 }
+
+void FAFEffectSpec::OverrideAttributeModifier(float InValue)
+{
+	EffectMod.Value = InValue;
+}
+void FAFEffectSpec::CalculateAttributeModifier(const FGAEffectHandle& InHandle)
+{
+	FGAEffectContext& InContext = Context.GetRef();
+	EffectMod = FAFStatics::GetAttributeModifier(SpecClass.GetDefaultObject()->AtributeModifier
+		, SpecClass.GetDefaultObject()
+		, InContext
+		, InHandle);
+}
+
 float FAFEffectSpec::GetDuration(const FGAEffectContext& InContext)
 {
 	return GetFloatFromAttributeMagnitude(GetSpec()->Duration, InContext);
@@ -95,6 +109,7 @@ float FAFEffectSpec::GetPeriod(const FGAEffectContext& InContext)
 {
 	return GetFloatFromAttributeMagnitude(GetSpec()->Period, InContext);
 }
+
 FGAEffectProperty::FGAEffectProperty()
 	: ApplicationRequirement(nullptr)
 	, Application(nullptr)
@@ -210,7 +225,10 @@ void FGAEffect::PostReplicatedChange(const struct FGAEffectContainer& InArraySer
 {
 
 }
-
+FGAEffect::FGAEffect(TSharedPtr<FAFEffectSpec> InSpec, const FGAEffectHandle& InHandle)
+{
+	Handle = InHandle;
+}
 float FGAMagnitude::GetFloatValue(const FGAEffectContext& Context)
 {
 	switch (CalculationType)
@@ -844,4 +862,14 @@ bool FGAEffectContainer::IsEffectActive(TSubclassOf<UGAGameEffectSpec> EffectCla
 		return true;
 	}
 	return false;
+}
+
+void FAFEffectContainerSimple::ApplyEffect(const FGAEffectHandle& InHandle
+	, const FGAEffect& InEffect)
+{
+	Effects.Add(InHandle, InEffect);
+}
+void FAFEffectContainerSimple::RemoveEffect(const FGAEffectHandle& InHandle)
+{
+	Effects.Remove(InHandle);
 }

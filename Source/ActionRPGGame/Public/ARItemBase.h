@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "IFItemBase.h"
+#include "Effects/GAGameEffect.h"
 #include "ARItemBase.generated.h"
 
 USTRUCT()
@@ -25,5 +26,9 @@ public:
 	//obviously we want TSoftObjectPtr<>
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
 		UTexture2D* Icon;
-	
+	/*
+		Containes upgrades to THIS item.
+	*/
+	UPROPERTY(Transient)
+		FAFEffectContainerSimple UpgradeContainer;
 };

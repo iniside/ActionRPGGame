@@ -108,4 +108,20 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Effects")
 		static void BroadcastEffectEvent(UObject* Target, FGameplayTag EventTag);
+
+
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Effects")
+		static void CreateEffectSpec(UPARAM(Ref) FAFEffectSpecHandle& InOutSpec
+			, const FAFPropertytHandle& InEffect
+			, class UObject* Target
+			, class APawn* Instigator
+			, UObject* Causer);
+
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Effects")
+		static void ApplyEffectFromSpec(UPARAM(Ref) FAFPropertytHandle& InEffect, UPARAM(Ref) FAFEffectSpecHandle& InSpec);
+
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Effects")
+		static void ModifyAttributeSimple(
+			UPARAM(Ref) FAFEffectSpecHandle& InSpec
+			, UObject* Target);
 };

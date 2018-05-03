@@ -57,7 +57,6 @@ public:
 		FRotator EquipedRotation;
 };
 
-
 /**
  * 
  */
@@ -96,30 +95,54 @@ public:
 		UARWeaponAbilityBase* AbilityInstance;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ability")
-		TSoftClassPtr<class UARMagazineUpgradeItem> MagazineModification;
+		class UARMagazineUpgradeItem* MagazineModification;
+
+	UPROPERTY(Transient)
+		FAFPropertytHandle MagazineUpgradeProperty;
+	UPROPERTY(Transient)
+		FGAEffectHandle MagazineEffectHandle;
+	UPROPERTY(Transient)
+		FAFEffectSpecHandle MagazineSpecHandle;
+
+	UPROPERTY(Transient)
+		FAFPropertytHandle BarrelUpgradeProperty;
+	UPROPERTY(Transient)
+		FGAEffectHandle BarrelEffectHandle;
+	UPROPERTY(Transient)
+		FAFEffectSpecHandle BarrelSpecHandle;
+
+	UPROPERTY(Transient)
+		FAFPropertytHandle ScopeUpgradeProperty;
+	UPROPERTY(Transient)
+		FGAEffectHandle ScopeEffectHandle;
+	UPROPERTY(Transient)
+		FAFEffectSpecHandle ScopeSpecHandle;
+
+	UPROPERTY(Transient)
+		float MagazineUpgradeValue;
 
 	/*
 		So it will actually actor as mini inventory with predefined slots.
 		That way we should be able to generate mods on the fly and store them as json in external database.
 	*/
-	UPROPERTY(BlueprintReadOnly, Category = "Ability")
-		class UARMagazineUpgradeItem* MagazineModificationObj;
-	
+
 	UPROPERTY() //replicated
 		FARMagazineUpgradeItemData MagazineUpgrade;
-
-	FAFPropertytHandle MagazineEffect;
-	FGAEffectHandle MagazineEffectHandle;
 
 	void AddMagazineUpgrade(class UARMagazineUpgradeItem* InMagazineUpgrade);
 	void OnMagazineUpdateAdded();
 
-	UFUNCTION(Client, Reliable)
-		void ClientOnMagazineAdded(const FARWeaponModInfo& ModInfo);
-	void ClientOnMagazineAdded_Implementation(const FARWeaponModInfo& ModInfo);
+	void AddUpgrade(FAFPropertytHandle& PropertyHandle
+		, FGAEffectHandle& EffectHandle
+		, FAFEffectSpecHandle& SpecHandle
+		, class AARCharacter* Character
+		, float UpgradeValue);
+
 	
-	TSoftClassPtr<class UARMagazineUpgradeItem> RemoveMagazineUpgrade();
+	UARMagazineUpgradeItem* RemoveMagazineUpgrade();
 
 	virtual void OnItemAdded(uint8 LocalIndex) override;
 	virtual void OnItemRemoved(uint8 LocalIndex) override;
+
+	virtual void PostItemLoad();
 };
