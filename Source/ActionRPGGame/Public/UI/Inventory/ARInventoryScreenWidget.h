@@ -54,8 +54,6 @@ public:
 		UTextBlock* SelectedWeapon;
 
 	TWeakObjectPtr<class UARUIInventoryComponent> Inventory;
-protected:
-	TArray<UARItemWeaponWidget*> WeaponSlots;
 public:
 	virtual void NativeConstruct() override;
 
@@ -128,9 +126,6 @@ public:
 		}
 	}
 
-	void OnWeaponAdded(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item);
-	void OnWeaponUpdated(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item);
-	void OnWeaponRemoved(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item);
 protected:
 	UFUNCTION()
 		void OnModifyWeaponClicked();

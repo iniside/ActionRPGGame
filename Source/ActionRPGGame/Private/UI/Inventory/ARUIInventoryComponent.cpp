@@ -64,13 +64,6 @@ void UARUIInventoryComponent::CreateInventoryView(AARPlayerController* PC)
 		InventoryView->SetVisibility(ESlateVisibility::Collapsed);
 		InventoryView->Inventory = this;
 		InventoryView->AddToViewport();
-
-		if (AARCharacter* Character = Cast<AARCharacter>(PC->GetPawn()))
-		{
-			Character->WeaponInventory->GetOnItemAdded().AddUObject(this, &UARUIInventoryComponent::OnWeaponAdded);
-			Character->WeaponInventory->GetOnItemUpdated().AddUObject(this, &UARUIInventoryComponent::OnWeaponUpdated);
-			Character->WeaponInventory->GetOnItemRemoved().AddUObject(this, &UARUIInventoryComponent::OnWeaponRemoved);
-		}
 	}
 }
 
@@ -84,19 +77,6 @@ void UARUIInventoryComponent::ShowHideInventory()
 	{
 		InventoryView->SetVisibility(ESlateVisibility::Collapsed);
 	}
-}
-
-void UARUIInventoryComponent::OnWeaponAdded(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item)
-{
-	InventoryView->OnWeaponAdded(NetIndex, LocalIndex, Item);
-}
-void UARUIInventoryComponent::OnWeaponUpdated(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item)
-{
-	InventoryView->OnWeaponUpdated(NetIndex, LocalIndex, Item);
-}
-void UARUIInventoryComponent::OnWeaponRemoved(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item)
-{
-	InventoryView->OnWeaponRemoved(NetIndex, LocalIndex, Item);
 }
 
 void UARUIInventoryComponent::ShowWeaponsForSlot(class UARItemView* ForSlot)

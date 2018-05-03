@@ -24,6 +24,12 @@ void UARItemWeaponWidget::NativeConstruct()
 		if (AARPlayerController* PC = Cast<AARPlayerController>(GetOwningPlayer()))
 		{
 			Inventory = PC->MainInventory;
+			if (AARCharacter* Character = Cast<AARCharacter>(PC->GetPawn()))
+			{
+				Character->WeaponInventory->GetOnItemAdded().AddUObject(this, &UARItemWeaponWidget::OnWeaponAdded2);
+				Character->WeaponInventory->GetOnItemUpdated().AddUObject(this, &UARItemWeaponWidget::OnWeaponUpdated2);
+				Character->WeaponInventory->GetOnItemRemoved().AddUObject(this, &UARItemWeaponWidget::OnWeaponRemoved2);
+			}
 		}
 		if (AARHUD* HUD = Cast<AARHUD>(GetOwningPlayer()->GetHUD()))
 		{
@@ -65,4 +71,27 @@ FReply UARItemWeaponWidget::NativeOnMouseButtonDoubleClick(const FGeometry& InGe
 	Handled = FReply::Handled();
 
 	return Handled;
+}
+
+
+void UARItemWeaponWidget::OnWeaponAdded2(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* InItem)
+{
+	if (InLocalIndex == Index)
+	{
+		OnSlotCreated(InNetIndex, InLocalIndex, InItem);
+	}
+}
+void UARItemWeaponWidget::OnWeaponUpdated2(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* InItem)
+{
+	if (InLocalIndex == Index)
+	{
+		OnItemChanged(InNetIndex, InLocalIndex, InItem);
+	}
+}
+void UARItemWeaponWidget::OnWeaponRemoved2(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* InItem)
+{
+	if (InLocalIndex == Index)
+	{
+		OnItemRemoved(InNetIndex, InLocalIndex, InItem);
+	}
 }

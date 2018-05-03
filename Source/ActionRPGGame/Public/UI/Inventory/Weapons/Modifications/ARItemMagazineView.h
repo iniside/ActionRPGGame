@@ -24,8 +24,8 @@ public:
 		void OnMagazineUpgradeInstalled(class UARItemWeapon* Weapon
 			, class UARWeaponUpgradeItem* Upgrade
 			, int8 WeaponIndex);
-
-	void OnMagazineUpgradeRemoved(class UARItemWeapon* Weapon
-		, class UARWeaponUpgradeItem* Upgrade
-		, int8 WeaponIndex);
+	UFUNCTION()
+		void OnMagazineUpgradeRemoved(class UARItemWeapon* Weapon
+			, class UARWeaponUpgradeItem* Upgrade
+			, int8 WeaponIndex);
 };

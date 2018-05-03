@@ -50,14 +50,6 @@ public:
 	void CreateInventoryView(AARPlayerController* PC);
 	void ShowHideInventory();
 
-protected:
-	UFUNCTION()
-		void OnWeaponAdded(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item);
-	UFUNCTION()
-		void OnWeaponUpdated(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item);
-	UFUNCTION()
-		void OnWeaponRemoved(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item);
-
 public:
 	void ShowWeaponsForSlot(class UARItemView* ForSlot);
 	void RemoveWeaponFromSlot(int8 Index);

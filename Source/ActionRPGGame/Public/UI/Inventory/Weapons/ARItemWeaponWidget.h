@@ -17,6 +17,8 @@ public:
 	TWeakObjectPtr<class UARUIInventoryComponent> InventoryComponent;
 	TWeakObjectPtr<class UARWeaponInventoryComponent> WeaponInventory;
 
+	int8 Index;
+
 public:
 	virtual void NativeConstruct() override;
 public:
@@ -25,4 +27,10 @@ public:
 	
 	virtual FReply NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	
+	UFUNCTION()
+		void OnWeaponAdded2(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* InItem);
+	UFUNCTION()
+		void OnWeaponUpdated2(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* InItem);
+	UFUNCTION()
+		void OnWeaponRemoved2(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* InItem);
 };

@@ -12,10 +12,12 @@
 void UARInventoryScreenWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-	WeaponSlots.Add(RightWeaponWidget);
-	WeaponSlots.Add(LeftWeaponWidget);
-	WeaponSlots.Add(SideWeaponWidget);
-	WeaponSlots.Add(BottomBackWeaponWidget);
+
+	RightWeaponWidget->Index = 0;
+	LeftWeaponWidget->Index = 1;
+	SideWeaponWidget->Index = 2;
+	BottomBackWeaponWidget->Index = 3;
+
 	ModifySelectedWeapon->OnClicked.AddDynamic(this, &UARInventoryScreenWidget::OnModifyWeaponClicked);
 }
 
@@ -24,18 +26,6 @@ void UARInventoryScreenWidget::SetWeaponName(const FString& Name)
 	SelectedWeapon->SetText(FText::FromString(Name));
 }
 
-void UARInventoryScreenWidget::OnWeaponAdded(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item)
-{
-	WeaponSlots[NetIndex]->OnSlotCreated(NetIndex, LocalIndex, Item);
-}
-void UARInventoryScreenWidget::OnWeaponUpdated(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item)
-{
-	WeaponSlots[NetIndex]->OnItemChanged(NetIndex, LocalIndex, Item);
-}
-void UARInventoryScreenWidget::OnWeaponRemoved(uint8 NetIndex, uint8 LocalIndex, class UIFItemBase* Item)
-{
-	WeaponSlots[NetIndex]->OnItemRemoved(NetIndex, LocalIndex, Item);
-}
 
 void UARInventoryScreenWidget::OnModifyWeaponClicked()
 {
