@@ -157,18 +157,18 @@ void UGAAbilityBase::InitAbility()
 	{
 		AbilityComponent = GetAbilityComp();
 	}
-	if (Attributes)
-	{
-		Attributes->InitializeAttributes(GetAbilityComp());
-		Attributes->InitializeAttributesFromTable();
-	}
 	
+	if (GetAttributes())
+	{
+		GetAttributes()->InitializeAttributes(GetAbilityComp());
+		GetAttributes()->InitializeAttributesFromTable();
+	}
 	ENetRole role = AbilityComponent->GetOwnerRole();
 	ENetMode mode = AbilityComponent->GetOwner()->GetNetMode();
 	
-	if (role < ENetRole::ROLE_Authority)
+	
 	{ 
-		FSimpleDelegate Delegate = FSimpleDelegate::CreateUObject(this, &UGAAbilityBase::OnAttributeSetReplicated);
+		FAFOnAttributeReady Delegate = FAFOnAttributeReady::CreateUObject(this, &UGAAbilityBase::OnAttributeSetReplicated);
 		AbilityComponent->RepAttributes.RegisterAttributeRepEvent(AbilityTag, Delegate);
 	}
 
@@ -176,11 +176,11 @@ void UGAAbilityBase::InitAbility()
 	if (role == ENetRole::ROLE_Authority ||
 		mode == ENetMode::NM_Standalone)
 	{
-		if (AbilityComponent && Attributes)
+		if (AbilityComponent && GetAttributes())
 		{
-			UGAAttributesBase* NewAttributes = AbilityComponent->AddAddtionalAttributes(AbilityTag, Attributes);;
-			Attributes = nullptr;
-			Attributes = NewAttributes;
+			UGAAttributesBase* NewAttributes = AbilityComponent->AddAddtionalAttributes(AbilityTag, GetAttributes());;
+			SetAttributes(nullptr);
+			SetAttributes(NewAttributes);
 		}
 	}
 	
@@ -191,10 +191,14 @@ void UGAAbilityBase::InitAbility()
 
 	OnAbilityInited();
 }
-void UGAAbilityBase::OnAttributeSetReplicated()
+void UGAAbilityBase::OnAttributeSetReplicated(class UGAAttributesBase* ReplicatedAttributes)
 {
-	UGAAttributesBase* attributes = AbilityComponent->RepAttributes.AttributeMap.FindRef(AbilityTag);
-	Attributes = attributes;
+	SetAttributes(ReplicatedAttributes);
+	if (GetAttributes())
+	{
+		GetAttributes()->InitializeAttributes(GetAbilityComp());
+		GetAttributes()->InitializeAttributesFromTable();
+	}
 }
 
 void UGAAbilityBase::OnAbilityInited()
@@ -515,11 +519,11 @@ float UGAAbilityBase::GetAttributeValue(FGAAttribute AttributeIn) const
 }
 float UGAAbilityBase::NativeGetAttributeValue(const FGAAttribute AttributeIn) const
 {
-	return Attributes->GetCurrentAttributeValue(AttributeIn);
+	return GetAttributes()->GetCurrentAttributeValue(AttributeIn);
 }
 float UGAAbilityBase::GetAttributeVal(FGAAttribute AttributeIn) const
 {
-	return Attributes->GetCurrentAttributeValue(AttributeIn);
+	return GetAttributes()->GetCurrentAttributeValue(AttributeIn);
 }
 
 bool UGAAbilityBase::ApplyAttributeCost()
@@ -586,7 +590,7 @@ bool UGAAbilityBase::CheckAbilityAttributeCost()
 	{
 		float ModValue = AbilityAttributeCost[Idx].GetSpec()->AtributeModifier.Magnitude.GetFloatValue(DefaultContext);
 		FGAAttribute Attribute = AbilityAttributeCost[Idx].GetSpec()->AtributeModifier.Attribute;
-		float AttributeVal = Attributes->GetFloatValue(Attribute);
+		float AttributeVal = GetAttributes()->GetFloatValue(Attribute);
 		if (ModValue > AttributeVal)
 			return false;
 	}

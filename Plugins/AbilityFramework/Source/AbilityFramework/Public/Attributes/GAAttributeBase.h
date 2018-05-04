@@ -82,6 +82,7 @@ public:
 	FAFAttributeBase();
 	FAFAttributeBase(float BaseValueIn);
 	void InitializeAttribute(UAFAbilityComponent* InComponent, const FName InAttributeName);
+	void CopyFromOther(FAFAttributeBase* Other);
 	/* You should never use those tree function to set attributes.
 	Only use them for testing/debugging and setting initial values for attributes. */
 	inline void SetBaseValue(float ValueIn) { BaseValue = ValueIn; }

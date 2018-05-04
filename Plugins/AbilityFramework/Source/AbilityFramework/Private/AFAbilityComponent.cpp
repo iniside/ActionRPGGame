@@ -40,7 +40,7 @@ void FAFReplicatedAttributeItem::PostReplicatedAdd(const struct FAFReplicatedAtt
 	FAFReplicatedAttributeContainer& ArraySerializer = const_cast<FAFReplicatedAttributeContainer&>(InArraySerializer);
 	UGAAttributesBase*& Attribute = ArraySerializer.AttributeMap.FindOrAdd(AttributeTag);
 	Attribute = Attributes;
-	InArraySerializer.OnAttributeReplicated(AttributeTag);
+	InArraySerializer.OnAttributeReplicated(AttributeTag, Attributes);
 }
 void FAFReplicatedAttributeItem::PostReplicatedChange(const struct FAFReplicatedAttributeContainer& InArraySerializer)
 {
@@ -56,6 +56,7 @@ UGAAttributesBase* FAFReplicatedAttributeContainer::Add(const FGameplayTag InTag
 	MarkItemDirty(Item);
 	UGAAttributesBase*& Added = AttributeMap.FindOrAdd(InTag);
 	Added = AttributesDup;
+	OnAttributeReplicated(InTag, AttributesDup);
 	return AttributesDup;
 }
 UAFAbilityComponent::UAFAbilityComponent(const FObjectInitializer& ObjectInitializer)

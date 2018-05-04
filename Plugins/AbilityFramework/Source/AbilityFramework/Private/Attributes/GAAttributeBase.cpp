@@ -44,7 +44,17 @@ void FAFAttributeBase::InitializeAttribute(UAFAbilityComponent* InComponent, con
 		ExtensionClass.GetDefaultObject()->Initialize(InComponent, InAttributeName);
 	}
 }
+void FAFAttributeBase::CopyFromOther(FAFAttributeBase* Other)
+{
+	if (!Other)
+		return;
 
+	BaseValue = Other->BaseValue;
+	MinValue = Other->MinValue;
+	MaxValue = Other->MaxValue;
+	CurrentValue = Other->CurrentValue;
+	BonusValue = Other->BonusValue;
+}
 void FAFAttributeBase::CalculateBonus()
 {
 	SCOPE_CYCLE_COUNTER(STAT_CalculateBonus);

@@ -47,7 +47,49 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "ActionRPGGame|Weapon")
 		class AARWeaponBase* WeaponActor;
 
+	/*
+		Weapon item to which this abiliy belongs.
+	*/
+	UPROPERTY(BlueprintReadOnly, Category = "ActionRPGGame|Weapon")
+		class UARItemWeapon* WeaponItem;
+
+
+	/*
+		Upgrades for this ability.
+	*/
+	UPROPERTY(Transient)
+		FAFEffectContainerSimple UpgradeContainer;
+
+	UPROPERTY(Transient)
+		FAFPropertytHandle MagazineUpgradeProperty;
+	UPROPERTY(Transient)
+		FGAEffectHandle MagazineEffectHandle;
+	UPROPERTY(Transient)
+		FAFEffectSpecHandle MagazineSpecHandle;
+
+	UPROPERTY(Transient)
+		FAFPropertytHandle BarrelUpgradeProperty;
+	UPROPERTY(Transient)
+		FGAEffectHandle BarrelEffectHandle;
+	UPROPERTY(Transient)
+		FAFEffectSpecHandle BarrelSpecHandle;
+
+	UPROPERTY(Transient)
+		FAFPropertytHandle ScopeUpgradeProperty;
+	UPROPERTY(Transient)
+		FGAEffectHandle ScopeEffectHandle;
+	UPROPERTY(Transient)
+		FAFEffectSpecHandle ScopeSpecHandle;
+
 public:
+	inline void SetWeaponItem(class UARItemWeapon* InItem)
+	{
+		WeaponItem = InItem;
+	};
+
+	virtual void SetAttributes(UGAAttributesBase* InAttributes) override;
+	virtual class UGAAttributesBase* GetAttributes() const override;
+	virtual class UGAAttributesBase* GetAttributes() override;
 	virtual void OnAbilityInited() override;
 	virtual void OnAbilityInputReady() override;
 	virtual void OnAvatarReady() override;
@@ -74,4 +116,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "ActionRPGGame|Weapon")
 		void ReloadWeapon();
+
+	void AddMagazineUpgrade(TSubclassOf<class UARMagazineUpgradeEffect> InMagazineUpgrade, float UpgradeValue);
+	void RemoveMagazineUpgrade();
+protected:
+	void AddUpgrade(FAFPropertytHandle& PropertyHandle
+		, FGAEffectHandle& EffectHandle
+		, FAFEffectSpecHandle& SpecHandle
+		, class AARCharacter* Character
+		, float UpgradeValue);
 };

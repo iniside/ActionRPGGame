@@ -19,10 +19,13 @@ public:
 
 	int8 Index;
 
+	TWeakObjectPtr<class UARItemWeapon> WeaponItem;
+
 public:
 	virtual void NativeConstruct() override;
 public:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
+	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 	
 	virtual FReply NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;

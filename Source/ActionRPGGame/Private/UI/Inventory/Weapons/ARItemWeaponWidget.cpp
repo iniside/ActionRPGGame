@@ -59,6 +59,10 @@ FReply UARItemWeaponWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry,
 
 	return FReply::Handled();
 }
+void UARItemWeaponWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+
+}
 void UARItemWeaponWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
 
@@ -79,6 +83,7 @@ void UARItemWeaponWidget::OnWeaponAdded2(uint8 InNetIndex, uint8 InLocalIndex, c
 	if (InLocalIndex == Index)
 	{
 		OnSlotCreated(InNetIndex, InLocalIndex, InItem);
+		WeaponItem = Cast<UARItemWeapon>(InItem);
 	}
 }
 void UARItemWeaponWidget::OnWeaponUpdated2(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* InItem)
@@ -94,4 +99,5 @@ void UARItemWeaponWidget::OnWeaponRemoved2(uint8 InNetIndex, uint8 InLocalIndex,
 	{
 		OnItemRemoved(InNetIndex, InLocalIndex, InItem);
 	}
+	WeaponItem.Reset();
 }

@@ -7,17 +7,6 @@
 #include "ARMagazineUpgradeItem.generated.h"
 
 
-USTRUCT()
-struct FARMagazineUpgradeItemData : public FARItemBaseData
-{
-	GENERATED_BODY()
-	/*
-		replace with instance, to make procedural generation easier. 
-	*/
-	UPROPERTY(EditAnywhere)
-		TSoftClassPtr<class UARMagazineUpgradeEffect> UpgradeEffect;
-};
-
 /**
  * 
  */
@@ -26,8 +15,6 @@ class ACTIONRPGGAME_API UARMagazineUpgradeItem : public UARWeaponUpgradeItem
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere)
-		FARMagazineUpgradeItemData Data;
 	/*
 		An actual modifier value of this upgrade.
 	*/
@@ -37,5 +24,5 @@ public:
 		Effect template
 	*/
 	UPROPERTY(EditAnywhere)
-		TSoftClassPtr<class UARMagazineUpgradeEffect> UpgradeEffect;
+		TSubclassOf<class UARMagazineUpgradeEffect> UpgradeEffect;
 };

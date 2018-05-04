@@ -282,7 +282,7 @@ public:
 	void InitAbility();
 public:
 	UFUNCTION()
-		void OnAttributeSetReplicated();
+		void OnAttributeSetReplicated(class UGAAttributesBase* ReplicatedAttributes);
 	//called on both server and client after InitAbility();
 	virtual void OnAbilityInited();
 
@@ -452,6 +452,14 @@ public:
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "Can Use Ability"), Category = "AbilityFramework|Abilities")
 		bool BP_CanUseAbility();
 	
+	virtual void SetAttributes(UGAAttributesBase* InAttributes)
+	{
+		Attributes = InAttributes;
+	}
+	virtual class UGAAttributesBase* GetAttributes() const
+	{
+		return Attributes;
+	}
 	/** IAFAbilityInterface Begin */
 	virtual class UGAAttributesBase* GetAttributes() override;
 	virtual class UAFAbilityComponent* GetAbilityComp() override;

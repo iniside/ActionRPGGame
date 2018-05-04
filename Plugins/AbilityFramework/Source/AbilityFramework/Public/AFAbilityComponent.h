@@ -120,6 +120,8 @@ public:
 	void PostReplicatedChange(const struct FAFReplicatedAttributeContainer& InArraySerializer);
 };
 
+DECLARE_DELEGATE_OneParam(FAFOnAttributeReady, class UGAAttributesBase*);
+
 USTRUCT()
 struct FAFReplicatedAttributeContainer : public FFastArraySerializer
 {
@@ -132,9 +134,9 @@ public:
 		TMap<FGameplayTag, UGAAttributesBase*> AttributeMap;
 
 
-	TMap<FGameplayTag, FSimpleDelegate> AttributeReplicatedEvent;
+	TMap<FGameplayTag, FAFOnAttributeReady> AttributeReplicatedEvent;
 
-	void RegisterAttributeRepEvent(const FGameplayTag& InTag, const FSimpleDelegate& InDelegate)
+	void RegisterAttributeRepEvent(const FGameplayTag& InTag, const FAFOnAttributeReady& InDelegate)
 	{
 		if (!AttributeReplicatedEvent.Contains(InTag))
 			return;
@@ -142,11 +144,11 @@ public:
 		AttributeReplicatedEvent.Add(InTag, InDelegate);
 	}
 
-	void OnAttributeReplicated(const FGameplayTag& InTag) const
+	void OnAttributeReplicated(const FGameplayTag& InTag, UGAAttributesBase* InAttributes) const
 	{
-		if (const FSimpleDelegate* Delegate = AttributeReplicatedEvent.Find(InTag))
+		if (const FAFOnAttributeReady* Delegate = AttributeReplicatedEvent.Find(InTag))
 		{
-			Delegate->Execute();
+			Delegate->Execute(InAttributes);
 			//AttributeReplicatedEvent.Remove(InTag);
 		}
 	}

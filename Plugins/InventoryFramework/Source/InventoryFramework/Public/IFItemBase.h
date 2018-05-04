@@ -7,15 +7,6 @@
 #include "UObject/NoExportTypes.h"
 #include "IFItemBase.generated.h"
 
-/*
-	A Struct where the actuall item is contained (so it can be easy serialized/deserialized from json. 
-	Also allows to easily embed a replicate itemsh within items.
-*/
-USTRUCT(BlueprintType)
-struct FIFItemBaseData
-{
-	GENERATED_BODY()
-};
 
 /**
  * 
@@ -58,25 +49,58 @@ public:
 	*/
 	virtual void OnItemRemoved(uint8 LocalIndex) {};
 
+	/*
+		Called after item has been added to inventory.
+		Called on server or in standalone game.
+	*/
+	virtual void OnServerItemAdded(uint8 LocalIndex) {};
+	/*
+		Called when item changed slots within THE SAME inventory.
+		Called on server or in standalone game.
+	*/
+	virtual void OnServerItemChanged(uint8 LocalIndex) {};
+	/*
+		Called after item has been removed from inventory.
+		Called on server or in standalone game.
+	*/
+	virtual void OnServerItemRemoved(uint8 LocalIndex) {};
+
+
+
+	/*
+		Called after item has been added to Equipment.
+	*/
+	virtual void OnItemAddedEquipment(uint8 LocalIndex) {};
+	/*
+		Called when item changed slots within THE SAME Equipment;
+	*/
+	virtual void OnItemChangedEquipment(uint8 LocalIndex) {};
+	/*
+		Called after item has been removed from Equipment;
+	*/
+	virtual void OnItemRemovedEquipment(uint8 LocalIndex) {};
+
+	/*
+		Called after item has been added to Equipment.
+		Called on server or in standalone game.
+	*/
+	virtual void OnServerItemAddedEquipment(uint8 LocalIndex) {};
+	/*
+		Called when item changed slots within THE SAME Equipment;
+		Called on server or in standalone game.
+	*/
+	virtual void OnServerItemChangedEquipment(uint8 LocalIndex) {};
+	/*
+		Called after item has been removed from Equipment;
+		Called on server or in standalone game.
+	*/
+	virtual void OnServerItemRemovedEquipment(uint8 LocalIndex) {};
+
+
 	virtual void PreItemLoad() {};
 
 	virtual void PostItemLoad() {};
 
 	static UIFItemBase* LoadFromJSON() { return nullptr; }
 
-	template<typename ItemType, typename DataType>
-	static ItemType* CreateItemFromData(DataType InData, class UIFInventoryComponent* Owner)
-	{
-		ItemType* Item = NewObject<ItemType>(Owner, ItemType::StaticClass());
-		Item->Data = InData;
-		return Item;
-	}
-
-	template<typename ItemType, typename DataType>
-	static ItemType* CreateItemFromData(DataType InData, TSubclassOf<ItemType> ItemClass, class UIFInventoryComponent* Owner)
-	{
-		ItemType* Item = NewObject<ItemType>(Owner, ItemClass);
-		Item->Data = InData;
-		return Item;
-	}
 };

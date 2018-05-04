@@ -3,6 +3,7 @@
 #include "ARWeaponInventoryComponent.h"
 #include "Engine/AssetManager.h"
 #include "ARItemWeapon.h"
+#include "Weapons/ARWeaponAbilityBase.h"
 #include "ARCharacter.h"
 #include "ARPlayerController.h"
 #include "AFAbilityComponent.h"
@@ -138,7 +139,7 @@ void UARWeaponInventoryComponent::SetAbilityToItem(int8 InLocalIndex, class UGAA
 	if (!ItemWeapon)
 		return;
 
-	ItemWeapon->AbilityInstance = Cast<UARWeaponAbilityBase>(InAbility);
+	ItemWeapon->SetAbility(Cast<UARWeaponAbilityBase>(InAbility));
 }
 void UARWeaponInventoryComponent::OnItemRemoved(uint8 LocalIndex)
 {
@@ -736,9 +737,6 @@ void UARWeaponInventoryComponent::ClientAddMagazineMod_Implementation(int8 Weapo
 				if (Weapon)
 				{
 					Weapon->AddMagazineUpgrade(Magazine);
-					FARWeaponModInfo Info;
-					Info.Icon = Magazine->Icon->GetPathName();
-					Info.UpgradeType = EARWeaponUpgradeType::Magazine;
 					MainInventory->RemoveItem(MagazineModIndex);
 
 					OnUpgradeInstalled.Broadcast(Weapon, Magazine, WeaponIdx);

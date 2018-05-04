@@ -6,18 +6,38 @@
 
 #include "ARCharacter.h"
 #include "ARPlayerController.h"
+#include "Attributes/ARGunAttributes.h"
 #include "UI/ARHUD.h"
 #include "UI/Inventory/ARUIInventoryComponent.h"
 #include "UI/Inventory/ARInventoryScreenWidget.h"
 #include "UI/Inventory/Weapons/Modifications/ARItemMagazineView.h"
 
+#include "Weapons/ARWeaponAbilityBase.h"
 #include "Weapons/ARMagazineUpgradeItem.h"
 #include "Weapons/ARWeaponInventoryComponent.h"
 #include "Weapons/ARMagazineUpgradeEffect.h"
 
+void UARItemWeapon::SetAbility(class UARWeaponAbilityBase* InAbility)
+{
+	AbilityInstance = InAbility;
+	AbilityInstance->SetWeaponItem(this);
+	if (Attributes)
+	{
+		if (AbilityInstance)
+		{
+			AbilityInstance->GetAttributes()->CopyFromOtherAttributes(Attributes);
+		}
+	}
+}
 void UARItemWeapon::AddMagazineUpgrade(class UARMagazineUpgradeItem* InMagazineUpgrade)
 {
+	if (!AbilityInstance)
+	{
+		return; //add log.
+	}
+
 	UARWeaponInventoryComponent* WeaponComponent = Cast<UARWeaponInventoryComponent>(GetOuter());
+	//might also check for PC inventory.
 
 	if (!WeaponComponent)
 		return;
@@ -31,51 +51,18 @@ void UARItemWeapon::AddMagazineUpgrade(class UARMagazineUpgradeItem* InMagazineU
 	//this part only on server.
 	if (Character->Role >= ENetRole::ROLE_Authority)
 	{
-		TSubclassOf<UARMagazineUpgradeEffect> SpecClass = InMagazineUpgrade->UpgradeEffect.LoadSynchronous();
 		MagazineUpgradeValue = InMagazineUpgrade->MagazineUpgradeValue;
-		MagazineUpgradeProperty = SpecClass;
-
-		AddUpgrade(MagazineUpgradeProperty, MagazineEffectHandle, MagazineSpecHandle, Character, MagazineUpgradeValue);
+		AbilityInstance->AddMagazineUpgrade(InMagazineUpgrade->UpgradeEffect, MagazineUpgradeValue);
 	}
 	OnMagazineUpdateAdded();
 }
 void UARItemWeapon::OnMagazineUpdateAdded()
 {
-	//should be called only from server.
-	FARWeaponModInfo Info;
-	Info.Icon = MagazineModification->Icon->GetPathName();
-	Info.UpgradeType = EARWeaponUpgradeType::Magazine;
-}
-
-void UARItemWeapon::AddUpgrade(FAFPropertytHandle& PropertyHandle
-	, FGAEffectHandle& EffectHandle
-	, FAFEffectSpecHandle& SpecHandle
-	, class AARCharacter* Character
-	, float UpgradeValue)
-{
-	//causer MagazineUpgrade ?
-	UGABlueprintLibrary::CreateEffectSpec(SpecHandle, PropertyHandle, this, Character, Character);
-
-	EffectHandle = FGAEffectHandle::GenerateHandle();
-	SpecHandle.CalculateAttributeModifier(EffectHandle);
-	SpecHandle.OverrideAttributeModifier(UpgradeValue);
-
-	FGAEffect Effect(SpecHandle.GetPtr(), EffectHandle);
-
-	UpgradeContainer.ApplyEffect(EffectHandle, Effect);
-
-	FGAEffectMod Mod = SpecHandle.GetModifier();
-	AbilityInstance->ModifyAttribute(Mod, EffectHandle, PropertyHandle.GetRef());
 }
 
 UARMagazineUpgradeItem* UARItemWeapon::RemoveMagazineUpgrade()
 {
-	FGAEffectMod Mod = MagazineSpecHandle.GetModifier();
-	AbilityInstance->RemoveBonus(Mod.Attribute, MagazineEffectHandle, Mod.AttributeMod);
-	UpgradeContainer.RemoveEffect(MagazineEffectHandle);
-	
-	MagazineUpgradeProperty.Reset();
-	MagazineSpecHandle.Reset();
+	AbilityInstance->RemoveMagazineUpgrade();
 
 	return MagazineModification;
 }
@@ -90,7 +77,69 @@ void UARItemWeapon::OnItemRemoved(uint8 LocalIndex)
 
 }
 
+
+void UARItemWeapon::OnItemAddedEquipment(uint8 LocalIndex) 
+{
+
+};
+void UARItemWeapon::OnItemChangedEquipment(uint8 LocalIndex) 
+{
+};
+void UARItemWeapon::OnItemRemovedEquipment(uint8 LocalIndex) 
+{
+};
+
+void UARItemWeapon::OnServerItemAddedEquipment(uint8 LocalIndex) 
+{
+};
+void UARItemWeapon::OnServerItemChangedEquipment(uint8 LocalIndex) 
+{
+};
+void UARItemWeapon::OnServerItemRemovedEquipment(uint8 LocalIndex) 
+{
+};
+
 void UARItemWeapon::PostItemLoad()
 {
 
+}
+
+TArray<FARItemTooltipData> UARItemWeapon::GetTooltipData()
+{
+	TArray<FARItemTooltipData> Data;
+
+	UARGunAttributes* ABAttr = AbilityInstance->GetAttributesTyped<UARGunAttributes>();
+
+	FARItemTooltipData ItemName("ItemName", AbilityInstance->GetName());
+	Data.Add(ItemName);
+
+	if (ABAttr)
+	{
+		FARItemTooltipData BaseDamage("BaseDamage", FString::FormatAsNumber(ABAttr->BaseDamage.GetCurrentValue()));
+		Data.Add(BaseDamage);
+
+		FARItemTooltipData CritChance("CritChance", FString::FormatAsNumber(ABAttr->CritChance.GetCurrentValue()));
+		Data.Add(CritChance);
+
+		FARItemTooltipData Magazine("Magazine", FString::FormatAsNumber(ABAttr->Magazine.GetCurrentValue()));
+		Data.Add(Magazine);
+
+		FARItemTooltipData RateOfFire("RateOfFire", FString::FormatAsNumber(ABAttr->RateOfFire.GetCurrentValue()));
+		Data.Add(RateOfFire);
+
+		FARItemTooltipData ReloadSpeed("ReloadSpeed", FString::FormatAsNumber(ABAttr->ReloadSpeed.GetCurrentValue()));
+		Data.Add(ReloadSpeed);
+
+		FARItemTooltipData HorizontalStability("HorizontalStability", FString::FormatAsNumber(ABAttr->HorizontalStability.GetCurrentValue()));
+		Data.Add(HorizontalStability);
+
+		FARItemTooltipData VerticalStability("VerticalStability", FString::FormatAsNumber(ABAttr->VerticalStability.GetCurrentValue()));
+		Data.Add(VerticalStability);
+
+		FARItemTooltipData Spread("Spread", FString::FormatAsNumber(ABAttr->Spread.GetCurrentValue()));
+		Data.Add(Spread);
+
+	}
+
+	return Data;
 }

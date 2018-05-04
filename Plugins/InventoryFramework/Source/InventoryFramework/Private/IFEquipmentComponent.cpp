@@ -54,8 +54,12 @@ void UIFEquipmentComponent::AddItemFromInventory(class UIFInventoryComponent* So
 			return;
 
 		EquipmentItems[EquipmentIndex].Item = DuplicateObject<UIFItemBase>(Item, this);
+		
 		OnItemAdded(EquipmentItems[EquipmentIndex].Item, EquipmentIndex);
+		EquipmentItems[EquipmentIndex].Item->OnServerItemAddedEquipment(EquipmentItems[EquipmentIndex].Index);
+
 		OnItemAddedEvent.Broadcast(EquipmentIndex, EquipmentIndex, EquipmentItems[EquipmentIndex].Item);
+		
 	}
 }
 void UIFEquipmentComponent::ServerAddItemFromInventory_Implementation(class UIFInventoryComponent* Source, uint8 SourceIndex, uint8 EquipmentIndex)
@@ -66,8 +70,10 @@ void UIFEquipmentComponent::ServerAddItemFromInventory_Implementation(class UIFI
 
 	EquipmentItems[EquipmentIndex].Item = DuplicateObject<UIFItemBase>(Item, this);
 	OnServerItemAdded(EquipmentItems[EquipmentIndex].Item, EquipmentIndex);
+	EquipmentItems[EquipmentIndex].Item->OnServerItemAddedEquipment(EquipmentItems[EquipmentIndex].Index);
 	ClientAddItemFromInventory(Source, SourceIndex, EquipmentIndex);
 	OnItemAddedEvent.Broadcast(EquipmentIndex, EquipmentIndex, EquipmentItems[EquipmentIndex].Item);
+	
 }
 bool UIFEquipmentComponent::ServerAddItemFromInventory_Validate(class UIFInventoryComponent* Source, uint8 SourceIndex, uint8 EquipmentIndex)
 {
@@ -80,6 +86,7 @@ void UIFEquipmentComponent::ClientAddItemFromInventory_Implementation(class UIFI
 		return;
 
 	EquipmentItems[EquipmentIndex].Item = DuplicateObject<UIFItemBase>(Item, this);
+	EquipmentItems[EquipmentIndex].Item->OnItemAddedEquipment(EquipmentItems[EquipmentIndex].Index);
 	OnItemAdded(EquipmentItems[EquipmentIndex].Item, EquipmentIndex);
 	OnItemAddedEvent.Broadcast(EquipmentIndex, EquipmentIndex, EquipmentItems[EquipmentIndex].Item);
 	Source->RemoveItem(SourceIndex);
@@ -97,6 +104,7 @@ void UIFEquipmentComponent::RemoveFromEquipment(uint8 EquipmentIndex)
 
 void UIFEquipmentComponent::ServerRemoveFromEquipment_Implementation(uint8 EquipmentIndex)
 {
+	EquipmentItems[EquipmentIndex].Item->OnServerItemRemovedEquipment(EquipmentItems[EquipmentIndex].Index);
 	if (EquipmentItems[EquipmentIndex].Item)
 	{
 		EquipmentItems[EquipmentIndex].Item->MarkPendingKill();
@@ -112,6 +120,7 @@ bool UIFEquipmentComponent::ServerRemoveFromEquipment_Validate(uint8 EquipmentIn
 
 void UIFEquipmentComponent::ClientRemoveFromEquipment_Implementation(uint8 EquipmentIndex)
 {
+	EquipmentItems[EquipmentIndex].Item->OnItemRemovedEquipment(EquipmentItems[EquipmentIndex].Index);
 	if (EquipmentItems[EquipmentIndex].Item)
 	{
 		EquipmentItems[EquipmentIndex].Item->MarkPendingKill();

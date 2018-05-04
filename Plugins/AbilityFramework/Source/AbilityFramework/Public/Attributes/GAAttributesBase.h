@@ -55,6 +55,7 @@ public:
 	~UGAAttributesBase();
 	//virtual void PostNetReceive() override;
 	virtual void InitializeAttributes(UAFAbilityComponent* InOwningAttributeComp);
+	void CopyFromOtherAttributes(UGAAttributesBase* Other);
 	void InitializeAttributesFromTable();
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Initialize Attributes"))
 		bool BP_InitializeAttributes();
@@ -133,4 +134,18 @@ private:
 	float DivideAttributeFloat(float ValueA, float ValueB);
 
 	void OnAttributeModified(const FGAEffectMod& InMod, const FGAEffectHandle& InHandle);
+};
+
+USTRUCT(BlueprintType)
+struct ABILITYFRAMEWORK_API FAFAttributesProperty
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<UGAAttributesBase> Attributes;
+	/*
+		If set, any values in Attributes will be overriden by table.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		UDataTable* AttributeValues;
 };

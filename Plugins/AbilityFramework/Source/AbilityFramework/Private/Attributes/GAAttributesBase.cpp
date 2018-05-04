@@ -51,6 +51,20 @@ void UGAAttributesBase::InitializeAttributes(UAFAbilityComponent* InOwningAttrib
 	BP_InitializeAttributes();
 }
 
+void UGAAttributesBase::CopyFromOtherAttributes(UGAAttributesBase* Other)
+{
+	for (TFieldIterator<UStructProperty> StrIt(GetClass(), EFieldIteratorFlags::IncludeSuper); StrIt; ++StrIt)
+	{
+		FAFAttributeBase* ThisAttribute = StrIt->ContainerPtrToValuePtr<FAFAttributeBase>(this);
+		FAFAttributeBase* OtherAttribute = Other->GetAttribute(FGAAttribute(StrIt->GetFName()));
+
+		if (ThisAttribute && OtherAttribute)
+		{
+			ThisAttribute->CopyFromOther(OtherAttribute);
+		}
+	}
+}
+
 void UGAAttributesBase::InitializeAttributesFromTable()
 {
 	if (!AttributeValues)

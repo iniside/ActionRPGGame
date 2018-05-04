@@ -2,8 +2,22 @@
 
 #include "ARWeaponAbilityBase.h"
 #include "Effects/GABlueprintLibrary.h"
+#include "Weapons/ARItemWeapon.h"
 #include "ARCharacter.h"
 #include "ARWeaponBase.h"
+
+void UARWeaponAbilityBase::SetAttributes(UGAAttributesBase* InAttributes)
+{
+	Attributes = InAttributes;
+}
+class UGAAttributesBase* UARWeaponAbilityBase::GetAttributes() const
+{
+	return Attributes;
+}
+class UGAAttributesBase* UARWeaponAbilityBase::GetAttributes()
+{
+	return Attributes;
+}
 
 void UARWeaponAbilityBase::OnAbilityInited()
 {
@@ -58,5 +72,45 @@ void UARWeaponAbilityBase::ApplyDamageEffect(UObject* Target, FAFFunctionModifie
 }
 void UARWeaponAbilityBase::ReloadWeapon()
 {
+
+}
+
+void UARWeaponAbilityBase::AddMagazineUpgrade(TSubclassOf<class UARMagazineUpgradeEffect> InMagazineUpgrade, float UpgradeValue)
+{
+	MagazineUpgradeProperty = InMagazineUpgrade;
+	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+	{
+		AddUpgrade(MagazineUpgradeProperty, MagazineEffectHandle, MagazineSpecHandle, Character, UpgradeValue);
+	}
+}
+
+void UARWeaponAbilityBase::RemoveMagazineUpgrade()
+{
+	FGAEffectMod Mod = MagazineSpecHandle.GetModifier();
+	RemoveBonus(Mod.Attribute, MagazineEffectHandle, Mod.AttributeMod);
+	UpgradeContainer.RemoveEffect(MagazineEffectHandle);
+
+	MagazineUpgradeProperty.Reset();
+	MagazineSpecHandle.Reset();
+}
+
+void UARWeaponAbilityBase::AddUpgrade(FAFPropertytHandle& PropertyHandle
+		, FGAEffectHandle& EffectHandle
+		, FAFEffectSpecHandle& SpecHandle
+		, class AARCharacter* Character
+		, float UpgradeValue)
+{
+	UGABlueprintLibrary::CreateEffectSpec(SpecHandle, PropertyHandle, this, Character, Character);
+
+	EffectHandle = FGAEffectHandle::GenerateHandle();
+	SpecHandle.CalculateAttributeModifier(EffectHandle);
+	SpecHandle.OverrideAttributeModifier(UpgradeValue);
+
+	FGAEffect Effect(SpecHandle.GetPtr(), EffectHandle);
+
+	UpgradeContainer.ApplyEffect(EffectHandle, Effect);
+
+	FGAEffectMod Mod = SpecHandle.GetModifier();
+	ModifyAttribute(Mod, EffectHandle, PropertyHandle.GetRef());
 
 }
