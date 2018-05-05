@@ -108,10 +108,13 @@ TArray<FARItemTooltipData> UARItemWeapon::GetTooltipData()
 {
 	TArray<FARItemTooltipData> Data;
 
-	UARGunAttributes* ABAttr = AbilityInstance->GetAttributesTyped<UARGunAttributes>();
-
-	FARItemTooltipData ItemName("ItemName", AbilityInstance->GetName());
+	FARItemTooltipData ItemName("ItemName", GetName());
 	Data.Add(ItemName);
+
+	if (!AbilityInstance)
+		return Data;
+
+	UARGunAttributes* ABAttr = AbilityInstance->GetAttributesTyped<UARGunAttributes>();
 
 	if (ABAttr)
 	{

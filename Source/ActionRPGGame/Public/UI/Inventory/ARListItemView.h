@@ -17,10 +17,23 @@ class ACTIONRPGGAME_API UARListItemView : public UIFItemWidget
 protected:
 	TWeakObjectPtr<class UARItemView> Target;
 	TWeakObjectPtr<class UARUIInventoryComponent> InventoryComponent;
+
+	TWeakObjectPtr<class UARItemBase> InvItem;
+
+	UPROPERTY(Transient)
+		class UARItemTooltipView* ItemTooltip;
 public:
 	virtual void NativeConstruct() override;
 
 	inline void SetTarget(TWeakObjectPtr<class UARItemView> ForSlot) { Target = ForSlot; }
 	inline TWeakObjectPtr<class UARItemView> GetTarget() { return Target; }
-	
+
+	virtual void OnSlotCreated(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* Item) override;
+
+	virtual void OnItemChanged(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* Item) override;
+
+	virtual void OnItemRemoved(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* Item) override;
+
+	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 };

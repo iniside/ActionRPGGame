@@ -28,11 +28,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "InventoryFramework")
 		UWidget* DragVisual;
 public:
-	void OnSlotCreated(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* Item);
+	virtual void OnSlotCreated(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* Item);
 
-	void OnItemChanged(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* Item);
+	virtual void OnItemChanged(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* Item);
 
-	void OnItemRemoved(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* Item);
+	virtual void OnItemRemoved(uint8 InNetIndex, uint8 InLocalIndex, class UIFItemBase* Item);
 
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "On Item Created"))
 		void BP_OnItemCreated(class UIFItemBase* Item);

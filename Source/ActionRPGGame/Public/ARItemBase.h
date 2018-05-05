@@ -76,4 +76,10 @@ public:
 	*/
 	UPROPERTY(Transient)
 		FAFEffectContainerSimple UpgradeContainer;
+
+	virtual TArray<FARItemTooltipData> GetTooltipData()
+	{
+		TArray<FARItemTooltipData> Data;
+		return Data;
+	}
 };

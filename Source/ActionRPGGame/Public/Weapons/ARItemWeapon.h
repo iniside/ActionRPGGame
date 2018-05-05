@@ -77,6 +77,6 @@ public:
 
 	virtual void PostItemLoad();
 
-	virtual TArray<FARItemTooltipData> GetTooltipData();
+	virtual TArray<FARItemTooltipData> GetTooltipData() override;
 protected:
 };
