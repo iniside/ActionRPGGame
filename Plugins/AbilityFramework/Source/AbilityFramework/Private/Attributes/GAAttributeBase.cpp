@@ -54,6 +54,10 @@ void FAFAttributeBase::CopyFromOther(FAFAttributeBase* Other)
 	MaxValue = Other->MaxValue;
 	CurrentValue = Other->CurrentValue;
 	BonusValue = Other->BonusValue;
+
+	CurrentValue = BaseValue;
+	CalculateBonus();
+	CurrentValue = GetFinalValue();
 }
 void FAFAttributeBase::CalculateBonus()
 {

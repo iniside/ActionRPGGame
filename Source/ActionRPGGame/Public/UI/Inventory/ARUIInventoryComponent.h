@@ -22,7 +22,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Views")
 		TSubclassOf<class UARWeaponModificationView> WeaponModificationViewClass;
-
+public:
+	UPROPERTY(EditAnywhere, Category = "Views")
+		TSubclassOf<class UARItemTooltipView> WeaponItemTooltipViewClass;
+protected:
 	UPROPERTY(BlueprintReadOnly, Category = "ActionRPGGame|UI|Inventory")
 		class UARInventoryScreenWidget* InventoryView;
 

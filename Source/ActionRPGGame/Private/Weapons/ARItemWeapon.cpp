@@ -115,28 +115,28 @@ TArray<FARItemTooltipData> UARItemWeapon::GetTooltipData()
 
 	if (ABAttr)
 	{
-		FARItemTooltipData BaseDamage("BaseDamage", FString::FormatAsNumber(ABAttr->BaseDamage.GetCurrentValue()));
+		FARItemTooltipData BaseDamage("BaseDamage", FString::SanitizeFloat(ABAttr->BaseDamage.GetCurrentValue()));
 		Data.Add(BaseDamage);
 
-		FARItemTooltipData CritChance("CritChance", FString::FormatAsNumber(ABAttr->CritChance.GetCurrentValue()));
+		FARItemTooltipData CritChance("CritChance", FString::SanitizeFloat(ABAttr->CritChance.GetCurrentValue()));
 		Data.Add(CritChance);
 
-		FARItemTooltipData Magazine("Magazine", FString::FormatAsNumber(ABAttr->Magazine.GetCurrentValue()));
+		FARItemTooltipData Magazine("Magazine", FString::SanitizeFloat(ABAttr->Magazine.GetCurrentValue()));
 		Data.Add(Magazine);
 
-		FARItemTooltipData RateOfFire("RateOfFire", FString::FormatAsNumber(ABAttr->RateOfFire.GetCurrentValue()));
+		FARItemTooltipData RateOfFire("RateOfFire", FString::SanitizeFloat(ABAttr->RateOfFire.GetCurrentValue()));
 		Data.Add(RateOfFire);
 
-		FARItemTooltipData ReloadSpeed("ReloadSpeed", FString::FormatAsNumber(ABAttr->ReloadSpeed.GetCurrentValue()));
+		FARItemTooltipData ReloadSpeed("ReloadSpeed", FString::SanitizeFloat(ABAttr->ReloadSpeed.GetCurrentValue()));
 		Data.Add(ReloadSpeed);
 
-		FARItemTooltipData HorizontalStability("HorizontalStability", FString::FormatAsNumber(ABAttr->HorizontalStability.GetCurrentValue()));
+		FARItemTooltipData HorizontalStability("HorizontalStability", FString::SanitizeFloat(ABAttr->HorizontalStability.GetCurrentValue()));
 		Data.Add(HorizontalStability);
 
-		FARItemTooltipData VerticalStability("VerticalStability", FString::FormatAsNumber(ABAttr->VerticalStability.GetCurrentValue()));
+		FARItemTooltipData VerticalStability("VerticalStability", FString::SanitizeFloat(ABAttr->VerticalStability.GetCurrentValue()));
 		Data.Add(VerticalStability);
 
-		FARItemTooltipData Spread("Spread", FString::FormatAsNumber(ABAttr->Spread.GetCurrentValue()));
+		FARItemTooltipData Spread("Spread", FString::SanitizeFloat(ABAttr->Spread.GetCurrentValue()));
 		Data.Add(Spread);
 
 	}

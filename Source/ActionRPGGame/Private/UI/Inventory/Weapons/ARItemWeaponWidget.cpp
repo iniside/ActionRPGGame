@@ -13,6 +13,7 @@
 #include "UI/ARHUD.h"
 #include "UI/Inventory/ARUIInventoryComponent.h"
 #include "UI/Inventory/ARInventoryScreenWidget.h"
+#include "UI/Inventory/ARItemTooltipView.h"
 #include "UI/Inventory/Weapons/ARWeaponContainerWidget.h"
 #include "UI/Inventory/Weapons/ARListItemWeaponWidget.h"
 
@@ -61,11 +62,30 @@ FReply UARItemWeaponWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry,
 }
 void UARItemWeaponWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
+	if (!WeaponItem.IsValid())
+		return;
 
+	if(!WeaponTooltip)
+		WeaponTooltip = CreateWidget<UARItemTooltipView>(GetOwningPlayer(), InventoryComponent->WeaponItemTooltipViewClass);
+
+	WeaponTooltip->OnTooltipCreated(WeaponItem->GetTooltipData());
+
+	SetToolTip(WeaponTooltip);
+
+	/*FMargin margin = GetFullScreenOffset();
+	FVector2D Pos(margin.Left, margin.Top);
+	WeaponTooltip->AddToViewport(9999);
+	
+	WeaponTooltip->SetVisibility(ESlateVisibility::HitTestInvisible);
+	WeaponTooltip->SetPositionInViewport(Pos);*/
 }
 void UARItemWeaponWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
+	if (!WeaponTooltip)
+		return;
 
+	SetToolTip(nullptr);
+	//WeaponTooltip->SetVisibility(ESlateVisibility::Collapsed);
 }
 FReply UARItemWeaponWidget::NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {

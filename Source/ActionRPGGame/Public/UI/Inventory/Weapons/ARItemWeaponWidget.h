@@ -20,7 +20,8 @@ public:
 	int8 Index;
 
 	TWeakObjectPtr<class UARItemWeapon> WeaponItem;
-
+	UPROPERTY(Transient)
+		UARItemTooltipView* WeaponTooltip;
 public:
 	virtual void NativeConstruct() override;
 public:
