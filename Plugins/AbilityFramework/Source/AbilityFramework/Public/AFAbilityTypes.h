@@ -64,6 +64,8 @@ public:
 	//ActionInput, AbilityClassPtr
 	TMap<FGameplayTag, TSoftClassPtr<UGAAbilityBase>> ActionToAbility;
 
+	//maybe.. replace SoftClassPtr with FObjectKey ?
+
 	//AbilityTag, ActionInput 
 	TMap<TSoftClassPtr<UGAAbilityBase>, TArray<FGameplayTag>> AbilityToAction;
 
@@ -75,6 +77,8 @@ public:
 	void SetBlockedInput(const FGameplayTag& InActionName, bool bBlock);
 	UGAAbilityBase* AddAbility(TSubclassOf<class UGAAbilityBase> AbilityIn
 		, TSoftClassPtr<class UGAAbilityBase> InClassPtr);
+
+	void AddAbilityFromObject(class UGAAbilityBase* AbilityIn, TSoftClassPtr<class UGAAbilityBase> InClassPtr);
 
 	void RemoveAbility(const TSoftClassPtr<UGAAbilityBase>& AbilityIn);
 

@@ -110,10 +110,10 @@ public:
 	bool bIsNameStable;
 
 	//possibly map TMap<FName, Task*> ?
-	UPROPERTY()
+	UPROPERTY(Transient)
 		TSet<class UAFTaskBase*> ActiveTasks;
 	/* List of tasks, this ability have. */
-	UPROPERTY()
+	UPROPERTY(Transient)
 		TMap<FName, class UAFTaskBase*> AbilityTasks;
 
 	/*
@@ -132,20 +132,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "AbilityFramework|Abilities")
 		UGAAttributesBase* Attributes;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	class UWorld* World; 
 	/*
 		Replicated to everyone because we will need it, to determine cosmetic stuff on clients.
 	*/
 	/*
 	*/
-	UPROPERTY(BlueprintReadOnly, Replicated, BlueprintReadOnly, Category = "AbilityFramework|Abilities")
+	UPROPERTY(BlueprintReadOnly, Replicated, BlueprintReadOnly, Category = "AbilityFramework|Abilities", Transient)
 		APawn* POwner;
-	UPROPERTY(BlueprintReadOnly, Replicated, Category = "AbilityFramework|Abilities")
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "AbilityFramework|Abilities", Transient)
 		APlayerController* PCOwner;
-	UPROPERTY(BlueprintReadOnly, Replicated, Category = "AbilityFramework|Abilities")
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "AbilityFramework|Abilities", Transient)
 		class AAIController* AICOwner;
-	UPROPERTY(BlueprintReadOnly, Category = "AbilityFramework|Abilities")
+	UPROPERTY(BlueprintReadOnly, Category = "AbilityFramework|Abilities", Transient)
 		class UAFAbilityComponent* AbilityComponent;
 
 	/* 
@@ -154,10 +154,10 @@ public:
 
 		It will need some common interfaces for getting data out.
 	*/
-	UPROPERTY(BlueprintReadOnly, Replicated, Category = "AbilityFramework|Abilities")
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "AbilityFramework|Abilities", Transient)
 		class AActor* AvatarActor;
 	
-	UPROPERTY(BlueprintReadOnly, Category = "AbilityFramework|Abilities")
+	UPROPERTY(BlueprintReadOnly, Category = "AbilityFramework|Abilities", Transient)
 		UCameraComponent* OwnerCamera;
 
 	FGAEffectContext DefaultContext;
@@ -242,7 +242,7 @@ public: //because I'm to lazy to write all those friend states..
 		FGASGenericAbilityDelegate OnNotifyOnCooldown;
 
 	/* Stub, I think replicating montage directly from ability will be better, as abilities are replicated regardless. */
-	UPROPERTY()
+	UPROPERTY(Transient)
 		UAnimMontage* RepMontage;
 protected:
 	EAFAbilityState AbilityState;

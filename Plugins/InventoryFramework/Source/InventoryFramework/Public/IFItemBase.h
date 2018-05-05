@@ -100,7 +100,7 @@ public:
 	virtual void PreItemLoad() {};
 
 	virtual void PostItemLoad() {};
-
+	virtual TSharedPtr<FJsonObject> SaveToJson() { return nullptr; }
 	static UIFItemBase* LoadFromJSON() { return nullptr; }
 
 };

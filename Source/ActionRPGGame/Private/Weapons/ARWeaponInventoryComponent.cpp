@@ -77,7 +77,18 @@ void UARWeaponInventoryComponent::SetWeapon(const FARWeaponRPC& InWeapon, UChild
 		UAssetManager::Get().GetStreamableManager().RequestAsyncLoad(InWeapon.Weapon.ToSoftObjectPath(), LoadFinished);
 	}
 }
-
+void UARWeaponInventoryComponent::OnClientPreItemAdded(UIFItemBase* Item, uint8 Index)
+{
+	UARItemWeapon* InWeapon = Cast<UARItemWeapon>(Item);
+	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
+	{
+		FAFOnAbilityReady del;
+		{
+			del = FAFOnAbilityReady::CreateUObject(this, &UARWeaponInventoryComponent::OnWeaponReady, InWeapon->Ability, static_cast<int8>(Index));
+			Character->GetAbilityComp()->AddOnAbilityReadyDelegate(InWeapon->Ability, del);
+		}
+	}
+}
 void UARWeaponInventoryComponent::OnItemAdded(UIFItemBase* Item, uint8 LocalIndex)
 {
 	UARItemWeapon* InWeapon = Cast<UARItemWeapon>(Item);
@@ -91,12 +102,15 @@ void UARWeaponInventoryComponent::OnItemAdded(UIFItemBase* Item, uint8 LocalInde
 	if (AARCharacter* Character = Cast<AARCharacter>(POwner))
 	{
 		TArray<FGameplayTag> NoInput;
-		FAFOnAbilityReady del;
+		/*FAFOnAbilityReady del;
 		{
 			del = FAFOnAbilityReady::CreateUObject(this, &UARWeaponInventoryComponent::OnWeaponReady, InWeapon->Ability, static_cast<int8>(LocalIndex));
 			Character->GetAbilityComp()->AddOnAbilityReadyDelegate(InWeapon->Ability, del);
+		}*/
+		if (!InWeapon->AbilityInstance)
+		{
+			Character->GetAbilityComp()->NativeAddAbility(InWeapon->Ability, NoInput);
 		}
-		Character->GetAbilityComp()->NativeAddAbility(InWeapon->Ability, NoInput);
 		WeaponAbilities[LocalIndex] = InWeapon->Ability;
 	}
 }
@@ -118,6 +132,10 @@ void UARWeaponInventoryComponent::OnServerItemAdded(UIFItemBase* Item, uint8 Loc
 			Character->GetAbilityComp()->AddOnAbilityReadyDelegate(InWeapon->Ability, del);
 		}
 		WeaponAbilities[LocalIndex] = InWeapon->Ability;
+		if (InWeapon->AbilityInstance)
+		{
+			Character->GetAbilityComp()->NativeAddAbilityFromObject(InWeapon->AbilityInstance, InWeapon->Ability);
+		}
 	}
 	MulticastAddWeapon(Data);
 }

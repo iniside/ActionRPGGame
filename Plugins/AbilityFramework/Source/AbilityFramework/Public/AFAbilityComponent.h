@@ -562,6 +562,12 @@ public:
 	void NativeAddAbility(TSoftClassPtr<UGAAbilityBase> InAbility,
 		const TArray<FGameplayTag>& InInputTag);
 
+	/*
+		Adds ability using existing instance of object.
+		Should only be called on authority or in standalone.
+	*/
+	void NativeAddAbilityFromObject(UGAAbilityBase* InAbility, TSoftClassPtr<UGAAbilityBase> AbilityPtr);
+
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerNativeAddAbility(const FSoftObjectPath& InAbility,
 			const TArray<FGameplayTag>& InInputTag);

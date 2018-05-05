@@ -479,6 +479,10 @@ void UAFAbilityComponent::NativeAddAbility(TSoftClassPtr<UGAAbilityBase> InAbili
 	}
 }
 
+void UAFAbilityComponent::NativeAddAbilityFromObject(UGAAbilityBase* InAbility, TSoftClassPtr<UGAAbilityBase> AbilityPtr)
+{
+	AbilityContainer.AddAbilityFromObject(InAbility, AbilityPtr);
+}
 
 void UAFAbilityComponent::ServerNativeAddAbility_Implementation(const FSoftObjectPath& InAbility,
 	const TArray<FGameplayTag>& InInputTag)

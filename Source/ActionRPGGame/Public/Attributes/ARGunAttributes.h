@@ -18,21 +18,21 @@ class ACTIONRPGGAME_API UARGunAttributes : public UGAAttributesBase
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, Category = "Base")
+	UPROPERTY(EditAnywhere, SaveGame, Category = "Base")
 		FAFAttributeBase BaseDamage;
-	UPROPERTY(EditAnywhere, Category = "Base")
+	UPROPERTY(EditAnywhere, SaveGame, Category = "Base")
 		FAFAttributeBase CritChance;
-	UPROPERTY(EditAnywhere, ReplicatedUsing=OnRep_Magazine, Category = "Base")
+	UPROPERTY(EditAnywhere, SaveGame, ReplicatedUsing=OnRep_Magazine, Category = "Base")
 		FAFAttributeBase Magazine;
-	UPROPERTY(EditAnywhere, Category = "Base")
+	UPROPERTY(EditAnywhere, SaveGame, Category = "Base")
 		FAFAttributeBase RateOfFire;
-	UPROPERTY(EditAnywhere, Category = "Base")
+	UPROPERTY(EditAnywhere, SaveGame, Category = "Base")
 		FAFAttributeBase ReloadSpeed;
-	UPROPERTY(EditAnywhere, Category = "Base")
+	UPROPERTY(EditAnywhere, SaveGame, Category = "Base")
 		FAFAttributeBase HorizontalStability;
-	UPROPERTY(EditAnywhere, Category = "Base")
+	UPROPERTY(EditAnywhere, SaveGame, Category = "Base")
 		FAFAttributeBase VerticalStability;
-	UPROPERTY(EditAnywhere, Category = "Base")
+	UPROPERTY(EditAnywhere, SaveGame, Category = "Base")
 		FAFAttributeBase Spread;
 	
 	UFUNCTION()

@@ -101,6 +101,40 @@ UGAAbilityBase* FAFAbilityContainer::AddAbility(TSubclassOf<class UGAAbilityBase
 	}
 	return nullptr;
 }
+
+void FAFAbilityContainer::AddAbilityFromObject(class UGAAbilityBase* AbilityIn, TSoftClassPtr<class UGAAbilityBase> InClassPtr)
+{
+	if (AbilityIn && AbilitiesComp.IsValid())
+	{
+
+		UGAAbilityBase* ability = AbilityIn;// NewObject<UGAAbilityBase>(AbilitiesComp->GetOwner(), AbilityIn);
+		ability->AbilityComponent = AbilitiesComp.Get();
+		if (AbilitiesComp.IsValid())
+		{
+			APawn* POwner = Cast<APawn>(AbilitiesComp->GetOwner());
+			ability->POwner = POwner;
+			ability->PCOwner = Cast<APlayerController>(POwner->Controller);
+			ability->OwnerCamera = nullptr;
+		}
+		ability->InitAbility();
+		FGameplayTag Tag = ability->AbilityTag;
+
+		AbilitiesInputs.Add(InClassPtr, ability);
+		FAFAbilityItem AbilityItem(ability, InClassPtr);
+		MarkItemDirty(AbilityItem);
+		AbilityItem.Ability = ability;
+		AbilitiesItems.Add(AbilityItem);
+		TagToAbility.Add(InClassPtr, ability);
+
+		MarkArrayDirty();
+		if (AbilitiesComp->GetNetMode() == ENetMode::NM_Standalone
+			|| AbilitiesComp->GetOwnerRole() == ENetRole::ROLE_Authority)
+		{
+			AbilitiesComp->NotifyOnAbilityReady(InClassPtr);
+		}
+	}
+}
+
 void FAFAbilityContainer::RemoveAbility(const TSoftClassPtr<UGAAbilityBase>& AbilityIn)
 {
 	int32 Index = AbilitiesItems.IndexOfByKey(AbilityIn);

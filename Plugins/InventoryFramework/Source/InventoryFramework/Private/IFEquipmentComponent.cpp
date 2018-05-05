@@ -45,6 +45,8 @@ void UIFEquipmentComponent::AddItemFromInventory(class UIFInventoryComponent* So
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
+		UIFItemBase* Item = Source->GetItem(SourceIndex);
+		OnClientPreItemAdded(Item, EquipmentIndex);
 		ServerAddItemFromInventory(Source, SourceIndex, EquipmentIndex);
 	}
 	else

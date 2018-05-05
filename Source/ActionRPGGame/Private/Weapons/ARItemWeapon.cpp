@@ -3,6 +3,7 @@
 #include "ARItemWeapon.h"
 
 #include "Effects/GABlueprintLibrary.h"
+#include "IFInventoryComponent.h"
 
 #include "ARCharacter.h"
 #include "ARPlayerController.h"
@@ -67,16 +68,47 @@ UARMagazineUpgradeItem* UARItemWeapon::RemoveMagazineUpgrade()
 	return MagazineModification;
 }
 
+void UARItemWeapon::SpawnAbility()
+{
+	UIFInventoryComponent* InventoryComp = Cast<UIFInventoryComponent>(GetOuter());
+	if (!InventoryComp)
+		return;
+
+	AARPlayerController* PC = Cast<AARPlayerController>(InventoryComp->GetOwner());
+	if (!PC)
+		return;
+
+	AARCharacter* Character = Cast<AARCharacter>(PC->GetPawn());
+
+	if (!Character)
+		return;
+
+	TSubclassOf<UARWeaponAbilityBase> ABClass = Ability.LoadSynchronous();
+	if (ABClass)
+	{
+		AbilityInstance = NewObject<UARWeaponAbilityBase>(Character, ABClass);
+		AbilityInstance->GetAttributes()->CopyFromOtherAttributes(Attributes);
+	}
+}
 
 void UARItemWeapon::OnItemAdded(uint8 LocalIndex)
 {
-
+	SpawnAbility();
 }
 void UARItemWeapon::OnItemRemoved(uint8 LocalIndex)
 {
 
 }
-
+void UARItemWeapon::OnServerItemAdded(uint8 LocalIndex)
+{
+	SpawnAbility();
+}
+void UARItemWeapon::OnServerItemChanged(uint8 LocalIndex)
+{
+}
+void UARItemWeapon::OnServerItemRemoved(uint8 LocalIndex)
+{
+}
 
 void UARItemWeapon::OnItemAddedEquipment(uint8 LocalIndex) 
 {
@@ -103,7 +135,18 @@ void UARItemWeapon::PostItemLoad()
 {
 
 }
+TSharedPtr<FJsonObject> UARItemWeapon::SaveToJson()
+{
+	typedef TJsonWriter< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriter;
+	typedef TJsonWriterFactory< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriterFactory;
 
+	TSharedPtr<FJsonObject> UObj = MakeShareable(new FJsonObject());
+	
+	FIFJsonSerializer::UObjectToJsonObject(GetClass(), this, UObj.ToSharedRef());
+	
+
+	return UObj;
+}
 TArray<FARItemTooltipData> UARItemWeapon::GetTooltipData()
 {
 	TArray<FARItemTooltipData> Data;

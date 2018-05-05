@@ -3,15 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "Components/ActorComponent.h"
 #include "IFTypes.h"
 #include "IFInventoryComponent.generated.h"
 
 //NetIndex, LocalIndex
 
-
-
-
+DECLARE_LOG_CATEGORY_EXTERN(IFLog, Log, All);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class INVENTORYFRAMEWORK_API UIFInventoryComponent : public UActorComponent

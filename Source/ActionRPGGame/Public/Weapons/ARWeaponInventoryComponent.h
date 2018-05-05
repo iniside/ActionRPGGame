@@ -115,7 +115,7 @@ public:
 	{
 		return OnUpgradeRemoved;
 	}
-
+	virtual void OnClientPreItemAdded(UIFItemBase* Item, uint8 Index) override;
 	virtual void OnItemAdded(UIFItemBase* Item, uint8 LocalIndex) override;
 	virtual void OnItemRemoved(uint8 LocalIndex) override;
 

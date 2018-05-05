@@ -2,6 +2,8 @@
 
 #include "InventoryFramework.h"
 
+
+
 #define LOCTEXT_NAMESPACE "FInventoryFrameworkModule"
 
 void FInventoryFrameworkModule::StartupModule()

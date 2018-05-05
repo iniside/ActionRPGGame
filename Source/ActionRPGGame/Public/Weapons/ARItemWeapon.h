@@ -6,7 +6,7 @@
 #include "UObject/NoExportTypes.h"
 #include "Effects/GAGameEffect.h"
 #include "ARMagazineUpgradeItem.h"
-
+#include "IFTypes.h"
 #include "GameplayTags.h"
 #include "ARItemWeapon.generated.h"
 
@@ -35,7 +35,7 @@ public:
 		Values from these attributes will be copied to ability, after ability is instanced.
 		It's here to allow random generation and easily store that information in Database instead of storing ability.
 	*/
-	UPROPERTY(EditAnywhere, Instanced, Category = "Attributes")
+	UPROPERTY(EditAnywhere, SaveGame, Instanced, Category = "Attributes")
 		class UARGunAttributes* Attributes;
 
 	UPROPERTY(EditAnywhere, Category = "Transforms")
@@ -48,10 +48,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Transforms")
 		FRotator EquipedRotation;
 
-	UPROPERTY(EditAnywhere, Category = "Ability")
+	UPROPERTY(BlueprintReadOnly, SaveGame, Category = "Ability")
 		UARWeaponAbilityBase* AbilityInstance;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Ability")
+	UPROPERTY(BlueprintReadOnly, SaveGame, Category = "Ability")
 		class UARMagazineUpgradeItem* MagazineModification;
 
 	UPROPERTY(Transient)
@@ -64,19 +64,27 @@ public:
 
 	UARMagazineUpgradeItem* RemoveMagazineUpgrade();
 
+	void SpawnAbility();
+
 	virtual void OnItemAdded(uint8 LocalIndex) override;
 	virtual void OnItemRemoved(uint8 LocalIndex) override;
 
-	virtual void OnItemAddedEquipment(uint8 LocalIndex);
-	virtual void OnItemChangedEquipment(uint8 LocalIndex);
-	virtual void OnItemRemovedEquipment(uint8 LocalIndex);
+	virtual void OnServerItemAdded(uint8 LocalIndex) override;
+	virtual void OnServerItemChanged(uint8 LocalIndex) override;
+	virtual void OnServerItemRemoved(uint8 LocalIndex) override;
 
-	virtual void OnServerItemAddedEquipment(uint8 LocalIndex);
-	virtual void OnServerItemChangedEquipment(uint8 LocalIndex);
-	virtual void OnServerItemRemovedEquipment(uint8 LocalIndex);
+	virtual void OnItemAddedEquipment(uint8 LocalIndex) override;
+	virtual void OnItemChangedEquipment(uint8 LocalIndex) override;
+	virtual void OnItemRemovedEquipment(uint8 LocalIndex) override;
+
+	virtual void OnServerItemAddedEquipment(uint8 LocalIndex) override;
+	virtual void OnServerItemChangedEquipment(uint8 LocalIndex) override;
+	virtual void OnServerItemRemovedEquipment(uint8 LocalIndex) override;
 
 	virtual void PostItemLoad();
+	virtual TSharedPtr<FJsonObject> SaveToJson() override;
 
 	virtual TArray<FARItemTooltipData> GetTooltipData() override;
+
 protected:
 };

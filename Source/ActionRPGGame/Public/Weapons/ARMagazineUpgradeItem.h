@@ -18,7 +18,7 @@ public:
 	/*
 		An actual modifier value of this upgrade.
 	*/
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, SaveGame)
 		float MagazineUpgradeValue;
 	/*
 		Effect template

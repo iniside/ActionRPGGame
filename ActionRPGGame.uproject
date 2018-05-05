@@ -208,6 +208,10 @@
 		{
 			"Name": "LiveLink",
 			"Enabled": true
+		},
+		{
+			"Name": "ReplicationGraph",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [

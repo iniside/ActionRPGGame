@@ -50,7 +50,7 @@ protected:
 	/*
 		Weapon item to which this abiliy belongs.
 	*/
-	UPROPERTY(BlueprintReadOnly, Category = "ActionRPGGame|Weapon")
+	UPROPERTY(BlueprintReadOnly, Transient, Category = "ActionRPGGame|Weapon")
 		class UARItemWeapon* WeaponItem;
 
 

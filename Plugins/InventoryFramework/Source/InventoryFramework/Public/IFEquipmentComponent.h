@@ -77,7 +77,7 @@ public:
 		void ClientRemoveFromEquipment(uint8 EquipmentIndex);
 	void ClientRemoveFromEquipment_Implementation(uint8 EquipmentIndex);
 
-
+	virtual void OnClientPreItemAdded(UIFItemBase* Item, uint8 Index) {};
 	virtual void OnItemAdded(UIFItemBase* Item, uint8 Index) {};
 	virtual void OnItemChanged(UIFItemBase* Item, uint8 Index) {};
 	virtual void OnItemRemoved(uint8 Index) {};

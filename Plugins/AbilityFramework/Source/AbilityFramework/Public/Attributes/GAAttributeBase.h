@@ -63,15 +63,15 @@ struct ABILITYFRAMEWORK_API FAFAttributeBase
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, SaveGame)
 		float BaseValue;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, SaveGame)
 		float MinValue;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, SaveGame)
 		float MaxValue;
-	UPROPERTY()
+	UPROPERTY(SaveGame)
 		float CurrentValue;
-	UPROPERTY()
+	UPROPERTY(SaveGame)
 		float BonusValue;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Value")
