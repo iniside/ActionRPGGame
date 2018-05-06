@@ -77,6 +77,10 @@ public:
 		void ClientRemoveFromEquipment(uint8 EquipmentIndex);
 	void ClientRemoveFromEquipment_Implementation(uint8 EquipmentIndex);
 
+	/*
+		Called on client, before request to server is send to add item to Equipment component.
+		Not called in standalone.
+	*/
 	virtual void OnClientPreItemAdded(UIFItemBase* Item, uint8 Index) {};
 	virtual void OnItemAdded(UIFItemBase* Item, uint8 Index) {};
 	virtual void OnItemChanged(UIFItemBase* Item, uint8 Index) {};

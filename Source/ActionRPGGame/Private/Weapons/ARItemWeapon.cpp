@@ -145,6 +145,10 @@ void UARItemWeapon::OnItemRemovedEquipment(uint8 LocalIndex)
 
 void UARItemWeapon::OnServerItemAddedEquipment(uint8 LocalIndex) 
 {
+	UARWeaponInventoryComponent* WeaponComponent = Cast<UARWeaponInventoryComponent>(GetOuter());
+	if (!WeaponComponent)
+		return;
+
 };
 void UARItemWeapon::OnServerItemChangedEquipment(uint8 LocalIndex) 
 {
