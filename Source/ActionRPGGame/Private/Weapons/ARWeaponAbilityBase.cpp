@@ -2,7 +2,10 @@
 
 #include "ARWeaponAbilityBase.h"
 #include "Effects/GABlueprintLibrary.h"
+
 #include "Weapons/ARItemWeapon.h"
+#include "Weapons/ARMagazineUpgradeItem.h"
+
 #include "ARCharacter.h"
 #include "ARWeaponBase.h"
 
@@ -74,7 +77,10 @@ void UARWeaponAbilityBase::ReloadWeapon()
 {
 
 }
-
+void UARWeaponAbilityBase::AddMagazineUpgrade(class UARMagazineUpgradeItem* InMagazineUpgrade)
+{
+	AddMagazineUpgrade(InMagazineUpgrade->UpgradeEffect, InMagazineUpgrade->MagazineUpgradeValue);
+}
 void UARWeaponAbilityBase::AddMagazineUpgrade(TSubclassOf<class UARMagazineUpgradeEffect> InMagazineUpgrade, float UpgradeValue)
 {
 	MagazineUpgradeProperty = InMagazineUpgrade;

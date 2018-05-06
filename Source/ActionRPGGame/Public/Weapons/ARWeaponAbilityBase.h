@@ -117,6 +117,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ActionRPGGame|Weapon")
 		void ReloadWeapon();
 
+	void AddMagazineUpgrade(class UARMagazineUpgradeItem* InMagazineUpgrade);
 	void AddMagazineUpgrade(TSubclassOf<class UARMagazineUpgradeEffect> InMagazineUpgrade, float UpgradeValue);
 	void RemoveMagazineUpgrade();
 protected:

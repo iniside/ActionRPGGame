@@ -65,6 +65,27 @@ void UGAAttributesBase::CopyFromOtherAttributes(UGAAttributesBase* Other)
 	}
 }
 
+void UGAAttributesBase::CopyFromStruct(UStruct* StructType, void* StructObject)
+{
+	for (TFieldIterator<UProperty> StrIt(StructType); StrIt; ++StrIt)
+	{
+		UProperty* Property = *StrIt;
+		if (UStructProperty* StructProp = Cast<UStructProperty>(Property))
+		{
+			FAFAttributeBase* StructAttr = StructProp->ContainerPtrToValuePtr<FAFAttributeBase>(StructObject);
+			UProperty* ThisProp = FindProperty(FGAAttribute(Property->GetFName()));
+			if (ThisProp)
+			{
+				FAFAttributeBase* ThisAttribute = ThisProp->ContainerPtrToValuePtr<FAFAttributeBase>(this);
+				if (StructAttr && ThisAttribute)
+				{
+					ThisAttribute->CopyFromOther(StructAttr);
+				}
+			}
+		}
+	}
+}
+
 void UGAAttributesBase::InitializeAttributesFromTable()
 {
 	if (!AttributeValues)

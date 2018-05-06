@@ -32,6 +32,7 @@ public class ActionRPGGame : ModuleRules
             "ActorSequence",
             "AbilityManager",
             "DraggableWindow",
+            "JsonUObject",
             "InventoryFramework",
             "InventoryFrameworkUI"
         });

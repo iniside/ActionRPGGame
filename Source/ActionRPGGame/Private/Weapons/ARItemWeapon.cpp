@@ -22,13 +22,12 @@ void UARItemWeapon::SetAbility(class UARWeaponAbilityBase* InAbility)
 {
 	AbilityInstance = InAbility;
 	AbilityInstance->SetWeaponItem(this);
-	if (Attributes)
+
+	if (AbilityInstance)
 	{
-		if (AbilityInstance)
-		{
-			AbilityInstance->GetAttributes()->CopyFromOtherAttributes(Attributes);
-		}
+		AbilityInstance->GetAttributes()->CopyFromStruct(FARGunAttributesItem::StaticStruct(), &GeneratedAttributes);
 	}
+	
 }
 void UARItemWeapon::AddMagazineUpgrade(class UARMagazineUpgradeItem* InMagazineUpgrade)
 {
@@ -68,27 +67,36 @@ UARMagazineUpgradeItem* UARItemWeapon::RemoveMagazineUpgrade()
 	return MagazineModification;
 }
 
-void UARItemWeapon::SpawnAbility()
+bool UARItemWeapon::SpawnAbility()
 {
-	UIFInventoryComponent* InventoryComp = Cast<UIFInventoryComponent>(GetOuter());
-	if (!InventoryComp)
-		return;
+	bool bSpawned = false;
+	
+	AARCharacter* Character = nullptr;
+	if (UIFInventoryComponent* InventoryComp = Cast<UIFInventoryComponent>(GetOuter()))
+	{
+		AARPlayerController* PC = Cast<AARPlayerController>(InventoryComp->GetOwner());
+		if (!PC)
+			return bSpawned;
 
-	AARPlayerController* PC = Cast<AARPlayerController>(InventoryComp->GetOwner());
-	if (!PC)
-		return;
-
-	AARCharacter* Character = Cast<AARCharacter>(PC->GetPawn());
-
+		Character = Cast<AARCharacter>(PC->GetPawn());
+	}
+	else if(UIFEquipmentComponent* EquipComp = Cast<UIFEquipmentComponent>(GetOuter()))
+	{
+		Character = Cast<AARCharacter>(EquipComp->GetOwner());
+	}
+	
 	if (!Character)
-		return;
+		return bSpawned;
 
 	TSubclassOf<UARWeaponAbilityBase> ABClass = Ability.LoadSynchronous();
 	if (ABClass)
 	{
 		AbilityInstance = NewObject<UARWeaponAbilityBase>(Character, ABClass);
-		AbilityInstance->GetAttributes()->CopyFromOtherAttributes(Attributes);
+		AbilityInstance->GetAttributes()->CopyFromStruct(FARGunAttributesItem::StaticStruct(), &GeneratedAttributes);
+		bSpawned = true;
 	}
+
+	return bSpawned;
 }
 
 void UARItemWeapon::OnItemAdded(uint8 LocalIndex)
@@ -133,20 +141,16 @@ void UARItemWeapon::OnServerItemRemovedEquipment(uint8 LocalIndex)
 
 void UARItemWeapon::PostItemLoad()
 {
-
+	if (SpawnAbility())
+	{
+		AbilityInstance->GetAttributes()->CopyFromStruct(FARGunAttributesItem::StaticStruct(), &GeneratedAttributes);
+		if (MagazineModification)
+		{
+			AbilityInstance->AddMagazineUpgrade(MagazineModification);
+		}
+	}
 }
-TSharedPtr<FJsonObject> UARItemWeapon::SaveToJson()
-{
-	typedef TJsonWriter< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriter;
-	typedef TJsonWriterFactory< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriterFactory;
 
-	TSharedPtr<FJsonObject> UObj = MakeShareable(new FJsonObject());
-	
-	FIFJsonSerializer::UObjectToJsonObject(GetClass(), this, UObj.ToSharedRef());
-	
-
-	return UObj;
-}
 TArray<FARItemTooltipData> UARItemWeapon::GetTooltipData()
 {
 	TArray<FARItemTooltipData> Data;

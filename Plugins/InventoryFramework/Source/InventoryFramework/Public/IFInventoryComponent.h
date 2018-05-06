@@ -233,5 +233,10 @@ public:
 	void ClientSendJsonData_Implementation(const FString& Data);
 
 	protected:
-		TSharedPtr<FJsonObject> SendToBackend(FIFItemData* Item);
+		void AddItem(TSoftClassPtr<class UIFItemBase> InItem, uint8 ItemIndex);
+		TSharedPtr<FJsonObject> ItemToJson(FIFItemData* Item);
+		FString JsonItemToString(TSharedPtr<FJsonObject> Object);
+		void SendToBackend(TSharedPtr<FJsonObject> JsonObj, int32 Idx);
+
+		FIFItemData JsonToItem(const FString& JsonString);
 };

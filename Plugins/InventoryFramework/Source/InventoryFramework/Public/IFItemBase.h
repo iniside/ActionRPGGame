@@ -36,6 +36,8 @@ public:
 	
 	bool CallRemoteFunction(UFunction* Function, void* Parameters, FOutParmRec* OutParms, FFrame* Stack) override;
 
+	virtual void OnServerItemLoaded() {};
+
 	/*
 		Called after item has been added to inventory.
 	*/
@@ -100,7 +102,6 @@ public:
 	virtual void PreItemLoad() {};
 
 	virtual void PostItemLoad() {};
-	virtual TSharedPtr<FJsonObject> SaveToJson() { return nullptr; }
 	static UIFItemBase* LoadFromJSON() { return nullptr; }
 
 };

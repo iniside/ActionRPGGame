@@ -5,6 +5,8 @@
 #include "GameFramework/Actor.h"
 #include "Engine/AssetManager.h"
 
+#include "JsonUOSerialize.h"
+
 #include "JsonObjectConverter.h"
 
 #include "IFItemBase.h"
@@ -275,7 +277,8 @@ void UIFInventoryComponent::ServerAddItemFromEquipmentAnySlot_Implementation(cla
 	OnServerItemAdded(InventoryItems[FreeSlot].Item, FreeSlot);
 	ClientAddItemFromEquipmentAnySlot(Source, SourceIndex, FreeSlot);
 
-	SendToBackend(&InventoryItems[FreeSlot]);
+	TSharedPtr<FJsonObject> Obj = ItemToJson(&InventoryItems[FreeSlot]);
+	SendToBackend(Obj, FreeSlot);
 }
 bool UIFInventoryComponent::ServerAddItemFromEquipmentAnySlot_Validate(class UIFEquipmentComponent* Source, uint8 SourceIndex)
 {
@@ -311,14 +314,10 @@ void UIFInventoryComponent::AddItemAnySlot(class UIFItemBase* Source)
 	InventoryItems[FreeSlot].Item = DuplicateObject<UIFItemBase>(Source, this);
 	Source->MarkPendingKill();
 
-	typedef TJsonWriter< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriter;
-	typedef TJsonWriterFactory< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriterFactory;
+	TSharedPtr<FJsonObject> Obj = ItemToJson(&InventoryItems[FreeSlot]);
+	SendToBackend(Obj, FreeSlot);
 
-	TSharedPtr<FJsonObject> Obj = SendToBackend(&InventoryItems[FreeSlot]);
-
-	FString OutputString;
-	TSharedRef< FPrettyJsonStringWriter > Writer = FPrettyJsonStringWriterFactory::Create(&OutputString);
-	check(FJsonSerializer::Serialize(Obj.ToSharedRef(), Writer));
+	FString OutputString = JsonItemToString(Obj);
 
 	InventoryItems[FreeSlot].Item->OnServerItemAdded(FreeSlot);
 	OnServerItemAdded(InventoryItems[FreeSlot].Item, FreeSlot);
@@ -327,17 +326,7 @@ void UIFInventoryComponent::AddItemAnySlot(class UIFItemBase* Source)
 }
 void UIFInventoryComponent::ClientAddAnySlot_Implementation(const FString& JsonData, uint8 InventoryIndex)
 {
-	TSharedRef< TJsonReader<> > Reader = TJsonReaderFactory<>::Create(JsonData);
-
-	TSharedPtr<FJsonObject> Object = MakeShareable(new FJsonObject());
-
-	bool bSuccessful = FJsonSerializer::Deserialize(Reader, Object);
-
-	TArray< TSharedPtr<FJsonValue> > Array;
-	bool bSuccessful2 = FJsonSerializer::Deserialize(Reader, Array);
-
-	FIFItemData Item;
-	FJsonObjectConverter::JsonObjectToUStruct(Object.ToSharedRef(), FIFItemData::StaticStruct(), &Item, 0, 0);
+	FIFItemData Item = JsonToItem(JsonData);
 
 	if (Item.Item)
 	{
@@ -389,9 +378,7 @@ void UIFInventoryComponent::ClientRemoveItem_Implementation(uint8 InIndex)
 }
 void UIFInventoryComponent::OnItemLoadedFreeSlot(TSoftClassPtr<class UIFItemBase> InItem)
 {
-	TSubclassOf<UIFItemBase> ItemClass = InItem.Get();
-
-	FIFItemData Item;
+	
 	uint8 FreeIndex = 0;
 
 	for (uint8 Idx = 0; Idx < InventoryItems.Num(); Idx++)
@@ -402,107 +389,107 @@ void UIFInventoryComponent::OnItemLoadedFreeSlot(TSoftClassPtr<class UIFItemBase
 			break;
 		}
 	}
-	Item.Index = FreeIndex;
-	Item.Item = NewObject<UIFItemBase>(this, ItemClass);
-	
-	InventoryItems[Item.Index] = Item;
-	InventoryItems[Item.Index].Item->OnServerItemAdded(Item.Index);
-	OnServerItemAdded(InventoryItems[Item.Index].Item, Item.Index);
-
-	typedef TJsonWriter< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriter;
-	typedef TJsonWriterFactory< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriterFactory;
-
-	TSharedPtr<FJsonObject> Obj = SendToBackend(&InventoryItems[Item.Index]);
-
-	FString OutputString;
-	TSharedRef< FPrettyJsonStringWriter > Writer = FPrettyJsonStringWriterFactory::Create(&OutputString);
-	check(FJsonSerializer::Serialize(Obj.ToSharedRef(), Writer));
-
-	FStreamableManager& Manager = UAssetManager::GetStreamableManager();
-	Manager.Unload(InItem.ToSoftObjectPath());
-
-	UE_LOG(IFLog, Log, TEXT("ItemLoaded %s "), *OutputString);
-
-
-
-	ClientSendJsonData(OutputString);
+	AddItem(InItem, FreeIndex);
 }
 void UIFInventoryComponent::OnItemLoaded(TSoftClassPtr<class UIFItemBase> InItem, uint8 InNetIndex)
 {
-	TSubclassOf<UIFItemBase> ItemClass = InItem.Get();
-
-	UIFItemBase* ItemObj = NewObject<UIFItemBase>(this, ItemClass);
-
-	InventoryItems[InNetIndex].Item = ItemObj;
-
-	InventoryItems[InNetIndex].Item->OnServerItemAdded(InNetIndex);
-	OnServerItemAdded(InventoryItems[InNetIndex].Item, InNetIndex);
-
-	typedef TJsonWriter< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriter;
-	typedef TJsonWriterFactory< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriterFactory;
-
-	TSharedPtr<FJsonObject> Obj = SendToBackend(&InventoryItems[InNetIndex]);
-
-	FString OutputString;
-	TSharedRef< FPrettyJsonStringWriter > Writer = FPrettyJsonStringWriterFactory::Create(&OutputString);
-	check(FJsonSerializer::Serialize(Obj.ToSharedRef(), Writer));
-	
-	UE_LOG(IFLog, Log, TEXT("ItemLoaded %s "), *OutputString);
-
-	ClientSendJsonData(OutputString);
-
-	FStreamableManager& Manager = UAssetManager::GetStreamableManager();
-	Manager.Unload(InItem.ToSoftObjectPath());
+	AddItem(InItem, InNetIndex);
 }
 
 void UIFInventoryComponent::ClientSendJsonData_Implementation(const FString& Data)
 {
-	TSharedRef< TJsonReader<> > Reader = TJsonReaderFactory<>::Create(Data);
-
-	TSharedPtr<FJsonObject> Object = MakeShareable(new FJsonObject());
-
-	bool bSuccessful = FJsonSerializer::Deserialize(Reader, Object);
-
-
-	TSharedPtr<FJsonObject> itemField = Object->GetObjectField("item");
-	FString objClassStr = itemField->GetStringField("objectClass");
-
-	FSoftClassPath path(objClassStr);
-	
-	//FStreamableManager& Manager = UAssetManager::GetStreamableManager();
-	UClass* itemCls = Cast<UClass>(path.TryLoad());
-	UObject* OutObj = nullptr;
-	FIFJsonSerializer::JsonObjectToUObject(itemField, OutObj, this);
-	FIFItemData Item;
-	FJsonObjectConverter::JsonObjectToUStruct(Object.ToSharedRef(), FIFItemData::StaticStruct(), &Item, 0, 0);
-
+	FIFItemData Item = JsonToItem(Data);
 	if (Item.Item)
 	{
 		Item.Item->PostItemLoad();
+		Item.Item->OnItemAdded(Item.Index);
+
 		InventoryItems[Item.Index] = Item;
 		OnItemAddedEvent.Broadcast(Item.Index, Item.Index, Item.Item);
 		OnItemUpdatedEvent.Broadcast(Item.Index, Item.Index, Item.Item);
-		InventoryItems[Item.Index].Item->OnItemAdded(Item.Index);
+
 		OnItemAdded(InventoryItems[Item.Index].Item, Item.Index);
 	}
-	
 }
 
-TSharedPtr<FJsonObject> UIFInventoryComponent::SendToBackend(FIFItemData* Item)
+void UIFInventoryComponent::AddItem(TSoftClassPtr<class UIFItemBase> InItem, uint8 ItemIndex)
+{
+	TSubclassOf<UIFItemBase> ItemClass = InItem.Get();
+	FIFItemData Item;
+	Item.Index = ItemIndex;
+	Item.Item = NewObject<UIFItemBase>(this, ItemClass);
+	Item.Item->OnServerItemLoaded();
+
+	InventoryItems[Item.Index] = Item;
+	InventoryItems[Item.Index].Item->OnServerItemAdded(Item.Index);
+	OnServerItemAdded(InventoryItems[Item.Index].Item, Item.Index);
+
+	TSharedPtr<FJsonObject> Obj = ItemToJson(&InventoryItems[Item.Index]);
+	SendToBackend(Obj, Item.Index);
+
+	FString OutputString = JsonItemToString(Obj);
+
+	UE_LOG(IFLog, Log, TEXT("ItemLoaded %s "), *OutputString);
+	ClientSendJsonData(OutputString);
+
+	FStreamableManager& Manager = UAssetManager::GetStreamableManager();
+	Manager.Unload(InItem.ToSoftObjectPath());
+}
+
+TSharedPtr<FJsonObject> UIFInventoryComponent::ItemToJson(FIFItemData* Item)
 {
 	typedef TJsonWriter< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriter;
 	typedef TJsonWriterFactory< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriterFactory;
 
 	TSharedPtr<FJsonObject> Obj = MakeShareable(new FJsonObject());
-	//FJsonObjectConverter::UStructToJsonObject(FIFItemData::StaticStruct(), Item, Obj.ToSharedRef(), 0, 0);
 	TSharedPtr<FJsonObject> UObj = MakeShareable(new FJsonObject());
 	if (Item->Item)
 	{
-		UObj = Item->Item->SaveToJson();
+		FJsonUOSerialize::UObjectToJsonObject(Item->Item->GetClass(), Item->Item, UObj.ToSharedRef());
+		//UObj = Item->Item->SaveToJson();
 	}
 	Obj->Values.Add(FString("index"), MakeShareable(new FJsonValueNumber(Item->Index)));
 	Obj->Values.Add(FString("item"), MakeShareable(new FJsonValueObject(UObj)));
 	FakeBackend[Item->Index] = Obj;
 
 	return Obj;
+}
+FString UIFInventoryComponent::JsonItemToString(TSharedPtr<FJsonObject> Object)
+{
+	typedef TJsonWriter< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriter;
+	typedef TJsonWriterFactory< TCHAR, TPrettyJsonPrintPolicy<TCHAR> > FPrettyJsonStringWriterFactory;
+
+	FString OutputString;
+	TSharedRef< FPrettyJsonStringWriter > Writer = FPrettyJsonStringWriterFactory::Create(&OutputString);
+	check(FJsonSerializer::Serialize(Object.ToSharedRef(), Writer));
+
+	return OutputString;
+}
+void UIFInventoryComponent::SendToBackend(TSharedPtr<FJsonObject> JsonObj, int32 Idx)
+{
+	FakeBackend[Idx] = JsonObj;
+}
+
+FIFItemData UIFInventoryComponent::JsonToItem(const FString& JsonString)
+{
+	TSharedRef< TJsonReader<> > Reader = TJsonReaderFactory<>::Create(JsonString);
+
+	TSharedPtr<FJsonObject> Object = MakeShareable(new FJsonObject());
+
+	bool bSuccessful = FJsonSerializer::Deserialize(Reader, Object);
+
+	TSharedPtr<FJsonObject> itemField = Object->GetObjectField("item");
+	FString objClassStr = itemField->GetStringField("objectClass");
+	int32 idx = Object->GetIntegerField("index");
+
+	FSoftClassPath path(objClassStr);
+
+	UClass* itemCls = Cast<UClass>(path.TryLoad());
+	UObject* OutObj = nullptr;
+	FIFJsonSerializer::JsonObjectToUObject(itemField, OutObj, this);
+	FIFItemData Item;
+	Item.Index = idx;
+	Item.Item = Cast<UIFItemBase>(OutObj);
+
+	return Item;
 }

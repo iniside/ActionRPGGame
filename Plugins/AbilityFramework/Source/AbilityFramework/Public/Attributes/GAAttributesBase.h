@@ -56,6 +56,12 @@ public:
 	//virtual void PostNetReceive() override;
 	virtual void InitializeAttributes(UAFAbilityComponent* InOwningAttributeComp);
 	void CopyFromOtherAttributes(UGAAttributesBase* Other);
+
+	/*
+		Copy attributes from arbitrary struct.
+		Struct must be composed from FAFAttributeBase (or it's derivative) fields.
+	*/
+	void CopyFromStruct(UStruct* StructType, void* StructObject);
 	void InitializeAttributesFromTable();
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Initialize Attributes"))
 		bool BP_InitializeAttributes();

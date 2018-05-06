@@ -1,16 +1,16 @@
-// Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
 
-public class InventoryFramework : ModuleRules
+public class JsonUObject : ModuleRules
 {
-	public InventoryFramework(ReadOnlyTargetRules Target) : base(Target)
+	public JsonUObject(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;	
+		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
-				"InventoryFramework/Private",
+				"JsonUObject/Private",
 				// ... add other private include paths required here ...
 			}
 			);
@@ -33,8 +33,7 @@ public class InventoryFramework : ModuleRules
 				"Slate",
 				"SlateCore",
                 "Json",
-                "JsonUtilities",
-                "JsonUObject"
+                "JsonUtilities"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

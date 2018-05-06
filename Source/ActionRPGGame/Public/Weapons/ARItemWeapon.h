@@ -26,17 +26,14 @@ class ACTIONRPGGAME_API UARItemWeapon : public UARItemBase
 public:
 	UPROPERTY(EditAnywhere, Category = "Ability")
 		TSoftClassPtr<class UARWeaponAbilityBase> Ability;
-	
+	UPROPERTY(EditAnywhere, SaveGame, Category = "Ability")
+		FARGunAttributesItem GeneratedAttributes;
+
 	UPROPERTY(EditAnywhere, Category = "Visual")
 		TSoftClassPtr<class AARWeaponBase> Weapon;
 
 
-	/* 
-		Values from these attributes will be copied to ability, after ability is instanced.
-		It's here to allow random generation and easily store that information in Database instead of storing ability.
-	*/
-	UPROPERTY(EditAnywhere, SaveGame, Instanced, Category = "Attributes")
-		class UARGunAttributes* Attributes;
+
 
 	UPROPERTY(EditAnywhere, Category = "Transforms")
 		FVector HolsteredPosition;
@@ -48,7 +45,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Transforms")
 		FRotator EquipedRotation;
 
-	UPROPERTY(BlueprintReadOnly, SaveGame, Category = "Ability")
+	UPROPERTY(BlueprintReadOnly, Transient, Category = "Ability")
 		UARWeaponAbilityBase* AbilityInstance;
 
 	UPROPERTY(BlueprintReadOnly, SaveGame, Category = "Ability")
@@ -64,7 +61,7 @@ public:
 
 	UARMagazineUpgradeItem* RemoveMagazineUpgrade();
 
-	void SpawnAbility();
+	bool SpawnAbility();
 
 	virtual void OnItemAdded(uint8 LocalIndex) override;
 	virtual void OnItemRemoved(uint8 LocalIndex) override;
@@ -82,7 +79,6 @@ public:
 	virtual void OnServerItemRemovedEquipment(uint8 LocalIndex) override;
 
 	virtual void PostItemLoad();
-	virtual TSharedPtr<FJsonObject> SaveToJson() override;
 
 	virtual TArray<FARItemTooltipData> GetTooltipData() override;
 

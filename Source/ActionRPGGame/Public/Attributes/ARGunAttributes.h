@@ -6,6 +6,33 @@
 #include "Attributes/GAAttributesBase.h"
 #include "ARGunAttributes.generated.h"
 
+
+/*
+	Mirror of Attribute Object to be used inside Items.
+*/
+USTRUCT()
+struct ACTIONRPGGAME_API FARGunAttributesItem
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, SaveGame, Category = "Base")
+		FAFAttributeBase BaseDamage;
+	UPROPERTY(EditAnywhere, SaveGame, Category = "Base")
+		FAFAttributeBase CritChance;
+	UPROPERTY(EditAnywhere, SaveGame, Category = "Base")
+		FAFAttributeBase Magazine;
+	UPROPERTY(EditAnywhere, SaveGame, Category = "Base")
+		FAFAttributeBase RateOfFire;
+	UPROPERTY(EditAnywhere, SaveGame, Category = "Base")
+		FAFAttributeBase ReloadSpeed;
+	UPROPERTY(EditAnywhere, SaveGame, Category = "Base")
+		FAFAttributeBase HorizontalStability;
+	UPROPERTY(EditAnywhere, SaveGame, Category = "Base")
+		FAFAttributeBase VerticalStability;
+	UPROPERTY(EditAnywhere, SaveGame, Category = "Base")
+		FAFAttributeBase Spread;
+};
+
 /**
  * 1. Register FAFReplicationHandle with attribute change.
  * 2. If handle is valid then attribute change is also valid (for attribute prediction)
