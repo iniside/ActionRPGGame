@@ -346,21 +346,22 @@ void UIFInventoryComponent::RemoveItem(uint8 InIndex)
 		return;
 	}
 	//remove from backend
+	OnItemRemoved(InventoryItems[InIndex].Item, InIndex);
 	if (InventoryItems[InIndex].Item)
 		InventoryItems[InIndex].Item->MarkPendingKill();
 
 	InventoryItems[InIndex].Item = nullptr;
-	OnServerItemRemoved(InIndex);
 	ClientRemoveItem(InIndex);
 }
 void UIFInventoryComponent::ServerRemoveItem_Implementation(uint8 InIndex)
 {
+	OnServerItemRemoved(InventoryItems[InIndex].Item, InIndex);
 	InventoryItems[InIndex].Item->OnServerItemRemoved(InIndex);
 	if (InventoryItems[InIndex].Item)
 		InventoryItems[InIndex].Item->MarkPendingKill();
 
 	InventoryItems[InIndex].Item = nullptr;
-	OnServerItemRemoved(InIndex);
+	
 	ClientRemoveItem(InIndex);
 }
 bool UIFInventoryComponent::ServerRemoveItem_Validate(uint8 InIndex)
@@ -370,11 +371,12 @@ bool UIFInventoryComponent::ServerRemoveItem_Validate(uint8 InIndex)
 void UIFInventoryComponent::ClientRemoveItem_Implementation(uint8 InIndex)
 {
 	InventoryItems[InIndex].Item->OnItemRemoved(InIndex);
+	OnItemRemoved(InventoryItems[InIndex].Item, InIndex);
 	if (InventoryItems[InIndex].Item)
 		InventoryItems[InIndex].Item->MarkPendingKill();
 
 	InventoryItems[InIndex].Item = nullptr;
-	OnItemRemoved(InIndex);
+	
 }
 void UIFInventoryComponent::OnItemLoadedFreeSlot(TSoftClassPtr<class UIFItemBase> InItem)
 {
@@ -399,9 +401,9 @@ void UIFInventoryComponent::OnItemLoaded(TSoftClassPtr<class UIFItemBase> InItem
 void UIFInventoryComponent::ClientSendJsonData_Implementation(const FString& Data)
 {
 	FIFItemData Item = JsonToItem(Data);
+	Item.Item->ClientPostItemDeserializeFromJson();
 	if (Item.Item)
 	{
-		Item.Item->PostItemLoad();
 		Item.Item->OnItemAdded(Item.Index);
 
 		InventoryItems[Item.Index] = Item;
@@ -445,6 +447,7 @@ TSharedPtr<FJsonObject> UIFInventoryComponent::ItemToJson(FIFItemData* Item)
 	TSharedPtr<FJsonObject> UObj = MakeShareable(new FJsonObject());
 	if (Item->Item)
 	{
+		Item->Item->PreItemSerializeToJson();
 		FJsonUOSerialize::UObjectToJsonObject(Item->Item->GetClass(), Item->Item, UObj.ToSharedRef());
 		//UObj = Item->Item->SaveToJson();
 	}
@@ -490,6 +493,6 @@ FIFItemData UIFInventoryComponent::JsonToItem(const FString& JsonString)
 	FIFItemData Item;
 	Item.Index = idx;
 	Item.Item = Cast<UIFItemBase>(OutObj);
-
+	
 	return Item;
 }

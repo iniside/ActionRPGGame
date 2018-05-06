@@ -36,6 +36,9 @@ public:
 	
 	bool CallRemoteFunction(UFunction* Function, void* Parameters, FOutParmRec* OutParms, FFrame* Stack) override;
 
+	/*
+		Called just fater NewObject<> On server or in standalone.
+	*/
 	virtual void OnServerItemLoaded() {};
 
 	/*
@@ -98,10 +101,10 @@ public:
 	*/
 	virtual void OnServerItemRemovedEquipment(uint8 LocalIndex) {};
 
-
+	virtual void PreItemSerializeToJson() {};
 	virtual void PreItemLoad() {};
 
-	virtual void PostItemLoad() {};
+	virtual void ClientPostItemDeserializeFromJson() {};
 	static UIFItemBase* LoadFromJSON() { return nullptr; }
 
 };

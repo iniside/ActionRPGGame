@@ -70,7 +70,10 @@ UARMagazineUpgradeItem* UARItemWeapon::RemoveMagazineUpgrade()
 bool UARItemWeapon::SpawnAbility()
 {
 	bool bSpawned = false;
-	
+
+	if (AbilityInstance)
+		return true;
+
 	AARCharacter* Character = nullptr;
 	if (UIFInventoryComponent* InventoryComp = Cast<UIFInventoryComponent>(GetOuter()))
 	{
@@ -93,12 +96,24 @@ bool UARItemWeapon::SpawnAbility()
 	{
 		AbilityInstance = NewObject<UARWeaponAbilityBase>(Character, ABClass);
 		AbilityInstance->GetAttributes()->CopyFromStruct(FARGunAttributesItem::StaticStruct(), &GeneratedAttributes);
+		if (MagazineModification)
+		{
+			AbilityInstance->AddMagazineUpgrade(MagazineModification);
+		}
 		bSpawned = true;
 	}
 
 	return bSpawned;
 }
-
+void UARItemWeapon::OnServerItemLoaded()
+{
+	/*
+		1. Generate Weapon Stats here.
+		2. Add random perks (weapon)
+		3. Add random attributes to give (Character).
+		4. Add random effects to give (Character).
+	*/
+}
 void UARItemWeapon::OnItemAdded(uint8 LocalIndex)
 {
 	SpawnAbility();
@@ -120,7 +135,6 @@ void UARItemWeapon::OnServerItemRemoved(uint8 LocalIndex)
 
 void UARItemWeapon::OnItemAddedEquipment(uint8 LocalIndex) 
 {
-
 };
 void UARItemWeapon::OnItemChangedEquipment(uint8 LocalIndex) 
 {
@@ -139,16 +153,8 @@ void UARItemWeapon::OnServerItemRemovedEquipment(uint8 LocalIndex)
 {
 };
 
-void UARItemWeapon::PostItemLoad()
+void UARItemWeapon::ClientPostItemDeserializeFromJson()
 {
-	if (SpawnAbility())
-	{
-		AbilityInstance->GetAttributes()->CopyFromStruct(FARGunAttributesItem::StaticStruct(), &GeneratedAttributes);
-		if (MagazineModification)
-		{
-			AbilityInstance->AddMagazineUpgrade(MagazineModification);
-		}
-	}
 }
 
 TArray<FARItemTooltipData> UARItemWeapon::GetTooltipData()

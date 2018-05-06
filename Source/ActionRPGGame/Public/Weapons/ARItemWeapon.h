@@ -48,6 +48,8 @@ public:
 	UPROPERTY(BlueprintReadOnly, Transient, Category = "Ability")
 		UARWeaponAbilityBase* AbilityInstance;
 
+	//possibly replace with struct containing identical fields.
+	//so it can be easier serialized and saved.
 	UPROPERTY(BlueprintReadOnly, SaveGame, Category = "Ability")
 		class UARMagazineUpgradeItem* MagazineModification;
 
@@ -62,6 +64,8 @@ public:
 	UARMagazineUpgradeItem* RemoveMagazineUpgrade();
 
 	bool SpawnAbility();
+
+	virtual void OnServerItemLoaded() override;
 
 	virtual void OnItemAdded(uint8 LocalIndex) override;
 	virtual void OnItemRemoved(uint8 LocalIndex) override;
@@ -78,7 +82,7 @@ public:
 	virtual void OnServerItemChangedEquipment(uint8 LocalIndex) override;
 	virtual void OnServerItemRemovedEquipment(uint8 LocalIndex) override;
 
-	virtual void PostItemLoad();
+	virtual void ClientPostItemDeserializeFromJson();
 
 	virtual TArray<FARItemTooltipData> GetTooltipData() override;
 

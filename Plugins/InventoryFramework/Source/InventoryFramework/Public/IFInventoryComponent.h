@@ -202,12 +202,12 @@ public:
 
 	virtual void OnItemAdded(UIFItemBase* Item, uint8 LocalIndex) {};
 	virtual void OnItemChanged(UIFItemBase* Item, uint8 LocalIndex) {};
-	virtual void OnItemRemoved(uint8 LocalIndex) {};
+	virtual void OnItemRemoved(UIFItemBase* Item, uint8 LocalIndex) {};
 
 	//these function are called on server.
 	virtual void OnServerItemAdded(UIFItemBase* Item, uint8 LocalIndex) {};
 	virtual void OnServerItemChanged(UIFItemBase* Item, uint8 LocalIndex) {};
-	virtual void OnServerItemRemoved(uint8 LocalIndex) {};
+	virtual void OnServerItemRemoved(UIFItemBase* Item, uint8 LocalIndex) {};
 
 	void RemoveItem(uint8 InIndex);
 	UFUNCTION(Server, Reliable, WithValidation)

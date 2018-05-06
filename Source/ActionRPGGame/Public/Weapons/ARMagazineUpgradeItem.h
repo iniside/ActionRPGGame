@@ -20,6 +20,9 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, SaveGame)
 		float MagazineUpgradeValue;
+
+	UPROPERTY(EditAnywhere)
+		EGAAttributeMod ModType;
 	/*
 		Effect template
 	*/
