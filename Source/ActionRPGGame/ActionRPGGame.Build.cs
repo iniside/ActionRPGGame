@@ -34,7 +34,10 @@ public class ActionRPGGame : ModuleRules
             "DraggableWindow",
             "JsonUObject",
             "InventoryFramework",
-            "InventoryFrameworkUI"
+            "InventoryFrameworkUI",
+			"GameSparks",
+			"OnlineSubsystem",
+			"OnlineSubsystemGameSparks"
         });
         if (Target.Type == TargetRules.TargetType.Editor)
         {
