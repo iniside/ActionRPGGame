@@ -67,20 +67,20 @@ public:
 
 	virtual void OnServerItemLoaded() override;
 
-	virtual void OnItemAdded(uint8 LocalIndex) override;
-	virtual void OnItemRemoved(uint8 LocalIndex) override;
+	virtual void OnItemAdded(uint8 InIndex) override;
+	virtual void OnItemRemoved(uint8 InIndex) override;
 
-	virtual void OnServerItemAdded(uint8 LocalIndex) override;
-	virtual void OnServerItemChanged(uint8 LocalIndex) override;
-	virtual void OnServerItemRemoved(uint8 LocalIndex) override;
+	virtual void OnServerItemAdded(uint8 InIndex) override;
+	virtual void OnServerItemChanged(uint8 InIndex) override;
+	virtual void OnServerItemRemoved(uint8 InIndex) override;
 
-	virtual void OnItemAddedEquipment(uint8 LocalIndex) override;
-	virtual void OnItemChangedEquipment(uint8 LocalIndex) override;
-	virtual void OnItemRemovedEquipment(uint8 LocalIndex) override;
+	virtual void OnItemAddedEquipment(uint8 InIndex) override;
+	virtual void OnItemChangedEquipment(uint8 InIndex) override;
+	virtual void OnItemRemovedEquipment(uint8 InIndex) override;
 
-	virtual void OnServerItemAddedEquipment(uint8 LocalIndex) override;
-	virtual void OnServerItemChangedEquipment(uint8 LocalIndex) override;
-	virtual void OnServerItemRemovedEquipment(uint8 LocalIndex) override;
+	virtual void OnServerItemAddedEquipment(uint8 InIndex) override;
+	virtual void OnServerItemChangedEquipment(uint8 InIndex) override;
+	virtual void OnServerItemRemovedEquipment(uint8 InIndex) override;
 
 	virtual void ClientPostItemDeserializeFromJson();
 

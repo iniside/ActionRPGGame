@@ -14,12 +14,4 @@ AARGameMode::AARGameMode()
 void AARGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	UARGameInstance* GSI = Cast<UARGameInstance>(GetGameInstance());
-
-	//Set the OnAvailable delegate
-	GSI->GetGSObject()->OnGameSparksAvailableDelegate.AddDynamic(GSI, &UARGameInstance::OnGameSparksAvailable);
-	//Disconnected the module just incase it's connected (Refresh)
-	GSI->GetGSObject()->Disconnect();
-	//Connect module
-	GSI->GetGSObject()->Connect("key", "secret");
 }

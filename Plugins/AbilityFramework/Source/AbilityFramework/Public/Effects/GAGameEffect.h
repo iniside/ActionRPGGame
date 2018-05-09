@@ -667,12 +667,12 @@ public:
 		UObject* Target
 		, const FGAEffectHandle& InHandle
 		, const FAFContextHandle& Context
-		, const FAFEffectSpecHandle& Spec)
+		, const FAFEffectSpecHandle& InSpec)
 	{
 		if (bInstant)
 		{
 			InstantContext = Context;
-			InstantEffectSpec = Spec;
+			InstantEffectSpec = InSpec;
 			return;
 		}
 		if (HandleToTarget.Contains(InHandle))
@@ -683,7 +683,7 @@ public:
 
 		AddHandle(Target, InHandle);
 		AddContext(InHandle, Context);
-		AddEffectSpec(InHandle, Spec);
+		AddEffectSpec(InHandle, InSpec);
 	}
 
 	void AddHandle(UObject* Target, const FGAEffectHandle& InHandle)
@@ -753,10 +753,10 @@ public:
 		{
 			return InstantEffectSpec;
 		}
-		FAFEffectSpecHandle* Spec = EffectSpecs.Find(InHandle);
-		if (Spec)
+		FAFEffectSpecHandle* SpecLocal = EffectSpecs.Find(InHandle);
+		if (SpecLocal)
 		{
-			return *Spec;
+			return *SpecLocal;
 		}
 		return InstantEffectSpec;
 	}
@@ -766,10 +766,10 @@ public:
 		{
 			return InstantEffectSpec;
 		}
-		const FAFEffectSpecHandle* Spec = EffectSpecs.Find(InHandle);
-		if (Spec)
+		const FAFEffectSpecHandle* SpecLocal = EffectSpecs.Find(InHandle);
+		if (SpecLocal)
 		{
-			return *Spec;
+			return *SpecLocal;
 		}
 		return InstantEffectSpec;
 	}
@@ -1038,8 +1038,8 @@ public:
 	FAFEffectParams()
 	{};
 	FAFEffectParams(FAFPropertytHandle InProperty)
-		: bRecreated(false)
-		, Property(InProperty)
+		: Property(InProperty)
+		, bRecreated(false)
 	{};
 
 	FGAEffectContext & GetContext()

@@ -163,66 +163,6 @@ void AARPlayerController::OnInputAbilityReady(TSoftClassPtr<UGAAbilityBase> InAb
 	AbilityComp->SetAbilityToAction(InAbilityTag, Inputs, FAFOnAbilityReady());
 }
 
-#if WITH_EDITOR
-/* Get Screen Percentage */
-static const auto CVarScreenPercentage = IConsoleManager::Get().FindTConsoleVariableDataFloat(TEXT("r.SCreenPercentage"));
-#endif WITH_EDITOR
-
-float AARPlayerController::GetObjectScreenRadius(AActor* InActor)
-{
-	float ScreenRadius;
-	int32 Width, Height;
-	FVector Viewlocation;
-	FRotator ViewRotation; // Not Used, but required for Function call
-	float CamFOV = 90.0f; //TODO: Replace With Function that returns camera FOV
-#if WITH_EDITOR
-	float ScreenPerc = CVarScreenPercentage->GetValueOnGameThread() / 100.0f;
-#endif WITH_EDITOR
-
-	/* Get the size of the viewport, and the player cameras location. */
-	GetViewportSize(Width, Height);
-	GetPlayerViewPoint(Viewlocation, ViewRotation);
-
-#if WITH_EDITOR
-	/* Factor in Screen Percentage & Quality Settings */
-	Width *= ScreenPerc;
-	Height *= ScreenPerc;
-#endif WITH_EDITOR
-
-	/* Easy Way To Return The Size, Create a vector and scale it. Alternative would be to use FMath::Max3 */
-	float SRad = FVector2D(Width, Height).Size();
-
-	/* Get Object Bounds (R) */
-	float BoundingRadius = InActor->GetRootComponent()->Bounds.SphereRadius;
-	float DistanceToObject = FVector(InActor->GetActorLocation() - Viewlocation).Size();
-
-	/* Get Projected Screen Radius */
-	ScreenRadius = FMath::Atan(BoundingRadius / DistanceToObject);
-	ScreenRadius *= SRad / FMath::DegreesToRadians(CamFOV);
-
-	return ScreenRadius;
-}
-void AARPlayerController::GetObjectBoundSphere(float Distance, AActor* InActor, FVector& Origin, float& Radius, float& Scale
-	, float& SphereRadius)
-{
-	const FMinimalViewInfo& ViewInfo = PlayerCameraManager->GetLastFrameCameraCachePOV();
-	FMatrix Proj = ViewInfo.CalculateProjectionMatrix();
-	const float ScreenMultiple = FMath::Max(0.5f * Proj.M[0][0], 0.5f * Proj.M[1][1]);
-	if (ACharacter* Character = Cast<ACharacter>(InActor))
-	{
-		Origin = Character->GetMesh()->Bounds.Origin;
-		Radius = Character->GetMesh()->Bounds.SphereRadius;
-		Scale = ScreenMultiple;
-		SphereRadius = ScreenMultiple * Radius / FMath::Max(1.0f, Distance);
-		return;
-	}
-	
-	Scale = ScreenMultiple;
-	Origin = InActor->GetRootComponent()->Bounds.Origin;
-	Radius = InActor->GetRootComponent()->Bounds.SphereRadius;
-	SphereRadius = ScreenMultiple * Radius / FMath::Max(1.0f, Distance);
-}
-
 
 /* IIFInventoryInterface */
 void AARPlayerController::OnInventoryReplicated(class UIFInventoryComponent* Inventory)

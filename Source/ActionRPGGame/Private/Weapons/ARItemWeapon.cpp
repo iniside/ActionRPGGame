@@ -114,46 +114,46 @@ void UARItemWeapon::OnServerItemLoaded()
 		4. Add random effects to give (Character).
 	*/
 }
-void UARItemWeapon::OnItemAdded(uint8 LocalIndex)
+void UARItemWeapon::OnItemAdded(uint8 InIndex)
 {
 	SpawnAbility();
 }
-void UARItemWeapon::OnItemRemoved(uint8 LocalIndex)
+void UARItemWeapon::OnItemRemoved(uint8 InIndex)
 {
 
 }
-void UARItemWeapon::OnServerItemAdded(uint8 LocalIndex)
+void UARItemWeapon::OnServerItemAdded(uint8 InIndex)
 {
 	SpawnAbility();
 }
-void UARItemWeapon::OnServerItemChanged(uint8 LocalIndex)
+void UARItemWeapon::OnServerItemChanged(uint8 InIndex)
 {
 }
-void UARItemWeapon::OnServerItemRemoved(uint8 LocalIndex)
+void UARItemWeapon::OnServerItemRemoved(uint8 InIndex)
 {
 }
 
-void UARItemWeapon::OnItemAddedEquipment(uint8 LocalIndex) 
+void UARItemWeapon::OnItemAddedEquipment(uint8 InIndex) 
 {
 };
-void UARItemWeapon::OnItemChangedEquipment(uint8 LocalIndex) 
+void UARItemWeapon::OnItemChangedEquipment(uint8 InIndex) 
 {
 };
-void UARItemWeapon::OnItemRemovedEquipment(uint8 LocalIndex) 
+void UARItemWeapon::OnItemRemovedEquipment(uint8 InIndex) 
 {
 };
 
-void UARItemWeapon::OnServerItemAddedEquipment(uint8 LocalIndex) 
+void UARItemWeapon::OnServerItemAddedEquipment(uint8 InIndex) 
 {
 	UARWeaponInventoryComponent* WeaponComponent = Cast<UARWeaponInventoryComponent>(GetOuter());
 	if (!WeaponComponent)
 		return;
 
 };
-void UARItemWeapon::OnServerItemChangedEquipment(uint8 LocalIndex) 
+void UARItemWeapon::OnServerItemChangedEquipment(uint8 InIndex) 
 {
 };
-void UARItemWeapon::OnServerItemRemovedEquipment(uint8 LocalIndex) 
+void UARItemWeapon::OnServerItemRemovedEquipment(uint8 InIndex) 
 {
 };
 

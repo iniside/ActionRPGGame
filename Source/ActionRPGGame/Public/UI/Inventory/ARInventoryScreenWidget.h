@@ -11,7 +11,7 @@
 #include "IFItemWidget.h"
 
 #include "UI/ARUIComponent.h"
-
+#include "ARPlayerController.h"
 #include "ARInventoryScreenWidget.generated.h"
 
 /**

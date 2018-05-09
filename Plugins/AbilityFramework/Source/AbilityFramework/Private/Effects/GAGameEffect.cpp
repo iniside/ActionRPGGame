@@ -470,9 +470,9 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(
 		{
 			//Hack. We need a way store handles for conditional effects.
 			FAFPropertytHandle PropertyNew(Effect.Effect);
-			FGAEffectHandle Handle;
-			Handle = UGABlueprintLibrary::ApplyEffect(PropertyNew
-				, Handle
+			FGAEffectHandle OtherHandle;
+			OtherHandle = UGABlueprintLibrary::ApplyEffect(PropertyNew
+				, OtherHandle
 				, InContext.Target.Get()
 				, InContext.Instigator.Get()
 				, InContext.Causer.Get()
@@ -541,8 +541,8 @@ void FGAEffectContainer::AddEffect(
 	Effects.Add(InHandle);
 
 	FObjectKey EffectKey(SpecClass);
-	TArray<FGAEffectHandle>& EffectClass = EffectByClass.FindOrAdd(EffectKey);
-	EffectClass.Add(InHandle);
+	TArray<FGAEffectHandle>& LocalEffectClass = EffectByClass.FindOrAdd(EffectKey);
+	LocalEffectClass.Add(InHandle);
 
 	switch (Spec->EffectAggregation)
 	{
@@ -780,7 +780,7 @@ void FGAEffectContainer::RemoveEffectInternal(const FAFPropertytHandle& InProper
 	DurationTimer.ClearTimer(Effect->PeriodTimerHandle);
 
 	APawn* Instigator = Context.Instigator.Get();
-	UObject* Target = Context.Target.Get();
+	UObject* ObjectTarget = Context.Target.Get();
 	FAFPredictionHandle PredHandle = PredictionByHandle[InHandle];
 
 	HandleByPrediction.Remove(PredHandle);
@@ -793,8 +793,8 @@ void FGAEffectContainer::RemoveEffectInternal(const FAFPropertytHandle& InProper
 	TSet<FGAEffectHandle>* Effects = EffectByAttribute.Find(Spec->AtributeModifier.Attribute);
 	if (Effects)
 	{
-		IAFAbilityInterface* Target = Context.TargetInterface;
-		Target->RemoveBonus(Attribute, InHandle, AttributeMod);
+		IAFAbilityInterface* IntTarget = Context.TargetInterface;
+		IntTarget->RemoveBonus(Attribute, InHandle, AttributeMod);
 		Effects->Remove(InHandle);
 		if (Effects->Num() == 0)
 		{

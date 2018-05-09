@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UI/ARUMGWidgetBase.h"
-#include "ARLoginScreenView.generated.h"
+#include "GameFramework/PlayerController.h"
+#include "ARMenuPlayerController.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ACTIONRPGGAME_API UARLoginScreenView : public UARUMGWidgetBase
+class ACTIONRPGGAME_API AARMenuPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	

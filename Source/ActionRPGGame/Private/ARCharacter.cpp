@@ -381,8 +381,8 @@ void AARCharacter::Tick(float DeltaSeconds)
 		bStopDistancePredicted = true;
 		float CurVel = CurrentVelocity.SizeSquared();
 		float StopDistance = (CurVel / (4*CMC->GroundFriction *CMC->BrakingFrictionFactor * CMC->BrakingDecelerationWalking));
-		FVector Forward = VelocityDirection;
-		FVector StopLocation = (Forward*StopDistance) + CharLocation;
+		FVector Forward2 = VelocityDirection;
+		FVector StopLocation = (Forward2*StopDistance) + CharLocation;
 		//DrawDebugSphere(GetWorld(), StopLocation, 6, 8, FColor::Green, false, 2, 0, 2);
 	}
 	

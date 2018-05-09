@@ -6,6 +6,7 @@
 
 #include "Components/ActorComponent.h"
 #include "IFTypes.h"
+#include "IFItemBase.h"
 #include "IFInventoryComponent.generated.h"
 
 //NetIndex, LocalIndex

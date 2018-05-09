@@ -259,7 +259,7 @@ void FAnimNode_BlendLocomotionFour::Update_AnyThread(const FAnimationUpdateConte
 	}
 	
 
-	switch (Dir)
+	switch (static_cast<EFCardinalDirection>(Dir))
 	{
 	case EFCardinalDirection::N:
 	{

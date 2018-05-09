@@ -44,62 +44,62 @@ public:
 	/*
 		Called after item has been added to inventory.
 	*/
-	virtual void OnItemAdded(uint8 LocalIndex) {};
+	virtual void OnItemAdded(uint8 InIndex) {};
 	/*
 		Called when item changed slots within THE SAME inventory;
 	*/
-	virtual void OnItemChanged(uint8 LocalIndex) {};
+	virtual void OnItemChanged(uint8 InIndex) {};
 	/*
 		Called after item has been removed from inventory;
 	*/
-	virtual void OnItemRemoved(uint8 LocalIndex) {};
+	virtual void OnItemRemoved(uint8 InIndex) {};
 
 	/*
 		Called after item has been added to inventory.
 		Called on server or in standalone game.
 	*/
-	virtual void OnServerItemAdded(uint8 LocalIndex) {};
+	virtual void OnServerItemAdded(uint8 InIndex) {};
 	/*
 		Called when item changed slots within THE SAME inventory.
 		Called on server or in standalone game.
 	*/
-	virtual void OnServerItemChanged(uint8 LocalIndex) {};
+	virtual void OnServerItemChanged(uint8 InIndex) {};
 	/*
 		Called after item has been removed from inventory.
 		Called on server or in standalone game.
 	*/
-	virtual void OnServerItemRemoved(uint8 LocalIndex) {};
+	virtual void OnServerItemRemoved(uint8 InIndex) {};
 
 
 
 	/*
 		Called after item has been added to Equipment.
 	*/
-	virtual void OnItemAddedEquipment(uint8 LocalIndex) {};
+	virtual void OnItemAddedEquipment(uint8 InIndex) {};
 	/*
 		Called when item changed slots within THE SAME Equipment;
 	*/
-	virtual void OnItemChangedEquipment(uint8 LocalIndex) {};
+	virtual void OnItemChangedEquipment(uint8 InIndex) {};
 	/*
 		Called after item has been removed from Equipment;
 	*/
-	virtual void OnItemRemovedEquipment(uint8 LocalIndex) {};
+	virtual void OnItemRemovedEquipment(uint8 InIndex) {};
 
 	/*
 		Called after item has been added to Equipment.
 		Called on server or in standalone game.
 	*/
-	virtual void OnServerItemAddedEquipment(uint8 LocalIndex) {};
+	virtual void OnServerItemAddedEquipment(uint8 InIndex) {};
 	/*
 		Called when item changed slots within THE SAME Equipment;
 		Called on server or in standalone game.
 	*/
-	virtual void OnServerItemChangedEquipment(uint8 LocalIndex) {};
+	virtual void OnServerItemChangedEquipment(uint8 InIndex) {};
 	/*
 		Called after item has been removed from Equipment;
 		Called on server or in standalone game.
 	*/
-	virtual void OnServerItemRemovedEquipment(uint8 LocalIndex) {};
+	virtual void OnServerItemRemovedEquipment(uint8 InIndex) {};
 
 	virtual void PreItemSerializeToJson() {};
 	virtual void PreItemLoad() {};
