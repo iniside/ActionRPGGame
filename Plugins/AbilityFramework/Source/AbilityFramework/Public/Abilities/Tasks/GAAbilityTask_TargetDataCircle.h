@@ -35,6 +35,5 @@ public:
 	//	void FinishSpawningActor(UObject* WorldContextObject, class UGASAbilityTargetingObject* SpawnedActor);
 	//
 
-	UFUNCTION()
-		void OnConfirm();
+	virtual void OnConfirm() override;
 };

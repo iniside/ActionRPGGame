@@ -48,7 +48,7 @@ public:
 	virtual void Activate() override;
 
 	UFUNCTION()
-		void OnConfirm();
+		virtual void OnConfirm();
 
 	UFUNCTION()
 		void OnCastEndedConfirm();

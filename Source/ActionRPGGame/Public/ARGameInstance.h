@@ -69,8 +69,6 @@ public:
 	UFUNCTION()
 		void OnGameSparksAvailable(bool bAvailable);
 
-	//Add the response function to the Authentication request
-	static void AuthenticationRequest_Response(GameSparks::Core::GS&, const GameSparks::Api::Responses::AuthenticationResponse&);
 
 	virtual void Init() override;
 #if WITH_EDITOR

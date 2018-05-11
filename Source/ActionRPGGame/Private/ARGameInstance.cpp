@@ -21,13 +21,6 @@ void UARGameInstance::OnGameSparksAvailable(bool bAvailable)
 	OnConnectedToGameSparks.Broadcast();
 }
 
-//The response function to the Authentication Request
-// Example response function
-void UARGameInstance::AuthenticationRequest_Response(GameSparks::Core::GS&, const GameSparks::Api::Responses::AuthenticationResponse& response)
-{
-
-}
-
 void UARGameInstance::AttemptLogin(const FString& UserName, const FString& Password)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, TEXT("Connected"));

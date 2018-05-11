@@ -179,22 +179,22 @@
 			"Name": "GLTFImporter",
 			"Enabled": true
 		},
-    {
-      "Name": "SteamAudio",
-      "Enabled": true,
-      "BlacklistTargets": [
-        "Server",
-        "Client"
-      ]
-    },
-    {
-      "Name": "ResonanceAudio",
-      "Enabled": false,
-      "BlacklistTargets": [
-        "Server",
-        "Client"
-      ]
-    },
+		{
+			"Name": "SteamAudio",
+			"Enabled": true,
+			"BlacklistTargets": [
+				"Server",
+				"Client"
+			]
+		},
+		{
+			"Name": "ResonanceAudio",
+			"Enabled": false,
+			"BlacklistTargets": [
+				"Server",
+				"Client"
+			]
+		},
 		{
 			"Name": "CodeView",
 			"Enabled": true
@@ -208,15 +208,15 @@
 			"Enabled": true,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/8901af6d589b40b68d763b44c9ced66c"
 		},
-    {
-      "Name": "Substance",
-      "Enabled": true,
-      "MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/2f6439c2f9584f49809d9b13b16c2ba4",
-      "BlacklistTargets": [
-        "Server",
-        "Client"
-      ]
-    },
+		{
+			"Name": "Substance",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/2f6439c2f9584f49809d9b13b16c2ba4",
+			"BlacklistTargets": [
+				"Server",
+				"Client"
+			]
+		},
 		{
 			"Name": "LiveLink",
 			"Enabled": true
@@ -224,6 +224,20 @@
 		{
 			"Name": "ReplicationGraph",
 			"Enabled": true
+		},
+		{
+			"Name": "GameLiftServerSDK",
+			"Enabled": true,
+			"BlacklistTargets": [
+				"Client"
+			],
+			"SupportedTargetPlatforms": [
+				"Linux"
+			]
+		},
+		{
+			"Name": "WmfMedia",
+			"Enabled": false
 		}
 	],
 	"TargetPlatforms": [

@@ -291,7 +291,6 @@ public:
 		void ClientPossesedBy(AController* NewController);
 	void ClientPossesedBy_Implementation(AController* NewController);
 
-	UFUNCTION()
 	virtual void OnRep_Controller() override;
 	
 	/* IIFInventoryInterface */
