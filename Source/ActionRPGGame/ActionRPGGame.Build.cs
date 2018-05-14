@@ -8,7 +8,7 @@ public class ActionRPGGame : ModuleRules
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDefinitions.Add("BOOST_SYSTEM_NOEXCEPT");
-        //PublicDefinitions.Add("_HAS_EXCEPTIONS 0");
+        
         PrivateIncludePaths.AddRange(
             new string[] {
                 // ... add other private include paths required here ...
@@ -46,12 +46,50 @@ public class ActionRPGGame : ModuleRules
             PublicDependencyModuleNames.AddRange(new string[] { "UnrealEd", "SourceControl", "Matinee", "PropertyEditor", "ShaderCore", "AbilityFrameworkEditor" });
             PrivateDependencyModuleNames.AddRange(new string[] { "AbilityFrameworkEditor" });
         }
+
         if (Target.Type == TargetRules.TargetType.Server)
         {
             if (Target.Platform == UnrealTargetPlatform.Linux)
             {
+                PublicDefinitions.Add("LINUX_GAMELIFT=1");
+                PublicDefinitions.Add("GAMESPARKS_SERVER=1");
                 PublicDependencyModuleNames.AddRange(new string[] { "GameLiftServerSDK" });
             }
+            else
+            {
+                PublicDefinitions.Add("LINUX_GAMELIFT=0");
+                PublicDefinitions.Add("GAMESPARKS_SERVER=0");
+            }
+        }
+		else
+        {
+            PublicDefinitions.Add("LINUX_GAMELIFT=0");
+            PublicDefinitions.Add("GAMESPARKS_SERVER=0");
+        }
+
+        if ( (Target.Type == TargetRules.TargetType.Client) || (Target.Type == TargetRules.TargetType.Editor))
+        {
+            if (Target.Platform == UnrealTargetPlatform.Win64)
+            {
+                PublicDefinitions.Add("GAMELIFT_CLIENT=1");
+                PublicDefinitions.Add("GAMESPARKS_CLIENT=1");
+                if (Target.Type == TargetRules.TargetType.Client)
+                {
+                    bEnableExceptions = true;
+                }
+                PublicDependencyModuleNames.AddRange(new string[] { "AWSCore", "GameLiftClientSDK" });
+            }
+			else
+            {
+                PublicDefinitions.Add("GAMELIFT_CLIENT=0");
+                PublicDefinitions.Add("GAMESPARKS_CLIENT=0");
+            }
+        }
+        else
+        {
+            PublicDefinitions.Add("GAMELIFT_CLIENT=0");
+            PublicDefinitions.Add("GAMESPARKS_CLIENT=0");
         }
     }
 }
+

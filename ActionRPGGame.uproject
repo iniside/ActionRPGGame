@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{AB02FCC6-45E0-8362-E7EB-B98E6E6B9DF2}",
+	"EngineAssociation": "",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -236,8 +236,19 @@
 			]
 		},
 		{
+			"Name": "GameLiftClientSDK",
+			"Enabled": true,
+			"BlacklistTargets": [
+				"Server"
+			]
+		},
+		{
 			"Name": "WmfMedia",
-			"Enabled": false
+			"Enabled": false,
+			"BlacklistTargets": [
+				"Server",
+				"Client"
+			]
 		}
 	],
 	"TargetPlatforms": [
