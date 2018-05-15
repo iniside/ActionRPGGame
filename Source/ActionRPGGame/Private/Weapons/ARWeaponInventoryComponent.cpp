@@ -62,20 +62,21 @@ void UARWeaponInventoryComponent::TickComponent(float DeltaTime, ELevelTick Tick
 
 void UARWeaponInventoryComponent::SetWeapon(const FARWeaponRPC& InWeapon, UChildActorComponent* Component)
 {
-	if (InWeapon.Weapon.IsValid() || InWeapon.Weapon.IsNull())
+	//if (InWeapon.Weapon.IsValid() || InWeapon.Weapon.IsNull())
 	{
-		Component->SetChildActorClass(InWeapon.Weapon.Get());
+		TSubclassOf<AARWeaponBase> WpnClass = TSoftClassPtr<AARWeaponBase>(InWeapon.Weapon).LoadSynchronous();
+		Component->SetChildActorClass(WpnClass);
 		Component->SetRelativeLocation(FVector(0, 0, 0));
 		Component->SetRelativeRotation(FRotator(0, 0, 0));
 
 		Component->SetRelativeLocation(InWeapon.Position);
 		Component->SetRelativeRotation(InWeapon.Rotation);
 	}
-	else
+	/*else
 	{
 		FStreamableDelegate LoadFinished = FStreamableDelegate::CreateUObject(this, &UARWeaponInventoryComponent::AsynWeaponLoaded, Component, InWeapon);
 		UAssetManager::Get().GetStreamableManager().RequestAsyncLoad(InWeapon.Weapon.ToSoftObjectPath(), LoadFinished);
-	}
+	}*/
 }
 void UARWeaponInventoryComponent::OnClientPreItemAdded(UIFItemBase* Item, uint8 Index)
 {
@@ -93,7 +94,7 @@ void UARWeaponInventoryComponent::OnItemAdded(UIFItemBase* Item, uint8 LocalInde
 {
 	UARItemWeapon* InWeapon = Cast<UARItemWeapon>(Item);
 	FARWeaponRPC Data;
-	Data.Weapon = InWeapon->Weapon;
+	Data.Weapon = InWeapon->Weapon.ToString();
 	//Data.SocketName = InWeapon->Socket;
 	Data.Position = InWeapon->HolsteredPosition;
 	Data.Rotation = InWeapon->HolsteredRotation;
@@ -118,7 +119,7 @@ void UARWeaponInventoryComponent::OnServerItemAdded(UIFItemBase* Item, uint8 Loc
 {
 	UARItemWeapon* InWeapon = Cast<UARItemWeapon>(Item);
 	FARWeaponRPC Data;
-	Data.Weapon = InWeapon->Weapon;
+	Data.Weapon = InWeapon->Weapon.ToString();
 	//Data.SocketName = InWeapon->Socket;
 	Data.Position = InWeapon->HolsteredPosition;
 	Data.Rotation = InWeapon->HolsteredRotation;
@@ -304,7 +305,7 @@ void UARWeaponInventoryComponent::Unequip(int8 WeaponIndex)
 		Character->GetEquipedMainWeapon()->SetChildActorClass(nullptr);
 	}
 	FARWeaponRPC Data;
-	Data.Weapon = EquipedWeapon->Weapon;
+	Data.Weapon = EquipedWeapon->Weapon.ToString();
 	//Data.SocketName = InWeapon->Socket;
 	Data.Position = EquipedWeapon->HolsteredPosition;
 	Data.Rotation = EquipedWeapon->HolsteredRotation;
@@ -324,7 +325,7 @@ void UARWeaponInventoryComponent::Holster()
 		Character->GetEquipedMainWeapon()->SetChildActorClass(nullptr);
 	}
 	FARWeaponRPC Data;
-	Data.Weapon = EquipedWeapon->Weapon;
+	Data.Weapon = EquipedWeapon->Weapon.ToString();
 	//Data.SocketName = InWeapon->Socket;
 	Data.Position = EquipedWeapon->HolsteredPosition;
 	Data.Rotation = EquipedWeapon->HolsteredRotation;
@@ -400,7 +401,7 @@ void UARWeaponInventoryComponent::NextWeapon()
 		InWeapon = FindNextValid();
 	}
 	FARWeaponRPC Data;
-	Data.Weapon = InWeapon->Weapon;
+	Data.Weapon = InWeapon->Weapon.ToString();
 	//Data.SocketName = InWeapon->Socket;
 	Data.Position = InWeapon->EquipedPosition;
 	Data.Rotation = InWeapon->EquipedRotation;
@@ -486,7 +487,7 @@ void UARWeaponInventoryComponent::ServerNextWeapon_Implementation(int8 WeaponInd
 		if (OldWeapon)
 		{
 			FARWeaponRPC OldData;
-			OldData.Weapon = OldWeapon->Weapon;
+			OldData.Weapon = OldWeapon->Weapon.ToString();
 			OldData.Position = OldWeapon->HolsteredPosition;
 			OldData.Rotation = OldWeapon->HolsteredRotation;
 			OldData.AttachSlot = static_cast<EARWeaponPosition>(OldGroup);
@@ -500,7 +501,7 @@ void UARWeaponInventoryComponent::ServerNextWeapon_Implementation(int8 WeaponInd
 		InWeapon = FindNextValid();
 	}
 	FARWeaponRPC Data;
-	Data.Weapon = InWeapon->Weapon;
+	Data.Weapon = InWeapon->Weapon.ToString();
 	Data.Position = InWeapon->EquipedPosition;
 	Data.Rotation = InWeapon->EquipedRotation;
 	Data.AttachSlot = EARWeaponPosition::Equiped;
@@ -542,7 +543,7 @@ void UARWeaponInventoryComponent::ServerPreviousWeapon_Implementation(int8 Weapo
 	if (OldWeapon)
 	{
 		FARWeaponRPC OldData;
-		OldData.Weapon = OldWeapon->Weapon;
+		OldData.Weapon = OldWeapon->Weapon.ToString();
 		OldData.Position = OldWeapon->HolsteredPosition;
 		OldData.Rotation = OldWeapon->HolsteredRotation;
 		OldData.AttachSlot = static_cast<EARWeaponPosition>(CurrentIndex);
@@ -555,7 +556,7 @@ void UARWeaponInventoryComponent::ServerPreviousWeapon_Implementation(int8 Weapo
 		InWeapon = FindNextValid();
 	}
 	FARWeaponRPC Data;
-	Data.Weapon = InWeapon->Weapon;
+	Data.Weapon = InWeapon->Weapon.ToString();
 	Data.Position = InWeapon->EquipedPosition;
 	Data.Rotation = InWeapon->EquipedRotation;
 	Data.AttachSlot = EARWeaponPosition::Equiped;
@@ -617,7 +618,7 @@ void UARWeaponInventoryComponent::HandleClientPrediction(int8 WeaponIndex, bool 
 			InWeapon = FindNextValid();
 		}
 		FARWeaponRPC Data;
-		Data.Weapon = InWeapon->Weapon;
+		Data.Weapon = InWeapon->Weapon.ToString();
 		//Data.SocketName = InWeapon->Socket;
 		Data.Position = InWeapon->EquipedPosition;
 		Data.Rotation = InWeapon->EquipedRotation;
@@ -698,7 +699,7 @@ UARItemWeapon* UARWeaponInventoryComponent::FindPreviousValid()
 
 void UARWeaponInventoryComponent::AsynWeaponLoaded(UChildActorComponent* Component, FARWeaponRPC InWeapon)
 {
-	Component->SetChildActorClass(InWeapon.Weapon.Get());
+	Component->SetChildActorClass(TSoftClassPtr<AARWeaponBase>(InWeapon.Weapon).LoadSynchronous());
 	
 	Component->SetRelativeLocation(FVector(0,0,0));
 	Component->SetRelativeRotation(FRotator(0,0,0));

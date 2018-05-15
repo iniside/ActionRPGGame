@@ -53,7 +53,7 @@ struct FARWeaponRPC
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, Category = "Attachment Test")
-		TSoftClassPtr<class AARWeaponBase> Weapon;
+		FSoftClassPath Weapon;
 
 	UPROPERTY()
 		uint8 Index;

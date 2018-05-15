@@ -6,6 +6,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "Json.h"
 
+#include "Modules/ModuleManager.h"
+#include "AssetRegistryModule.h"
+#include "Engine/AssetManager.h"
+#include "Abilities/GAAbilityBase.h"
+#include "Effects/GAEffectCue.h"
 
 UARGameInstance::UARGameInstance(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -71,6 +76,21 @@ void UARGameInstance::AttemptLogin(const FString& UserName, const FString& Passw
 void UARGameInstance::Init()
 {
 	Super::Init();
+
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+	//AssetRegistryModule.Get().OnFilesLoaded().AddUObject(this, &UARUIAbilityManagerComponent::FinishedLoadinFiles);
+	TArray< FString > ContentPaths;
+	TArray<FString> RootPaths;
+	FPackageName::QueryRootContentPaths(ContentPaths);
+	AssetRegistry.ScanPathsSynchronous(ContentPaths);
+
+	if (UAssetManager* Manager = UAssetManager::GetIfValid())
+	{
+		Manager->ScanPathsForPrimaryAssets(FPrimaryAssetType("Ability"), ContentPaths, UGAAbilityBase::StaticClass(), true);
+		Manager->ScanPathsForPrimaryAssets(FPrimaryAssetType("EffectCue"), ContentPaths, AGAEffectCue::StaticClass(), true);
+	}
+
 #if WITH_EDITOR
 	//editor hax so we don't attempt to connect twice.
 	if (!bConnected)

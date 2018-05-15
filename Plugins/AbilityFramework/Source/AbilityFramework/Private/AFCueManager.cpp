@@ -173,6 +173,26 @@ void UAFCueManager::HandleCue(const FGameplayTagContainer& Tags,
 					ActiveCues.Add(InHandle, actor);
 					actor->NativeBeginCue(CueParams.Instigator.Get(), CueParams.HitResult.GetActor(), CueParams.Causer.Get(), CueParams.HitResult, CueParams);
 				}
+				else
+				{
+					FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+					IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+					TArray<FAssetData> AssetData;
+					FARFilter Filter;
+					Filter.TagsAndValues.Add("EffectCueTagSearch", CueTag.ToString());
+					AssetRegistryModule.Get().GetAssets(Filter, AssetData);
+					FPrimaryAssetId PrimaryAssetId = FPrimaryAssetId(FPrimaryAssetType("EffectCue"), AssetData[0].AssetName);
+					FPrimaryAssetTypeInfo Info;
+					if (Manager->GetPrimaryAssetTypeInfo(PrimaryAssetId.PrimaryAssetType, Info))
+					{
+						FStreamableDelegate del = FStreamableDelegate::CreateUObject(this, &UAFCueManager::OnFinishedLoad, CueTag, PrimaryAssetId, CueParams, InHandle);
+
+						Manager->LoadPrimaryAsset(PrimaryAssetId,
+							TArray<FName>(),
+							del);
+					}
+				}
 				return;//don't try to load asset, we already have pooled instance.
 			}
 			
@@ -300,9 +320,9 @@ void UAFCueManager::OnFinishedLoad(FGameplayTag InCueTag
 			}
 		}
 
-		{
+		/*{
 			Manager->UnloadPrimaryAsset(InPrimaryAssetId);
-		}
+		}*/
 	}
 }
 
