@@ -248,6 +248,11 @@
 			"BlacklistTargets": [
 				"Server",
 				"Client"
+			],
+			"BlacklistTargetConfigurations": [
+				"Debug",
+				"Development",
+				"DebugGame"
 			]
 		}
 	],

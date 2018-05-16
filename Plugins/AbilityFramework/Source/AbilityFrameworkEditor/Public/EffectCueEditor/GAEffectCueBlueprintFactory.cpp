@@ -28,7 +28,7 @@
 #include "Kismet2/KismetEditorUtilities.h"
 #include "BlueprintEditorSettings.h"
 
-#include "GAEffectCueBlueprint.h"
+#include "Effects/GAEffectCueBlueprint.h"
 #include "Effects/GAEffectCue.h"
 #include "GAEffectCueGraph.h"
 #include "GAEffectCueGraphSchema.h"
