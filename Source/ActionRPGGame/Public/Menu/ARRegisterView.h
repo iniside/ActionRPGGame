@@ -3,21 +3,22 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Blueprint/UserWidget.h"
 
 #include "Components/EditableTextBox.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
-#include "UI/ARUMGWidgetBase.h"
-#include "ARLoginScreenView.generated.h"
+
+#include "ARRegisterView.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ACTIONRPGGAME_API UARLoginScreenView : public UARUMGWidgetBase
+class ACTIONRPGGAME_API UARRegisterView : public UUserWidget
 {
 	GENERATED_BODY()
-
+	
 public:
 	virtual void NativeConstruct() override;
 
@@ -25,25 +26,22 @@ protected:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 		UEditableTextBox* UserNameBox;
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
-		UEditableTextBox* PasswordBox;
+		UEditableTextBox* DisplayNameBox;
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
-		UButton* LoginButton;
-
+		UEditableTextBox* PasswordBox;
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 		UButton* RegisterButton;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 		UTextBlock* WarrningText;
-
-	UFUNCTION()
-		void OnLoginClicked();
-
-	UFUNCTION()
-		void OnLoginSuccess();
-
-	UFUNCTION()
-		void OnLoginFailed();
+	
 
 	UFUNCTION()
 		void OnRegisterClicked();
+
+	UFUNCTION()
+		void OnRegisterSuccess();
+
+	UFUNCTION()
+		void OnRegisterFailed();
 };

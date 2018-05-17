@@ -52,6 +52,9 @@ public:
 		TSoftClassPtr<UGAAbilityBase> SetAbilityGroup02;
 
 	bool bInputBount;
+
+	UPROPERTY()
+		FString GameLiftId;
 public:
 	AARPlayerController(const FObjectInitializer& ObjectInitializer);
 	virtual void BeginPlay() override;

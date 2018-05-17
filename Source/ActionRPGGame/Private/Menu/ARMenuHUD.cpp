@@ -5,6 +5,7 @@
 #include "UI/Menu/ARLoginScreenView.h"
 #include "ARGameInstance.h"
 #include "ARMainMenuView.h"
+#include "ARRegisterView.h"
 
 
 void AARMenuHUD::BeginPlay()
@@ -25,6 +26,14 @@ void AARMenuHUD::BeginPlay()
 			MainMenuScreen->AddToViewport();
 
 			MainMenuScreen->SetVisibility(ESlateVisibility::Collapsed);
+		}
+
+		if (RegisterViewClass)
+		{
+			RegisterView = CreateWidget<UARRegisterView>(PC, RegisterViewClass);
+			RegisterView->AddToViewport();
+
+			RegisterView->SetVisibility(ESlateVisibility::Collapsed);
 		}
 
 		if (UARGameInstance* GI = Cast<UARGameInstance>(PC->GetGameInstance()))

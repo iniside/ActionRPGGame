@@ -73,6 +73,23 @@ void UARGameInstance::AttemptLogin(const FString& UserName, const FString& Passw
 	
 }
 
+void UARGameInstance::RegisterNewPlayer(const FString& UserName, const FString& DisplayName, const FString& Password)
+{
+#if GAMESPARKS_CLIENT
+	GameSparks::Core::GS& gs = UGameSparksModule::GetModulePtr()->GetGSInstance();
+	GameSparks::Api::Requests::RegistrationRequest regRequest(gs);
+	regRequest.SetUserName(TCHAR_TO_UTF8(*UserName));
+	regRequest.SetDisplayName(TCHAR_TO_UTF8(*DisplayName));
+	regRequest.SetPassword(TCHAR_TO_UTF8(*DisplayName));
+
+	auto RegRequestResponse = [&](GameSparks::Core::GS&, const GameSparks::Api::Responses::RegistrationResponse& Response)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red, Response.GetJSONString().c_str());
+	};
+	regRequest.Send(RegRequestResponse);
+#endif
+}
+
 void UARGameInstance::Init()
 {
 	Super::Init();

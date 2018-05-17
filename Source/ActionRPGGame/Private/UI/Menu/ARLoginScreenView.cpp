@@ -2,7 +2,8 @@
 
 #include "ARLoginScreenView.h"
 #include "ARGameInstance.h"
-
+#include "Menu/ARRegisterView.h"
+#include "ARMenuHUD.h"
 
 
 void UARLoginScreenView::NativeConstruct()
@@ -10,6 +11,7 @@ void UARLoginScreenView::NativeConstruct()
 	Super::NativeConstruct();
 
 	LoginButton->OnClicked.AddDynamic(this, &UARLoginScreenView::OnLoginClicked);
+	RegisterButton->OnClicked.AddDynamic(this, &UARLoginScreenView::OnRegisterClicked);
 }
 
 void UARLoginScreenView::OnLoginClicked()
@@ -47,4 +49,16 @@ void UARLoginScreenView::OnLoginSuccess()
 void UARLoginScreenView::OnLoginFailed()
 {
 
+}
+
+void UARLoginScreenView::OnRegisterClicked()
+{
+	if (!GetOwningPlayer())
+		return;
+
+	AARMenuHUD* Hud =  Cast<AARMenuHUD>(GetOwningPlayer()->GetHUD());
+	if (!Hud)
+		return;
+
+	Hud->GetRegisterView()->SetVisibility(ESlateVisibility::Visible);
 }

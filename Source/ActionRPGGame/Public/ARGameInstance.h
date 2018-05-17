@@ -98,6 +98,7 @@ public:
 
 
 	void AttemptLogin(const FString& UserName, const FString& Password);
+	void RegisterNewPlayer(const FString& UserName, const FString& DisplayName, const FString& Password);
 	//Function used to determine what happens if GameSparks connects or fails to (Needs to be UFUNCTION)
 	UFUNCTION()
 		void OnGameSparksAvailable(bool bAvailable);
@@ -116,12 +117,11 @@ public:
 	void OnGameSessionStarted(Aws::GameLift::Server::Model::GameSession InGameSession);
 #endif
 
-
 	UFUNCTION(BlueprintCallable, Category = "GameLift|Test")
 		void ConnectToHub();
-
 	UFUNCTION(BlueprintCallable, Category = "GameLift|Test")
 		void ConnectToWorld();
+
 #if GAMELIFT_CLIENT
 	void OnSessionsSearched(const Aws::GameLift::GameLiftClient* Client, const Aws::GameLift::Model::SearchGameSessionsRequest& Request, const Aws::GameLift::Model::SearchGameSessionsOutcome& Outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>& Context);
 	void OnSessionCreated(const Aws::GameLift::GameLiftClient* Client, const Aws::GameLift::Model::CreateGameSessionRequest& Request, const Aws::GameLift::Model::CreateGameSessionOutcome& Outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>& Context);

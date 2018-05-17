@@ -26,6 +26,6 @@ class ACTIONRPGGAME_API AARGameSession : public AGameSession
 	GENERATED_BODY()
 	
 	virtual FString ApproveLogin(const FString& Options) override;
-	
+	virtual void UnregisterPlayer(const APlayerController* ExitingPlayer) override;
 	
 };

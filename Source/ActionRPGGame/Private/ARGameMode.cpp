@@ -8,6 +8,7 @@
 #include "Abilities/ARAbilityBase.h"
 #include "ARGameInstance.h"
 #include "SDraggableWindowWidget.h"
+#include "ARPlayerController.h"
 
 
 
@@ -19,4 +20,33 @@ void AARGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
+}
+
+FString AARGameMode::InitNewPlayer(APlayerController* NewPlayerController
+	, const FUniqueNetIdRepl& UniqueId
+	, const FString& Options
+	, const FString& Portal)
+{
+	FString ReturnString = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
+
+	TArray<FString> OutParams;
+	Options.ParseIntoArray(OutParams, TEXT("?"));
+
+	TArray<FString> OutPlayerId;
+	FString Left;
+	FString PlayerId;
+	for (FString& str : OutParams)
+	{
+		if (str.Split("PlayerId=", &Left, &PlayerId))
+		{
+			break;
+		}
+	}
+
+	if (AARPlayerController* PC = Cast<AARPlayerController>(NewPlayerController))
+	{
+		PC->GameLiftId = PlayerId;
+	}
+
+	return ReturnString;
 }
