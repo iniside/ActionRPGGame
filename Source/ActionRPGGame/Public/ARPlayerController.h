@@ -75,4 +75,6 @@ public:
 	virtual void OnInventoryReplicated(class UIFInventoryComponent* Inventory) override;
 	/* IIFInventoryInterface */
 
+	UFUNCTION(BlueprintCallable, Category = "ActionRPGGame|HUD")
+		float ComputeBoundsScreenSize(UCapsuleComponent* InTarget);
 };

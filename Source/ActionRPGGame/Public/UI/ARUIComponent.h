@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "UI/HUD/AREnemyHealthBar.h"
 #include "ARHUDWidget.h"
 #include "SARDrawTestWidget.h"
 
@@ -28,16 +27,14 @@ protected:
 		UUserWidget* CrosshairWidget;
 
 	UPROPERTY(EditAnywhere, Category = "Widgets")
-		TSubclassOf<class UAREnemyHealthBar> EnemyHealthBarClass;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
-		UAREnemyHealthBar* EnemyHealthBarWidget;
-
-	UPROPERTY(EditAnywhere, Category = "Widgets")
 		TSubclassOf<class UARHUDWidget> HUDWidgetClass;
+
+
+
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		UARHUDWidget* HUDWidget;
+
 
 
 	TSharedPtr<SWidget> DrawWidget;

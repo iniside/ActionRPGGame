@@ -241,8 +241,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Game Attributes")
 		FGAOnAttributeModifed OnAttributeModifed;
 	UPROPERTY(BlueprintAssignable, Category = "Game Attributes")
+		FGAOnAttributeModifed ServerOnTargetAttributeModifed;
+	UPROPERTY(BlueprintAssignable, Category = "Game Attributes")
 		FGAOnAttributeModifed OnTargetAttributeModifed;
-
 	
 	TMap<FGAAttribute, FAFAttributeChangedDelegate> AttributeChanged;
 
@@ -339,6 +340,10 @@ public:
 	void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);// { DefaultAttributes->ModifyAttribute(ModIn, HandleIn); };
 	void NotifyInstigatorTargetAttributeChanged(const FAFAttributeChangedData& InData, 
 		const FGAEffectContext& InContext);
+
+	UFUNCTION(Client, Unreliable)
+		void ClientNotifyAttributeModifier(const FAFAttributeChangedData& InData);
+	void ClientNotifyAttributeModifier_Implementation(const FAFAttributeChangedData& InData);
 	FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn) { return DefaultAttributes->GetAttribute(AttributeIn); };
 	void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) { DefaultAttributes->RemoveBonus(AttributeIn, HandleIn, InMod);  };
 	float NativeGetAttributeValue(const FGAAttribute AttributeIn) const { return 0; };

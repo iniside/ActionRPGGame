@@ -7,6 +7,9 @@
 #include "Engine/AssetManager.h"
 #include "ARAbilityBase.h"
 #include "ARCharacter.h"
+#include "Engine/GameViewportClient.h"
+#include "Engine/LocalPlayer.h"
+#include "Components/CapsuleComponent.h"
 
 #include "Abilities/ARAbilityManagerComponent.h"
 
@@ -173,3 +176,30 @@ void AARPlayerController::OnInventoryReplicated(class UIFInventoryComponent* Inv
 	}
 }
 /* IIFInventoryInterface */
+
+float AARPlayerController::ComputeBoundsScreenSize(UCapsuleComponent* InTarget)
+{
+	ULocalPlayer const* const LP = GetLocalPlayer();
+	FVector4 ViewOrigin;
+	FMatrix ProjMatrix;
+	if (LP && LP->ViewportClient)
+	{
+		// get the projection data
+		FSceneViewProjectionData ProjectionData;
+		if (LP->GetProjectionData(LP->ViewportClient->Viewport, eSSP_FULL, /*out*/ ProjectionData))
+		{
+			ViewOrigin = ProjectionData.ViewOrigin;
+			ProjMatrix = ProjectionData.ProjectionMatrix;
+		}
+	}
+	const float Dist = FVector::Dist(InTarget->Bounds.Origin, ViewOrigin);
+
+	// Get projection multiple accounting for view scaling.
+	const float ScreenMultiple = FMath::Max(0.5f * ProjMatrix.M[0][0], 0.5f * ProjMatrix.M[1][1]);
+
+	// Calculate screen-space projected radius
+	const float ScreenRadius = ScreenMultiple * InTarget->Bounds.SphereRadius / FMath::Max(1.0f, Dist);
+
+	// For clarity, we end up comparing the diameter
+	return ScreenRadius * 2.0f;
+}

@@ -165,6 +165,7 @@ void UIFInventoryComponent::AddAllItemsFromActor(class AIFItemActorBase* Source)
 		return;
 	}
 	TArray<TSoftClassPtr<UIFItemBase>> Items = Source->GetAllItems();
+	Source->OnItemPicked();
 	for (const TSoftClassPtr<UIFItemBase> Item : Items)
 	{
 		FStreamableManager& Manager = UAssetManager::GetStreamableManager();
@@ -185,6 +186,7 @@ void UIFInventoryComponent::ServerAddAllItemsFromActor_Implementation(class AIFI
 
 		Manager.RequestAsyncLoad(Item.ToSoftObjectPath(), Delegate);
 	}
+	Source->OnItemPicked();
 }
 bool UIFInventoryComponent::ServerAddAllItemsFromActor_Validate(class AIFItemActorBase* Sourcex)
 {

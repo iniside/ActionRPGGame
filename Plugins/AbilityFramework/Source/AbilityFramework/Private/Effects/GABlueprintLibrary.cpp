@@ -11,7 +11,7 @@
 #include "AFEffectCustomApplication.h"
 
 #include "GAEffectExtension.h"
-
+#include "Engine/Engine.h"
 #include "AFSimpleInterface.h"
 #include "AFAttributeInterface.h"
 
@@ -55,6 +55,23 @@ FGAEffectHandle UGABlueprintLibrary::ApplyGameEffectToLocation(
 	return ApplyEffectFromHit(InEffect, Handle, Target, Instigator, Causer, Modifier);
 }
 
+FString NetModeToString(ENetMode NetMode)
+{
+	switch (NetMode)
+	{
+	case ENetMode::NM_Client:
+		return FString("Client");
+	case ENetMode::NM_DedicatedServer:
+		return FString("Server");
+	case ENetMode::NM_ListenServer:
+		return FString("ListenServer");
+	case ENetMode::NM_Standalone:
+		return FString("Standalone");
+	}
+
+	return FString("Invalid");
+}
+
 FGAEffectHandle UGABlueprintLibrary::ApplyEffect(
 	FAFPropertytHandle& InEffect
 	, const FGAEffectHandle& Handle
@@ -64,6 +81,10 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(
 	, const FHitResult& HitIn
 	, const FAFFunctionModifier& Modifier)
 {
+	ENetMode NetMode = GEngine->GetNetMode(Instigator->GetWorld());
+
+	UE_LOG(GameAttributesEffects, Error, TEXT("UGABlueprintLibrary::ApplyEffect START, NetMode %s"), *NetModeToString(NetMode));
+	UE_LOG(GameAttributesEffects, Error, TEXT("-----"));
 	IAFAbilityInterface* Ability = Cast<IAFAbilityInterface>(Causer);
 	if (!Ability)
 	{
@@ -90,17 +111,19 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(
 	//only reused Spec and Context if effect is instant ?
 	if (Handle.IsValid() && !bPeriodicEffect)
 	{
+		Context = MakeContext(Target, Instigator, nullptr, Causer, HitIn);
+
 		FAFContextHandle ExistingContext = InEffect.GetContext(Handle);
-		if (ExistingContext.IsValid())
+		/*if (ExistingContext.IsValid())
 		{
 			Context = ExistingContext;
 			Context.SetTarget(Target);
 			bReusedParams = true;
-		}
-		FAFEffectSpecHandle SpecHandle = InEffect.GetEffectSpec(Handle);
+		}*/
+		/*FAFEffectSpecHandle SpecHandle = InEffect.GetEffectSpec(Handle);
 		EffectSpecHandle = SpecHandle;
 		bReusedParams = true;
-		bReusedSpec = true;
+		bReusedSpec = true;*/
 	}
 	else
 	{
@@ -121,7 +144,7 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(
 		UE_LOG(GameAttributesEffects, Error, TEXT("Invalid Effect Spec"));
 		return FGAEffectHandle();
 	}
-		
+	
 	
 	if (!Target2->HaveEffectRquiredTags(InEffect.GetSpec()->RequiredTags))
 	{
@@ -144,23 +167,33 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(
 	IAFAbilityInterface* InstigatorInterface = Cast<IAFAbilityInterface>(Instigator); 
 	
 	FAFEffectParams Params(InEffect);
-	
+	if (Params.EffectSpec.GetPtr())
+	{
+		UE_LOG(GameAttributesEffects, Log, TEXT("  Pre Spec Target: %s"), *Params.EffectSpec.GetPtr()->GetContext().GetPtr()->Target->GetName());
+	}
 	if (!bReusedSpec)
 	{
 		FAFEffectSpec* EffectSpec = new FAFEffectSpec(Context, InEffect.GetClass());
 		AddTagsToEffect(EffectSpec);
 		Params.EffectSpec = FAFEffectSpecHandle::Generate(EffectSpec);
+		UE_LOG(GameAttributesEffects, Log, TEXT("  Pre Spec Target: %s"), *EffectSpec->GetContext().GetPtr()->Target->GetName());
 	}
 	else
 	{
 		Params.EffectSpec = EffectSpecHandle;
+		Params.EffectSpec.SetContext(Context);
 	}
+	UE_LOG(GameAttributesEffects, Log, TEXT("  Post Spec Target: %s"), *Params.EffectSpec.GetPtr()->GetContext().GetPtr()->Target->GetName());
 	Params.bRecreated = bReusedParams;
 	Params.bPeriodicEffect = bPeriodicEffect;
 	Params.Context = Context;
 
 	FGAEffectHandle NewHandle = InstigatorInterface->ApplyEffectToTarget(effect, Handle, Params, Modifier);
+
+	UE_LOG(GameAttributesEffects, Error, TEXT("-----"));
+	UE_LOG(GameAttributesEffects, Error, TEXT("UGABlueprintLibrary::ApplyEffect END"));
 	
+
 	return NewHandle;
 }
 FGAEffectHandle UGABlueprintLibrary::ApplyEffect(

@@ -16,11 +16,16 @@ UCLASS()
 class ACTIONRPGGAME_API AARAICharacter : public ACharacter, public IAFAbilityInterface
 {
 	GENERATED_BODY()
+		friend class AAREnemySpawner;
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UAFAbilityComponent* Abilities;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UAFEffectsComponent* EffectsComponent;
+
+	UPROPERTY(BlueprintReadOnly, Category = "ActionRPGGame|Spawn")
+		class AAREnemySpawner* SpawnedBy;
+
 public:
 	// Sets default values for this character's properties
 	AARAICharacter();
@@ -29,6 +34,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void OnSpawned(class AAREnemySpawner* InSpawnedBy);
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

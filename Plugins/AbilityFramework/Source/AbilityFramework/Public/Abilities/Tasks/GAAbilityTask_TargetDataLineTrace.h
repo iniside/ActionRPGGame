@@ -47,11 +47,11 @@ class ABILITYFRAMEWORK_API UGAAbilityTask_TargetDataLineTrace : public UGAAbilit
 	GENERATED_BODY()
 public:
 	UPROPERTY(BlueprintAssignable)
-		FAFOnTargetReceived OnConfirmed;
-	
-	UPROPERTY(BlueprintAssignable)
 		FAFOnTargetReceived OnClientReceiveTargetData;
-	
+
+	UPROPERTY(BlueprintAssignable)
+		FAFOnTargetReceived OnClientUnconfirmedTargetData;
+
 	UPROPERTY(BlueprintAssignable)
 		FAFOnTargetReceived OnServerReceiveTargetData;
 

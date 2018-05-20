@@ -10,13 +10,14 @@
 #include "Inventory/Weapons/ARItemWeaponWidget.h"
 #include "Inventory/ARInventoryScreenWidget.h"
 
+
+
 // Sets default values for this component's properties
 UARUIComponent::UARUIComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-	EnemyHealthBarClass = UAREnemyHealthBar::StaticClass();
 	bAutoRegister = true;
 	bWantsInitializeComponent = true;
 	// ...
@@ -41,13 +42,6 @@ void UARUIComponent::BeginPlay()
 			CrosshairWidget = CreateWidget<UUserWidget>(MyPC, CrosshairClass);
 			CrosshairWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 			CrosshairWidget->AddToViewport();
-		}
-
-		if (EnemyHealthBarClass)
-		{
-			EnemyHealthBarWidget = CreateWidget<UAREnemyHealthBar>(MyPC, EnemyHealthBarClass);
-			EnemyHealthBarWidget->SetVisibility(ESlateVisibility::Collapsed);
-			EnemyHealthBarWidget->AddToViewport();
 		}
 
 		if (HUDWidgetClass)

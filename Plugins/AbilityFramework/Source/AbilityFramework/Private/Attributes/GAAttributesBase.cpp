@@ -295,6 +295,7 @@ float UGAAttributesBase::ModifyAttribute(const FGAEffectMod& ModIn,
 	const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty)
 {
 	FAFAttributeBase* attr = nullptr;
+	UGAAttributesBase* atrObj = this;
 
 	attr = GetAttribute(ModIn.Attribute);
 	float OutVal = -1;

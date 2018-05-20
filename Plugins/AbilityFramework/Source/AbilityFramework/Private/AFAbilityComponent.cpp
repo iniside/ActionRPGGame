@@ -99,13 +99,39 @@ void UAFAbilityComponent::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHa
 	Data.Target = Context.Target;
 	Data.Location = Context.HitResult.Location;
 	OnAttributeModifed.Broadcast(Data);
-	NotifyInstigatorTargetAttributeChanged(Data, Context);
+	Context.InstigatorComp->NotifyInstigatorTargetAttributeChanged(Data, Context);
 	//add default replication (PropertyRep) that attribute changed.
 };
 void UAFAbilityComponent::NotifyInstigatorTargetAttributeChanged(const FAFAttributeChangedData& InData,
 	const FGAEffectContext& InContext)
 {
-	InContext.InstigatorComp->OnTargetAttributeModifed.Broadcast(InData);
+	ENetMode NM = GetOwner()->GetNetMode();
+
+	switch (NM)
+	{
+	case NM_Standalone:
+		ClientNotifyAttributeModifier(InData);
+		break;
+	case NM_DedicatedServer:
+		ServerOnTargetAttributeModifed.Broadcast(InData);
+		ClientNotifyAttributeModifier(InData);
+		break;
+	case NM_ListenServer:
+		ServerOnTargetAttributeModifed.Broadcast(InData);
+		ClientNotifyAttributeModifier(InData);
+		break;
+	case NM_Client:
+		ClientNotifyAttributeModifier(InData);
+		break;
+	case NM_MAX:
+		break;
+	default:
+		break;
+	}
+}
+void UAFAbilityComponent::ClientNotifyAttributeModifier_Implementation(const FAFAttributeChangedData& InData)
+{
+	OnTargetAttributeModifed.Broadcast(InData);
 }
 void UAFAbilityComponent::GetAttributeStructTest(FGAAttribute Name)
 {

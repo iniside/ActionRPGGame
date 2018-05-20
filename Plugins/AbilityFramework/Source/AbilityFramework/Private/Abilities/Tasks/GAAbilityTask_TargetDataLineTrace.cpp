@@ -41,6 +41,7 @@ void UGAAbilityTask_TargetDataLineTrace::Activate()
 	{
 		case EAFConfirmType::Instant:
 		{
+			
 			HitData = LineTrace();
 			LocalHitResult = HitData;
 			//OnClient... Is called on both Client and server and is result of local simulation
@@ -51,13 +52,13 @@ void UGAAbilityTask_TargetDataLineTrace::Activate()
 			//for hits.
 			if (IsServerOrStandalone())
 			{
-				OnClientReceiveTargetData.Broadcast(HitData);
+				//OnClientReceiveTargetData.Broadcast(HitData);
 				OnServerReceiveTargetData.Broadcast(HitData);
-				EndTask();
+				
 			}
 			else
 			{
-				OnClientReceiveTargetData.Broadcast(HitData);
+				OnClientUnconfirmedTargetData.Broadcast(HitData);
 			}
 			break;
 		}
@@ -78,7 +79,7 @@ void UGAAbilityTask_TargetDataLineTrace::Activate()
 			break;
 		}
 	}
-	if (HitData.IsValidBlockingHit())
+	//if (HitData.IsValidBlockingHit())
 	{
 		if (AbilityComponent->GetOwnerRole() < ROLE_Authority)
 		{
@@ -92,15 +93,21 @@ void UGAAbilityTask_TargetDataLineTrace::Activate()
 			TraceData.ExactPing = ExactPing;
 			TraceData.HitActor = HitData.GetActor();
 			TraceData.HitLocation = HitData.Location;
-
 			ServerConfirmHitInfo(TraceData);
+			
 		}
 	}
+	if (AbilityComponent->GetOwnerRole() == ROLE_Authority)
+	{
+		EndTask();
+	}
+	
 }
 
 void UGAAbilityTask_TargetDataLineTrace::ServerConfirmHitInfo_Implementation(FAFLineTraceData TraceData)
 {
 	int test = 0;
+	UE_LOG(AbilityFramework, Log, TEXT("%s Server Confirm Hit"), *GetName());
 	FAFLineTraceConfirmData ConfirmData;
 	ConfirmData.bConfirmed = true;
 	ConfirmData.HitActor = LocalHitResult.GetActor();
@@ -116,15 +123,18 @@ void UGAAbilityTask_TargetDataLineTrace::ClientConfirmHitInfo_Implementation(FAF
 {
 	if (ConfirmData.bConfirmed)
 	{
-		OnServerReceiveTargetData.Broadcast(LocalHitResult);
+		UE_LOG(AbilityFramework, Log, TEXT("%s Client Hit Confirmed"), *GetName());
+		OnClientReceiveTargetData.Broadcast(LocalHitResult);
 	}
 	else
 	{
+		UE_LOG(AbilityFramework, Log, TEXT("%s Client Hit Overrided"), *GetName());
 		LocalHitResult.Actor = ConfirmData.HitActor;
 		LocalHitResult.Location = ConfirmData.HitLocation;
 		LocalHitResult.ImpactPoint = ConfirmData.HitLocation;
-		OnServerReceiveTargetData.Broadcast(LocalHitResult);
+		OnClientReceiveTargetData.Broadcast(LocalHitResult);
 	}
+	EndTask();
 }
 
 // ---------------------------------------------------------------------------------------
@@ -132,13 +142,46 @@ void UGAAbilityTask_TargetDataLineTrace::ClientConfirmHitInfo_Implementation(FAF
 void UGAAbilityTask_TargetDataLineTrace::OnConfirm()
 {
 	FHitResult Hit = LineTrace();
-	OnConfirmed.Broadcast(Hit);
+	//OnConfirmed.Broadcast(Hit);
+
 	Ability->OnConfirmDelegate.RemoveAll(this);
 }
 void UGAAbilityTask_TargetDataLineTrace::OnCastEndedConfirm()
 {
 	FHitResult Hit = LineTrace();
-	OnClientReceiveTargetData.Broadcast(Hit);
+	LocalHitResult = Hit;
+	//OnClient... Is called on both Client and server and is result of local simulation
+	//unconfirmed by server. This result might get overrided when data from server arrive to client
+	//it's good to spawn some cosmetic effects, but shouldn't be used to actually confirm hit result on client.
+
+	//OnServer.. is confirmed by server that we got hit (or not), and should be used to show client confirmation
+	//for hits.
+	if (AbilityComponent->GetOwnerRole() < ROLE_Authority)
+	{
+		APlayerController* PC = Ability->PCOwner;
+		APawn* P = Ability->POwner;
+
+		PC->PlayerState->RecalculateAvgPing();
+		float ExactPing = PC->PlayerState->ExactPing;
+
+		FAFLineTraceData TraceData;
+		TraceData.ExactPing = ExactPing;
+		TraceData.HitActor = Hit.GetActor();
+		TraceData.HitLocation = Hit.Location;
+		ServerConfirmHitInfo(TraceData);
+
+	}
+
+	if (IsServerOrStandalone())
+	{
+		//OnClientReceiveTargetData.Broadcast(HitData);
+		OnServerReceiveTargetData.Broadcast(Hit);
+		EndTask();
+	}
+	else
+	{
+		OnClientUnconfirmedTargetData.Broadcast(Hit);
+	}
 	bIsTickable = false;
 	EndTask();
 }

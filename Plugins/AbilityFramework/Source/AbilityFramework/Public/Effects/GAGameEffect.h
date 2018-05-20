@@ -451,11 +451,16 @@ public:
 	void OnExpired();
 	void OnRemoved();
 	void OnExecuted();
-
+	FAFContextHandle GetContext()
+	{
+		return Context;
+	}
 	FGAEffectMod GetModifier()
 	{
 		return EffectMod;
 	}
+
+	inline void SetContext(const FAFContextHandle& InContext) { Context = InContext; }
 
 	void AddOwnedTags(const FGameplayTagContainer& InTags)
 	{
@@ -554,6 +559,7 @@ public:
 	{
 		SpecPtr->CalculateAttributeModifier(InHandlet);
 	}
+	inline void SetContext(const FAFContextHandle& InContext) { SpecPtr->SetContext(InContext); }
 };
 template<>
 struct TStructOpsTypeTraits< FAFEffectSpecHandle > : public TStructOpsTypeTraitsBase2<FAFEffectSpecHandle>

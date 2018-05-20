@@ -63,16 +63,29 @@ struct ABILITYFRAMEWORK_API FAFAttributeBase
 {
 	GENERATED_BODY()
 public:
+	
 	UPROPERTY(EditAnywhere, SaveGame)
 		float BaseValue;
+	/*
+		Bonus Value applied to BaseValue of Attribute. It should never be directly modified outside of AbilityFramework.
+	*/
+	UPROPERTY(SaveGame)
+		float BaseBonusValue;
+
 	UPROPERTY(EditAnywhere, SaveGame)
 		float MinValue;
+
 	UPROPERTY(EditAnywhere, SaveGame)
 		float MaxValue;
+	/*
+		Bonus to the MaxValue.
+	*/
+	UPROPERTY(SaveGame)
+		float BonusMaxValue;
+
 	UPROPERTY(SaveGame)
 		float CurrentValue;
-	UPROPERTY(SaveGame)
-		float BonusValue;
+
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Value")
 		TSubclassOf<class UGAAttributeExtension> ExtensionClass;
@@ -91,9 +104,13 @@ public:
 	//used internally. NEver call it directly.
 	inline void SetCurrentValue(float ValueIn) { CurrentValue = ValueIn; }
 
+	/*
+		Gets current absolute maximum of value of the attribute.
+		BaseValue + BonusValue, clamped by MaxValue.
+	*/
 	inline float GetFinalValue()
 	{
-		return FMath::Clamp<float>(BaseValue + BonusValue, MinValue, MaxValue);
+		return FMath::Clamp<float>(BaseValue + BaseBonusValue, MinValue, MaxValue);
 	};
 	inline float GetCurrentValue() { return CurrentValue; };
 	void CalculateBonus();

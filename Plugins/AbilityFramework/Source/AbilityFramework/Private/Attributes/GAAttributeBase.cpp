@@ -18,14 +18,14 @@ DEFINE_STAT(STAT_FinalBonusByTag);
 //}
 FAFAttributeBase::FAFAttributeBase()
 	: CurrentValue(0),
-	BonusValue(0)
+	BaseBonusValue(0)
 {
 	Modifiers.AddDefaulted(7);
 };
 FAFAttributeBase::FAFAttributeBase(float BaseValueIn)
 	: BaseValue(BaseValueIn),
 	CurrentValue(BaseValue),
-	BonusValue(0)
+	BaseBonusValue(0)
 {
 	Modifiers.AddDefaulted(7);
 };
@@ -53,7 +53,7 @@ void FAFAttributeBase::CopyFromOther(FAFAttributeBase* Other)
 	MinValue = Other->MinValue;
 	MaxValue = Other->MaxValue;
 	CurrentValue = Other->CurrentValue;
-	BonusValue = Other->BonusValue;
+	BaseBonusValue = Other->BaseBonusValue;
 
 	CurrentValue = BaseValue;
 	CalculateBonus();
@@ -87,35 +87,15 @@ void FAFAttributeBase::CalculateBonus()
 	{
 		DivideBonus += ModIt->Value.Value;
 	}
-	//for (ModIt; ModIt; ++ModIt)
-	//{
-	//	const FGAEffectMod& mod = ModIt->Value;
-	//	switch (mod.AttributeMod)
-	//	{
-	//	case EGAAttributeMod::Add:
-	//		AdditiveBonus += mod.Value;
-	//		break;
-	//	case EGAAttributeMod::Subtract:
-	//		SubtractBonus += mod.Value;
-	//		break;
-	//	case EGAAttributeMod::Multiply:
-	//		MultiplyBonus += mod.Value;
-	//		break;
-	//	case EGAAttributeMod::Divide:
-	//		DivideBonus += mod.Value;
-	//		break;
-	//	default:
-	//		break;
-	//	}
-	//}
-	float OldBonus = BonusValue;
+
+	float OldBonus = BaseBonusValue;
 	//calculate final bonus from modifiers values.
 	//we don't handle stacking here. It's checked and handled before effect is added.
-	BonusValue = (AdditiveBonus - SubtractBonus);
-	BonusValue = (BonusValue * MultiplyBonus);
-	BonusValue = (BonusValue / DivideBonus);
+	BaseBonusValue = (AdditiveBonus - SubtractBonus);
+	BaseBonusValue = (BaseBonusValue * MultiplyBonus);
+	BaseBonusValue = (BaseBonusValue / DivideBonus);
 	//this is absolute maximum (not clamped right now).
-	float addValue = BonusValue - OldBonus;
+	float addValue = BaseBonusValue - OldBonus;
 	//reset to max = 200
 	CurrentValue = CurrentValue + addValue;
 	/*

@@ -15,7 +15,7 @@ class ACTIONRPGGAME_API UARCharacterAttributes : public UGAAttributesBase
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, Replicated, Category = "Base")
+	UPROPERTY(EditAnywhere, ReplicatedUsing=OnRep_Health, Category = "Base")
 		FAFAttributeBase Health;
 	UPROPERTY(EditAnywhere, Replicated, Category = "Base")
 		FAFAttributeBase Shield;
@@ -34,4 +34,7 @@ public:
 		FAFAttributeBase ShotgunAmmo;
 	UPROPERTY(EditAnywhere, Category = "Base")
 		FAFAttributeBase ArrowAmmo;
+
+	UFUNCTION()
+		void OnRep_Health();
 };

@@ -549,8 +549,10 @@ USTRUCT()
 struct ABILITYFRAMEWORK_API FGAEffectMod
 {
 	GENERATED_BODY()
+public:
 	FGAAttribute Attribute;
-	float Value;
+	UPROPERTY()
+		float Value;
 	EGAAttributeMod AttributeMod;
 	struct FGAEffectHandle Handle;
 	FGameplayTagContainer AttributeTags;
@@ -629,12 +631,16 @@ struct ABILITYFRAMEWORK_API FAFAttributeChangedData
 {
 	GENERATED_BODY()
 public:
-	FGAEffectMod Mod;
+	UPROPERTY()
+		FGAEffectMod Mod;
+
 	UPROPERTY()
 		TWeakObjectPtr<UObject> Target;
-	//HitLocation of applicable;
-	FVector Location;
-	float NewValue;
+	UPROPERTY()
+		FVector Location;
+
+	UPROPERTY()
+		float NewValue;
 };
 
 /*

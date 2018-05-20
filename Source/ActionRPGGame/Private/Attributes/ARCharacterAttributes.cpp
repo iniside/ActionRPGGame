@@ -14,3 +14,11 @@ void UARCharacterAttributes::GetLifetimeReplicatedProps(TArray< class FLifetimeP
 	DOREPLIFETIME(UARCharacterAttributes, Ammo);
 	DOREPLIFETIME(UARCharacterAttributes, MachineGunAmmo);
 }
+
+void UARCharacterAttributes::OnRep_Health()
+{
+	if (Health.CurrentValue)
+	{
+
+	}
+}

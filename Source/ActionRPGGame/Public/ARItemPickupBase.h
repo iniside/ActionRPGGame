@@ -3,14 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "IFItemActorBase.h"
 #include "ARItemPickupBase.generated.h"
 
 UCLASS()
-class ACTIONRPGGAME_API AARItemPickupBase : public AActor
+class ACTIONRPGGAME_API AARItemPickupBase : public AIFItemActorBase
 {
 	GENERATED_BODY()
-	
+
+	UPROPERTY()
+		class AARItemSpawnerBase* SpawnedBy;
 public:	
 	// Sets default values for this actor's properties
 	AARItemPickupBase();
@@ -23,6 +25,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	inline void SetSpawnedBy(class AARItemSpawnerBase* InSpawnedBy) { SpawnedBy = InSpawnedBy; }
+
 	
-	
+	virtual void OnItemPicked() override;
 };

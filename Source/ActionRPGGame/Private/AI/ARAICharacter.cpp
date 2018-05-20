@@ -18,7 +18,10 @@ void AARAICharacter::BeginPlay()
 	Super::BeginPlay();
 	
 }
-
+void AARAICharacter::OnSpawned(class AAREnemySpawner* InSpawnedBy)
+{
+	SpawnedBy = InSpawnedBy;
+}
 // Called every frame
 void AARAICharacter::Tick(float DeltaTime)
 {
