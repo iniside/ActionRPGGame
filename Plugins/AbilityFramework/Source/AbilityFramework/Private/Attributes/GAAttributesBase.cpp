@@ -291,8 +291,10 @@ void UGAAttributesBase::ModifyAttribute(const FGAEffect& EffectIn)
 
 }
 
-float UGAAttributesBase::ModifyAttribute(const FGAEffectMod& ModIn, 
-	const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty)
+float UGAAttributesBase::ModifyAttribute(const FGAEffectMod& ModIn
+	, const FGAEffectHandle& HandleIn
+	, FGAEffectProperty& InProperty
+	, const FAFContextHandle& InContext)
 {
 	FAFAttributeBase* attr = nullptr;
 	UGAAttributesBase* atrObj = this;
@@ -301,7 +303,7 @@ float UGAAttributesBase::ModifyAttribute(const FGAEffectMod& ModIn,
 	float OutVal = -1;
 	if (attr)
 	{
-		OutVal = attr->Modify(ModIn, HandleIn, InProperty);
+		OutVal = attr->Modify(ModIn, HandleIn, InProperty, InContext);
 	}
 	OnAttributeModified(ModIn, HandleIn);
 	return OutVal;

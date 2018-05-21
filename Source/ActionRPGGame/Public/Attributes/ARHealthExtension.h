@@ -9,12 +9,13 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(BlueprintType, Blueprintable)
 class ACTIONRPGGAME_API UARHealthExtension : public UGAAttributeExtension
 {
 	GENERATED_BODY()
 	
-	
+		virtual void PreAttributeModify(const FGAEffectContext& InContext, float PreValue) override;
+	virtual void PostAttributeModify(const FGAEffectContext& InContext, float PreValue, float PostValue) override;
 	
 	
 };

@@ -484,9 +484,9 @@ float AARCharacter::GetAttributeValue(FGAAttribute AttributeIn) const
 }
 
 void AARCharacter::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn,
-	struct FGAEffectProperty& InProperty)
+	struct FGAEffectProperty& InProperty, const FAFContextHandle& InContext)
 {
-	Abilities->ModifyAttribute(ModIn, HandleIn, InProperty);
+	Abilities->ModifyAttribute(ModIn, HandleIn, InProperty, InContext);
 }
 
 FAFAttributeBase* AARCharacter::GetAttribute(FGAAttribute AttributeIn) 

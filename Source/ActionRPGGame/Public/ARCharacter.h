@@ -239,7 +239,7 @@ public:
 		virtual float GetAttributeValue(FGAAttribute AttributeIn) const override;
 
 	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn,
-		struct FGAEffectProperty& InProperty) override;
+		struct FGAEffectProperty& InProperty, const FAFContextHandle& InContext) override;
 	virtual FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn) override;
 	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) override;
 

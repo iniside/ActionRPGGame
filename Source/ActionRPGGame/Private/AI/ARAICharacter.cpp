@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ARAICharacter.h"
-
+#include "AREnemySpawner.h"
 
 // Sets default values
 AARAICharacter::AARAICharacter()
@@ -36,6 +36,13 @@ void AARAICharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 }
 
+void AARAICharacter::Kill()
+{
+	SpawnedBy->OnEnemyKilled(this);
+
+	Destroy();
+}
+
 /* IAFAbilityInterface- BEGIN */
 class UAFAbilityComponent* AARAICharacter::GetAbilityComp()
 {
@@ -55,9 +62,9 @@ float AARAICharacter::GetAttributeValue(FGAAttribute AttributeIn) const
 }
 
 void AARAICharacter::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn,
-	struct FGAEffectProperty& InProperty)
+	struct FGAEffectProperty& InProperty, const FAFContextHandle& InContex)
 {
-	Abilities->ModifyAttribute(ModIn, HandleIn, InProperty);
+	Abilities->ModifyAttribute(ModIn, HandleIn, InProperty, InContex);
 }
 
 FAFAttributeBase* AARAICharacter::GetAttribute(FGAAttribute AttributeIn)

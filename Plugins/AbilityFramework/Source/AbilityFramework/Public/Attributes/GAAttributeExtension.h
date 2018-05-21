@@ -23,8 +23,9 @@ public:
 	void OnPreAttributeModify(float InValue);
 	void OnPostAttributeModify(float InValue);
 
-	virtual void PreAttributeModify() {};
-	virtual void PostAttributeModify() {};
+	virtual void PreAttributeModify(const FGAEffectContext& InContext, float PreValue) {};
+	virtual void PostAttributeModify(const FGAEffectContext& InContext, float PreValue, float PostValue) {};
+
 	virtual float CalculateBonusValueByTags(const FGAIndividualMods& Mods) { return 0; }
 	virtual float CalculateCurentValue() { return 0; }
 	virtual bool CanModifyAttribute() { return true; }

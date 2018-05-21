@@ -116,7 +116,9 @@ void UARWeaponAbilityBase::AddUpgrade(FAFPropertytHandle& PropertyHandle
 
 	UpgradeContainer.ApplyEffect(EffectHandle, Effect);
 
+	FAFContextHandle Context = FAFContextHandle::Generate(&DefaultContext);
+
 	FGAEffectMod Mod = SpecHandle.GetModifier();
-	ModifyAttribute(Mod, EffectHandle, PropertyHandle.GetRef());
+	ModifyAttribute(Mod, EffectHandle, PropertyHandle.GetRef(), Context);
 
 }

@@ -115,7 +115,7 @@ public:
 	inline float GetCurrentValue() { return CurrentValue; };
 	void CalculateBonus();
 	bool CheckIfStronger(const FGAEffectMod& InMod);
-	float Modify(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);
+	float Modify(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty, const FAFContextHandle& InContext);
 	void AddBonus(const FGAEffectMod& ModIn, const FGAEffectHandle& Handle);
 	void RemoveBonus(const FGAEffectHandle& Handle, EGAAttributeMod InMod);
 	void SetExtensionClass(TSubclassOf<class UGAAttributeExtension> InExtensionClass) { ExtensionClass = InExtensionClass; };

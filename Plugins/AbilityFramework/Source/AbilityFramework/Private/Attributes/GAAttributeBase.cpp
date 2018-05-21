@@ -17,15 +17,16 @@ DEFINE_STAT(STAT_FinalBonusByTag);
 //
 //}
 FAFAttributeBase::FAFAttributeBase()
-	: CurrentValue(0),
-	BaseBonusValue(0)
+	: BaseBonusValue(0)
+	, CurrentValue(0)
 {
 	Modifiers.AddDefaulted(7);
 };
 FAFAttributeBase::FAFAttributeBase(float BaseValueIn)
-	: BaseValue(BaseValueIn),
-	CurrentValue(BaseValue),
-	BaseBonusValue(0)
+	: BaseValue(BaseValueIn)
+	, BaseBonusValue(0)
+	, CurrentValue(BaseValue)
+	
 {
 	Modifiers.AddDefaulted(7);
 };
@@ -159,16 +160,26 @@ bool FAFAttributeBase::CheckIfStronger(const FGAEffectMod& InMod)
 	return false;
 }
 float FAFAttributeBase::Modify(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn,
-	FGAEffectProperty& InProperty)
+	FGAEffectProperty& InProperty, const FAFContextHandle& InContext)
 {
 	//FString name = GetTypeName<FAFAttributeBase>();
 	if (ExtensionClass)
 	{
 		ExtensionClass.GetDefaultObject()->OnPreAttributeModify(CurrentValue);
+		FGAEffectContext* Context = InContext.GetPtr();
+		if (InContext.IsValid())
+		{
+			ExtensionClass.GetDefaultObject()->PreAttributeModify(InContext.GetRef()
+				, CurrentValue);
+		}
+		
 	}
 	float returnValue = -1;
 	bool isPeriod = InProperty.GetPeriod() > 0;
 	bool IsDuration = InProperty.GetDuration() > 0;
+
+	float PreValue = CurrentValue;
+	
 	if ( !InProperty.GetIsInstant())
 	{
 		FGAModifier AttrMod(ModIn.AttributeMod, ModIn.Value, HandleIn);
@@ -221,7 +232,15 @@ float FAFAttributeBase::Modify(const FGAEffectMod& ModIn, const FGAEffectHandle&
 	}
 	if (ExtensionClass)
 	{
-		ExtensionClass.GetDefaultObject()->OnPreAttributeModify(returnValue);
+		ExtensionClass.GetDefaultObject()->OnPostAttributeModify(returnValue);
+		
+		if (InContext.IsValid())
+		{
+			ExtensionClass.GetDefaultObject()->PostAttributeModify(
+			InContext.GetRef()
+			, PreValue
+			, returnValue);
+		}
 	}
 	return returnValue;
 }

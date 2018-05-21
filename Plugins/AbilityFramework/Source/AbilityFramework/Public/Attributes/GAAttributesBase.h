@@ -122,7 +122,10 @@ public:
 	void SetNetAddressable();
 
 	void ModifyAttribute(const FGAEffect& EffectIn);
-	float ModifyAttribute(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);
+	float ModifyAttribute(const FGAEffectMod& ModIn
+		, const FGAEffectHandle& HandleIn
+		, FGAEffectProperty& InProperty
+		, const FAFContextHandle& InContext);
 	void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod);
 protected:
 	bool bNetAddressable;

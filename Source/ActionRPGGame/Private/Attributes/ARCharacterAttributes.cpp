@@ -2,6 +2,11 @@
 #include "Net/UnrealNetwork.h"
 
 
+UARCharacterAttributes::UARCharacterAttributes(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+
+}
 
 void UARCharacterAttributes::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
 {

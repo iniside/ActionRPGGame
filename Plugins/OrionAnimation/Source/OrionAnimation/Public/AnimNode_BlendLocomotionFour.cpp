@@ -123,7 +123,7 @@ void FAnimNode_BlendLocomotionFour::Update_AnyThread(const FAnimationUpdateConte
 	FVector LocalVelocity = Transform.InverseTransformVectorNoScale(VelocityDirection);
 	
 	float Atan2Angle = FMath::Atan2(LocalVelocity.Y, LocalVelocity.X);
-	int32 Dir = FMath::RoundToInt((Atan2Angle * 2 / PI) + 4) % 4;
+	int32 LocalDir = FMath::RoundToInt((Atan2Angle * 2 / PI) + 4) % 4;
 	DotBlendTime = FMath::Abs(FVector::DotProduct(LocalVelocity, LocalAcceleration));
 	BlendTime[0] = DotBlendTime;
 	BlendTime[1] = DotBlendTime;
@@ -154,15 +154,15 @@ void FAnimNode_BlendLocomotionFour::Update_AnyThread(const FAnimationUpdateConte
 			// scale by the weight difference since we want always consistency:
 			// - if you're moving from 0 to full weight 1, it will use the normal blend time
 			// - if you're moving from 0.5 to full weight 1, it will get there in half the time
-			const float RemainingBlendTime = LastChildIndexIsInvalid ? 0.0f : (BlendTime[ChildIndex] * WeightDifference);
+			const float LocalRemainingBlendTime = LastChildIndexIsInvalid ? 0.0f : (BlendTime[ChildIndex] * WeightDifference);
 
 			for (int32 i = 0; i < RemainingBlendTimes.Num(); ++i)
 			{
-				RemainingBlendTimes[i] = RemainingBlendTime;
+				RemainingBlendTimes[i] = LocalRemainingBlendTime;
 			}
 
 			// If we have a valid previous child and we're instantly blending - update that pose with zero weight
-			if (RemainingBlendTime == 0.0f && !LastChildIndexIsInvalid)
+			if (LocalRemainingBlendTime == 0.0f && !LastChildIndexIsInvalid)
 			{
 				BlendPose[LastActiveChildIndex].Update(Context.FractionalWeight(0.0f));
 			}
@@ -171,7 +171,7 @@ void FAnimNode_BlendLocomotionFour::Update_AnyThread(const FAnimationUpdateConte
 			{
 				FAlphaBlend& Blend = Blends[i];
 
-				Blend.SetBlendTime(RemainingBlendTime);
+				Blend.SetBlendTime(LocalRemainingBlendTime);
 
 				if (i == ChildIndex)
 				{
@@ -259,7 +259,7 @@ void FAnimNode_BlendLocomotionFour::Update_AnyThread(const FAnimationUpdateConte
 	}
 	
 
-	switch (static_cast<EFCardinalDirection>(Dir))
+	switch (static_cast<EFCardinalDirection>(LocalDir))
 	{
 	case EFCardinalDirection::N:
 	{
@@ -338,8 +338,8 @@ void FAnimNode_BlendLocomotionFour::Evaluate_AnyThread(FPoseContext& Output)
 
 			FPoseContext EvaluateContext(Output);
 
-			FPoseLink& CurrentPose = BlendPose[PoseIndex];
-			CurrentPose.Evaluate(EvaluateContext);
+			FPoseLink& LocalCurrentPose = BlendPose[PoseIndex];
+			LocalCurrentPose.Evaluate(EvaluateContext);
 
 			FilteredPoses[i].CopyBonesFrom(EvaluateContext.Pose);
 			FilteredCurve[i] = EvaluateContext.Curve;
@@ -362,8 +362,8 @@ void FAnimNode_BlendLocomotionFour::Evaluate_AnyThread(FPoseContext& Output)
 		{
 			int32 PoseIndex = PosesToEvaluate[i];
 
-			FPoseLink& CurrentPose = BlendPose[PoseIndex];
-			CurrentPose.Evaluate(Output);
+			FPoseLink& LocalCurrentPose = BlendPose[PoseIndex];
+			LocalCurrentPose.Evaluate(Output);
 
 		}
 		//Output.ResetToRefPose();

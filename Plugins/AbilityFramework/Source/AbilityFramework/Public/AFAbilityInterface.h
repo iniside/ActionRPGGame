@@ -35,7 +35,7 @@ public:
 		virtual float GetAttributeValue(FGAAttribute AttributeIn) const { return 0; };
 
 	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn,
-		struct FGAEffectProperty& InProperty) {};
+		struct FGAEffectProperty& InProperty, const FAFContextHandle& InContext) {};
 	virtual FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn) { return nullptr; };
 	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) {};
 

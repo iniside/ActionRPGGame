@@ -471,14 +471,15 @@ public:
 	virtual FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn) override { return Attributes->GetAttribute(AttributeIn); };
 	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) override { Attributes->RemoveBonus(AttributeIn, HandleIn, InMod); };
 	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn
-	, FGAEffectProperty& InProperty) override 
+	, FGAEffectProperty& InProperty
+	, const FAFContextHandle& InContext) override
 	{ 
 		if (!Attributes)
 		{
 			UE_LOG(AFAbilities, Log, TEXT("ModifyAttribute Ability Attributes INVALID"));
 			return;
 		}
-		Attributes->ModifyAttribute(ModIn, HandleIn, InProperty); 
+		Attributes->ModifyAttribute(ModIn, HandleIn, InProperty, InContext);
 	};
 	virtual FAFPredictionHandle GetPredictionHandle() override;
 	/* IAFAbilityInterface End **/

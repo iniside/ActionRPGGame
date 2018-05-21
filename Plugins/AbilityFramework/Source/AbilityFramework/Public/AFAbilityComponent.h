@@ -337,7 +337,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Attributes")
 		float GetAttributeValue(FGAAttribute AttributeIn) const { return DefaultAttributes->GetCurrentAttributeValue(AttributeIn); };
 
-	void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn, FGAEffectProperty& InProperty);// { DefaultAttributes->ModifyAttribute(ModIn, HandleIn); };
+	void ModifyAttribute(FGAEffectMod& ModIn
+		, const FGAEffectHandle& HandleIn
+		, FGAEffectProperty& InProperty
+		, const FAFContextHandle& InContext);// { DefaultAttributes->ModifyAttribute(ModIn, HandleIn); };
 	void NotifyInstigatorTargetAttributeChanged(const FAFAttributeChangedData& InData, 
 		const FGAEffectContext& InContext);
 

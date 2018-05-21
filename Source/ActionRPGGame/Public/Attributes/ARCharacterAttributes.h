@@ -34,7 +34,12 @@ public:
 		FAFAttributeBase ShotgunAmmo;
 	UPROPERTY(EditAnywhere, Category = "Base")
 		FAFAttributeBase ArrowAmmo;
+public:
+
+	UARCharacterAttributes(const FObjectInitializer& ObjectInitializer);
 
 	UFUNCTION()
 		void OnRep_Health();
+
+
 };

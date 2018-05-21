@@ -369,7 +369,10 @@ public:
 	{
 		return DataPtr.IsValid();
 	}
-
+	bool IsValid() const
+	{
+		return DataPtr.IsValid();
+	}
 	FGAEffectContext& GetRef()
 	{
 		return DataPtr.ToSharedRef().Get();
@@ -1048,6 +1051,14 @@ public:
 		, bRecreated(false)
 	{};
 
+	FAFContextHandle& GetContextHandle()
+	{
+		return Context;
+	}
+	const FAFContextHandle& GetContextHandle() const
+	{
+		return Context;
+	}
 	FGAEffectContext & GetContext()
 	{
 		return Context.GetRef();

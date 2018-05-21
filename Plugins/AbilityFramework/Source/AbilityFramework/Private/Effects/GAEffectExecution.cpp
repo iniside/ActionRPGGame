@@ -20,5 +20,6 @@ void UGAEffectExecution::ExecuteEffect(const FGAEffectHandle& HandleIn, FGAEffec
 	const FAFFunctionModifier& Modifier)
 {
 	PreModifyAttribute(HandleIn, ModIn, Params.GetContext());
-	Params.GetContext().TargetInterface->ModifyAttribute(ModIn, HandleIn, Params.GetProperty());
+	FAFContextHandle ContextHandle = Params.GetContextHandle();
+	Params.GetContext().TargetInterface->ModifyAttribute(ModIn, HandleIn, Params.GetProperty(), ContextHandle);
 }
