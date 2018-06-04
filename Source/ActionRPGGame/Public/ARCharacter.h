@@ -180,6 +180,8 @@ public:
 	float OldOrient;
 public:
 	AARCharacter(const FObjectInitializer& ObjectInitializer);
+	virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void PostInitializeComponents() override;
 	float GetAnimOrient() final;
 	EFCardinalDirection GetCardianlDirection() final;
 	float GetAnimOrientN() final;
