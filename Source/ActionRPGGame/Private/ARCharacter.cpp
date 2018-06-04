@@ -88,39 +88,38 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 
 	Head = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Head"));
 	Head->SetupAttachment(GetMesh());
-	Head->SetMasterPoseComponent(GetMesh());
-
+	
 	Shoulders = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Shoulders"));
 	Shoulders->SetupAttachment(GetMesh());
-	Shoulders->SetMasterPoseComponent(GetMesh());
+	
 
 	Arms = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Arms"));
 	Arms->SetupAttachment(GetMesh());
-	Arms->SetMasterPoseComponent(GetMesh());
+	
 
 	Hands = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Hands"));
 	Hands->SetupAttachment(GetMesh());
-	Hands->SetMasterPoseComponent(GetMesh());
+	
 
 	Torso = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Torso"));
 	Torso->SetupAttachment(GetMesh());
-	Torso->SetMasterPoseComponent(GetMesh());
+	
 
 	Legs = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Legs"));
 	Legs->SetupAttachment(GetMesh());
-	Legs->SetMasterPoseComponent(GetMesh());
+	
 
 	Feets = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Feets"));
 	Feets->SetupAttachment(GetMesh());
-	Feets->SetMasterPoseComponent(GetMesh());
+	
 
 	Backpack = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Backpack"));
 	Backpack->SetupAttachment(GetMesh());
-	Backpack->SetMasterPoseComponent(GetMesh());
+	
 
 	LegsCloth = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LegsCloth"));
 	LegsCloth->SetupAttachment(GetMesh());
-	//LegsCloth->SetMasterPoseComponent(GetMesh());
+	
 
 	WeaponHolsteredRight = CreateDefaultSubobject<UChildActorComponent>(TEXT("WeaponHolsteredRight"));
 	//HolsteredRightWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);
@@ -150,10 +149,43 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
+void AARCharacter::OnConstruction(const FTransform& Transform)
+{
+	Head->SetMasterPoseComponent(GetMesh());
+	Head->UpdateMasterBoneMap();
 
+	Shoulders->SetMasterPoseComponent(GetMesh());
+	Shoulders->UpdateMasterBoneMap();
+
+	Arms->SetMasterPoseComponent(GetMesh());
+	Arms->UpdateMasterBoneMap();
+
+	Hands->SetMasterPoseComponent(GetMesh());
+	Hands->UpdateMasterBoneMap();
+
+	Torso->SetMasterPoseComponent(GetMesh());
+	Torso->UpdateMasterBoneMap();
+
+	Legs->SetMasterPoseComponent(GetMesh());
+	Legs->UpdateMasterBoneMap();
+
+	Feets->SetMasterPoseComponent(GetMesh());
+	Feets->UpdateMasterBoneMap();
+
+	Backpack->SetMasterPoseComponent(GetMesh());
+	Backpack->UpdateMasterBoneMap();
+}
+void AARCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+}
 void AARCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+
+	//LegsCloth->SetMasterPoseComponent(GetMesh());
 	WeaponInventory->SetIsReplicated(true);
 	WeaponInventory->InitializeWeapons(this);
 }
