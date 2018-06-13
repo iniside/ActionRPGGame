@@ -59,12 +59,12 @@ void UARGameInstance::Init()
 	}
 
 #if WITH_AGONES
-	//if (IAgones::Get().AgonesSDK->Connect())
-	//{
-	//	grpc::Status statuc = IAgones::Get().AgonesSDK->Ready();
-	//	FTimerDelegate HealthCheckDel = FTimerDelegate::CreateUObject(this, &UARGameInstance::HealthCheck);
-	//	TimerManager->SetTimer(HealthCheckHandle, HealthCheckDel, 1, true, 1);
-	//}
+	if (IAgones::Get().AgonesSDK->Connect())
+	{
+		grpc::Status statuc = IAgones::Get().AgonesSDK->Ready();
+		FTimerDelegate HealthCheckDel = FTimerDelegate::CreateUObject(this, &UARGameInstance::HealthCheck);
+		TimerManager->SetTimer(HealthCheckHandle, HealthCheckDel, 1, true, 1);
+	}
 #endif
 }
 #if WITH_EDITOR

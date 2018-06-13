@@ -38,7 +38,8 @@ void AARAICharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void AARAICharacter::Kill()
 {
-	SpawnedBy->OnEnemyKilled(this);
+	if(SpawnedBy)
+		SpawnedBy->OnEnemyKilled(this);
 
 	Destroy();
 }

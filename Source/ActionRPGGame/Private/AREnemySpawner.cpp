@@ -42,7 +42,10 @@ void AAREnemySpawner::Tick(float DeltaTime)
 
 void AAREnemySpawner::OnEnemyKilled(AARAICharacter* InEnemy)
 {
-	SpawnedEnemies.Remove(InEnemy);
+	if (SpawnedEnemies.Num() > 0)
+	{
+		SpawnedEnemies.Remove(InEnemy);
+	}
 	if (SpawnedEnemies.Num() < MinRespawn)
 	{
 		SetupSpawner();
