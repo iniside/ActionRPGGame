@@ -1,12 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ARAbilityManagerComponent.h"
-#include "Blueprint/UserWidget.h"
 #include "GameFramework/PlayerController.h"
-#include "Layout/Visibility.h"
 
-#include "DWBPFunctionLibrary.h"
-#include "SDraggableWindowWidget.h"
 #include "ARPlayerController.h"
 
 // Sets default values for this component's properties

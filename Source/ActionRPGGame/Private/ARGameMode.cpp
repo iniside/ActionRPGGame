@@ -7,7 +7,6 @@
 #include "Engine/AssetManager.h"
 #include "Abilities/ARAbilityBase.h"
 #include "ARGameInstance.h"
-#include "SDraggableWindowWidget.h"
 #include "ARPlayerController.h"
 
 

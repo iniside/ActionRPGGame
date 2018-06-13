@@ -9,5 +9,5 @@ public class ActionRPGGameClientTarget : TargetRules
 	{
 		Type = TargetType.Client;
 		ExtraModuleNames.Add("ActionRPGGame");
-	}
+    }
 }

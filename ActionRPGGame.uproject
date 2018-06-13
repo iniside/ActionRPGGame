@@ -77,11 +77,18 @@
 			"Enabled": true
 		},
 		{
-			"Name": "OnlineSubsystemAmazon",
+			"Name": "OnlineFramework",
 			"Enabled": true
 		},
 		{
-			"Name": "OnlineFramework",
+			"Name": "ActionRPGGameUI",
+			"Enabled": true,
+			"BlacklistTargets": [
+				"Server"
+			]
+		},
+		{
+			"Name": "GRPC",
 			"Enabled": true
 		},
 		{
@@ -226,34 +233,33 @@
 			"Enabled": true
 		},
 		{
-			"Name": "GameLiftServerSDK",
-			"Enabled": true,
-			"BlacklistTargets": [
-				"Client"
-			],
-			"SupportedTargetPlatforms": [
-				"Linux"
-			]
+			"Name": "NiagaraExtras",
+			"Enabled": true
 		},
 		{
-			"Name": "GameLiftClientSDK",
-			"Enabled": true,
-			"BlacklistTargets": [
-				"Server"
-			]
-		},
-		{
-			"Name": "WmfMedia",
+			"Name": "MagicLeapMedia",
 			"Enabled": false,
-			"BlacklistTargets": [
-				"Server",
-				"Client"
-			],
-			"BlacklistTargetConfigurations": [
-				"Debug",
-				"Development",
-				"DebugGame"
+			"SupportedTargetPlatforms": [
+				"Lumin"
 			]
+		},
+		{
+			"Name": "MagicLeapEmulator",
+			"Enabled": false,
+			"SupportedTargetPlatforms": [
+				"Lumin"
+			]
+		},
+		{
+			"Name": "MagicLeap",
+			"Enabled": false,
+			"SupportedTargetPlatforms": [
+				"Lumin"
+			]
+		},
+		{
+			"Name": "AppleVision",
+			"Enabled": false
 		}
 	],
 	"TargetPlatforms": [

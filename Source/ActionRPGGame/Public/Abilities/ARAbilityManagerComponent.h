@@ -8,8 +8,6 @@
 
 #include "Abilities/GAAbilityBase.h"
 #include "AMAbilityManagerComponent.h"
-#include "DWTypes.h"
-
 
 #include "ARAbilityManagerComponent.generated.h"
 

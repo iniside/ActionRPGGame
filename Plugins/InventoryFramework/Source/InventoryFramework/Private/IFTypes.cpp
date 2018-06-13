@@ -440,8 +440,8 @@ void FIFJsonSerializer::JsonObjectToUObject(TSharedPtr<FJsonObject> Object, UObj
 					FString objClassStr2 = Objj->GetStringField("objectClass");
 					if (objClassStr2.Len() > 0)
 					{
-						FSoftClassPath path(objClassStr2);
-						UClass* itemCls = Cast<UClass>(path.TryLoad());
+						FSoftClassPath pathLocal(objClassStr2);
+						UClass* itemClsLocal = Cast<UClass>(pathLocal.TryLoad());
 						UObject* Out = nullptr;
 						JsonObjectToUObject(Objj, Out, OutObject);
 						ObjectProp->SetObjectPropertyValue_InContainer(OutObject, Out);
