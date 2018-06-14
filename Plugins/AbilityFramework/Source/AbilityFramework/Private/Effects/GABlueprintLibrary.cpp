@@ -169,21 +169,30 @@ FGAEffectHandle UGABlueprintLibrary::ApplyEffect(
 	FAFEffectParams Params(InEffect);
 	if (Params.EffectSpec.GetPtr())
 	{
-		UE_LOG(GameAttributesEffects, Log, TEXT("  Pre Spec Target: %s"), *Params.EffectSpec.GetPtr()->GetContext().GetPtr()->Target->GetName());
+		if (Params.EffectSpec.GetPtr()->GetContext().GetPtr()->Target.IsValid())
+		{
+			UE_LOG(GameAttributesEffects, Log, TEXT("  Pre Spec Target: %s"), *Params.EffectSpec.GetPtr()->GetContext().GetPtr()->Target->GetName());
+		}
 	}
 	if (!bReusedSpec)
 	{
 		FAFEffectSpec* EffectSpec = new FAFEffectSpec(Context, InEffect.GetClass());
 		AddTagsToEffect(EffectSpec);
 		Params.EffectSpec = FAFEffectSpecHandle::Generate(EffectSpec);
-		UE_LOG(GameAttributesEffects, Log, TEXT("  Pre Spec Target: %s"), *EffectSpec->GetContext().GetPtr()->Target->GetName());
+		if (EffectSpec->GetContext().GetPtr()->Target.IsValid())
+		{
+			UE_LOG(GameAttributesEffects, Log, TEXT("  Pre Spec Target: %s"), *EffectSpec->GetContext().GetPtr()->Target->GetName());
+		}
 	}
 	else
 	{
 		Params.EffectSpec = EffectSpecHandle;
 		Params.EffectSpec.SetContext(Context);
 	}
-	UE_LOG(GameAttributesEffects, Log, TEXT("  Post Spec Target: %s"), *Params.EffectSpec.GetPtr()->GetContext().GetPtr()->Target->GetName());
+	if (Params.EffectSpec.GetPtr()->GetContext().GetPtr()->Target.IsValid())
+	{
+		UE_LOG(GameAttributesEffects, Log, TEXT("  Post Spec Target: %s"), *Params.EffectSpec.GetPtr()->GetContext().GetPtr()->Target->GetName());
+	}
 	Params.bRecreated = bReusedParams;
 	Params.bPeriodicEffect = bPeriodicEffect;
 	Params.Context = Context;
