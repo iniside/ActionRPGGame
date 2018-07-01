@@ -32,9 +32,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Visual")
 		TSoftClassPtr<class AARWeaponBase> Weapon;
 
-
-
-
 	UPROPERTY(EditAnywhere, Category = "Transforms")
 		FVector HolsteredPosition;
 	UPROPERTY(EditAnywhere, Category = "Transforms")
@@ -55,6 +52,11 @@ public:
 
 	UPROPERTY(Transient)
 		float MagazineUpgradeValue;
+
+	UPROPERTY(Transient)
+		FAFAbilitySpecHandle AbilityHandle;
+
+	UARItemWeapon();
 
 	void SetAbility(class UARWeaponAbilityBase* InAbility);
 

@@ -7,6 +7,7 @@
 #include "GameplayTags.h"
 #include "IFInventoryComponent.h"
 #include "IFInventoryInterface.h"
+#include "AFAbilityTypes.h"
 #include "ARPlayerController.generated.h"
 
 /**
@@ -21,15 +22,14 @@ public:
 		class UARUIComponent* UIComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
-		class UARAbilityManagerComponent* AbilityManager;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|UI")
 		class UIFInventoryComponent* MainInventory;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
 		FGameplayTag InputNextWeapon;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
 		TSoftClassPtr<UGAAbilityBase> AbilitytNextWeapon;
+	UPROPERTY(Transient)
+		FAFAbilitySpecHandle InputNextWeaponSpecHandle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability Input")
 		FGameplayTag InputPreviousWeapon;
@@ -65,7 +65,7 @@ public:
 	void InputSwitchAbilitySet();
 	void InputShowHideAbilityManager();
 	void InputShowHideInventory();
-	void OnInputAbilityReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, FGameplayTag InInputTag);
+	void OnInputAbilityReady(FAFAbilitySpec Spec, FAFAbilitySpecHandle ServerHandle, FAFAbilitySpecHandle ClientHandle);
 
 	UFUNCTION(Client, Reliable)
 		void ClientPossesed(APawn* InPawn);

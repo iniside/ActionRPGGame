@@ -15,13 +15,10 @@ class ABILITYFRAMEWORK_API UGAAttributeExtension : public UObject
 	GENERATED_BODY()
 public:
 	UPROPERTY()
-		class UAFAbilityComponent* AbilityComponent;
-	UPROPERTY()
 		FGAAttribute Attribute;
-	void Initialize(UAFAbilityComponent* InAbilityComponent, const FName& InAttributeName);
 	
-	void OnPreAttributeModify(float InValue);
-	void OnPostAttributeModify(float InValue);
+	void OnPreAttributeModify(class UAFAbilityComponent* InComp, const FGAAttribute& Attribute, float InValue);
+	void OnPostAttributeModify(class UAFAbilityComponent* InComp, const FGAAttribute& Attribute, float InValue);
 
 	virtual void PreAttributeModify(const FGAEffectContext& InContext, float PreValue) {};
 	virtual void PostAttributeModify(const FGAEffectContext& InContext, float PreValue, float PostValue) {};

@@ -40,10 +40,8 @@ void FAFAttributeBase::InitializeAttribute(UAFAbilityComponent* InComponent, con
 	Modifiers.Empty();
 	Modifiers.AddDefaulted(7);// static_cast<int32>(EGAAttributeMod::Invalid));
 	//Modifiers.AddDefaulted(static_cast<int32>(EGAAttributeMod::Invalid));
-	if (ExtensionClass)
-	{
-		ExtensionClass.GetDefaultObject()->Initialize(InComponent, InAttributeName);
-	}
+	AbilityComp = InComponent;
+	SelfName = FGAAttribute(InAttributeName);
 }
 void FAFAttributeBase::CopyFromOther(FAFAttributeBase* Other)
 {
@@ -165,7 +163,7 @@ float FAFAttributeBase::Modify(const FGAEffectMod& ModIn, const FGAEffectHandle&
 	//FString name = GetTypeName<FAFAttributeBase>();
 	if (ExtensionClass)
 	{
-		ExtensionClass.GetDefaultObject()->OnPreAttributeModify(CurrentValue);
+		ExtensionClass.GetDefaultObject()->OnPreAttributeModify(AbilityComp, SelfName, CurrentValue);
 		FGAEffectContext* Context = InContext.GetPtr();
 		if (InContext.IsValid())
 		{
@@ -232,7 +230,7 @@ float FAFAttributeBase::Modify(const FGAEffectMod& ModIn, const FGAEffectHandle&
 	}
 	if (ExtensionClass)
 	{
-		ExtensionClass.GetDefaultObject()->OnPostAttributeModify(returnValue);
+		ExtensionClass.GetDefaultObject()->OnPostAttributeModify(AbilityComp, SelfName, returnValue);
 		
 		if (InContext.IsValid())
 		{

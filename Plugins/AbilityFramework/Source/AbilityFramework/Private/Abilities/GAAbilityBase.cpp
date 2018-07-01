@@ -205,21 +205,21 @@ void UGAAbilityBase::OnAbilityInited()
 {
 
 }
-void UGAAbilityBase::OnNativeInputPressed(FGameplayTag ActionName, const FAFPredictionHandle& InPredictionHandle)
+void UGAAbilityBase::OnNativeInputPressed(uint8 InputID, const FAFPredictionHandle& InPredictionHandle)
 {
 	{
-		UE_LOG(AbilityFramework, Log, TEXT("OnNativeInputPressed in ability %s"), *GetName());
+		//UE_LOG(AbilityFramework, Log, TEXT("OnNativeInputPressed in ability %s"), *GetName());
 		PredictionHandle = InPredictionHandle;
-		OnInputPressed(ActionName);
+		OnInputPressed(InputID);
 		OnInputPressedDelegate.Broadcast();
 	}
 }
 
-void UGAAbilityBase::OnNativeInputReleased(FGameplayTag ActionName)
+void UGAAbilityBase::OnNativeInputReleased(uint8 InputID)
 {
 	{
 		UE_LOG(AbilityFramework, Log, TEXT("OnNativeInputReleased in ability %s"), *GetName());
-		OnInputReleased(ActionName);
+		OnInputReleased(InputID);
 		OnInputReleasedDelegate.Broadcast();
 	}
 }
@@ -731,11 +731,11 @@ bool UGAAbilityBase::CallRemoteFunction(UFunction* Function, void* Parameters, F
 
 void UGAAbilityBase::ExecuteAbilityInputPressedFromTag(FGameplayTag AbilityTagIn, FGameplayTag ActionName)
 {
-	AbilityComponent->NativeInputPressed(ActionName);
+	//AbilityComponent->NativeInputPressed(ActionName);
 }
 void UGAAbilityBase::ExecuteAbilityInputReleasedFromTag(FGameplayTag AbilityTagIn, FGameplayTag ActionName)
 {
-	AbilityComponent->NativeInputReleased(ActionName);
+	//AbilityComponent->NativeInputReleased(ActionName);
 }
 
 bool UGAAbilityBase::HaveGameplayTag(AActor* Target, const FGameplayTag& Tag)

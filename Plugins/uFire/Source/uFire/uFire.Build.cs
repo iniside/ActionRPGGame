@@ -8,12 +8,7 @@ public class uFire : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
-		PublicIncludePaths.AddRange(
-			new string[] {
-				"uFire/Public"
-				// ... add public include paths required here ...
-			}
-			);
+		//PublicIncludePaths.AddRange();
 				
 		
 		PrivateIncludePaths.AddRange(

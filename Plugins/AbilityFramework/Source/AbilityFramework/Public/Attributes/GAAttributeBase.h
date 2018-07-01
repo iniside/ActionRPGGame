@@ -63,7 +63,12 @@ struct ABILITYFRAMEWORK_API FAFAttributeBase
 {
 	GENERATED_BODY()
 public:
-	
+
+	UPROPERTY(NotReplicated)
+		class UAFAbilityComponent* AbilityComp;
+	UPROPERTY(NotReplicated)
+		FGAAttribute SelfName;
+
 	UPROPERTY(EditAnywhere, SaveGame)
 		float BaseValue;
 	/*

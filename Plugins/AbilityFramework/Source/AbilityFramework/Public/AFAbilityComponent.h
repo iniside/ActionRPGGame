@@ -29,7 +29,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FGAGenericEffectDelegate, FGAEffectHandle);
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FAFAttributeChangedDelegate, FAFAttributeChangedData);
 
-DECLARE_DELEGATE(FAFOnAbilityReady);
+DECLARE_DELEGATE_ThreeParams(FAFOnAbilityReady, FAFAbilitySpec, FAFAbilitySpecHandle, FAFAbilitySpecHandle);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAFOnAbilityAdded, const FGameplayTag&, AbilityTag);
 DECLARE_DELEGATE(FAFGenericAttributeDelegate);
 
@@ -386,20 +386,20 @@ public:
 	bool bIsAnyAbilityActive;
 
 	//AbilityTag, Delegate
-	TMap<TSoftClassPtr<UGAAbilityBase>, FAFOnAbilityReady> OnAbilityReadyMap;
+	TMap<FAFAbilitySpecHandle, FAFOnAbilityReady> OnAbilityReadyMap;
 
-	void AddOnAbilityReadyDelegate(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, FAFOnAbilityReady& InDelegate)
+	void AddOnAbilityReadyDelegate(const FAFAbilitySpecHandle InAbilityPtr, FAFOnAbilityReady& InDelegate)
 	{
 		if(InDelegate.IsBound())
 			OnAbilityReadyMap.Add(InAbilityPtr, InDelegate);
 	}
 
-	void NotifyOnAbilityReady(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr)
+	void NotifyOnAbilityReady(FAFAbilitySpec Spec, FAFAbilitySpecHandle ServerHandle, FAFAbilitySpecHandle ClientHandle)
 	{
-		if (FAFOnAbilityReady* Ready = OnAbilityReadyMap.Find(InAbilityPtr))
+		if (FAFOnAbilityReady* Ready = OnAbilityReadyMap.Find(ClientHandle))
 		{
-			Ready->ExecuteIfBound();
-			OnAbilityReadyMap.Remove(InAbilityPtr);
+			Ready->ExecuteIfBound(Spec, ServerHandle, ClientHandle);
+			OnAbilityReadyMap.Remove(ClientHandle);
 		}
 	}
 
@@ -411,11 +411,11 @@ public:
 			OnAbilityInputReadyMap.Add(InAbilityPtr, InDelegate);
 	}
 
-	void NotifyOnAbilityInputReady(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr)
+	void NotifyOnAbilityInputReady(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, FAFAbilitySpec Spec, FAFAbilitySpecHandle ServerHandle, FAFAbilitySpecHandle ClientHandle)
 	{
 		if (FAFOnAbilityReady* Ready = OnAbilityInputReadyMap.Find(InAbilityPtr))
 		{
-			Ready->ExecuteIfBound();
+			Ready->ExecuteIfBound(Spec, ServerHandle, ClientHandle);
 			OnAbilityInputReadyMap.Remove(InAbilityPtr);
 		}
 	}
@@ -499,22 +499,11 @@ public:
 	
 
 	void SetBlockedInput(const FGameplayTag& InActionName, bool bBlock);
-	void BindInputs(class UInputComponent* InputComponent);
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Bind Ability To Action"), Category = "AbilityFramework|Abilities")
-		void BP_BindAbilityToAction(FGameplayTag ActionName);
-	void BindAbilityToAction(UInputComponent* InputComponent, FGameplayTag ActionName);
-	
-	//need to be called on both client and server.
-	//Change InInputTag To Array, clear previous binds on the same tag.
-	void SetAbilityToAction(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, const TArray<FGameplayTag>& InInputTag, const FAFOnAbilityReady& InputDelegate);
 
+	void BindInputs(class UInputComponent* InputComponent, FString BindEnum);
+	
 	TSoftClassPtr<UGAAbilityBase> IsAbilityBoundToAction(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, const TArray<FGameplayTag>& InInputTag);
 	
-protected:
-	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerSetAbilityToAction(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, const TArray<FGameplayTag>& InInputTag);
-	void ServerSetAbilityToAction_Implementation(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, const TArray<FGameplayTag>& InInputTag);
-	bool ServerSetAbilityToAction_Validate(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, const TArray<FGameplayTag>& InInputTag);
 public:
 	/* Called when ability action has been binded on server. */
 	UFUNCTION(Client, Reliable)
@@ -522,39 +511,28 @@ public:
 	void ClientNotifyAbilityInputReady_Implementation(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr);
 
 
-	void SetAbilitiesToActions(const TArray<FAFAbilityActionSet>& InAbilitiesActions, const TArray<FAFOnAbilityReady>& InputDelegate);
+
+	void BindAbilityToInputIDs(const FAFAbilitySpecHandle Handle, TArray<uint8> InputIDs);
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerSetAbilitiesToActions(const TArray<FAFAbilityActionSet>& InAbilitiesActions);
-	void ServerSetAbilitiesToActions_Implementation(const TArray<FAFAbilityActionSet>& InAbilitiesActions);
-	bool ServerSetAbilitiesToActions_Validate(const TArray<FAFAbilityActionSet>& InAbilitiesActions);
+		void ServerBindAbilityToInputIDs(const FAFAbilitySpecHandle Handle, const TArray<uint8>& InputIDs);
+	void ServerBindAbilityToInputIDs_Implementation(const FAFAbilitySpecHandle Handle, const TArray<uint8>& InputIDs);
+	bool ServerBindAbilityToInputIDs_Validate(const FAFAbilitySpecHandle Handle, const TArray<uint8>& InputIDs);
 
-	void RemoveAbilitiesFromActions(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr);
-	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerRemoveAbilitiesFromActions(const FSoftObjectPath& InAbilityPtr);
-	void ServerRemoveAbilitiesFromActions_Implementation(const FSoftObjectPath& InAbilityPtr);
-	bool ServerRemoveAbilitiesFromActions_Validate(const FSoftObjectPath& InAbilityPtr);
-
-	UFUNCTION(BlueprintCallable, meta=(DisplayName="Input Pressed"), Category = "AbilityFramework|Abilities")
-		void BP_InputPressed(FGameplayTag ActionName);
-
-	void NativeInputPressed(FGameplayTag ActionName);
+	void NativeInputPressed(uint8 InputID);
 protected:
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerNativeInputPressed(FGameplayTag ActionName, FAFPredictionHandle InPredictionHandle);
-	virtual void ServerNativeInputPressed_Implementation(FGameplayTag ActionName, FAFPredictionHandle InPredictionHandle);
-	virtual bool ServerNativeInputPressed_Validate(FGameplayTag ActionName, FAFPredictionHandle InPredictionHandle);
+		void ServerNativeInputPressed(uint8 InputID, FAFPredictionHandle InPredictionHandle);
+	virtual void ServerNativeInputPressed_Implementation(uint8 InputID, FAFPredictionHandle InPredictionHandle);
+	virtual bool ServerNativeInputPressed_Validate(uint8 InputID, FAFPredictionHandle InPredictionHandle);
 
 
 public:
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Input Released"), Category = "AbilityFramework|Abilities")
-		void BP_InputReleased(FGameplayTag ActionName);
-
-	void NativeInputReleased(FGameplayTag ActionName);
+	void NativeInputReleased(uint8 InputID);
 protected:
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerNativeInputReleased(FGameplayTag ActionName);
-	virtual void ServerNativeInputReleased_Implementation(FGameplayTag ActionName);
-	virtual bool ServerNativeInputReleased_Validate(FGameplayTag ActionName);
+		void ServerNativeInputReleased(uint8 InputID);
+	virtual void ServerNativeInputReleased_Implementation(uint8 InputID);
+	virtual bool ServerNativeInputReleased_Validate(uint8 InputID);
 public:
 	/*
 		Finds ability using asset registry and then gives it to component.
@@ -567,43 +545,44 @@ public:
 	void BP_AddAbility(TSoftClassPtr<UGAAbilityBase> InAbility,
 		TArray<FGameplayTag> InInputTag);
 
-	void NativeAddAbility(TSoftClassPtr<UGAAbilityBase> InAbility,
-		const TArray<FGameplayTag>& InInputTag);
+	/*
+		Adds new ability to this AbilityComponent.
+		Client handle is used to trigger ability related events on client which requested this function.
+		Please note that to find ability by handle you must refer to it trough server generated ability handle.
+		Which can be received by registering delegate trough:
+		@AddOnAbilityReadyDelegate
+	*/
+	void NativeAddAbility(TSoftClassPtr<UGAAbilityBase> InAbility, const FAFAbilitySpecHandle ClientHandle);
 
 	/*
 		Adds ability using existing instance of object.
 		Should only be called on authority or in standalone.
 	*/
-	void NativeAddAbilityFromObject(UGAAbilityBase* InAbility, TSoftClassPtr<UGAAbilityBase> AbilityPtr);
+	void NativeAddAbilityFromObject(UGAAbilityBase* InAbility, const FAFAbilitySpecHandle ClientHandle);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerNativeAddAbility(const FSoftObjectPath& InAbility,
-			const TArray<FGameplayTag>& InInputTag);
+		void ServerNativeAddAbility(const FSoftObjectPath& InAbility, const FAFAbilitySpecHandle& ClientHandle);
+	void ServerNativeAddAbility_Implementation(const FSoftObjectPath& InAbility, const FAFAbilitySpecHandle& ClientHandle);
+	bool ServerNativeAddAbility_Validate(const FSoftObjectPath& InAbility, const FAFAbilitySpecHandle& ClientHandle);
 
-	void ServerNativeAddAbility_Implementation(const FSoftObjectPath& InAbility,
-		const TArray<FGameplayTag>& InInputTag);
-
-	bool ServerNativeAddAbility_Validate(const FSoftObjectPath& InAbility,
-		const TArray<FGameplayTag>& InInputTag);
-
-	void OnFinishedLoad(TSoftClassPtr<UGAAbilityBase> InAbility);
+	void OnFinishedLoad(TSoftClassPtr<UGAAbilityBase> InAbility, const FAFAbilitySpecHandle Handle, const FAFAbilitySpecHandle ClientHandle);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Remove Ability"), Category = "AbilityFramework|Abilities")
 		void BP_RemoveAbility(TSoftClassPtr<UGAAbilityBase> TagIn);
 
-	void NativeRemoveAbility(TSoftClassPtr<UGAAbilityBase> InAbilityTag);
+	void NativeRemoveAbility(const FAFAbilitySpecHandle InHandle);
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerNativeRemoveAbility(const FSoftObjectPath& InAbilityTag);
+		void ServerNativeRemoveAbility(const FAFAbilitySpecHandle& InHandle);
 
-	void ServerNativeRemoveAbility_Implementation(const FSoftObjectPath& InAbilityTag);
+	void ServerNativeRemoveAbility_Implementation(const FAFAbilitySpecHandle& InHandle);
 
-	bool ServerNativeRemoveAbility_Validate(const FSoftObjectPath& InAbilityTag);
+	bool ServerNativeRemoveAbility_Validate(const FAFAbilitySpecHandle& InHandle);
 
 	//TODO: Make it procted
 
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Get Ability By Tag"), Category = "AbilityFramework|Abilities")
-		UGAAbilityBase* BP_GetAbilityByTag(TSoftClassPtr<UGAAbilityBase> TagIn);
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Get Ability By Handle"), Category = "AbilityFramework|Abilities")
+		UGAAbilityBase* BP_GetAbilityByHandle(FAFAbilitySpecHandle TagIn);
 
 
 	bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags) override;
@@ -612,8 +591,6 @@ public:
 	void NotifyOnAbilityAdded(const FGameplayTag& InAbilityTag);
 protected:
 	void InitializeInstancedAbilities();
-	UGAAbilityBase* InstanceAbility(TSubclassOf<class UGAAbilityBase> AbilityClass
-		, TSoftClassPtr<class UGAAbilityBase> InClassPtr);
 
 
 public:

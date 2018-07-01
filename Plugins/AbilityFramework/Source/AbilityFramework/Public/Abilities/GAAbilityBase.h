@@ -301,7 +301,7 @@ public:
 	 * @param ActionName - Name of action which tirggered this ability
 	 * @param InPredictionHandle - Prediction Handle Generate By Client
 	 */
-	void OnNativeInputPressed(FGameplayTag ActionName, const FAFPredictionHandle& InPredictionHandle);
+	void OnNativeInputPressed(uint8 InputID, const FAFPredictionHandle& InPredictionHandle);
 	/*
 	* @call Order:
 	* Previous Function: UGAAbilityBase::OnNativeInputPressed
@@ -316,11 +316,11 @@ public:
 	* @param ActionName - Name of action which tirggered this ability
 	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
-		void OnInputPressed(FGameplayTag ActionName);
+		void OnInputPressed(uint8 InputID);
 
-	void OnNativeInputReleased(FGameplayTag ActionName);
+	void OnNativeInputReleased(uint8 InputID);
 	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
-		void OnInputReleased(FGameplayTag ActionName);
+		void OnInputReleased(uint8 InputID);
 
 
 	

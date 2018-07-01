@@ -18,6 +18,11 @@
 #include "Weapons/ARWeaponInventoryComponent.h"
 #include "Weapons/ARMagazineUpgradeEffect.h"
 
+UARItemWeapon::UARItemWeapon()
+{
+	AbilityHandle = FAFAbilitySpecHandle::GenerateHandle();
+}
+
 void UARItemWeapon::SetAbility(class UARWeaponAbilityBase* InAbility)
 {
 	AbilityInstance = InAbility;

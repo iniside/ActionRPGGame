@@ -49,8 +49,4 @@ public:
 	
 	virtual void NativePreConstruct() override;
 	virtual void NativeConstruct() override;
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "ActionRPGGame|UI")
-		void OnAbilityGroupChanged(EAMGroup CurrentGroup);
-
 };

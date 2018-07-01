@@ -51,7 +51,14 @@ public:
 	template<typename T>
 	T* GetItem(uint8 InLocalIndex)
 	{
-		return Cast<T>(EquipmentItems[InLocalIndex].Item);
+		if (EquipmentItems.IsValidIndex(InLocalIndex))
+		{
+			return Cast<T>(EquipmentItems[InLocalIndex].Item);
+		}
+		else
+		{
+			return nullptr;
+		}
 		//return Cast<T>(Inventory.Items[InLocalIndex].Item);
 	}
 		

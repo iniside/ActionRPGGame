@@ -4,20 +4,11 @@
 #include "../AFAbilityComponent.h"
 #include "GAAttributeExtension.h"
 
-
-
-
-void UGAAttributeExtension::Initialize(UAFAbilityComponent* InAbilityComponent, const FName& InAttributeName)
+void UGAAttributeExtension::OnPreAttributeModify(class UAFAbilityComponent* InComp, const FGAAttribute& Attribute, float InValue)
 {
-	AbilityComponent = InAbilityComponent;
-	Attribute = FGAAttribute(InAttributeName);
+	InComp->NotifyOnPreAttributeModified(Attribute);
 }
-
-void UGAAttributeExtension::OnPreAttributeModify(float InValue)
+void UGAAttributeExtension::OnPostAttributeModify(class UAFAbilityComponent* InComp, const FGAAttribute& Attribute, float InValue)
 {
-	AbilityComponent->NotifyOnPreAttributeModified(Attribute);
-}
-void UGAAttributeExtension::OnPostAttributeModify(float InValue)
-{
-	AbilityComponent->NotifyOnPostAttributeModified(Attribute);
+	InComp->NotifyOnPostAttributeModified(Attribute);
 }

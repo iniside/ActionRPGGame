@@ -14,7 +14,4 @@ class ACTIONRPGGAME_API UARCharacterMovementComponent : public UCharacterMovemen
 {
 	GENERATED_BODY()
 	
-	
-	
-	
 };

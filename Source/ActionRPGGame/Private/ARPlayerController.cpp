@@ -11,7 +11,6 @@
 #include "Engine/LocalPlayer.h"
 #include "Components/CapsuleComponent.h"
 
-#include "Abilities/ARAbilityManagerComponent.h"
 
 #include "UI/ARHUD.h"
 
@@ -19,11 +18,9 @@ AARPlayerController::AARPlayerController(const FObjectInitializer& ObjectInitial
 	: Super(ObjectInitializer)
 {
 	UIComponent = ObjectInitializer.CreateDefaultSubobject<UARUIComponent>(this, "UIComponent");
-	AbilityManager = ObjectInitializer.CreateDefaultSubobject<UARAbilityManagerComponent>(this, "AbilityManager");
 	MainInventory = ObjectInitializer.CreateDefaultSubobject<UIFInventoryComponent>(this, "MainInventory");
 	MainInventory->SetIsReplicated(true);
 
-	AbilityManager->ComponentTags.Add(TEXT("AbilityManager"));
 	bInputBount = false;
 }
 void AARPlayerController::BeginPlay()
@@ -44,36 +41,26 @@ void AARPlayerController::BeginPlay()
 
 		if (!bInputBount)
 		{
-			AbilityComp->BindAbilityToAction(InputComponent, InputNextWeapon);
-			AbilityComp->BindAbilityToAction(InputComponent, InputPreviousWeapon);
-			AbilityComp->BindAbilityToAction(InputComponent, InputHolsterWeapon);
-			AbilityComp->BindAbilityToAction(InputComponent, InputSetAbilityGroup01);
-			AbilityComp->BindAbilityToAction(InputComponent, InputSetAbilityGroup02);
-
-
-			AbilityManager->BindInputs(InputComponent, AbilityComp);
 			AARCharacter* Character = Cast<AARCharacter>(GetPawn());
-
-			Character->WeaponInventory->BindInputs(InputComponent, AbilityComp);
-
+			
 			bInputBount = true;
 		}
 		//doesn't matter. Internally ability component make sure abilities are instanced on server and replicated back.
 		if (!AbilitytNextWeapon.IsNull())
 		{
-			FAFOnAbilityReady del1 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, AbilitytNextWeapon, InputNextWeapon);
-			AbilityComp->AddOnAbilityReadyDelegate(AbilitytNextWeapon, del1);
-			TArray<FGameplayTag> NextWeap;
-			NextWeap.Add(InputNextWeapon);
-			AbilityComp->NativeAddAbility(AbilitytNextWeapon, NextWeap);
+			InputNextWeaponSpecHandle = FAFAbilitySpecHandle::GenerateHandle();
+			FAFOnAbilityReady del1 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady);
+			AbilityComp->AddOnAbilityReadyDelegate(InputNextWeaponSpecHandle, del1);
+
+			AbilityComp->NativeAddAbility(AbilitytNextWeapon, InputNextWeaponSpecHandle);
 		}
-		if (!AbilitytPreviousWeapon.IsNull())
+		/*if (!AbilitytPreviousWeapon.IsNull())
 		{
 			FAFOnAbilityReady del2 = FAFOnAbilityReady::CreateUObject(this, &AARPlayerController::OnInputAbilityReady, AbilitytPreviousWeapon, InputPreviousWeapon);
 			AbilityComp->AddOnAbilityReadyDelegate(AbilitytPreviousWeapon, del2);
 			TArray<FGameplayTag> PrevWeap;
 			PrevWeap.Add(InputPreviousWeapon);
-			AbilityComp->NativeAddAbility(AbilitytPreviousWeapon, PrevWeap);
+			AbilityComp->NativeAddAbility(AbilitytPreviousWeapon);
 		}
 		if (!AbilitytHolstersWeapon.IsNull())
 		{
@@ -81,7 +68,7 @@ void AARPlayerController::BeginPlay()
 			AbilityComp->AddOnAbilityReadyDelegate(AbilitytHolstersWeapon, del3);
 			TArray<FGameplayTag> HolsterInput;
 			HolsterInput.Add(InputHolsterWeapon);
-			AbilityComp->NativeAddAbility(AbilitytHolstersWeapon, HolsterInput);
+			AbilityComp->NativeAddAbility(AbilitytHolstersWeapon);
 		}
 
 		if (!SetAbilityGroup01.IsNull())
@@ -90,7 +77,7 @@ void AARPlayerController::BeginPlay()
 			AbilityComp->AddOnAbilityReadyDelegate(SetAbilityGroup01, del3);
 			TArray<FGameplayTag> HolsterInput;
 			HolsterInput.Add(InputSetAbilityGroup01);
-			AbilityComp->NativeAddAbility(SetAbilityGroup01, HolsterInput);
+			AbilityComp->NativeAddAbility(SetAbilityGroup01);
 		}
 		if (!SetAbilityGroup02.IsNull())
 		{
@@ -98,8 +85,8 @@ void AARPlayerController::BeginPlay()
 			AbilityComp->AddOnAbilityReadyDelegate(SetAbilityGroup02, del3);
 			TArray<FGameplayTag> HolsterInput;
 			HolsterInput.Add(InputSetAbilityGroup02);
-			AbilityComp->NativeAddAbility(SetAbilityGroup02, HolsterInput);
-		}
+			AbilityComp->NativeAddAbility(SetAbilityGroup02);
+		}*/
 
 	}
 }
@@ -141,7 +128,6 @@ void AARPlayerController::InputSwitchAbilitySet()
 }
 void AARPlayerController::InputShowHideAbilityManager()
 {
-	AbilityManager->ShowHideAbilityManager();
 }
 void AARPlayerController::InputShowHideInventory()
 {
@@ -150,7 +136,7 @@ void AARPlayerController::InputShowHideInventory()
 		MyHUD->ShowHideInventory();
 	}
 }
-void AARPlayerController::OnInputAbilityReady(TSoftClassPtr<UGAAbilityBase> InAbilityTag, FGameplayTag InInputTag)
+void AARPlayerController::OnInputAbilityReady(FAFAbilitySpec Spec, FAFAbilitySpecHandle ServerHandle, FAFAbilitySpecHandle ClientHandle)
 {
 	IAFAbilityInterface* ABInt = Cast<IAFAbilityInterface>(GetPawn());
 	if (!ABInt)
@@ -160,10 +146,11 @@ void AARPlayerController::OnInputAbilityReady(TSoftClassPtr<UGAAbilityBase> InAb
 	if (!AbilityComp)
 		return;
 
-	UARAbilityBase* Ability = Cast<UARAbilityBase>(AbilityComp->BP_GetAbilityByTag(InAbilityTag));
-	TArray<FGameplayTag> Inputs;
-	Inputs.Add(InInputTag);
-	AbilityComp->SetAbilityToAction(InAbilityTag, Inputs, FAFOnAbilityReady());
+	InputNextWeaponSpecHandle = ServerHandle;
+
+	TArray<uint8> InputIds;
+	InputIds.Add(static_cast<uint8>(AbilityInput::NextWeapon));
+	AbilityComp->BindAbilityToInputIDs(ServerHandle, InputIds);
 }
 
 

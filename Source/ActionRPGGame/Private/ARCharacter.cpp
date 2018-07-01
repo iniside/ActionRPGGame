@@ -33,7 +33,6 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	// set our turn rates for input
 	BaseTurnRate = 5.f;
 	BaseLookUpRate = 25.f;
-	bStopDistancePredicted = false;
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -54,7 +53,9 @@ AARCharacter::AARCharacter(const FObjectInitializer& ObjectInitializer)
 	GetCharacterMovement()->MaxWalkSpeed = 270.0f;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 150.0f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 150.0f;
-	
+
+	OrionAnimComp = CreateDefaultSubobject<UOrionAnimComponent>(TEXT("OrionAnimComp"));
+
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	//CameraBoom->SetupAttachment(GetMesh());
@@ -190,245 +191,9 @@ void AARCharacter::BeginPlay()
 	WeaponInventory->InitializeWeapons(this);
 }
 
-FString DirToString(EFourCardinalDirection dir)
-{
-	switch (dir)
-	{
-	case EFourCardinalDirection::N:
-		return "N";
-	case EFourCardinalDirection::E:
-		return "E";
-	case EFourCardinalDirection::S:
-		return "S";
-	case EFourCardinalDirection::W:
-		return "W";
-	default:
-		break;
-	}
-	return "Invalid";
-}
-
-float AARCharacter::GetAnimOrient()
-{
-	return CurrentOrient;
-}
-float AARCharacter::GetAnimOrientN() { return OrientN; };
-float AARCharacter::GetAnimOrientE() { return OrientE; };
-float AARCharacter::GetAnimOrientS() { return OrientS; };
-float AARCharacter::GetAnimOrientW() { return OrientW; };
-
-EFCardinalDirection AARCharacter::GetCardianlDirection()
-{
-	int32 dir =  static_cast<int32>(FourDirections);
-
-	return static_cast<EFCardinalDirection>(dir);
-}
 void AARCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	UCharacterMovementComponent* CMC = GetCharacterMovement();
-
-	if (!CMC)
-		return;
-	FVector CharLocation = GetActorLocation();
-
-	FVector CurrentAcceleration = CMC->GetCurrentAcceleration();
-	FVector CurrentVelocity = CMC->Velocity;
-	
-	FVector AccelerationDirection = CurrentAcceleration.GetSafeNormal();
-	FVector LineEnd = (AccelerationDirection * 80.0f) + GetActorLocation();
-
-	//::DrawDebugLine(GetWorld(), GetActorLocation(), LineEnd, FColor::Red, false, -1.0f, 0, 10);
-	
-	FVector VelocityDirection = CurrentVelocity.GetSafeNormal();
-
-	float Vel = (CurrentVelocity.Size() / CMC->GetMaxSpeed()) * 100;
-
-	FVector VelocityEnd = (VelocityDirection * Vel) + GetActorLocation();
-
-	//::DrawDebugLine(GetWorld(), GetActorLocation()+FVector(0,0,10), VelocityEnd + FVector(0, 0, 10), FColor::Blue, false, -1.0f, 0, 10);
-	
-	FTransform Transform = GetTransform();
-	FVector LocalAcceleration = Transform.InverseTransformVectorNoScale(AccelerationDirection);
-	FVector LocalVelocity = Transform.InverseTransformVectorNoScale(VelocityDirection);
-
-	FQuat QRot = LocalAcceleration.ToOrientationQuat();
-	FRotator Rot = FRotator(QRot);
-	float Angle = Rot.Yaw;// FMath::RadiansToDegrees(FMath::Atan2(LocalVelocity.Y, LocalVelocity.X));
-	float Angle2 = (FMath::RoundToInt(Angle) + 360) % 360;
-	FVector Right = GetActorRightVector();
-	FVector Forward = GetActorForwardVector();
-	
-
-	FQuat QAngle = FQuat::FindBetweenNormals(Forward, LocalVelocity);
-	
-	FRotator RAngle(QAngle);
-	//DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 145), "RAngle: " + FString::FormatAsNumber(RAngle.Yaw), nullptr, FColor::Red, 0, true);
-
-
-	FVector V1 = (Forward + Right).GetSafeNormal2D();
-	FVector V2 = (Forward + (Right * (-1))).GetSafeNormal2D();
-	
-
-	int32 Octant = FMath::RoundToInt((Angle2)) % 8;
-	EigthDirections = static_cast<EEightCardinalDirection>(Octant);
-	float Atan2Angle = FMath::Atan2(LocalVelocity.Y, LocalVelocity.X);
-	int32 Dir = FMath::RoundToInt((Atan2Angle * 2 / PI) + 4) % 4;
-	
-	EFourCardinalDirection NewDir = static_cast<EFourCardinalDirection>(Dir);
-	
-	
-	switch (EigthDirections)
-	{
-	case EEightCardinalDirection::S:
-		break;
-	case EEightCardinalDirection::NE:
-		break;
-	case EEightCardinalDirection::W:
-		break;
-	case EEightCardinalDirection::SE:
-		break;
-	case EEightCardinalDirection::N:
-		break;
-	case EEightCardinalDirection::SW:
-		break;
-	case EEightCardinalDirection::E:
-		break;
-	case EEightCardinalDirection::NW:
-	{
-		/*if(OldFourDirections == EFourCardinalDirection::W)
-			NewDir = EFourCardinalDirection::N;*/
-		break;
-	}
-	default:
-		break;
-	}
-
-	if (NewDir != FourDirections)
-	{
-		OldFourDirections = FourDirections;
-	}
-	FourDirections = NewDir;
-	
-	//DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 135), "OldFourDirections: " + DirToString(OldFourDirections), nullptr, FColor::Red, 0, true);
-	//DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 140), "FourDirections: " + DirToString(FourDirections), nullptr, FColor::Red, 0, true);
-
-	float VelAccelDot = FVector::DotProduct(LocalVelocity, LocalAcceleration);
-	int32 intDot = FMath::RoundToInt(VelAccelDot);
-	OrientationDOT = VelAccelDot;
-	//DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 150), "VelAccelDot: " + FString::FormatAsNumber(intDot), nullptr, FColor::Red, 0, true);
-	//DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 155), "FVelAccelDot: " + FString::Printf(TEXT("%f"), VelAccelDot), nullptr, FColor::Red, 0, true);
-
-		
-	float TargetForward = FVector::DotProduct(CurrentVelocity, Forward);
-	ForwardDirection = FMath::FInterpConstantTo(ForwardDirection, TargetForward, DeltaSeconds, 100.0f);
-
-	float LateralForward = FVector::DotProduct(CurrentVelocity, Right);
-	LateralDirection = FMath::FInterpConstantTo(LateralDirection, LateralForward, DeltaSeconds, 100.0f);
-
-	//DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 165), "ForwardDirection: " + FString::Printf(TEXT("%f"), ForwardDirection), nullptr, FColor::Red, 0, true);
-	//DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 170), "LateralDirection: " + FString::Printf(TEXT("%f"), LateralDirection), nullptr, FColor::Red, 0, true);
-
-	FString SVelocity = "V: " + FString::Printf(TEXT("%d"), FMath::RoundToInt(CurrentVelocity.Size())) + " LV: " + FString::Printf(TEXT("%f"), LocalVelocity.Size());
-	//DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 90), SVelocity, nullptr, FColor::Red, 0, true);
-
-	FString SAcceleration = "A: " + FString::Printf(TEXT("%d"), FMath::RoundToInt(CurrentAcceleration.Size())) + " LA: " + FString::Printf(TEXT("%f"), LocalAcceleration.Size());
-	//DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 95), SAcceleration, nullptr, FColor::Red, 0, true);
-	
-	FVector LocalVel = Transform.InverseTransformVector(CurrentVelocity);
-
-	OldOrient = CurrentOrient;
-	FQuat VelQuat = LocalVelocity.ToOrientationQuat();
-	//FRotator VelRot = VelQuat.GetAngle();
-	float VelAngle = FMath::RadiansToDegrees(VelQuat.GetAngle());
-	switch (FourDirections)
-	{
-	case EFourCardinalDirection::E:
-	{
-		FQuat LeftQuat = FQuat::FindBetween(Right, CurrentVelocity);
-		OrientE = FRotator(LeftQuat).Yaw;
-		CurrentOrient = OrientE;
-
-		break;
-	}
-	case EFourCardinalDirection::N:
-	{
-		FQuat ForwardQuat = FQuat::FindBetween(Forward, CurrentVelocity);
-		OrientN = FRotator(ForwardQuat).Yaw;
-		float sign = FMath::Sign(OldOrient);
-		CurrentOrient = OrientN;
-		break;
-	}
-	case EFourCardinalDirection::W:
-	{
-		FQuat RightQuat = FQuat::FindBetween(Right*(-1), CurrentVelocity);
-		OrientW = FRotator(RightQuat).Yaw;
-		CurrentOrient = OrientW;
-		break;
-	}
-	case EFourCardinalDirection::S:
-	{
-		FQuat BackQuat = FQuat::FindBetween(Forward*(-1), CurrentVelocity);
-		OrientS = FRotator(BackQuat).Yaw;
-
-		CurrentOrient = OrientW;
-		break;
-	}
-	default:
-		break;
-	}
-	//DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 105), "OrientN: " + FString::FormatAsNumber(OrientN) + FString::Printf(TEXT(" DOT: %f"), FVector::DotProduct(Forward, VelocityDirection)), nullptr, FColor::Red, 0, true);
-	//DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 110), "OrientS: " + FString::FormatAsNumber(OrientS) + FString::Printf(TEXT(" DOT: %f"), FVector::DotProduct((-1)*Forward, VelocityDirection)), nullptr, FColor::Red, 0, true);
-	//DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 115), "OrientE: " + FString::FormatAsNumber(OrientE) + FString::Printf(TEXT(" DOT: %f"), FVector::DotProduct(Right, VelocityDirection)), nullptr, FColor::Red, 0, true);
-	//DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 120), "OrientW: " + FString::FormatAsNumber(OrientW) + FString::Printf(TEXT(" DOT: %f"), FVector::DotProduct(Right*(-1), VelocityDirection)), nullptr, FColor::Red, 0, true);
-	//DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 125), "CurrentOrient: " + FString::FormatAsNumber(CurrentOrient), nullptr, FColor::Red, 0, true);
-
-// FMath::RadiansToDegrees(FMath::Atan2(LocalVelocity.Y, LocalVelocity.X));
-	float VelAngle2 = (FMath::RoundToInt(VelAngle) + 360) / 360;
-
-	//DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 130), "VelAngle2: " + FString::FormatAsNumber(VelAngle2), nullptr, FColor::Red, 0, true);
-
-	float DeltaVelocity = CurrentVelocity.Size()* DeltaSeconds;
-	if (!CurrentAcceleration.IsZero())
-	{
-		bStopDistancePredicted = false;
-	}
-	if (CurrentAcceleration.Size() <= 0
-		&& CurrentVelocity.Size() < CMC->MaxWalkSpeed*0.75)
-	{
-		bStartedLocomotion = false;
-	}
-
-	if (CurrentAcceleration.Size() > 0
-		&& CurrentVelocity.Size() > 0)
-	{
-		bStartedLocomotion = true;
-	}
-
-	FVector FinalDestination = (AccelerationDirection * 400) + CharLocation;
-	float AccelSpeed = CurrentAcceleration.Size();
-	if (!bStopDistancePredicted && CurrentAcceleration.IsZero())
-	{
-		bStopDistancePredicted = true;
-		float CurVel = CurrentVelocity.SizeSquared();
-		float StopDistance = (CurVel / (4*CMC->GroundFriction *CMC->BrakingFrictionFactor * CMC->BrakingDecelerationWalking));
-		FVector Forward2 = VelocityDirection;
-		FVector StopLocation = (Forward2*StopDistance) + CharLocation;
-		//DrawDebugSphere(GetWorld(), StopLocation, 6, 8, FColor::Green, false, 2, 0, 2);
-	}
-	
-	//DrawDebugSphere(GetWorld(), FinalDestination, 6, 8, FColor::Red, false, -1, 0, 2);
-	float Offset = 20;
-	for (float Idx = 1; Idx < 20; Idx++)
-	{
-		FVector BetweenDestination = (AccelerationDirection * Offset) + CharLocation;
-		Offset += 20;
-		//DrawDebugSphere(GetWorld(), BetweenDestination, 6, 8, FColor::Red, false, -1, 0, 2);
-	}
-	FString SAngle = FString("Angle: ") + FString::FormatAsNumber(Angle2);
-	//DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 80), SAngle, nullptr, FColor::Red, 0, true);
-	//DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 60), "4: Fourtant : " + FString::FormatAsNumber(Fourtant), nullptr, FColor::Red, 0, true);
 }
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -451,7 +216,7 @@ void AARCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AARCharacter::LookUpAtRate);
 
-	Abilities->BindInputs(PlayerInputComponent);
+	Abilities->BindInputs(PlayerInputComponent, "AbilityInput");
 }
 
 

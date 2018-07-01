@@ -204,7 +204,7 @@ bool UAFAbilityComponent::ReplicateSubobjects(class UActorChannel *Channel, clas
 	{
 		WroteSomething |= Channel->ReplicateSubobject(const_cast<UGAAttributesBase*>(DefaultAttributes), *Bunch, *RepFlags);
 	}
-	for (const FAFAbilityItem& Ability : AbilityContainer.AbilitiesItems)
+	for (const FAFAbilitySpec& Ability : AbilityContainer.ActivatableAbilities)
 	{
 		//if (Set.InputOverride)
 		//	WroteSomething |= Channel->ReplicateSubobject(const_cast<UGASInputOverride*>(Set.InputOverride), *Bunch, *RepFlags);
@@ -274,193 +274,106 @@ void UAFAbilityComponent::UninitializeComponent()
 	//EffectTimerManager.Reset();
 	//GameEffectContainer
 }
-void UAFAbilityComponent::BindInputs(class UInputComponent* InputComponent)
+void UAFAbilityComponent::BindInputs(class UInputComponent* InputComponent, FString BindEnum)
 {
-	for (const FGameplayTag& Tag : AbilityInputs)
-	{
-		BindAbilityToAction(InputComponent, Tag);
-	}
-}
-void UAFAbilityComponent::SetBlockedInput(const FGameplayTag& InActionName, bool bBlock)
-{
-	AbilityContainer.SetBlockedInput(InActionName, bBlock);
-}
-void UAFAbilityComponent::BP_BindAbilityToAction(FGameplayTag ActionName)
-{
-	UInputComponent* InputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
-	check(InputComponent);
-
-	BindAbilityToAction(InputComponent, ActionName);
-}
-void UAFAbilityComponent::BindAbilityToAction(UInputComponent* InputComponent, FGameplayTag ActionName)
-{
-	check(InputComponent);
-
-	if (!InputComponent)
+	UEnum* bindEnum = FindObject<UEnum>(ANY_PACKAGE, *BindEnum);
+	if (!bindEnum)
 		return;
 
+	int32 num = bindEnum->NumEnums();
+	
+	for (uint8 Idx = 0; Idx < num; Idx++)
 	{
-		FInputActionBinding AB(ActionName.GetTagName(), IE_Pressed);
-		AB.ActionDelegate.GetDelegateForManualSet().BindUObject(this, &UAFAbilityComponent::NativeInputPressed, ActionName);
-		InputComponent->AddActionBinding(AB);
-	}
-
-	// Released event
-	{
-		FInputActionBinding AB(ActionName.GetTagName(), IE_Released);
-		AB.ActionDelegate.GetDelegateForManualSet().BindUObject(this, &UAFAbilityComponent::NativeInputReleased, ActionName);
-		InputComponent->AddActionBinding(AB);
-	}
-	SetBlockedInput(ActionName, false);
-}
-void UAFAbilityComponent::SetAbilityToAction(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, const TArray<FGameplayTag>& InInputTag
-	, const FAFOnAbilityReady& InputDelegate)
-{
-	AbilityContainer.SetAbilityToAction(InAbilityPtr, InInputTag);
-	ENetRole role = GetOwnerRole();
-
-	if (GetOwner()->GetNetMode() == ENetMode::NM_Client
-		&& role == ENetRole::ROLE_AutonomousProxy)
-	{
-		if (InputDelegate.IsBound())
+		FString Name = bindEnum->GetNameStringByIndex(Idx);
 		{
-			AddOnAbilityInputReadyDelegate(InAbilityPtr, InputDelegate);
+			FInputActionBinding AB(FName(*Name), IE_Pressed);
+			AB.ActionDelegate.GetDelegateForManualSet().BindUObject(this, &UAFAbilityComponent::NativeInputPressed, Idx);
+			InputComponent->AddActionBinding(AB);
 		}
-		ServerSetAbilityToAction(InAbilityPtr, InInputTag);
+
+		// Released event
+		{
+			FInputActionBinding AB(FName(*Name), IE_Released);
+			AB.ActionDelegate.GetDelegateForManualSet().BindUObject(this, &UAFAbilityComponent::NativeInputReleased, Idx);
+			InputComponent->AddActionBinding(AB);
+		}
 	}
 }
+
+void UAFAbilityComponent::SetBlockedInput(const FGameplayTag& InActionName, bool bBlock)
+{
+}
+
+
 
 TSoftClassPtr<UGAAbilityBase> UAFAbilityComponent::IsAbilityBoundToAction(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, const TArray<FGameplayTag>& InInputTag)
 {
-	for (const FGameplayTag& Tag : InInputTag)
-	{
-		return AbilityContainer.IsAbilityBoundToAction(Tag);
-		break;
-	}
 	return TSoftClassPtr<UGAAbilityBase>();
 }
 
-void UAFAbilityComponent::ServerSetAbilityToAction_Implementation(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, const TArray<FGameplayTag>& InInputTag)
-{
-	if (GetOwner()->GetNetMode() == ENetMode::NM_DedicatedServer)
-	{
-		SetAbilityToAction(InAbilityPtr, InInputTag, FAFOnAbilityReady());
-	}
-}
-bool UAFAbilityComponent::ServerSetAbilityToAction_Validate(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr, const TArray<FGameplayTag>& InInputTag)
-{
-	return true;
-}
-void UAFAbilityComponent::RemoveAbilitiesFromActions(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr)
-{
-	AbilityContainer.RemoveAbilityFromAction(InAbilityPtr);
-	if (GetOwnerRole() < ENetRole::ROLE_Authority)
-	{
-		ServerRemoveAbilitiesFromActions(InAbilityPtr.ToSoftObjectPath());
-	}
-}
-void UAFAbilityComponent::ServerRemoveAbilitiesFromActions_Implementation(const FSoftObjectPath& InAbilityPtr)
-{
-	AbilityContainer.RemoveAbilityFromAction(TSoftClassPtr<UGAAbilityBase>(InAbilityPtr));
-}
-bool UAFAbilityComponent::ServerRemoveAbilitiesFromActions_Validate(const FSoftObjectPath& InAbilityPtr)
-{
-	return true;
-}
-void UAFAbilityComponent::ClientNotifyAbilityInputReady_Implementation(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr)
-{
-	NotifyOnAbilityInputReady(InAbilityPtr);
-	UGAAbilityBase* Ability = AbilityContainer.TagToAbility.FindRef(InAbilityPtr);
-	if (Ability)
-	{
-		Ability->OnAbilityInputReady();
-	}
-}
 
-void UAFAbilityComponent::SetAbilitiesToActions(const TArray<FAFAbilityActionSet>& InAbilitiesActions
-	, const TArray<FAFOnAbilityReady>& InputDelegate)
+void UAFAbilityComponent::BindAbilityToInputIDs(const FAFAbilitySpecHandle Handle, TArray<uint8> InputIDs)
 {
-	for (const FAFAbilityActionSet& Set : InAbilitiesActions)
-	{
-		AbilityContainer.SetAbilityToAction(Set.AbilityTag, Set.AbilityInputs);
-	}
+	AbilityContainer.BindAbilityToInputIDs(Handle, InputIDs);
 	ENetRole role = GetOwnerRole();
-
 	if (GetOwner()->GetNetMode() == ENetMode::NM_Client
 		&& role == ENetRole::ROLE_AutonomousProxy)
 	{
-		for (int32 Idx = 0; Idx < InAbilitiesActions.Num(); Idx++)
+		/*for (int32 Idx = 0; Idx < InAbilitiesActions.Num(); Idx++)
 		{
 			if (InputDelegate[Idx].IsBound())
 			{
 				AddOnAbilityInputReadyDelegate(InAbilitiesActions[Idx].AbilityTag, InputDelegate[Idx]);
 			}
-		}
-		
-		ServerSetAbilitiesToActions(InAbilitiesActions);
+		}*/
+
+		ServerBindAbilityToInputIDs(Handle, InputIDs);
 	}
 }
 
-void UAFAbilityComponent::ServerSetAbilitiesToActions_Implementation(const TArray<FAFAbilityActionSet>& InAbilitiesActions)
+void UAFAbilityComponent::ServerBindAbilityToInputIDs_Implementation(const FAFAbilitySpecHandle Handle, const TArray<uint8>& InputIDs)
 {
-	if (GetOwner()->GetNetMode() == ENetMode::NM_DedicatedServer)
-	{
-		for (const FAFAbilityActionSet& Set : InAbilitiesActions)
-		{
-			SetAbilityToAction(Set.AbilityTag, Set.AbilityInputs, FAFOnAbilityReady());
-		}
-	}
+	AbilityContainer.BindAbilityToInputIDs(Handle, InputIDs);
 }
-bool UAFAbilityComponent::ServerSetAbilitiesToActions_Validate(const TArray<FAFAbilityActionSet>& InAbilitiesActions)
+bool UAFAbilityComponent::ServerBindAbilityToInputIDs_Validate(const FAFAbilitySpecHandle Handle, const TArray<uint8>& InputIDs)
 {
 	return true;
 }
 
-void UAFAbilityComponent::BP_InputPressed(FGameplayTag ActionName)
-{
-	NativeInputPressed(ActionName);
-}
-void UAFAbilityComponent::NativeInputPressed(FGameplayTag ActionName)
+void UAFAbilityComponent::NativeInputPressed(uint8 InputID)
 {
 	FAFPredictionHandle PredHandle;
 	if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
 	{
 		PredHandle = FAFPredictionHandle::GenerateClientHandle(this);
-		AbilityContainer.HandleInputPressed(ActionName, PredHandle);
+		AbilityContainer.HandleInputPressed(InputID, PredHandle);
 	}
-	ServerNativeInputPressed(ActionName, PredHandle);
-		
+	ServerNativeInputPressed(InputID, PredHandle);
 }
 
-void UAFAbilityComponent::ServerNativeInputPressed_Implementation(FGameplayTag ActionName, FAFPredictionHandle InPredictionHandle)
+void UAFAbilityComponent::ServerNativeInputPressed_Implementation(uint8 InputID, FAFPredictionHandle InPredictionHandle)
 {
-	AbilityContainer.HandleInputPressed(ActionName, InPredictionHandle);
-	//NativeInputPressed(ActionName);
+	AbilityContainer.HandleInputPressed(InputID, InPredictionHandle);
 }
-bool UAFAbilityComponent::ServerNativeInputPressed_Validate(FGameplayTag ActionName, FAFPredictionHandle InPredictionHandle)
+bool UAFAbilityComponent::ServerNativeInputPressed_Validate(uint8 InputID, FAFPredictionHandle InPredictionHandle)
 {
 	return true;
 }
 
-void UAFAbilityComponent::BP_InputReleased(FGameplayTag ActionName)
-{
-	NativeInputReleased(ActionName);
-}
-
-void UAFAbilityComponent::NativeInputReleased(FGameplayTag ActionName)
+void UAFAbilityComponent::NativeInputReleased(uint8 InputID)
 {
 	if (GetOwner()->GetNetMode() == ENetMode::NM_Client)
 	{
-		AbilityContainer.HandleInputReleased(ActionName);
+		AbilityContainer.HandleInputReleased(InputID);
 	}
-	ServerNativeInputReleased(ActionName);
+	ServerNativeInputReleased(InputID);
 }
 
-void UAFAbilityComponent::ServerNativeInputReleased_Implementation(FGameplayTag ActionName)
+void UAFAbilityComponent::ServerNativeInputReleased_Implementation(uint8 InputID)
 {
-	AbilityContainer.HandleInputReleased(ActionName);
+	AbilityContainer.HandleInputReleased(InputID);
 }
-bool UAFAbilityComponent::ServerNativeInputReleased_Validate(FGameplayTag ActionName)
+bool UAFAbilityComponent::ServerNativeInputReleased_Validate(uint8 InputID)
 {
 	return true;
 }
@@ -468,79 +381,57 @@ bool UAFAbilityComponent::ServerNativeInputReleased_Validate(FGameplayTag Action
 void UAFAbilityComponent::BP_AddAbility(TSoftClassPtr<UGAAbilityBase> InAbility,
 	TArray<FGameplayTag> InInputTag)
 {
-	NativeAddAbility(InAbility, InInputTag);
 }
 
-void UAFAbilityComponent::NativeAddAbility(TSoftClassPtr<UGAAbilityBase> InAbility,
-	const TArray<FGameplayTag>& InInputTag)
+void UAFAbilityComponent::NativeAddAbility(TSoftClassPtr<UGAAbilityBase> InAbility, const FAFAbilitySpecHandle ClientHandle)
 {
-	//FGameplayTag AlreadyBound = IsAbilityBoundToAction(InAbilityTag, InInputTag);
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
-		ServerNativeAddAbility(InAbility.ToSoftObjectPath(), InInputTag);
-		/*if (AlreadyBound.IsValid())
-		{
-			for (const FGameplayTag& Input : InInputTag)
-			{
-				AbilityContainer.RemoveAbilityFromAction(AlreadyBound);
-			}
-		}*/
+		ServerNativeAddAbility(InAbility.ToSoftObjectPath(), ClientHandle);
 	}
-	else
-	{
-		/*if (AlreadyBound.IsValid())
-		{
-			AbilityContainer.RemoveAbilityFromAction(AlreadyBound);
-		}*/
-		if (UAssetManager* Manager = UAssetManager::GetIfValid())
-		{
-			FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-			IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
-			FStreamableManager& StreamManager = UAssetManager::GetStreamableManager();
-			{
-				FStreamableDelegate del = FStreamableDelegate::CreateUObject(this, &UAFAbilityComponent::OnFinishedLoad, InAbility);
+}
 
-				StreamManager.RequestAsyncLoad(InAbility.ToSoftObjectPath()
-					, del);
-			}
+void UAFAbilityComponent::NativeAddAbilityFromObject(UGAAbilityBase* InAbility, const FAFAbilitySpecHandle ClientHandle)
+{
+	
+}
+
+void UAFAbilityComponent::ServerNativeAddAbility_Implementation(const FSoftObjectPath& InAbility, const FAFAbilitySpecHandle& ClientHandle)
+{
+	FAFAbilitySpecHandle ServerHandle = FAFAbilitySpecHandle::GenerateHandle();
+
+	if (UAssetManager* Manager = UAssetManager::GetIfValid())
+	{
+		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+		IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+		FStreamableManager& StreamManager = UAssetManager::GetStreamableManager();
+		{
+			TSoftClassPtr<UGAAbilityBase> Ab(InAbility);
+			FStreamableDelegate del = FStreamableDelegate::CreateUObject(this, &UAFAbilityComponent::OnFinishedLoad, Ab, ServerHandle, ClientHandle);
+
+			StreamManager.RequestAsyncLoad(InAbility
+				, del);
 		}
 	}
 }
 
-void UAFAbilityComponent::NativeAddAbilityFromObject(UGAAbilityBase* InAbility, TSoftClassPtr<UGAAbilityBase> AbilityPtr)
-{
-	AbilityContainer.AddAbilityFromObject(InAbility, AbilityPtr);
-}
-
-void UAFAbilityComponent::ServerNativeAddAbility_Implementation(const FSoftObjectPath& InAbility,
-	const TArray<FGameplayTag>& InInputTag)
-{
-	NativeAddAbility(TSoftClassPtr<UGAAbilityBase>(InAbility), InInputTag);
-}
-
-bool UAFAbilityComponent::ServerNativeAddAbility_Validate(const FSoftObjectPath& InAbility,
-	const TArray<FGameplayTag>& InInputTag)
+bool UAFAbilityComponent::ServerNativeAddAbility_Validate(const FSoftObjectPath& InAbility, const FAFAbilitySpecHandle& ClientHandle)
 {
 	return true;
 }
-void UAFAbilityComponent::OnFinishedLoad(TSoftClassPtr<UGAAbilityBase> InAbility)
+void UAFAbilityComponent::OnFinishedLoad(TSoftClassPtr<UGAAbilityBase> InAbility, const FAFAbilitySpecHandle Handle, const FAFAbilitySpecHandle ClientHandle)
 {
-	if (AbilityContainer.AbilityExists(InAbility))
-	{
-		return;
-	}
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
 		return;
 	}
-	
-	
 	FStreamableManager& Manager = UAssetManager::GetStreamableManager();
 
 	TSubclassOf<UGAAbilityBase> cls = InAbility.Get();
 	if (cls)
 	{
-		InstanceAbility(cls, InAbility);
+		UGAAbilityBase* ability = AbilityContainer.AddAbility(cls, Handle, ClientHandle);
+		AbilityContainer.MarkArrayDirty();
 	}
 
 	{
@@ -552,40 +443,29 @@ void UAFAbilityComponent::BP_RemoveAbility(TSoftClassPtr<UGAAbilityBase> TagIn)
 {
 
 }
-void UAFAbilityComponent::NativeRemoveAbility(TSoftClassPtr<UGAAbilityBase> InAbilityTag)
+void UAFAbilityComponent::NativeRemoveAbility(const FAFAbilitySpecHandle InHandle)
 {
 	if (GetOwnerRole() < ENetRole::ROLE_Authority)
 	{
-		ServerNativeRemoveAbility(InAbilityTag.ToSoftObjectPath());
+		ServerNativeRemoveAbility(InHandle);
 	}
-	AbilityContainer.RemoveAbility(InAbilityTag);
+	AbilityContainer.RemoveAbility(InHandle);
 }
-void UAFAbilityComponent::ServerNativeRemoveAbility_Implementation(const FSoftObjectPath& InAbilityTag)
+void UAFAbilityComponent::ServerNativeRemoveAbility_Implementation(const FAFAbilitySpecHandle& InHandle)
 {
-	AbilityContainer.RemoveAbility(TSoftClassPtr<UGAAbilityBase>(InAbilityTag));
+	AbilityContainer.RemoveAbility(InHandle);
 }
 
-bool UAFAbilityComponent::ServerNativeRemoveAbility_Validate(const FSoftObjectPath& InAbilityTag)
+bool UAFAbilityComponent::ServerNativeRemoveAbility_Validate(const FAFAbilitySpecHandle& InHandle)
 {
 	return true;
 }
 
-UGAAbilityBase* UAFAbilityComponent::BP_GetAbilityByTag(TSoftClassPtr<UGAAbilityBase> TagIn)
+UGAAbilityBase* UAFAbilityComponent::BP_GetAbilityByHandle(FAFAbilitySpecHandle TagIn)
 {
-	UGAAbilityBase* retVal = AbilityContainer.GetAbility(TagIn);
-	return retVal;
+	return AbilityContainer.GetAbility(TagIn);
 }
-UGAAbilityBase* UAFAbilityComponent::InstanceAbility(TSubclassOf<class UGAAbilityBase> AbilityClass
-	, TSoftClassPtr<class UGAAbilityBase> InClassPtr)
-{
-	if (AbilityClass)
-	{
-		UGAAbilityBase* ability = AbilityContainer.AddAbility(AbilityClass, InClassPtr);
-		AbilityContainer.MarkArrayDirty();
-		return ability;
-	}
-	return nullptr;
-}
+
 
 void UAFAbilityComponent::OnRep_InstancedAbilities()
 {
@@ -638,6 +518,10 @@ void UAFAbilityComponent::PlayMontage(UAnimMontage* MontageIn, FName SectionName
 	}
 }
 void UAFAbilityComponent::MulticastPlayMontage_Implementation(UAnimMontage* MontageIn, FName SectionName, float Speed = 1)
+{
+
+}
+void UAFAbilityComponent::ClientNotifyAbilityInputReady_Implementation(const TSoftClassPtr<UGAAbilityBase>& InAbilityPtr)
 {
 
 }

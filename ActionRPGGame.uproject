@@ -10,8 +10,6 @@
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
 				"AbilityFramework",
-				"AbilityFrameworkDebugger",
-				"AbilityManager",
 				"InventoryFramework",
 				"Engine",
 				"AIModule",
@@ -29,8 +27,6 @@
 			"AdditionalDependencies": [
 				"AbilityFramework",
 				"AbilityFrameworkEditor",
-				"AbilityFrameworkDebugger",
-				"AbilityManager",
 				"InventoryFramework",
 				"Engine",
 				"AIModule",
@@ -46,14 +42,6 @@
 		},
 		{
 			"Name": "AbilityFramework",
-			"Enabled": true
-		},
-		{
-			"Name": "AbilityFrameworkDebugger",
-			"Enabled": true
-		},
-		{
-			"Name": "AbilityManager",
 			"Enabled": true
 		},
 		{
@@ -260,6 +248,11 @@
 		{
 			"Name": "AppleVision",
 			"Enabled": false
+		},
+		{
+			"Name": "RootMotionExtractor",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/4b450f82f56040338a4d5744b3eda4f9"
 		}
 	],
 	"TargetPlatforms": [

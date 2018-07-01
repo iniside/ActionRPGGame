@@ -9,7 +9,6 @@
 #include "Engine/ActorChannel.h"
 #include "IFInventoryComponent.h"
 #include "IFEquipmentComponent.h"
-#include "AMTypes.h"
 #include "Weapons/ARWeaponAbilityBase.h"
 #include "ARWeaponInventoryComponent.generated.h"
 
@@ -85,9 +84,9 @@ protected:
 		TArray<FGameplayTag> WeaponInput;
 
 	TMap<int8, UChildActorComponent*> GroupToComponent;
-	TMap<EAMGroup, UARItemWeapon*> GroupToItem;
 
-	TArray<TSoftClassPtr<UARWeaponAbilityBase>> WeaponAbilities;
+	TArray<FAFAbilitySpecHandle> ClientWeaponAbilities;
+	TArray<FAFAbilitySpecHandle> ServerWeaponAbilities;
 
 	int8 CurrentWeaponIndex;
 
@@ -117,6 +116,8 @@ public:
 	}
 	virtual void OnClientPreItemAdded(UIFItemBase* Item, uint8 Index) override;
 	virtual void OnItemAdded(UIFItemBase* Item, uint8 LocalIndex) override;
+	UFUNCTION()
+		void OnAbilityAdded(FAFAbilitySpec Spec, FAFAbilitySpecHandle ServerHandle, FAFAbilitySpecHandle ClientHandle);
 	virtual void OnItemRemoved(uint8 LocalIndex) override;
 
 	virtual void OnServerItemAdded(UIFItemBase* Item, uint8 LocalIndex) override;

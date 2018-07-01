@@ -27,11 +27,9 @@ public class ActionRPGGame : ModuleRules
             "AssetRegistry",
             "OrionAnimation",
             "ActorSequence",
-            "AbilityManager",
             "JsonUObject",
             "InventoryFramework",
-            "OnlineSubsystem",
-            "OnlineSubsystemGameSparks"
+            "OnlineSubsystem"
         });
 
         if (Target.Type == TargetRules.TargetType.Editor)
@@ -79,12 +77,6 @@ public class ActionRPGGame : ModuleRules
                     bEnableExceptions = true;
                 }
             }
-			else
-            {
-            }
-        }
-        else
-        {
         }
     }
 }

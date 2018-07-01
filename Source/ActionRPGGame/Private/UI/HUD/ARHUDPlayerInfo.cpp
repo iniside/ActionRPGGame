@@ -3,7 +3,6 @@
 #include "ARHUDPlayerInfo.h"
 
 #include "ARPlayerController.h"
-#include "Abilities/ARAbilityManagerComponent.h"
 
 void UARHUDPlayerInfo::NativePreConstruct()
 {
@@ -12,8 +11,4 @@ void UARHUDPlayerInfo::NativePreConstruct()
 void UARHUDPlayerInfo::NativeConstruct()
 {
 	Super::NativeConstruct();
-	if (AARPlayerController* MyPC = Cast<AARPlayerController>(GetOwningPlayer()))
-	{
-		MyPC->AbilityManager->OnAbilitySetChanged.AddDynamic(this, &UARHUDPlayerInfo::OnAbilityGroupChanged);
-	}
 }

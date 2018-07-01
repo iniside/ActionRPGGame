@@ -7,41 +7,75 @@
 
 class UGAAbilityBase;
 
-USTRUCT()
-struct ABILITYFRAMEWORK_API FAFAbilityItem : public FFastArraySerializerItem
+USTRUCT(BlueprintType)
+struct FAFAbilitySpecHandle
 {
 	GENERATED_BODY()
-
+		friend struct FAFAbilitySpec;
 public:
+	UPROPERTY()
+		uint32 Handle;
+
+	static FAFAbilitySpecHandle GenerateHandle()
+	{
+		static uint32 HandleID = 0;
+		HandleID++;
+		FAFAbilitySpecHandle Handle;
+		Handle.Handle = HandleID;
+		return Handle;
+	}
+public:
+	bool IsValid() const
+	{
+		return Handle != 0;
+	}
+	bool operator==(const FAFAbilitySpecHandle& ROther) const
+	{
+		return Handle == ROther.Handle;
+	}
+	friend uint32 GetTypeHash(const FAFAbilitySpecHandle& InHandle)
+	{
+		return InHandle.Handle;
+	}
+};
+
+
+/*
+	Handle is created on calling client and then send to server. If/when server instance ability and send back it to client
+	it will use exactly the same handle.
+*/
+USTRUCT()
+struct ABILITYFRAMEWORK_API FAFAbilitySpec : public FFastArraySerializerItem
+{
+	GENERATED_BODY()
+public:
+	friend struct FAFAbilitySpecHandle;
 	UPROPERTY()
 		UGAAbilityBase* Ability;
 	UPROPERTY()
-		TSoftClassPtr<UGAAbilityBase> AbilityClass;
-
-	FAFAbilityItem()
-	{};
-
-	FAFAbilityItem(UGAAbilityBase* InAbility, TSoftClassPtr<UGAAbilityBase> InAbilityClass)
-		: Ability(InAbility)
-		, AbilityClass(InAbilityClass)
-	{}
+		uint8 InputID;
+	/* Server generated handle that is valid on both client and server. Use it to find ability */
+	UPROPERTY()
+		FAFAbilitySpecHandle Handle;
+	/* Client generated handle that is only used temporarily to fire events on owning client. */
+	UPROPERTY()
+		FAFAbilitySpecHandle ClientHandle;
 
 	void PreReplicatedRemove(const struct FAFAbilityContainer& InArraySerializer);
 	void PostReplicatedAdd(const struct FAFAbilityContainer& InArraySerializer);
 	void PostReplicatedChange(const struct FAFAbilityContainer& InArraySerializer);
 
-	const bool operator==(const TSoftClassPtr<UGAAbilityBase>& OtherAbility) const
+	bool operator==(const FAFAbilitySpec& ROther) const
 	{
-		return AbilityClass == OtherAbility;
+		return Handle == ROther.Handle;
 	}
-
-	const bool operator==(UGAAbilityBase* OtherAbility) const
+	bool operator==(const FAFAbilitySpecHandle& ROther) const
 	{
-		return Ability == OtherAbility;
+		return Handle == ROther;
 	}
-	const bool operator==(const FAFAbilityItem& OtherItem) const
+	friend uint32 GetTypeHash(const FAFAbilitySpec& InSpec)
 	{
-		return Ability == OtherItem.Ability;
+		return InSpec.Handle.Handle;
 	}
 };
 
@@ -50,57 +84,33 @@ struct ABILITYFRAMEWORK_API FAFAbilityContainer : public FFastArraySerializer
 {
 	GENERATED_BODY()
 public:
-
+		TWeakObjectPtr<class UAFAbilityComponent> AbilitiesComp;
 	UPROPERTY()
-		TArray<FAFAbilityItem> AbilitiesItems;
+		TArray<FAFAbilitySpec> ActivatableAbilities;
 
-	TWeakObjectPtr<class UAFAbilityComponent> AbilitiesComp;
-	TMap<FGameplayTag, bool> BlockedInput;
+	TMap<FAFAbilitySpecHandle, FAFAbilitySpec> SpecMap;
 
-	TMap<TSoftClassPtr<UGAAbilityBase>, FGameplayTag> AbilityToInput;
+	TMap<uint8, FAFAbilitySpec> InputToAbilitySpec;
 
-	//Custom binding, for server side validation.
+	UGAAbilityBase* AddAbility(TSubclassOf<class UGAAbilityBase> AbilityIn, const FAFAbilitySpecHandle Handle, const FAFAbilitySpecHandle ClientHandle);
 
-	//ActionInput, AbilityClassPtr
-	TMap<FGameplayTag, TSoftClassPtr<UGAAbilityBase>> ActionToAbility;
 
-	//maybe.. replace SoftClassPtr with FObjectKey ?
+	void RemoveAbility(const FAFAbilitySpecHandle AbilityIn);
+	
+	UGAAbilityBase* GetAbility(FAFAbilitySpecHandle InAbiltyPtr);
+	
+	void HandleInputPressed(const uint8 InputID, const FAFPredictionHandle& InPredictionHandle);
+	void HandleInputReleased(const uint8 InputID);
 
-	//AbilityTag, ActionInput 
-	TMap<TSoftClassPtr<UGAAbilityBase>, TArray<FGameplayTag>> AbilityToAction;
-
-	//abilityTag, Ability Ptr
-	TMap<TSoftClassPtr<UGAAbilityBase>, UGAAbilityBase*> AbilitiesInputs;
-
-	TMap<TSoftClassPtr<UGAAbilityBase>, UGAAbilityBase*> TagToAbility;
-
-	void SetBlockedInput(const FGameplayTag& InActionName, bool bBlock);
-	UGAAbilityBase* AddAbility(TSubclassOf<class UGAAbilityBase> AbilityIn
-		, TSoftClassPtr<class UGAAbilityBase> InClassPtr);
-
-	void AddAbilityFromObject(class UGAAbilityBase* AbilityIn, TSoftClassPtr<class UGAAbilityBase> InClassPtr);
-
-	void RemoveAbility(const TSoftClassPtr<UGAAbilityBase>& AbilityIn);
-
-	void SetAbilityToAction(const TSoftClassPtr<UGAAbilityBase>& InAbiltyPtr, const TArray<FGameplayTag>& InInputTag);
-	void RemoveAbilityFromAction(const TSoftClassPtr<UGAAbilityBase>& InAbiltyPtr);
-	TSoftClassPtr<UGAAbilityBase> IsAbilityBoundToAction(const FGameplayTag& InInputTag);
-
-	UGAAbilityBase* GetAbility(TSoftClassPtr<UGAAbilityBase> InAbiltyPtr);
-
-	void HandleInputPressed(FGameplayTag ActionName, const FAFPredictionHandle& InPredictionHandle);
-	void HandleInputReleased(FGameplayTag ActionName);
-
-	void TriggerAbylityByTag(TSoftClassPtr<UGAAbilityBase> InTag);
-
-	bool AbilityExists(TSoftClassPtr<UGAAbilityBase> InAbiltyPtr) const
+	bool AbilityExists(FAFAbilitySpecHandle InAbiltyPtr) const
 	{
-		return AbilityToInput.Contains(InAbiltyPtr);
+		return SpecMap.Contains(InAbiltyPtr);
 	}
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
 	{
-		return FFastArraySerializer::FastArrayDeltaSerialize<FAFAbilityItem, FAFAbilityContainer>(AbilitiesItems, DeltaParms, *this);
+		return FFastArraySerializer::FastArrayDeltaSerialize<FAFAbilitySpec, FAFAbilityContainer>(ActivatableAbilities, DeltaParms, *this);
 	}
+	void BindAbilityToInputIDs(const FAFAbilitySpecHandle Handle, TArray<uint8> InputIDs);
 };
 
 template<>

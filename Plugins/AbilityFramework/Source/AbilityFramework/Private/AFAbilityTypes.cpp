@@ -5,20 +5,18 @@
 #include "Abilities/GAAbilityBase.h"
 #include "AFAbilityTypes.h"
 
-void FAFAbilityItem::PreReplicatedRemove(const struct FAFAbilityContainer& InArraySerializer)
+void FAFAbilitySpec::PreReplicatedRemove(const struct FAFAbilityContainer& InArraySerializer)
 {
 	if (InArraySerializer.AbilitiesComp.IsValid())
 	{
 		FAFAbilityContainer& InArraySerializerC = const_cast<FAFAbilityContainer&>(InArraySerializer);
+		InArraySerializerC.SpecMap.Remove(Handle);
 		//remove attributes
 		//UGAAttributesBase* attr = InArraySerializer.AbilitiesComp->RepAttributes.AttributeMap.FindRef(Ability->AbilityTag);
 		Ability->Attributes = nullptr;
-		InArraySerializerC.AbilityToAction.Remove(AbilityClass);
-		InArraySerializerC.AbilitiesInputs.Remove(AbilityClass);
-		InArraySerializerC.TagToAbility.Remove(AbilityClass);
 	}
 }
-void FAFAbilityItem::PostReplicatedAdd(const struct FAFAbilityContainer& InArraySerializer)
+void FAFAbilitySpec::PostReplicatedAdd(const struct FAFAbilityContainer& InArraySerializer)
 {
 	if (InArraySerializer.AbilitiesComp.IsValid())
 	{
@@ -38,35 +36,21 @@ void FAFAbilityItem::PostReplicatedAdd(const struct FAFAbilityContainer& InArray
 		//TODO - CHANGE ATTRIBUTE HANDLING
 		UGAAttributesBase* attr = InArraySerializer.AbilitiesComp->RepAttributes.AttributeMap.FindRef(Ability->AbilityTag);
 		Ability->Attributes = attr;
-
-		InArraySerializerC.AbilitiesInputs.Add(AbilityClass, Ability); //.Add(Ability->AbilityTag, Ability);
-		InArraySerializerC.TagToAbility.Add(AbilityClass, Ability);
-		InArraySerializerC.AbilitiesComp->NotifyOnAbilityReady(AbilityClass);
+		InArraySerializerC.SpecMap.Add(Handle, *this);
+		InArraySerializerC.AbilitiesComp->NotifyOnAbilityReady(*this, Handle, ClientHandle);
 	}
 }
-void FAFAbilityItem::PostReplicatedChange(const struct FAFAbilityContainer& InArraySerializer)
+void FAFAbilitySpec::PostReplicatedChange(const struct FAFAbilityContainer& InArraySerializer)
 {
 
 }
 
-
-void FAFAbilityContainer::SetBlockedInput(const FGameplayTag& InActionName, bool bBlock)
-{
-	if (BlockedInput.Contains(InActionName))
-	{
-		BlockedInput[InActionName] = bBlock;
-	}
-	else
-	{
-		BlockedInput.Add(InActionName, bBlock);
-	}
-}
 UGAAbilityBase* FAFAbilityContainer::AddAbility(TSubclassOf<class UGAAbilityBase> AbilityIn
-	, TSoftClassPtr<class UGAAbilityBase> InClassPtr)
+	, const FAFAbilitySpecHandle Handle, const FAFAbilitySpecHandle ClientHandle)
 {
+	ENetMode NetMode = AbilitiesComp->GetNetMode();
 	if (AbilityIn && AbilitiesComp.IsValid())
 	{
-
 		UGAAbilityBase* ability = NewObject<UGAAbilityBase>(AbilitiesComp->GetOwner(), AbilityIn);
 		ability->AbilityComponent = AbilitiesComp.Get();
 		if (AbilitiesComp.IsValid())
@@ -78,71 +62,45 @@ UGAAbilityBase* FAFAbilityContainer::AddAbility(TSubclassOf<class UGAAbilityBase
 		}
 		ability->InitAbility();
 		FGameplayTag Tag = ability->AbilityTag;
-
-		AbilitiesInputs.Add(InClassPtr, ability);
-		FAFAbilityItem AbilityItem(ability, InClassPtr);
-		MarkItemDirty(AbilityItem);
-		AbilityItem.Ability = ability;
-		AbilitiesItems.Add(AbilityItem);
-		TagToAbility.Add(InClassPtr, ability);
+		FAFAbilitySpec Spec;
+		Spec.Ability = ability;
+		Spec.Handle = Handle;
+		Spec.ClientHandle = ClientHandle;
+		MarkItemDirty(Spec);
+		ActivatableAbilities.Add(Spec);
+		SpecMap.Add(Handle, Spec);
 
 		MarkArrayDirty();
 		if (AbilitiesComp->GetNetMode() == ENetMode::NM_Standalone
 			|| AbilitiesComp->GetOwnerRole() == ENetRole::ROLE_Authority)
 		{
-			AbilitiesComp->NotifyOnAbilityReady(InClassPtr);
+			//AbilitiesComp->NotifyOnAbilityReady(InClassPtr);
 		}
-		/*	if (ActionName.IsValid())
-		{
-		UInputComponent* InputComponent = AbilitiesComp->GetOwner()->FindComponentByClass<UInputComponent>();
-		AbilitiesComp->BindAbilityToAction(InputComponent, ActionName, Tag);
-		}*/
+
 		return ability;
 	}
 	return nullptr;
 }
 
-void FAFAbilityContainer::AddAbilityFromObject(class UGAAbilityBase* AbilityIn, TSoftClassPtr<class UGAAbilityBase> InClassPtr)
+void FAFAbilityContainer::RemoveAbility(const FAFAbilitySpecHandle AbilityIn)
 {
-	if (AbilityIn && AbilitiesComp.IsValid())
+	auto pred = [AbilityIn](const FAFAbilitySpec& Item) -> bool
 	{
-
-		UGAAbilityBase* ability = AbilityIn;// NewObject<UGAAbilityBase>(AbilitiesComp->GetOwner(), AbilityIn);
-		ability->AbilityComponent = AbilitiesComp.Get();
-		if (AbilitiesComp.IsValid())
+		if (Item.Handle == AbilityIn)
 		{
-			APawn* POwner = Cast<APawn>(AbilitiesComp->GetOwner());
-			ability->POwner = POwner;
-			ability->PCOwner = Cast<APlayerController>(POwner->Controller);
-			ability->OwnerCamera = nullptr;
+			return true;
 		}
-		ability->InitAbility();
-		FGameplayTag Tag = ability->AbilityTag;
-
-		AbilitiesInputs.Add(InClassPtr, ability);
-		FAFAbilityItem AbilityItem(ability, InClassPtr);
-		MarkItemDirty(AbilityItem);
-		AbilityItem.Ability = ability;
-		AbilitiesItems.Add(AbilityItem);
-		TagToAbility.Add(InClassPtr, ability);
-
-		MarkArrayDirty();
-		if (AbilitiesComp->GetNetMode() == ENetMode::NM_Standalone
-			|| AbilitiesComp->GetOwnerRole() == ENetRole::ROLE_Authority)
+		else
 		{
-			AbilitiesComp->NotifyOnAbilityReady(InClassPtr);
+			return false;
 		}
-	}
-}
-
-void FAFAbilityContainer::RemoveAbility(const TSoftClassPtr<UGAAbilityBase>& AbilityIn)
-{
-	int32 Index = AbilitiesItems.IndexOfByKey(AbilityIn);
+	};
+	int32 Index = ActivatableAbilities.IndexOfByPredicate(pred);
 
 	if (Index == INDEX_NONE)
 		return;
 
-	UGAAbilityBase* Ability = TagToAbility.FindRef(AbilityIn);
+	UGAAbilityBase* Ability = SpecMap.FindRef(AbilityIn).Ability;
 	
 
 	for (auto It = Ability->AbilityTasks.CreateIterator(); It; ++It)
@@ -151,110 +109,47 @@ void FAFAbilityContainer::RemoveAbility(const TSoftClassPtr<UGAAbilityBase>& Abi
 	}
 	Ability->AbilityTasks.Reset();
 
-	AbilityToAction.Remove(AbilityIn);
-	AbilitiesInputs.Remove(AbilityIn);
-	TagToAbility.Remove(AbilityIn);
-	MarkItemDirty(AbilitiesItems[Index]);
-	AbilitiesItems.RemoveAt(Index);
+	SpecMap.Remove(AbilityIn);
+	MarkItemDirty(ActivatableAbilities[Index]);
+	ActivatableAbilities.RemoveAt(Index);
 	MarkArrayDirty();
 }
-TSoftClassPtr<UGAAbilityBase> FAFAbilityContainer::IsAbilityBoundToAction(const FGameplayTag& InInputTag)
+
+
+UGAAbilityBase* FAFAbilityContainer::GetAbility(FAFAbilitySpecHandle InAbiltyPtr)
 {
-	TSoftClassPtr<UGAAbilityBase> Ability;
-	TSoftClassPtr<UGAAbilityBase>* AbilityTag = ActionToAbility.Find(InInputTag);
-	if (AbilityTag)
-	{
-		Ability = *AbilityTag;
-	}
-
-	return Ability;
-}
-
-void FAFAbilityContainer::SetAbilityToAction(const TSoftClassPtr<UGAAbilityBase>& InAbiltyPtr, const TArray<FGameplayTag>& InInputTag)
-{
-	for (const FGameplayTag& InputTag : InInputTag)
-	{
-		TSoftClassPtr<UGAAbilityBase>& AbilityClassPtr = ActionToAbility.FindOrAdd(InputTag);
-		AbilityClassPtr = InAbiltyPtr;
-		TArray<FGameplayTag>& ActionTag = AbilityToAction.FindOrAdd(InAbiltyPtr);
-		ActionTag.Add(InputTag);
-	}
-	if (!AbilitiesComp.IsValid())
-		return;
-
-	UGAAbilityBase* Ability = TagToAbility.FindRef(InAbiltyPtr);
-	if (Ability)
-	{
-		Ability->OnAbilityInputReady();
-	}
-
-	if (AbilitiesComp->GetOwner()->GetNetMode() == ENetMode::NM_DedicatedServer)
-	{
-		AbilitiesComp->ClientNotifyAbilityInputReady(InAbiltyPtr);
-	}
-}
-void FAFAbilityContainer::RemoveAbilityFromAction(const TSoftClassPtr<UGAAbilityBase>& InAbiltyPtr)
-{
-	TArray<FGameplayTag>* Inputs = AbilityToAction.Find(InAbiltyPtr);
-
-	if (Inputs)
-	{
-		for (const FGameplayTag& Input : *Inputs)
-		{
-			ActionToAbility.Remove(Input);
-		}
-		
-		AbilityToAction.Remove(InAbiltyPtr);
-	}
-}
-UGAAbilityBase* FAFAbilityContainer::GetAbility(TSoftClassPtr<UGAAbilityBase> InAbiltyPtr)
-{
-	UGAAbilityBase* retAbility = AbilitiesInputs.FindRef(InAbiltyPtr);
+	UGAAbilityBase* retAbility = SpecMap.FindRef(InAbiltyPtr).Ability;
 	return retAbility;
 }
-void FAFAbilityContainer::HandleInputPressed(FGameplayTag ActionName, const FAFPredictionHandle& InPredictionHandle)
+
+void FAFAbilityContainer::HandleInputPressed(const uint8 InputID, const FAFPredictionHandle& InPredictionHandle)
 {
-	if (BlockedInput.FindRef(ActionName))
-	{
-		return;
-	}
-	TSoftClassPtr<UGAAbilityBase> AbiltyPtr = ActionToAbility.FindRef(ActionName);
-	UGAAbilityBase* ability = AbilitiesInputs.FindRef(AbiltyPtr);
-	if (ability)
-	{
-		if (ability->IsWaitingForConfirm())
-		{
-			ability->ConfirmAbility();
-			return;
-		}
-		ability->OnNativeInputPressed(ActionName, InPredictionHandle);
-	}
+	FAFAbilitySpec Spec = InputToAbilitySpec.FindRef(InputID);
+	
+
+	ENetMode NetMode = AbilitiesComp->GetNetMode();
+	if(Spec.Ability)
+		Spec.Ability->OnNativeInputPressed(InputID, InPredictionHandle);
 }
-void FAFAbilityContainer::HandleInputReleased(FGameplayTag ActionName)
+void FAFAbilityContainer::HandleInputReleased(const uint8 InputID)
 {
-	if (BlockedInput.FindRef(ActionName))
-	{
-		return;
-	}
-	TSoftClassPtr<UGAAbilityBase> abilityTag = ActionToAbility.FindRef(ActionName);
-	UGAAbilityBase* ability = AbilitiesInputs.FindRef(abilityTag);
-	if (ability)
-	{
-		ability->OnNativeInputReleased(ActionName);
-	}
+	FAFAbilitySpec Spec = InputToAbilitySpec.FindRef(InputID);
+	
+	ENetMode NetMode = AbilitiesComp->GetNetMode();
+	if(Spec.Ability)
+		Spec.Ability->OnNativeInputReleased(InputID);
 }
 
-void FAFAbilityContainer::TriggerAbylityByTag(TSoftClassPtr<UGAAbilityBase> InTag)
+void FAFAbilityContainer::BindAbilityToInputIDs(const FAFAbilitySpecHandle Handle, TArray<uint8> InputIDs)
 {
-	UGAAbilityBase* ability = AbilitiesInputs.FindRef(InTag);
-	if (ability)
+	ENetMode NetMode = AbilitiesComp->GetNetMode();
+
+	FAFAbilitySpec Spec = SpecMap[Handle];
+
+	for (uint8 ID : InputIDs)
 	{
-		if (ability->IsWaitingForConfirm())
-		{
-			ability->ConfirmAbility();
-			return;
-		}
-		FAFPredictionHandle PredHandle = FAFPredictionHandle::GenerateClientHandle(AbilitiesComp.Get());
-		ability->OnNativeInputPressed(FGameplayTag(), PredHandle);
+		FAFAbilitySpec& Ref = InputToAbilitySpec.FindOrAdd(ID);
+		Ref = Spec;
 	}
+	Spec.Ability->OnAbilityInputReady();
 }
