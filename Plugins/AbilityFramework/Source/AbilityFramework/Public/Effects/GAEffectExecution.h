@@ -15,7 +15,7 @@ class ABILITYFRAMEWORK_API UGAEffectExecution : public UObject
 public:
 	UGAEffectExecution(const FObjectInitializer& ObjectInitializer);
 
-	virtual void PreModifyAttribute(const FGAEffectHandle& HandleIn, FGAEffectMod& ModIn, FGAEffectContext& Context);
+	virtual void PreModifyAttribute(const FGAEffectHandle& HandleIn, FGAEffectMod& ModIn, const FGAEffectContext& Context);
 	virtual void ExecuteEffect(const FGAEffectHandle& HandleIn, FGAEffectMod& ModIn, 
 		const FAFEffectParams& Params,
 		const FAFFunctionModifier& Modifier = FAFFunctionModifier());

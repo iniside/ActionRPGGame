@@ -8,10 +8,10 @@
 #include "GameplayTags.h"
 #include "AssetBundleData.h"
 #include "Engine/AssetManager.h"
-#include "GAEffectCue.generated.h"
+#include "AFCueActor.generated.h"
 class UActorSequencePlayer;
 UCLASS()
-class ABILITYFRAMEWORK_API AGAEffectCue : public AActor
+class ABILITYFRAMEWORK_API AAFCueActor : public AActor
 {
 	GENERATED_BODY()
 protected:
@@ -23,7 +23,7 @@ protected:
 		FAssetBundleData AssetBundleData;
 public:	
 	// Sets default values for this actor's properties
-	AGAEffectCue(const FObjectInitializer& ObjectInitializer);
+	AAFCueActor(const FObjectInitializer& ObjectInitializer);
 	void PostInitProperties() override;
 
 	void Serialize(FArchive& Ar) override;

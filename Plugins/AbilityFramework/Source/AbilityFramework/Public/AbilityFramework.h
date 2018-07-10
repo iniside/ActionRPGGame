@@ -134,6 +134,8 @@ class FAbilityFramework : public IAbilityFramework
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+
+	void InitCues();
 };
 
 

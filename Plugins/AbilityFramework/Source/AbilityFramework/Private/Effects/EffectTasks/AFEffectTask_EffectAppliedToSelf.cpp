@@ -34,9 +34,9 @@ void UAFEffectTask_EffectAppliedToSelf::Activate()
 	Super::Activate();
 }
 
-void UAFEffectTask_EffectAppliedToSelf::GameplayEventCallback(FAFContextHandle Context
+void UAFEffectTask_EffectAppliedToSelf::GameplayEventCallback(FGAEffectContext Context
 	, FAFPropertytHandle Property
-	, FAFEffectSpecHandle Spec)
+	, FAFEffectSpec Spec)
 {
 	//if (ShouldBroadcastAbilityTaskDelegates())
 	{

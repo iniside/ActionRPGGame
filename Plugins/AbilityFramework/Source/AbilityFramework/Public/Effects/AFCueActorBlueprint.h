@@ -4,14 +4,14 @@
 #include "CoreMinimal.h"
 #include "UObject/ObjectMacros.h"
 #include "Engine/Blueprint.h"
-#include "GAEffectCueBlueprint.generated.h"
+#include "AFCueActorBlueprint.generated.h"
 
 /**
  * Game Effect Blueprint
  */
 
 UCLASS(BlueprintType)
-class ABILITYFRAMEWORK_API UGAEffectCueBlueprint : public UBlueprint
+class ABILITYFRAMEWORK_API UAFCueActorBlueprint : public UBlueprint
 {
 	GENERATED_UCLASS_BODY()
 UPROPERTY()
@@ -26,7 +26,7 @@ UPROPERTY()
 	// End of UBlueprint interface
 
 	/** Returns the most base gameplay ability blueprint for a given blueprint (if it is inherited from another ability blueprint, returning null if only native / non-ability BP classes are it's parent) */
-	static UGAEffectCueBlueprint* FindRootGameplayAbilityBlueprint(UGAEffectCueBlueprint* DerivedBlueprint);
+	static UAFCueActorBlueprint* FindRootGameplayAbilityBlueprint(UAFCueActorBlueprint* DerivedBlueprint);
 
 #endif
 };

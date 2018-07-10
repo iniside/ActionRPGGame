@@ -17,9 +17,8 @@ UAFAbilityInterface::UAFAbilityInterface(const FObjectInitializer& ObjectInitial
 
 FGAEffectHandle IAFAbilityInterface::ApplyEffectToTarget(
 	const FGAEffect& EffectIn
-	, const FGAEffectHandle& InHandle
 	, const FAFEffectParams& Params
 	, const FAFFunctionModifier& Modifier)
 {
-	return GetEffectsComponent()->ApplyEffectToTarget(EffectIn, InHandle, Params, Modifier);
+	return GetEffectsComponent()->ApplyEffectToTarget(EffectIn, Params, Modifier);
 }

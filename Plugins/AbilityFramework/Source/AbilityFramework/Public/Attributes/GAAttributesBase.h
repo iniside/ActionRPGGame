@@ -125,7 +125,7 @@ public:
 	float ModifyAttribute(const FGAEffectMod& ModIn
 		, const FGAEffectHandle& HandleIn
 		, FGAEffectProperty& InProperty
-		, const FAFContextHandle& InContext);
+		, const FGAEffectContext& InContext);
 	void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod);
 protected:
 	bool bNetAddressable;

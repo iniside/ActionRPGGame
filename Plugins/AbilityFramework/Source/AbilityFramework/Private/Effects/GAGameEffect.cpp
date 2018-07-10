@@ -18,30 +18,30 @@
 DEFINE_STAT(STAT_GatherModifiers);
 
 
-void FAFEffectSpec::OnApplied()
+void FAFEffectSpec::OnApplied() const
 {
-	if (Extension)
+	if (Extension.IsValid())
 	{
 		Extension->NativeOnEffectApplied();
 	}
 }
-void FAFEffectSpec::OnExpired()
+void FAFEffectSpec::OnExpired() const
 {
-	if (Extension)
+	if (Extension.IsValid())
 	{
 		Extension->NativeOnEffectExpired();
 	}
 }
-void FAFEffectSpec::OnRemoved()
+void FAFEffectSpec::OnRemoved() const
 {
-	if (Extension)
+	if (Extension.IsValid())
 	{
 		Extension->NativeOnEffectRemoved();
 	}
 }
-void FAFEffectSpec::OnExecuted()
+void FAFEffectSpec::OnExecuted() const
 {
-	if (Extension)
+	if (Extension.IsValid())
 	{
 		Extension->NativeOnEffectExecuted();
 	}
@@ -51,14 +51,18 @@ FAFEffectSpec::FAFEffectSpec(const FAFContextHandle& InContext, TSubclassOf<UGAG
 {
 	Context = InContext;
 	Extension = nullptr;
-	if (InSpecClass.GetDefaultObject()->Extension)
-	{
-		Extension = NewObject<UGAEffectExtension>(Context.GetPtr()->Target.Get(), InSpecClass.GetDefaultObject()->Extension);
-		Extension->OwningComponent = Context.GetPtr()->TargetInterface->GetEffectsComponent();
-	}
+	SpecClass = InSpecClass;
 	OwnedTags.AppendTags(InSpecClass.GetDefaultObject()->OwnedTags);
 }
-
+void FAFEffectSpec::Instance()
+{
+	if (SpecClass.GetDefaultObject()->Extension)
+	{
+		Extension = NewObject<UGAEffectExtension>(Context.GetPtr()->Target.Get(), SpecClass.GetDefaultObject()->Extension);
+		Extension->OwningComponent = Context.GetPtr()->TargetInterface->GetEffectsComponent();
+		Extension->SourceComponent = Context.GetPtr()->InstigatorInterface->GetEffectsComponent();
+	}
+}
 float FAFEffectSpec::GetFloatFromAttributeMagnitude(
 	  const FGAMagnitude& AttributeIn
 	, const FGAEffectContext& InContext) const
@@ -110,6 +114,15 @@ float FAFEffectSpec::GetPeriod(const FGAEffectContext& InContext)
 	return GetFloatFromAttributeMagnitude(GetSpec()->Period, InContext);
 }
 
+float FAFEffectSpec::GetDuration(const FGAEffectContext& InContext) const
+{
+	return GetFloatFromAttributeMagnitude(GetSpec()->Duration, InContext);
+}
+float FAFEffectSpec::GetPeriod(const FGAEffectContext& InContext) const
+{
+	return GetFloatFromAttributeMagnitude(GetSpec()->Period, InContext);
+}
+
 FGAEffectProperty::FGAEffectProperty()
 	: ApplicationRequirement(nullptr)
 	, Application(nullptr)
@@ -150,22 +163,30 @@ void FGAEffectProperty::Initialize(TSubclassOf<UGAGameEffectSpec> EffectClass)
 	if (EffectClass)
 	{
 		Spec = EffectClass->GetDefaultObject<UGAGameEffectSpec>();
-		ApplicationRequirement = GetSpec()->ApplicationRequirement.GetDefaultObject();
-		Application = GetSpec()->Application.GetDefaultObject();
-		Execution = GetSpec()->ExecutionType.GetDefaultObject();
+		ApplicationRequirement = GetSpecData()->ApplicationRequirement.GetDefaultObject();
+		Application = GetSpecData()->Application.GetDefaultObject();
+		Execution = GetSpecData()->ExecutionType.GetDefaultObject();
 	}
 }
-void FGAEffectProperty::InitializeIfNotInitialized(const FGAEffectContext& InContext
-	, TSubclassOf<UGAGameEffectSpec> EffectClass)
+void FGAEffectProperty::InitializeIfNotInitialized(
+	class APawn* Instigator
+	, UObject* Causer
+	, TSubclassOf<UGAGameEffectSpec> EffectClass
+	)
 {
 	if (!IsInitialized())
 	{
+		SpecClass = EffectClass;
+
+		FGAEffectContext* Context = new FGAEffectContext(Instigator, Causer);
+
+		EffectContext = FAFContextHandle::Generate(Context);
 		Initialize(EffectClass);
 	}
 	if (Spec.IsValid())
 	{
-		Duration = GetSpec()->Duration.GetFloatValue(InContext);
-		Period = GetSpec()->Period.GetFloatValue(InContext);
+		Duration = GetSpecData()->Duration.GetFloatValue(EffectContext.GetRef());
+		Period = GetSpecData()->Period.GetFloatValue(EffectContext.GetRef());
 
 		if ((Duration > 0) || (Period > 0))
 		{
@@ -350,15 +371,15 @@ float FGAEffect::GetCurrentDuration() const
 }
 FTimerManager& FAFEffectParams::GetTargetTimerManager()
 {
-	return Context.GetPtr()->TargetComp->GetWorld()->GetTimerManager();
+	return Context.TargetComp->GetWorld()->GetTimerManager();
 }
 UAFEffectsComponent* FAFEffectParams::GetTargetEffectsComponent()
 {
-	return Context.GetPtr()->GetTargetEffectsComponent();
+	return Context.GetTargetEffectsComponent();
 }
 UAFEffectsComponent* FAFEffectParams::GetTargetEffectsComponent() const
 {
-	return Context.GetPtr()->GetTargetEffectsComponent();
+	return Context.GetTargetEffectsComponent();
 }
 void FGameCueContainer::AddCue(FGAEffectHandle EffectHandle, FGAEffectCueParams CueParams)
 {
@@ -378,7 +399,6 @@ void FGameCueContainer::AddCue(FGAEffectHandle EffectHandle, FGAEffectCueParams 
 
 FGAEffectHandle FGAEffectContainer::ApplyEffect(
 	const FGAEffect& EffectIn
-	, const FGAEffectHandle& InHandle
 	, const FAFEffectParams& Params
 	, const FAFFunctionModifier& Modifier)
 {
@@ -392,14 +412,9 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(
 
 	ENetRole role = OwningComponent->GetOwnerRole();
 	ENetMode mode = OwningComponent->GetOwner()->GetNetMode();
-	if (!Params.bRecreated)
-	{
-		Handle = FGAEffectHandle::GenerateHandle();
-	}
-	else
-	{
-		Handle = InHandle;
-	}
+	
+	Handle = FGAEffectHandle::GenerateHandle();
+
 	if (InProperty.CanApply(EffectIn, this, Params, Handle))
 	{
 		if(!Params.bPeriodicEffect) //instatnt effect.
@@ -408,11 +423,6 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(
 			if (InProperty.ApplyEffect(Handle,
 				EffectIn, this, Params))
 			{
-				Params.Property.GetRef().RegisterHandle(Params.GetContext().Target.Get()
-						, Handle
-						, Params.Context
-						, Params.EffectSpec);
-
 				InProperty.ApplyExecute(Handle, Params, Modifier);
 				
 				//	UE_LOG(GameAttributes, Log, TEXT("FGAEffectContainer::EffectApplied %s"), *HandleIn.GetEffectSpec()->GetName() );
@@ -424,14 +434,9 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(
 			if (InProperty.ApplyEffect(Handle,
 				EffectIn, this, Params))
 			{
-				FAFEffectSpec& Spec = Params.GetSpec();
-				FGAEffectContext& Context = Params.GetContext();
-
-				Params.Property.GetRef().RegisterHandle(Params.GetContext().Target.Get()
-					, Handle
-					, Params.Context
-					, Params.EffectSpec);
-
+				const FAFEffectSpec& Spec = Params.GetSpec();
+				const FGAEffectContext& Context = Params.GetContext();
+				
 				const_cast<FGAEffect&>(EffectIn).AppliedTime = OwningComponent->GetWorld()->TimeSeconds;
 				const_cast<FGAEffect&>(EffectIn).LastTickTime = OwningComponent->GetWorld()->TimeSeconds;
 				const_cast<FGAEffect&>(EffectIn).Duration = Spec.GetDuration(Context);
@@ -439,7 +444,7 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(
 				MarkItemDirty(const_cast<FGAEffect&>(EffectIn));
 				int32 newItem = ActiveEffectInfos.Add(EffectIn);
 				MarkArrayDirty();
-				AddEffect(Handle, const_cast<FGAEffect&>(EffectIn).PredictionHandle, &ActiveEffectInfos[newItem], InProperty);
+				AddEffect(Handle, const_cast<FGAEffect&>(EffectIn).PredictionHandle, &ActiveEffectInfos[newItem], InProperty, Params);
 				
 				//InProperty.ApplyExecute(Handle, Params, Modifier);
 				//generate it only on client, and apply prediction key from client.
@@ -457,12 +462,12 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(
 	Params.GetSpec().OnApplied();
 	
 	FAFEventData EventData;
-	const FGameplayTagContainer& AppliedEvents = InProperty.GetSpec()->AppliedEventTags;
+	const FGameplayTagContainer& AppliedEvents = InProperty.GetSpecData()->AppliedEventTags;
 	for(const FGameplayTag& Event : AppliedEvents)
 		OwningComponent->TriggerAppliedEvent(Event, EventData);
 
-	FGAEffectContext& InContext = Params.GetContext();
-	TArray<FAFConditionalEffect>& Effects = InProperty.GetSpec()->IfHaveTagEffect.Effects;
+	const FGAEffectContext& InContext = Params.GetContext();
+	TArray<FAFConditionalEffect>& Effects = InProperty.GetSpecData()->IfHaveTagEffect.Effects;
 	for (FAFConditionalEffect& Effect : Effects)
 	{
 		if (Effect.RequiredTag.IsValid()
@@ -471,12 +476,12 @@ FGAEffectHandle FGAEffectContainer::ApplyEffect(
 			//Hack. We need a way store handles for conditional effects.
 			FAFPropertytHandle PropertyNew(Effect.Effect);
 			FGAEffectHandle OtherHandle;
-			OtherHandle = UGABlueprintLibrary::ApplyEffect(PropertyNew
+			/*OtherHandle = UGABlueprintLibrary::ApplyEffect(PropertyNew
 				, OtherHandle
 				, InContext.Target.Get()
 				, InContext.Instigator.Get()
 				, InContext.Causer.Get()
-				, InContext.HitResult);
+				, InContext.HitResult);*/
 		}
 	}
 	
@@ -489,7 +494,7 @@ TSet<FGAEffectHandle> FGAEffectContainer::GetHandlesByClass(const FGAEffectPrope
 , const FGAEffectContext& InContext)
 {
 	TSet<FGAEffectHandle> Handles;
-	UGAGameEffectSpec* Spec = InProperty.GetSpec();
+	UGAGameEffectSpec* Spec = InProperty.GetSpecData();
 	EGAEffectAggregation Aggregation = Spec->EffectAggregation;
 	UClass* EffectClass = Spec->GetClass();
 
@@ -528,14 +533,15 @@ void FGAEffectContainer::AddEffect(
 	, const FAFPredictionHandle& InPredHandle
 	, FGAEffect* InEffect
 	, const FGAEffectProperty& InProperty
+	, const FAFEffectParams& Params
 	, bool bInfinite)
 {
 	HandleByPrediction.Add(InPredHandle, InHandle);
 	PredictionByHandle.Add(InHandle, InPredHandle);
 	PredictedEffectInfos.Add(InPredHandle, InEffect);
-	UGAGameEffectSpec* Spec = InProperty.GetSpec();
+	UGAGameEffectSpec* Spec = InProperty.GetSpecData();
 	UClass* SpecClass = Spec->GetClass();
-	FGAEffectContext& Context = InProperty.GetContext(InHandle).GetRef();
+	const FGAEffectContext& Context = Params.GetContext();
 
 	TSet<FGAEffectHandle>& Effects = EffectByAttribute.FindOrAdd(Spec->AtributeModifier.Attribute);
 	Effects.Add(InHandle);
@@ -566,14 +572,14 @@ void FGAEffectContainer::AddEffect(
 	int dbg = 0;
 }
 
-void FGAEffectContainer::RemoveEffectByHandle(const FGAEffectHandle& InHandle, const FAFPropertytHandle& InProperty)
+void FGAEffectContainer::RemoveEffectByHandle(const FGAEffectHandle& InHandle, const FGAEffectContext& InContext, const FAFPropertytHandle& InProperty)
 {
-	RemoveEffectInternal(InProperty, InHandle);
+	RemoveEffectInternal(InProperty, InContext, InHandle);
 }
 
-TArray<FGAEffectHandle> FGAEffectContainer::RemoveEffect(const FAFPropertytHandle& HandleIn, int32 Num)
+TArray<FGAEffectHandle> FGAEffectContainer::RemoveEffect(const FAFPropertytHandle& HandleIn, const FGAEffectContext& InContext, int32 Num)
 {
-	UGAGameEffectSpec* Spec = HandleIn.GetSpec();
+	UGAGameEffectSpec* Spec = HandleIn.GetSpecData();
 	EGAEffectAggregation Aggregation = Spec->EffectAggregation;
 	FObjectKey key(HandleIn.GetClass());
 	TArray<FGAEffectHandle>* handles = EffectByClass.Find(key);//GetHandlesByClass(HandleIn, InContext);
@@ -587,8 +593,7 @@ TArray<FGAEffectHandle> FGAEffectContainer::RemoveEffect(const FAFPropertytHandl
 		if (handles->IsValidIndex(0))
 		{
 			FGAEffectHandle OutHandle = (*handles)[idx];
-			RemoveEffectInternal(HandleIn, OutHandle);
-			const_cast<FAFPropertytHandle&>(HandleIn).CleanUp(OutHandle);
+			RemoveEffectInternal(HandleIn, InContext, OutHandle);
 		}
 	}
 
@@ -768,19 +773,18 @@ float FGAEffectContainer::GetEndTime(const FGAEffectHandle& InHandle) const
 	return 0;
 }
 
-void FGAEffectContainer::RemoveEffectInternal(const FAFPropertytHandle& InProperty, const FGAEffectHandle& InHandle)
+void FGAEffectContainer::RemoveEffectInternal(const FAFPropertytHandle& InProperty, const FGAEffectContext& InContext, const FGAEffectHandle& InHandle)
 {
 	FGAEffect* Effect = ActiveEffects[InHandle];
-	UGAGameEffectSpec* Spec = InProperty.GetSpec();
+	UGAGameEffectSpec* Spec = InProperty.GetSpecData();
 	UClass* SpecClass = Spec->GetClass();
-	FGAEffectContext& Context = InProperty.GetContext(InHandle).GetRef();
 
-	FTimerManager& DurationTimer = Context.TargetComp->GetWorld()->GetTimerManager();
+	FTimerManager& DurationTimer = InContext.TargetComp->GetWorld()->GetTimerManager();
 	DurationTimer.ClearTimer(Effect->DurationTimerHandle);
 	DurationTimer.ClearTimer(Effect->PeriodTimerHandle);
 
-	APawn* Instigator = Context.Instigator.Get();
-	UObject* ObjectTarget = Context.Target.Get();
+	APawn* Instigator = InContext.Instigator.Get();
+	UObject* ObjectTarget = InContext.Target.Get();
 	FAFPredictionHandle PredHandle = PredictionByHandle[InHandle];
 
 	HandleByPrediction.Remove(PredHandle);
@@ -793,7 +797,7 @@ void FGAEffectContainer::RemoveEffectInternal(const FAFPropertytHandle& InProper
 	TSet<FGAEffectHandle>* Effects = EffectByAttribute.Find(Spec->AtributeModifier.Attribute);
 	if (Effects)
 	{
-		IAFAbilityInterface* IntTarget = Context.TargetInterface;
+		IAFAbilityInterface* IntTarget = InContext.TargetInterface;
 		IntTarget->RemoveBonus(Attribute, InHandle, AttributeMod);
 		Effects->Remove(InHandle);
 		if (Effects->Num() == 0)

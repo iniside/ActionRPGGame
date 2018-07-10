@@ -4,14 +4,14 @@
 #include "CoreMinimal.h"
 #include "UObject/ObjectMacros.h"
 #include "Engine/BlueprintGeneratedClass.h"
-#include "GAEffectCueBlueprintGeneratedClass.generated.h"
+#include "AFCueActorGeneratedClass.generated.h"
 
 /**
  * Game Effect Blueprint
  */
 
 UCLASS(BlueprintType)
-class ABILITYFRAMEWORK_API UGAEffectCueBlueprintGeneratedClass : public UBlueprintGeneratedClass
+class ABILITYFRAMEWORK_API UAFCueActorGeneratedClass : public UBlueprintGeneratedClass
 {
 	GENERATED_UCLASS_BODY()
 };

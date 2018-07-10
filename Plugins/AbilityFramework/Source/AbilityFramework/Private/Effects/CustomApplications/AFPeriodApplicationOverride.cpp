@@ -16,7 +16,7 @@ bool UAFPeriodApplicationOverride::ApplyEffect(
 	, const FAFFunctionModifier& Modifier)
 {
 
-	InContainer->RemoveEffect(Params.Property);
+	InContainer->RemoveEffect(Params.Property, Params.GetContext());
 
 	FTimerManager& DurationTimer = const_cast<FAFEffectParams&>(Params).GetTargetTimerManager();
 

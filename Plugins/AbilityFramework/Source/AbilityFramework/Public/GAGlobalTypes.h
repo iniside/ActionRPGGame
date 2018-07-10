@@ -225,7 +225,7 @@ public:
 	class IAFAbilityInterface* TargetInterface;
 	class IAFAbilityInterface* InstigatorInterface;
 
-	void SetTarget(UObject* NewTarget);
+	void SetTarget(UObject* NewTarget, const FHitResult& InHit);
 	template<class T>
 	inline T* GetTarget()
 	{
@@ -293,6 +293,8 @@ public:
 	{}
 
 	FGAEffectContext(const FGAEffectContext& Other);
+
+	FGAEffectContext(APawn* InInstigator, UObject* InCauser);
 
 	FGAEffectContext(TWeakObjectPtr<class UGAAttributesBase> TargetAttributesIn, TWeakObjectPtr<class UGAAttributesBase> InstigatorAttributesIn,
 		const FVector& TargetHitLocationIn, TWeakObjectPtr<UObject> TargetIn,

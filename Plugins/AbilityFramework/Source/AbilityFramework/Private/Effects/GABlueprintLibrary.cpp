@@ -14,46 +14,81 @@
 #include "Engine/Engine.h"
 #include "AFSimpleInterface.h"
 #include "AFAttributeInterface.h"
+#include "AFEffectsComponent.h"
 
 UGABlueprintLibrary::UGABlueprintLibrary(const FObjectInitializer& ObjectInitializer)
-: Super(ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 
 }
 
 
-FGAEffectHandle UGABlueprintLibrary::ApplyGameEffectToObject(
+TArray<FGAEffectHandle> UGABlueprintLibrary::ApplyGameEffectToObject(
 	UPARAM(Ref) FAFPropertytHandle& InEffect
-	, FGAEffectHandle Handle
 	, class UObject* Target
 	, class APawn* Instigator
 	, UObject* Causer
 	, const FAFFunctionModifier& Modifier)
 {
-	return ApplyEffectToObject(InEffect, Handle, Target, Instigator, Causer, Modifier);
+	TArray<UObject*> Targets;
+	Targets.Add(Target);
+	return ApplyEffectToObject(InEffect, Targets, Instigator, Causer, Modifier);
 }
 
-FGAEffectHandle UGABlueprintLibrary::ApplyGameEffectToActor(
+TArray<FGAEffectHandle> UGABlueprintLibrary::ApplyGameEffectToActor(
 	UPARAM(Ref) FAFPropertytHandle& InEffect
-	, FGAEffectHandle Handle
 	, class AActor* Target
 	, class APawn* Instigator
 	, UObject* Causer
 	, const FAFFunctionModifier& Modifier)
 {
-	return ApplyEffectToActor(InEffect, Handle, Target, Instigator, Causer, Modifier);
+	TArray<AActor*> Targets;
+	Targets.Add(Target);
+	return ApplyEffectToActor(InEffect, Targets, Instigator, Causer, Modifier);
 }
 
-FGAEffectHandle UGABlueprintLibrary::ApplyGameEffectToLocation(
+TArray<FGAEffectHandle> UGABlueprintLibrary::ApplyGameEffectToLocation(
 	UPARAM(Ref) FAFPropertytHandle& InEffect
-	, FGAEffectHandle Handle
 	, const FHitResult& Target
 	, class APawn* Instigator
 	, UObject* Causer
 	, const FAFFunctionModifier& Modifier)
 {
-	return ApplyEffectFromHit(InEffect, Handle, Target, Instigator, Causer, Modifier);
+	TArray<FHitResult> Targets;
+	Targets.Add(Target);
+	return ApplyEffectFromHit(InEffect, Targets, Instigator, Causer, Modifier);
 }
+
+
+TArray<FGAEffectHandle> UGABlueprintLibrary::ApplyGameEffectToObjects(
+	UPARAM(Ref) FAFPropertytHandle& InEffect
+	, TArray<class UObject*> Targets
+	, class APawn* Instigator
+	, UObject* Causer
+	, const FAFFunctionModifier& Modifier)
+{
+	return ApplyEffectToObject(InEffect, Targets, Instigator, Causer, Modifier);
+}
+TArray<FGAEffectHandle> UGABlueprintLibrary::ApplyGameEffectToActors(
+	UPARAM(Ref) FAFPropertytHandle& InEffect
+	, TArray<class AActor*> Targets
+	, class APawn* Instigator
+	, UObject* Causer
+	, const FAFFunctionModifier& Modifier)
+{
+	return ApplyEffectToActor(InEffect, Targets, Instigator, Causer, Modifier);
+}
+
+TArray<FGAEffectHandle> UGABlueprintLibrary::ApplyGameEffectToTargets(
+	UPARAM(Ref) FAFPropertytHandle& InEffect
+	, const TArray<FHitResult>& Targets
+	, class APawn* Instigator
+	, UObject* Causer
+	, const FAFFunctionModifier& Modifier)
+{
+	return ApplyEffectFromHit(InEffect, Targets, Instigator, Causer, Modifier);
+}
+
 
 FString NetModeToString(ENetMode NetMode)
 {
@@ -72,269 +107,152 @@ FString NetModeToString(ENetMode NetMode)
 	return FString("Invalid");
 }
 
-FGAEffectHandle UGABlueprintLibrary::ApplyEffect(
+TArray<FGAEffectHandle> UGABlueprintLibrary::ApplyEffect(
 	FAFPropertytHandle& InEffect
-	, const FGAEffectHandle& Handle
-	, class UObject* Target
+	, TArray<class UObject*> Targets
 	, class APawn* Instigator
 	, UObject* Causer
-	, const FHitResult& HitIn
+	, const TArray<FHitResult>& HitsIn
 	, const FAFFunctionModifier& Modifier)
 {
-	ENetMode NetMode = GEngine->GetNetMode(Instigator->GetWorld());
-
-	UE_LOG(GameAttributesEffects, Error, TEXT("UGABlueprintLibrary::ApplyEffect START, NetMode %s"), *NetModeToString(NetMode));
-	UE_LOG(GameAttributesEffects, Error, TEXT("-----"));
-	IAFAbilityInterface* Ability = Cast<IAFAbilityInterface>(Causer);
-	if (!Ability)
+	bool bCheckHits = Targets.Num() == HitsIn.Num();
+	TArray<FGAEffectHandle> Handles;
+	for (int32 Idx = 0; Idx < Targets.Num(); Idx++)
 	{
-		UE_LOG(GameAttributesEffects, Error, TEXT("UGABlueprintLibrary::ApplyEffect Effects must be applied trough Ability"));
-		return FGAEffectHandle();
-	}
-
-	IAFAbilityInterface* TargetInterface = Cast<IAFAbilityInterface>(Target);
-	if (!InEffect.GetClass().GetDefaultObject()->Application.GetDefaultObject()->CanApply(TargetInterface, InEffect.GetClass()))
-	{
-		return FGAEffectHandle();
-	}
-	bool bReusedParams = false;
-	bool bPeriodicEffect = false;
-	bool bReusedSpec = false;
-	if (Handle.IsValid() && (InEffect.GetDuration() > 0 || InEffect.GetPeriod() > 0))
-	{
-		bPeriodicEffect = true;
-	}
-
-	FAFContextHandle Context;
-	FAFEffectSpecHandle EffectSpecHandle;
-	
-	//only reused Spec and Context if effect is instant ?
-	if (Handle.IsValid() && !bPeriodicEffect)
-	{
-		Context = MakeContext(Target, Instigator, nullptr, Causer, HitIn);
-
-		FAFContextHandle ExistingContext = InEffect.GetContext(Handle);
-		/*if (ExistingContext.IsValid())
+		UObject* Target = Targets[Idx];
+		FHitResult HitIn;
+		if (bCheckHits)
 		{
-			Context = ExistingContext;
-			Context.SetTarget(Target);
-			bReusedParams = true;
-		}*/
-		/*FAFEffectSpecHandle SpecHandle = InEffect.GetEffectSpec(Handle);
-		EffectSpecHandle = SpecHandle;
-		bReusedParams = true;
-		bReusedSpec = true;*/
-	}
-	else
-	{
-		Context = MakeContext(Target, Instigator, nullptr, Causer, HitIn);
-	}
-	
-	InEffect.InitializeIfNotInitialized(Context.GetRef());
-	UAFEffectsComponent* Target2 = Context.GetRef().GetTargetEffectsComponent();
-	
-
-	if ((InEffect.GetDuration() > 0 || InEffect.GetPeriod() > 0))
-	{
-		bPeriodicEffect = true;
-	}
-
-	if (!InEffect.IsInitialized())
-	{
-		UE_LOG(GameAttributesEffects, Error, TEXT("Invalid Effect Spec"));
-		return FGAEffectHandle();
-	}
-	
-	
-	if (!Target2->HaveEffectRquiredTags(InEffect.GetSpec()->RequiredTags))
-	{
-		return FGAEffectHandle();
-	}
-	if (Target2->DenyEffectApplication(InEffect.GetSpec()->DenyTags))
-	{
-		return FGAEffectHandle();
-	}
-	UE_LOG(GameAttributesEffects, Log, TEXT("MakeOutgoingSpecObj: Created new Context: %s"), *Context.GetRef().ToString());
-
-	FGAEffect effect;
-	effect.World = Instigator->GetWorld();
-	if (Ability)
-	{
-		//InEffect.SetPredictionHandle(Ability->GetPredictionHandle());
+			HitIn = HitsIn[Idx];
+		}
 		
-		effect.PredictionHandle = Ability->GetPredictionHandle();
-	}
-	IAFAbilityInterface* InstigatorInterface = Cast<IAFAbilityInterface>(Instigator); 
-	
-	FAFEffectParams Params(InEffect);
-	if (Params.EffectSpec.GetPtr())
-	{
-		if (Params.EffectSpec.GetPtr()->GetContext().GetPtr()->Target.IsValid())
+
+		ENetMode NetMode = GEngine->GetNetMode(Instigator->GetWorld());
+
+		UE_LOG(GameAttributesEffects, Error, TEXT("UGABlueprintLibrary::ApplyEffect START, NetMode %s"), *NetModeToString(NetMode));
+		UE_LOG(GameAttributesEffects, Error, TEXT("-----"));
+		IAFAbilityInterface* Ability = Cast<IAFAbilityInterface>(Causer);
+		if (!Ability)
 		{
-			UE_LOG(GameAttributesEffects, Log, TEXT("  Pre Spec Target: %s"), *Params.EffectSpec.GetPtr()->GetContext().GetPtr()->Target->GetName());
+			UE_LOG(GameAttributesEffects, Error, TEXT("UGABlueprintLibrary::ApplyEffect Effects must be applied trough Ability"));
+			return Handles;
 		}
-	}
-	if (!bReusedSpec)
-	{
-		FAFEffectSpec* EffectSpec = new FAFEffectSpec(Context, InEffect.GetClass());
-		AddTagsToEffect(EffectSpec);
-		Params.EffectSpec = FAFEffectSpecHandle::Generate(EffectSpec);
-		if (EffectSpec->GetContext().GetPtr()->Target.IsValid())
+
+		IAFAbilityInterface* TargetInterface = Cast<IAFAbilityInterface>(Target);
+
+
+		if (!InEffect.GetClass().GetDefaultObject()->Application.GetDefaultObject()->CanApply(TargetInterface, InEffect.GetClass()))
 		{
-			UE_LOG(GameAttributesEffects, Log, TEXT("  Pre Spec Target: %s"), *EffectSpec->GetContext().GetPtr()->Target->GetName());
+			return Handles;
 		}
+		bool bReusedParams = false;
+		bool bPeriodicEffect = false;
+		
+		FAFEffectSpecHandle EffectSpecHandle;
+		FAFEffectParams Params(InEffect);
+		InEffect.InitializeIfNotInitialized(Instigator, Causer);
+		Params.Context = InEffect.GetPtr()->GetContextCopy(Target, HitIn);
+
+		UAFEffectsComponent* Target2 = Params.Context.GetTargetEffectsComponent();
+
+		UGAGameEffectSpec* Spec = InEffect.GetSpecData();
+
+		if (!Target2->HaveEffectRquiredTags(Spec->ApplicationRequiredTags))
+		{
+			return Handles;
+		}
+		if (Target2->DenyEffectApplication(Spec->DenyTags))
+		{
+			return Handles;
+		}
+
+		if ((InEffect.GetDuration() > 0 || InEffect.GetPeriod() > 0))
+		{
+			bPeriodicEffect = true;
+		}
+
+		if (!InEffect.IsInitialized())
+		{
+			UE_LOG(GameAttributesEffects, Error, TEXT("Invalid Effect Spec"));
+			return Handles;
+		}
+
+
+
+		UE_LOG(GameAttributesEffects, Log, TEXT("MakeOutgoingSpecObj: Created new Context: %s"), *Params.Context.ToString());
+
+		FGAEffect effect;
+		effect.World = Instigator->GetWorld();
+		if (Ability)
+		{
+			effect.PredictionHandle = Ability->GetPredictionHandle();
+		}
+		IAFAbilityInterface* InstigatorInterface = Cast<IAFAbilityInterface>(Instigator);
+
+		
+		/*if (Params.EffectSpec.GetPtr())
+		{
+			if (Params.EffectSpec.GetPtr()->GetContext().GetPtr()->Target.IsValid())
+			{
+				UE_LOG(GameAttributesEffects, Log, TEXT("  Pre Spec Target: %s"), *Params.EffectSpec.GetPtr()->GetContext().GetPtr()->Target->GetName());
+			}
+		}*/
+
+		Params.EffectSpec = InEffect.GetPtr()->GetSpecCopy();
+		AddTagsToEffect(&Params.EffectSpec);
+
+		Params.bRecreated = bReusedParams;
+		Params.bPeriodicEffect = bPeriodicEffect;
+
+		FGAEffectHandle NewHandle = InstigatorInterface->ApplyEffectToTarget(effect, Params, Modifier);
+		Handles.Add(NewHandle);
+		UE_LOG(GameAttributesEffects, Error, TEXT("-----"));
+		UE_LOG(GameAttributesEffects, Error, TEXT("UGABlueprintLibrary::ApplyEffect END"));
+
 	}
-	else
+	return Handles;
+}
+
+TArray<FGAEffectHandle> UGABlueprintLibrary::ApplyEffectFromHit(
+	FAFPropertytHandle& InEffect
+	, const TArray<FHitResult>& Targets
+	, class APawn* Instigator
+	, UObject* Causer
+	, const FAFFunctionModifier& Modifier)
+{
+	TArray<UObject*> ActorTargets;
+	for (const FHitResult& Hit : Targets)
 	{
-		Params.EffectSpec = EffectSpecHandle;
-		Params.EffectSpec.SetContext(Context);
+		ActorTargets.Add(Hit.GetActor());
 	}
-	if (Params.EffectSpec.GetPtr()->GetContext().GetPtr()->Target.IsValid())
+	return ApplyEffect(InEffect, ActorTargets, Instigator, Causer, Targets, Modifier);
+}
+
+TArray<FGAEffectHandle> UGABlueprintLibrary::ApplyEffectToActor(
+	FAFPropertytHandle& InEffect
+	, TArray<class AActor*> Target
+	, class APawn* Instigator
+	, UObject* Causer
+	, const FAFFunctionModifier& Modifier)
+{
+	TArray<FHitResult> Hits;
+	TArray<UObject*> ObjTargets;
+	for (AActor* A : Target)
 	{
-		UE_LOG(GameAttributesEffects, Log, TEXT("  Post Spec Target: %s"), *Params.EffectSpec.GetPtr()->GetContext().GetPtr()->Target->GetName());
+		ObjTargets.Add(A);
 	}
-	Params.bRecreated = bReusedParams;
-	Params.bPeriodicEffect = bPeriodicEffect;
-	Params.Context = Context;
-
-	FGAEffectHandle NewHandle = InstigatorInterface->ApplyEffectToTarget(effect, Handle, Params, Modifier);
-
-	UE_LOG(GameAttributesEffects, Error, TEXT("-----"));
-	UE_LOG(GameAttributesEffects, Error, TEXT("UGABlueprintLibrary::ApplyEffect END"));
-	
-
-	return NewHandle;
+	return ApplyEffect(InEffect, ObjTargets, Instigator, Causer, Hits, Modifier);
 }
-FGAEffectHandle UGABlueprintLibrary::ApplyEffect(
-	FGAEffectProperty* InEffect
-	, const FGAEffectHandle& Handle
-	, class UObject* Target
-	, class APawn* Instigator
-	, UObject* Causer
-	, const FHitResult& HitIn
-	, const FAFFunctionModifier& Modifier)
-{
-	//IAFAbilityInterface* Ability = Cast<IAFAbilityInterface>(Causer);
-	//if (!Ability)
-	//{
-	//	UE_LOG(GameAttributesEffects, Error, TEXT("UGABlueprintLibrary::ApplyEffect Effects must be applied trough Ability"));
-	//	return FGAEffectHandle();
-	//}
-	//bool bReusedParams = false;
-	//bool bPeriodicEffect = false;
-	//bool bReusedSpec = false;
-	//if (Handle.IsValid() && (InEffect->GetDuration() > 0 || InEffect->GetPeriod() > 0))
-	//{
-	//	bPeriodicEffect = true;
-	//}
 
-	//FAFContextHandle Context;
-	//FAFEffectSpecHandle EffectSpecHandle;
-
-	//if (Handle.IsValid())
-	//{
-	//	if (bPeriodicEffect)
-	//	{
-	//		FAFContextHandle* ExistingContext = InEffect->GetContext(Handle);
-	//		if (ExistingContext)
-	//		{
-	//			Context = *ExistingContext;
-	//			Context.SetTarget(Target);
-	//			bReusedParams = true;
-	//		}
-	//		FAFEffectSpecHandle* SpecHandle = InEffect->GetEffectSpec(Handle);
-	//		EffectSpecHandle = *SpecHandle;
-	//		bReusedSpec = true;
-	//	}
-	//	else
-	//	{
-	//		Context = InEffect->GetInstantContext();
-	//		Context.SetTarget(Target);
-
-	//		EffectSpecHandle = InEffect->GetInstantEffectSpec();
-	//		bReusedParams = true;
-	//		bReusedSpec = true;
-	//	}
-	//}
-	//else
-	//{
-	//	Context = MakeContext(Target, Instigator, nullptr, Causer, HitIn);
-	//}
-
-	//InEffect->InitializeIfNotInitialized(Context.GetRef());
-
-	//if (!InEffect->IsInitialized())
-	//{
-	//	UE_LOG(GameAttributesEffects, Error, TEXT("Invalid Effect Spec"));
-	//	return FGAEffectHandle();
-	//}
-
-	//UAFEffectsComponent* Target2 = Context.GetRef().GetTargetEffectsComponent();
-	//if (!Target2->HaveEffectRquiredTags(InEffect->GetSpec()->RequiredTags))
-	//{
-	//	return FGAEffectHandle();
-	//}
-	//if (Target2->DenyEffectApplication(InEffect->GetSpec()->DenyTags))
-	//{
-	//	return FGAEffectHandle();
-	//}
-	//UE_LOG(GameAttributesEffects, Log, TEXT("MakeOutgoingSpecObj: Created new Context: %s"), *Context.GetRef().ToString());
-
-	//FGAEffect effect;
-	//effect.World = Instigator->GetWorld();
-	//if (Ability)
-	//{
-	//	InEffect->SetPredictionHandle(Ability->GetPredictionHandle());
-	//	effect.PredictionHandle = Ability->GetPredictionHandle();
-	//	
-	//}
-	//
-	//FAFPropertytHandle Property = FAFPropertytHandle::Generate(*InEffect);
-	//FAFEffectParams Params(Property);
-	//FAFEffectSpec* EffectSpec = new FAFEffectSpec();
-	////AddTagsToEffect(EffectSpec);
-	//Params.Context = Context;
-	//
-	//Params.EffectSpec = FAFEffectSpecHandle::Generate(EffectSpec);
-
-	//IAFAbilityInterface* InstigatorInterface = Cast<IAFAbilityInterface>(Instigator);
-	//FGAEffectHandle NewHandle = InstigatorInterface->ApplyEffectToTarget(effect, Handle, Params, Modifier);
-	FGAEffectHandle NewHandle;
-	return NewHandle;
-}
-FGAEffectHandle UGABlueprintLibrary::ApplyEffectFromHit(
+TArray<FGAEffectHandle> UGABlueprintLibrary::ApplyEffectToObject(
 	FAFPropertytHandle& InEffect
-	, const FGAEffectHandle& Handle
-	, const FHitResult& Target
+	, TArray<class UObject*> Target
 	, class APawn* Instigator
 	, UObject* Causer
 	, const FAFFunctionModifier& Modifier)
 {
-	return ApplyEffect(InEffect, Handle, Target.GetActor(), Instigator, Causer, Target, Modifier);
-}
-
-FGAEffectHandle UGABlueprintLibrary::ApplyEffectToActor(
-	FAFPropertytHandle& InEffect
-	, const FGAEffectHandle& Handle
-	, class AActor* Target
-	, class APawn* Instigator
-	, UObject* Causer
-	, const FAFFunctionModifier& Modifier)
-{
-	FHitResult Hit(ForceInit);
-	return ApplyEffect(InEffect, Handle, Target, Instigator, Causer, Hit, Modifier);
-}
-
-FGAEffectHandle UGABlueprintLibrary::ApplyEffectToObject(
-	FAFPropertytHandle& InEffect
-	, const FGAEffectHandle& Handle
-	, class UObject* Target
-	, class APawn* Instigator
-	, UObject* Causer
-	, const FAFFunctionModifier& Modifier)
-{
-	FHitResult Hit(ForceInit);
-	return ApplyEffect(InEffect, Handle, Target, Instigator, Causer, Hit, Modifier);
+	TArray<FHitResult> Hits;
+	return ApplyEffect(InEffect, Target, Instigator, Causer, Hits, Modifier);
 }
 
 FAFContextHandle UGABlueprintLibrary::MakeContext(class UObject* Target, class APawn* Instigator,

@@ -1,6 +1,6 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 #include "../AbilityFrameworkEditor.h"
-#include "Effects/GAEffectCue.h"
+#include "Effects/AFCueActor.h"
 #include "GAEffectCueEditor.h"
 #include "Effects/GAEffectCueSequence.h"
 #include "EditorReimportHandler.h"
@@ -14,8 +14,8 @@
 #include "Toolkits/ToolkitManager.h"
 #include "Toolkits/GlobalEditorCommonCommands.h"
 
-#include "GAEffectCueBlueprint.h"
-#include "GAEffectCueBlueprintFactory.h"
+#include "AFCueActorBlueprint.h"
+#include "AFCueActorBlueprintFactory.h"
 #include "GAEffectCueGraphSchema.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "SDockTab.h"
@@ -112,7 +112,7 @@ void FGAEffectCueEditor::InitEffectCueEditor(const EToolkitMode::Type Mode, cons
 {
 	InitBlueprintEditor(Mode, InitToolkitHost, InBlueprints, bShouldOpenInDefaultsMode);
 	UBlueprint* BP = InBlueprints[0];
-	EditedCue = BP->GeneratedClass->GetDefaultObject<AGAEffectCue>();
+	EditedCue = BP->GeneratedClass->GetDefaultObject<AAFCueActor>();
 	CueClass = BP->GeneratedClass;
 
 	for (auto Blueprint : InBlueprints)
@@ -193,7 +193,7 @@ UBlueprint* FGAEffectCueEditor::GetBlueprintObj() const
 	const TArray<UObject*>& EditingObjs = GetEditingObjects();
 	for (int32 i = 0; i < EditingObjs.Num(); ++i)
 	{
-		if (EditingObjs[i]->IsA<UGAEffectCueBlueprint>())
+		if (EditingObjs[i]->IsA<UAFCueActorBlueprint>())
 		{ 
 			return (UBlueprint*)EditingObjs[i]; 
 		}

@@ -1,32 +1,32 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "../AbilityFramework.h"
+#include "AbilityFramework.h"
 #include "MovieScene.h"
 #include "GAEffectCueSequence.h"
 #include "ActorSequencePlayer.h"
-#include "GAEffectCue.h"
+#include "AFCueActor.h"
 
-AGAEffectCue::AGAEffectCue(const FObjectInitializer& ObjectInitializer)
+AAFCueActor::AAFCueActor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 	StartTime = 0;
 	EndTime = 5;
-	if (HasAnyFlags(RF_ClassDefaultObject) || GetArchetype() == GetDefault<AGAEffectCue>())
+	if (HasAnyFlags(RF_ClassDefaultObject) || GetArchetype() == GetDefault<AAFCueActor>())
 	{
 		Sequence = ObjectInitializer.CreateDefaultSubobject<UGAEffectCueSequence>(this, "Sequence");
 		Sequence->SetFlags(RF_Public | RF_Transactional);
 		SequencePlayer = ObjectInitializer.CreateDefaultSubobject<UActorSequencePlayer>(this, "SequencePlayer");
 	}
 }
-void AGAEffectCue::PostInitProperties()
+void AAFCueActor::PostInitProperties()
 {
 	UpdateAssetRegistryInfo();
 	Super::PostInitProperties();
 }
 
-void AGAEffectCue::Serialize(FArchive& Ar)
+void AAFCueActor::Serialize(FArchive& Ar)
 {
 	if (Ar.IsSaving())
 	{
@@ -41,7 +41,7 @@ void AGAEffectCue::Serialize(FArchive& Ar)
 	}
 }
 #if WITH_EDITORONLY_DATA
-void AGAEffectCue::UpdateAssetBundleData()
+void AAFCueActor::UpdateAssetBundleData()
 {
 	AssetBundleData.Reset();
 	UpdateAssetRegistryInfo();
@@ -53,7 +53,7 @@ void AGAEffectCue::UpdateAssetBundleData()
 	}
 }
 
-void AGAEffectCue::PreSave(const class ITargetPlatform* TargetPlatform)
+void AAFCueActor::PreSave(const class ITargetPlatform* TargetPlatform)
 {
 	Super::PreSave(TargetPlatform);
 
@@ -66,7 +66,7 @@ void AGAEffectCue::PreSave(const class ITargetPlatform* TargetPlatform)
 	}
 }
 #endif
-void AGAEffectCue::PostLoad()
+void AAFCueActor::PostLoad()
 {
 	Super::PostLoad();
 
@@ -82,12 +82,12 @@ void AGAEffectCue::PostLoad()
 	}
 #endif
 }
-FPrimaryAssetId AGAEffectCue::GetPrimaryAssetId() const
+FPrimaryAssetId AAFCueActor::GetPrimaryAssetId() const
 {
 	FName dupa1 = FPackageName::GetShortFName(GetOutermost()->GetFName());
 	
-	const AGAEffectCue* A = this;
-	return FPrimaryAssetId(FPrimaryAssetType("EffectCue"), dupa1);
+	const AAFCueActor* A = this;
+	return FPrimaryAssetId(FPrimaryAssetType("ActorCue"), dupa1);
 	//if (HasAnyFlags(RF_ClassDefaultObject))
 	{
 		UClass* SearchNativeClass = GetClass();
@@ -111,12 +111,12 @@ FPrimaryAssetId AGAEffectCue::GetPrimaryAssetId() const
 	//return FPrimaryAssetId(GetClass()->GetFName(), GetFName());
 }
 
-void AGAEffectCue::SetAnimation(class UGAEffectCueSequence* InSequence)
+void AAFCueActor::SetAnimation(class UGAEffectCueSequence* InSequence)
 {
 	Sequence = InSequence;
 }
 // Called when the game starts or when spawned
-void AGAEffectCue::BeginPlay()
+void AAFCueActor::BeginPlay()
 {
 	if (!SequencePlayer)
 	{
@@ -129,7 +129,7 @@ void AGAEffectCue::BeginPlay()
 }
 
 // Called every frame
-void AGAEffectCue::Tick( float DeltaTime )
+void AAFCueActor::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 	if (SequencePlayer)
@@ -137,7 +137,7 @@ void AGAEffectCue::Tick( float DeltaTime )
 		SequencePlayer->Update(DeltaTime);
 	}
 }
-void AGAEffectCue::NativeBeginCue(AActor* InstigatorOut, AActor* TargetOut, UObject* Causer,
+void AAFCueActor::NativeBeginCue(AActor* InstigatorOut, AActor* TargetOut, UObject* Causer,
 	const FHitResult& HitInfo, const FGAEffectCueParams& CueParams)
 {
 	BeginCue(InstigatorOut, TargetOut, Causer, HitInfo);
@@ -147,16 +147,16 @@ void AGAEffectCue::NativeBeginCue(AActor* InstigatorOut, AActor* TargetOut, UObj
 	}
 }
 
-void AGAEffectCue::NativeOnExecuted()
+void AAFCueActor::NativeOnExecuted()
 {
 	OnExecuted();
 }
-void AGAEffectCue::NativeOnRemoved()
+void AAFCueActor::NativeOnRemoved()
 {
 	OnRemoved();
 }
 
-void  AGAEffectCue::UpdateAssetRegistryInfo()
+void  AAFCueActor::UpdateAssetRegistryInfo()
 {
 	EffectCueTagSearch = CueTag.GetTagName();
 }

@@ -1,7 +1,8 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 #pragma once
 #include "AbilityFramework.h"
-
+#include "AFCueManager.h"
+#include "Misc/CoreDelegates.h"
 DEFINE_LOG_CATEGORY(AbilityFramework);
 DEFINE_LOG_CATEGORY(GameAttributesGeneral);
 DEFINE_LOG_CATEGORY(GameAttributes);
@@ -199,6 +200,9 @@ void FAbilityFramework::StartupModule()
 #endif //WITH_EDITOR
 	//FAFEffectTimerManager::Get();
 	// This code will execute after your module is loaded into memory (but after global variables are initialized, of course.)
+
+	//initialize existing cues.
+	FCoreDelegates::OnFEngineLoopInitComplete.AddRaw(this, &FAbilityFramework::InitCues);
 }
 
 
@@ -208,6 +212,9 @@ void FAbilityFramework::ShutdownModule()
 	// we call this function before unloading the module.
 }
 
-
+void FAbilityFramework::InitCues()
+{
+	UAFCueManager::Get();
+}
 
 IMPLEMENT_MODULE(FAbilityFramework, AbilityFramework)

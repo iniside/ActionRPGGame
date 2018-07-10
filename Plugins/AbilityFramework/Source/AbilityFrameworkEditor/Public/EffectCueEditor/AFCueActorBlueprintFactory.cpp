@@ -1,6 +1,6 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
-#include "../AbilityFrameworkEditor.h"
-#include "GAEffectCueBlueprintFactory.h"
+#include "AbilityFrameworkEditor.h"
+#include "AFCueActorBlueprintFactory.h"
 #include "InputCoreTypes.h"
 #include "UObject/Interface.h"
 #include "Layout/Visibility.h"
@@ -28,8 +28,8 @@
 #include "Kismet2/KismetEditorUtilities.h"
 #include "BlueprintEditorSettings.h"
 
-#include "Effects/GAEffectCueBlueprint.h"
-#include "Effects/GAEffectCue.h"
+#include "Effects/AFCueActorBlueprint.h"
+#include "Effects/AFCueActor.h"
 #include "GAEffectCueGraph.h"
 #include "GAEffectCueGraphSchema.h"
 
@@ -42,10 +42,10 @@
 // ------------------------------------------------------------------------------
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
-class SEffectCueBlueprintCreateDialog : public SCompoundWidget
+class SCueStaticBlueprintCreateDialog : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SEffectCueBlueprintCreateDialog){}
+	SLATE_BEGIN_ARGS(SCueStaticBlueprintCreateDialog){}
 
 	SLATE_END_ARGS()
 
@@ -53,7 +53,7 @@ public:
 		void Construct(const FArguments& InArgs)
 	{
 			bOkClicked = false;
-			ParentClass = AGAEffectCue::StaticClass();
+			ParentClass = AAFCueActor::StaticClass();
 
 			ChildSlot
 				[
@@ -93,7 +93,7 @@ public:
 										SNew(SButton)
 										.HAlign(HAlign_Center)
 										.ContentPadding(FEditorStyle::GetMargin("StandardDialog.ContentPadding"))
-										.OnClicked(this, &SEffectCueBlueprintCreateDialog::OkClicked)
+										.OnClicked(this, &SCueStaticBlueprintCreateDialog::OkClicked)
 										.Text(FText::FromString("OK"))
 									]
 									+ SUniformGridPanel::Slot(1, 0)
@@ -101,7 +101,7 @@ public:
 											SNew(SButton)
 											.HAlign(HAlign_Center)
 											.ContentPadding(FEditorStyle::GetMargin("StandardDialog.ContentPadding"))
-											.OnClicked(this, &SEffectCueBlueprintCreateDialog::CancelClicked)
+											.OnClicked(this, &SCueStaticBlueprintCreateDialog::CancelClicked)
 											.Text(FText::FromString("Cancel"))
 										]
 								]
@@ -113,7 +113,7 @@ public:
 		}
 
 	/** Sets properties for the supplied AbilitiesBlueprintFactory */
-	bool ConfigureProperties(TWeakObjectPtr<UGAEffectCueBlueprintFactory> InEffectCueBlueprintFactory)
+	bool ConfigureProperties(TWeakObjectPtr<UAFCueActorBlueprintFactory> InEffectCueBlueprintFactory)
 	{
 		EffectCueBlueprintFactory = InEffectCueBlueprintFactory;
 
@@ -171,7 +171,7 @@ private:
 		TSharedPtr<FEffectCueBlueprintParentFilter> Filter = MakeShareable(new FEffectCueBlueprintParentFilter);
 
 		// All child child classes of UGameplayAbility are valid.
-		Filter->AllowedChildrenOfClasses.Add(AGAEffectCue::StaticClass());
+		Filter->AllowedChildrenOfClasses.Add(AAFCueActor::StaticClass());
 		Options.ClassFilter = Filter;
 
 		ParentClassContainer->ClearChildren();
@@ -185,7 +185,7 @@ private:
 
 		ParentClassContainer->AddSlot()
 			[
-				ClassViewerModule.CreateClassViewer(Options, FOnClassPicked::CreateSP(this, &SEffectCueBlueprintCreateDialog::OnClassPicked))
+				ClassViewerModule.CreateClassViewer(Options, FOnClassPicked::CreateSP(this, &SCueStaticBlueprintCreateDialog::OnClassPicked))
 			];
 	}
 
@@ -237,7 +237,7 @@ private:
 
 private:
 	/** The factory for which we are setting up properties */
-	TWeakObjectPtr<UGAEffectCueBlueprintFactory> EffectCueBlueprintFactory;
+	TWeakObjectPtr<UAFCueActorBlueprintFactory> EffectCueBlueprintFactory;
 
 	/** A pointer to the window that is asking the user to select a parent class */
 	TWeakPtr<SWindow> PickerWindow;
@@ -258,25 +258,25 @@ END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 	UAbilitiesBlueprintFactory implementation.
 ------------------------------------------------------------------------------*/
 
-UGAEffectCueBlueprintFactory::UGAEffectCueBlueprintFactory(const FObjectInitializer& ObjectInitializer)
+UAFCueActorBlueprintFactory::UAFCueActorBlueprintFactory(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	bCreateNew = true;
 	bEditAfterNew = true;
-	SupportedClass = UGAEffectCueBlueprint::StaticClass();
-	ParentClass = AGAEffectCue::StaticClass();
+	SupportedClass = UAFCueActorBlueprint::StaticClass();
+	ParentClass = AAFCueActor::StaticClass();
 }
 
-bool UGAEffectCueBlueprintFactory::ConfigureProperties()
+bool UAFCueActorBlueprintFactory::ConfigureProperties()
 {
-	TSharedRef<SEffectCueBlueprintCreateDialog> Dialog = SNew(SEffectCueBlueprintCreateDialog);
+	TSharedRef<SCueStaticBlueprintCreateDialog> Dialog = SNew(SCueStaticBlueprintCreateDialog);
 	return Dialog->ConfigureProperties(this);
 };
 
-UObject* UGAEffectCueBlueprintFactory::FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn, FName CallingContext)
+UObject* UAFCueActorBlueprintFactory::FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn, FName CallingContext)
 {
 	// Make sure we are trying to factory a gameplay ability blueprint, then create and init one
-	check(Class->IsChildOf(UGAEffectCueBlueprint::StaticClass()));
+	check(Class->IsChildOf(UAFCueActorBlueprint::StaticClass()));
 
 	// If they selected an interface, force the parent class to be UInterface
 	if (BlueprintType == BPTYPE_Interface)
@@ -284,7 +284,7 @@ UObject* UGAEffectCueBlueprintFactory::FactoryCreateNew(UClass* Class, UObject* 
 		ParentClass = UInterface::StaticClass();
 	}
 
-	if ( ( ParentClass == NULL ) || !FKismetEditorUtilities::CanCreateBlueprintOfClass(ParentClass) || !ParentClass->IsChildOf(AGAEffectCue::StaticClass()) )
+	if ( ( ParentClass == NULL ) || !FKismetEditorUtilities::CanCreateBlueprintOfClass(ParentClass) || !ParentClass->IsChildOf(AAFCueActor::StaticClass()) )
 	{
 		FFormatNamedArguments Args;
 		Args.Add( TEXT("ClassName"), (ParentClass != NULL) ? FText::FromString( ParentClass->GetName() ) : FText::FromString("Null") );
@@ -293,11 +293,11 @@ UObject* UGAEffectCueBlueprintFactory::FactoryCreateNew(UClass* Class, UObject* 
 	}
 	else
 	{
-		UGAEffectCueBlueprint* NewBP = CastChecked<UGAEffectCueBlueprint>(FKismetEditorUtilities::CreateBlueprint(ParentClass, InParent, Name, BlueprintType, UGAEffectCueBlueprint::StaticClass(), UBlueprintGeneratedClass::StaticClass(), CallingContext));
+		UAFCueActorBlueprint* NewBP = CastChecked<UAFCueActorBlueprint>(FKismetEditorUtilities::CreateBlueprint(ParentClass, InParent, Name, BlueprintType, UAFCueActorBlueprint::StaticClass(), UBlueprintGeneratedClass::StaticClass(), CallingContext));
 
 		if (NewBP)
 		{
-			UGAEffectCueBlueprint* AbilityBP = UGAEffectCueBlueprint::FindRootGameplayAbilityBlueprint(NewBP);
+			UAFCueActorBlueprint* AbilityBP = UAFCueActorBlueprint::FindRootGameplayAbilityBlueprint(NewBP);
 			if (AbilityBP == NULL)
 			{
 				const UEdGraphSchema_K2* K2Schema = GetDefault<UEdGraphSchema_K2>();
@@ -328,7 +328,7 @@ UObject* UGAEffectCueBlueprintFactory::FactoryCreateNew(UClass* Class, UObject* 
 	}
 }
 
-UObject* UGAEffectCueBlueprintFactory::FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)
+UObject* UAFCueActorBlueprintFactory::FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)
 {
 	return FactoryCreateNew(Class, InParent, Name, Flags, Context, Warn, NAME_None);
 }

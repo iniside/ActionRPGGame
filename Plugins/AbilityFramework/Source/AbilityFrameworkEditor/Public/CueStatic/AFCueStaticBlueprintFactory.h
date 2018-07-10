@@ -8,10 +8,10 @@
 #include "Engine/Blueprint.h"
 #include "Factories/Factory.h"
 #include "AssetTypeCategories.h"
-#include "GAEffectCueBlueprintFactory.generated.h"
+#include "AFCueStaticBlueprintFactory.generated.h"
 
 UCLASS(HideCategories=Object, MinimalAPI)
-class UGAEffectCueBlueprintFactory : public UFactory
+class UAFCueStaticBlueprintFactory : public UFactory
 {
 	GENERATED_UCLASS_BODY()
 
@@ -21,7 +21,7 @@ class UGAEffectCueBlueprintFactory : public UFactory
 
 	// The parent class of the created blueprint
 	UPROPERTY(EditAnywhere, Category=GameplayAbilitiesBlueprintFactory)
-	TSubclassOf<class AGAEffectCue> ParentClass;
+	TSubclassOf<class UAFCueStatic> ParentClass;
 
 	//~ Begin UFactory Interface
 	virtual bool ConfigureProperties() override;

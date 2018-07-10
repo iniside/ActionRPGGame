@@ -1,22 +1,13 @@
 #pragma once
 #include "GameplayTagContainer.h"
-#include "../GAGlobalTypes.h"
+#include "GAGlobalTypes.h"
 #include "GAGameEffect.h"
 
-#include "GameplayTaskOwnerInterface.h"
+#include "LatentActions/AFLatentInterface.h"
 #include "GAEffectExtension.generated.h"
 /*
 	Instanced effect with active event graph, where you can bind events
 	on application.
-
-	One instance per ability is applied per actor. (ie, one ability can apply only one instanced
-	effect to each actor). 
-	So this is not suitable for effects which should have ability to be applied multiple times the same
-	actor to stack in intensity and still have different durations.
-
-	When the same type of instanced effect from the same instigator will be applied to the same actor
-	old effect will be terminated and new one will be applied.
-	Or, old one will be refreshed (reset duration, reinitialize etc, but not destroyed).
 */
 UCLASS(BlueprintType, Blueprintable, EditInLineNew)
 class ABILITYFRAMEWORK_API UGAEffectExtension : public UObject, public IAFLatentInterface //this interface is not needed, but NewTask is expting those functions.
@@ -25,8 +16,15 @@ class ABILITYFRAMEWORK_API UGAEffectExtension : public UObject, public IAFLatent
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Context")
 		FGAEffectContext Context;
+
+	/*Component which actually owns this Effect (Effect Target) */
 	UPROPERTY()
 		class UAFEffectsComponent* OwningComponent;
+
+	/* Component from this effect has originated (Effect Instigator) */
+	UPROPERTY()
+		class UAFEffectsComponent* SourceComponent;
+
 	UPROPERTY()
 		class AActor* Avatar;
 
@@ -64,6 +62,21 @@ public:
 	void NativeOnEffectExpired();
 	void NativeOnEffectRemoved();
 
+	void NativeOnEffectAppliedCDO();
+	void NativeOnEffectExecutedCDO();
+	void NativeOnEffectExpiredCDO();
+	void NativeOnEffectRemovedCDO();
+
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
+		void OnEffectAppliedCDO() const;
+	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
+		void OnEffectExecutedCOD() const;
+	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
+		void OnEffectExpiredCDO() const;
+	UFUNCTION(BlueprintImplementableEvent, Category = "Event Graph")
+		void OnEffectRemovedCDO() const;
+
 	virtual UWorld* GetWorld() const override;
 
 	/*  IAFLatentInterface */
@@ -76,4 +89,7 @@ public:
 
 	virtual class UAFTaskBase* GetCachedLatentAction(FName TaskName);
 	/*  IAFLatentInterface */
+
+protected:
+	void CleanupTasks();
 };

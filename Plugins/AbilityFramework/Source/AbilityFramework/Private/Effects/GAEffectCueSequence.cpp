@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "../AbilityFramework.h"
-#include "GAEffectCue.h"
+#include "AFCueActor.h"
 #include "MovieScene.h"
 #include "MovieSceneCommonHelpers.h"
 #include "Modules/ModuleManager.h"
@@ -36,10 +36,10 @@ UGAEffectCueSequence::UGAEffectCueSequence(const FObjectInitializer& ObjectIniti
 void UGAEffectCueSequence::PostInitProperties()
 {
 #if WITH_EDITOR && WITH_EDITORONLY_DATA
-	AGAEffectCue* OwnerCue = Cast<AGAEffectCue>(GetOuter());
+	AAFCueActor* OwnerCue = Cast<AAFCueActor>(GetOuter());
 	if (!bHasBeenInitialized && !HasAnyFlags(RF_ClassDefaultObject) && OwnerCue && !OwnerCue->HasAnyFlags(RF_ClassDefaultObject))
 	{
-		FGuid BindingID = MovieScene->AddPossessable(OwnerCue ? OwnerCue->GetActorLabel() : TEXT("Owner"), OwnerCue ? OwnerCue->GetClass() : AGAEffectCue::StaticClass());
+		FGuid BindingID = MovieScene->AddPossessable(OwnerCue ? OwnerCue->GetActorLabel() : TEXT("Owner"), OwnerCue ? OwnerCue->GetClass() : AAFCueActor::StaticClass());
 		//ObjectReferences.CreateBinding(BindingID, FActorSequenceObjectReference::CreateForContextActor());
 
 		OnInitializeSequenceEvent.Broadcast(this);

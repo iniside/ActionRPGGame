@@ -2,12 +2,11 @@
 #include "CoreMinimal.h"
 #include "Toolkits/IToolkitHost.h"
 #include "AssetTypeCategories.h"
-//#include "Developer/AssetTools/Private/AssetTypeActions/AssetTypeActions_ClassTypeBase.h"
 #include "Developer/AssetTools/Public/AssetTypeActions/AssetTypeActions_Blueprint.h"
 
 class UFactory;
 
-class FAssetTypeActions_GAEffectCueBlueprint : public FAssetTypeActions_Blueprint
+class FAssetTypeActions_AFCueStaticBlueprint : public FAssetTypeActions_Blueprint
 {
 public:
 	// IAssetTypeActions Implementation

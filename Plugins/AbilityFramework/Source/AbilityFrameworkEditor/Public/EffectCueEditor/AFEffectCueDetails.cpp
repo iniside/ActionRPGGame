@@ -6,7 +6,7 @@
 #include "STextCombobox.h"
 #include "STreeView.h"
 
-#include "Effects/GAEffectCue.h"
+#include "Effects/AFCueActor.h"
 #include "Effects/GAEffectCueSequence.h"
 #include "EditorReimportHandler.h"
 #include "MovieScene.h"
@@ -29,7 +29,7 @@ class SEffectCueSequenceEditorWidget
 {
 private:
 	TWeakObjectPtr<UGAEffectCueSequence> WeakSequence;
-	AGAEffectCue* EffectCue;
+	AAFCueActor* EffectCue;
 	TWeakPtr<FBlueprintEditor> WeakBlueprintEditor;
 
 	TSharedPtr<SBox> Content;
@@ -229,7 +229,7 @@ public:
 			, FText(), !bIdent
 			);*/
 	}
-	void SetActorSequence(UGAEffectCueSequence* NewSequence, AGAEffectCue* InEffectCue)
+	void SetActorSequence(UGAEffectCueSequence* NewSequence, AAFCueActor* InEffectCue)
 	{
 		if (UGAEffectCueSequence* OldSequence = WeakSequence.Get())
 		{
@@ -329,17 +329,17 @@ void FAFEffectCueDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 		TSharedPtr<FTabManager> HostTabManager = DetailsView->GetHostTabManager();
 		TArray<TWeakObjectPtr<UObject>> Objects;
 		DetailLayout.GetObjectsBeingCustomized(Objects);
-		AGAEffectCue* EffectCue = Cast<AGAEffectCue>(Objects[0].Get());
+		AAFCueActor* EffectCue = Cast<AAFCueActor>(Objects[0].Get());
 
 		if (HostTabManager.IsValid() && HostTabManager->CanSpawnTab("EmbeddedEffectCueSequenceID"))
 		{
 			TSharedPtr<SDockTab> ExistingTab = HostTabManager->FindExistingLiveTab(FName("EmbeddedEffectCueSequenceID"));
 			if (ExistingTab.IsValid())
 			{
-				//EffectCue->StaticClass()->GetDefaultObject<AGAEffectCue>()->Sequence
+				//EffectCue->StaticClass()->GetDefaultObject<AAFCueActor>()->Sequence
 
 				//auto SequencerWidget = StaticCastSharedRef<SEffectCueSequenceEditorWidget>(ExistingTab->GetContent());
-				StaticCastSharedRef<SEffectCueSequenceEditorWidget>(ExistingTab->GetContent())->SetActorSequence(EffectCue->StaticClass()->GetDefaultObject<AGAEffectCue>()->Sequence, EffectCue);
+				StaticCastSharedRef<SEffectCueSequenceEditorWidget>(ExistingTab->GetContent())->SetActorSequence(EffectCue->StaticClass()->GetDefaultObject<AAFCueActor>()->Sequence, EffectCue);
 				//bIsExternalTabAlreadyOpened = ThisSequence && SequencerWidget->GetSequence() == ThisSequence;
 				return;
 			}
@@ -347,7 +347,7 @@ void FAFEffectCueDetails::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 			if (!Tab.IsValid())
 				Tab = HostTabManager->InvokeTab(FName("EmbeddedEffectCueSequenceID"));
 			//Tab->SetContent(Sequencer->GetSequencerWidget());
-			StaticCastSharedRef<SEffectCueSequenceEditorWidget>(Tab->GetContent())->SetActorSequence(EffectCue->StaticClass()->GetDefaultObject<AGAEffectCue>()->Sequence, EffectCue);
+			StaticCastSharedRef<SEffectCueSequenceEditorWidget>(Tab->GetContent())->SetActorSequence(EffectCue->StaticClass()->GetDefaultObject<AAFCueActor>()->Sequence, EffectCue);
 		}
 	}
 }

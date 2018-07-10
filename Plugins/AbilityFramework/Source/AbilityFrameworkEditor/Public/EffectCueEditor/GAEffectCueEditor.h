@@ -24,8 +24,8 @@ class FGAEffectCueEditor : public FBlueprintEditor
 
 	TArray<UObject*> GetAnimationEventContexts() const;
 	FDelegateHandle BlueprintEditorTabSpawnerHandle, BlueprintEditorLayoutExtensionHandle;
-	class AGAEffectCue* EditedCue;
-	TSubclassOf<AGAEffectCue> CueClass;
+	class AAFCueActor* EditedCue;
+	TSubclassOf<AAFCueActor> CueClass;
 	TWeakObjectPtr<class UGAEffectCueSequence> EditedSequence;
 	void ChangeViewedAnimation(UGAEffectCueSequence& InAnimationToView);
 	void OnMovieSceneDataChanged();

@@ -10,7 +10,7 @@
 #include "AssetRegistryModule.h"
 #include "Engine/AssetManager.h"
 #include "Abilities/GAAbilityBase.h"
-#include "Effects/GAEffectCue.h"
+#include "Effects/AFCueActor.h"
 
 #if WITH_AGONES
 #include "IAgones.h"
@@ -55,7 +55,7 @@ void UARGameInstance::Init()
 	if (UAssetManager* Manager = UAssetManager::GetIfValid())
 	{
 		Manager->ScanPathsForPrimaryAssets(FPrimaryAssetType("Ability"), ContentPaths, UGAAbilityBase::StaticClass(), true);
-		Manager->ScanPathsForPrimaryAssets(FPrimaryAssetType("EffectCue"), ContentPaths, AGAEffectCue::StaticClass(), true);
+		Manager->ScanPathsForPrimaryAssets(FPrimaryAssetType("EffectCue"), ContentPaths, AAFCueActor::StaticClass(), true);
 	}
 
 #if WITH_AGONES

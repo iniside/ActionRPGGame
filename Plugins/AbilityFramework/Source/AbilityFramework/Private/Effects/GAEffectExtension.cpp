@@ -28,10 +28,29 @@ void UGAEffectExtension::NativeOnEffectExecuted()
 void UGAEffectExtension::NativeOnEffectExpired()
 {
 	OnEffectExpired();
+	CleanupTasks();
 }
 void UGAEffectExtension::NativeOnEffectRemoved()
 {
 	OnEffectRemoved();
+	CleanupTasks();
+}
+
+void UGAEffectExtension::NativeOnEffectAppliedCDO()
+{
+	OnEffectAppliedCDO();
+}
+void UGAEffectExtension::NativeOnEffectExecutedCDO()
+{
+	OnEffectExecutedCOD();
+}
+void UGAEffectExtension::NativeOnEffectExpiredCDO()
+{
+	OnEffectExpiredCDO();
+}
+void UGAEffectExtension::NativeOnEffectRemovedCDO()
+{
+	OnEffectRemovedCDO();
 }
 
 UWorld* UGAEffectExtension::GetWorld() const
@@ -44,6 +63,7 @@ UWorld* UGAEffectExtension::GetWorld() const
 
 void UGAEffectExtension::OnLatentTaskAdded(FName InstanceName, class UAFTaskBase* TaskIn)
 {
+	ActiveTasks.Add(TaskIn);
 	if (!InstanceName.IsNone())
 	{
 		Tasks.Add(InstanceName, TaskIn);
@@ -67,4 +87,18 @@ void UGAEffectExtension::OnLatentTaskDeactivated(class UAFTaskBase* TaskIn)
 class UAFTaskBase* UGAEffectExtension::GetCachedLatentAction(FName TaskName)
 {
 	return Tasks.FindRef(TaskName);
+}
+
+void UGAEffectExtension::CleanupTasks()
+{
+	for (UAFTaskBase* Task : ActiveTasks)
+	{
+		Task->EndTask();
+	}
+
+	ActiveTasks.Reset();
+	ActiveTasks.Shrink();
+
+	Tasks.Reset();
+	Tasks.Shrink();
 }

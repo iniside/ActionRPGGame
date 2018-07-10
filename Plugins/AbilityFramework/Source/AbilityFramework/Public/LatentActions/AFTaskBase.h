@@ -52,9 +52,10 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"), Category = "Latent Action")
 	virtual void ReadyForActivation();
+	virtual void EndTask();
 protected:
 	virtual void Activate() {};
-	virtual void EndTask();
+	
 	virtual void BeginDestroy() override;
 	virtual void OnTaskEnded() {};
 public:

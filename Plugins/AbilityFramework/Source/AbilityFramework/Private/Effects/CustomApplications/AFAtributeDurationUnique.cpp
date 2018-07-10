@@ -16,7 +16,7 @@ bool UAFAtributeDurationUnique::ApplyEffect(
 	, const FAFEffectParams& Params
 	, const FAFFunctionModifier& Modifier)
 {
-	if (InContainer->IsEffectActive(Params.GetSpec().GetEffectClass()))
+	if (InContainer->IsEffectActive(Params.Property.SpecClass.SpecClass.Get()))
 	{
 		return false;
 	}

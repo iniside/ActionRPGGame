@@ -63,7 +63,7 @@ float AARAICharacter::GetAttributeValue(FGAAttribute AttributeIn) const
 }
 
 void AARAICharacter::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn,
-	struct FGAEffectProperty& InProperty, const FAFContextHandle& InContex)
+	struct FGAEffectProperty& InProperty, const FGAEffectContext& InContex)
 {
 	Abilities->ModifyAttribute(ModIn, HandleIn, InProperty, InContex);
 }

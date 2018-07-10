@@ -15,7 +15,7 @@ bool UAFAttributeDurationOverride::ApplyEffect(
 	, const FAFEffectParams& Params
 	, const FAFFunctionModifier& Modifier)
 {
-	InContainer->RemoveEffect(Params.Property);
+	InContainer->RemoveEffect(Params.Property, Params.GetContext());
 
 	FTimerManager& DurationTimer = const_cast<FAFEffectParams&>(Params).GetTargetTimerManager();
 

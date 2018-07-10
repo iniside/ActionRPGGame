@@ -18,7 +18,7 @@
 DECLARE_DELEGATE(FAFEffectEvent);
 DECLARE_DELEGATE_OneParam(FAFEventDelegate, FAFEventData);
 
-DECLARE_MULTICAST_DELEGATE_ThreeParams(FAFApplicationDelegate, FAFContextHandle, FAFPropertytHandle, FAFEffectSpecHandle);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FAFApplicationDelegate, FGAEffectContext, FAFPropertytHandle, FAFEffectSpec);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ABILITYFRAMEWORK_API UAFEffectsComponent : public UActorComponent
@@ -91,7 +91,6 @@ protected:
 	*/
 	FGAEffectHandle ApplyEffectToSelf(
 		const FGAEffect& EffectIn
-		, const FGAEffectHandle& InHandle
 		, const FAFEffectParams& Params
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
@@ -111,7 +110,6 @@ protected:
 	*/
 	FGAEffectHandle ApplyEffectToTarget(
 		const FGAEffect& EffectIn
-		, const FGAEffectHandle& InHandle
 		, const FAFEffectParams& Params
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
 
@@ -170,8 +168,8 @@ protected:
 	virtual void MulticastApplyEffectCue_Implementation(FGAEffectCueParams CueParams, FAFCueHandle InHandle);
 
 	UFUNCTION(NetMulticast, Unreliable)
-		void MulticastExecuteEffectCue(FAFCueHandle InHandle);
-	void MulticastExecuteEffectCue_Implementation(FAFCueHandle InHandle);
+		void MulticastExecuteEffectCue(TSubclassOf<UGAGameEffectSpec> EffectSpec, FGAEffectCueParams CueParams);
+	void MulticastExecuteEffectCue_Implementation(TSubclassOf<UGAGameEffectSpec> EffectSpec, FGAEffectCueParams CueParams);
 
 	UFUNCTION(NetMulticast, Unreliable)
 		void MulticastRemoveEffectCue(FGAEffectCueParams CueParams, FAFCueHandle InHandle);

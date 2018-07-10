@@ -35,11 +35,29 @@ FGAEffectContext::FGAEffectContext(TWeakObjectPtr<class UGAAttributesBase> Targe
 	InstigatorInterface = Cast<IAFAbilityInterface>(Instigator.Get());
 	IAFAbilityInterface* CauserInterface = Cast<IAFAbilityInterface>(Causer.Get());
 }
-void FGAEffectContext::SetTarget(UObject* NewTarget)
+
+
+FGAEffectContext::FGAEffectContext(APawn* InInstigator, UObject* InCauser)
 {
+	Instigator = InInstigator;
+	Causer = InCauser;
+
+	IAFAbilityInterface* ABI = Cast<IAFAbilityInterface>(InInstigator);
+	InstigatorAttributes = ABI->GetAttributes();
+	InstigatorComp = ABI->GetAbilityComp();
+	InstigatorInterface = ABI;
+}
+
+void FGAEffectContext::SetTarget(UObject* NewTarget, const FHitResult& InHit)
+{
+	HitResult = InHit;
 	IAFAbilityInterface* ATI = Cast<IAFAbilityInterface>(NewTarget);
 	if (!ATI)
 	{
+		TargetComp.Reset();
+		Target.Reset();
+		TargetInterface = nullptr;
+		TargetAttributes.Reset();
 		return;
 	}
 
@@ -349,5 +367,5 @@ FGAEffectCueParams::FGAEffectCueParams(const FGAEffectContext& InContext, const 
 	: HitResult(InContext.HitResult)
 	, Instigator(InContext.Instigator)
 	, Causer(InContext.Causer)
-	, CueTags(InProperty.GetSpec()->Cues.CueTags)
+	, CueTags(InProperty.GetSpecData()->Cues.CueTags)
 {};

@@ -16,7 +16,7 @@
 #include "Effects/GAGameEffect.h"
 
 #include "Effects/GAEffectExtension.h"
-#include "Effects/GAEffectCue.h"
+#include "Effects/AFCueActor.h"
 #include "AFCueManager.h"
 #include "Effects/GABlueprintLibrary.h"
 #include "Async.h"
@@ -86,7 +86,7 @@ void UAFAbilityComponent::BroadcastAttributeChange(const FGAAttribute& InAttribu
 void UAFAbilityComponent::ModifyAttribute(FGAEffectMod& ModIn
 	, const FGAEffectHandle& HandleIn
 	, FGAEffectProperty& InProperty
-	, const FAFContextHandle& InContext)
+	, const FGAEffectContext& InContext)
 { 
 	//OnAttributePreModifed.Broadcast(ModIn, 0);
 	//Add log.
@@ -96,12 +96,11 @@ void UAFAbilityComponent::ModifyAttribute(FGAEffectMod& ModIn
 	}
 	float NewValue = DefaultAttributes->ModifyAttribute(ModIn, HandleIn, InProperty, InContext);
 	FAFAttributeChangedData Data;
-	FGAEffectContext& Context = InProperty.GetContext(HandleIn).GetRef();
 	Data.Mod = ModIn;
-	Data.Target = Context.Target;
-	Data.Location = Context.HitResult.Location;
+	Data.Target = InContext.Target;
+	Data.Location = InContext.HitResult.Location;
 	OnAttributeModifed.Broadcast(Data);
-	Context.InstigatorComp->NotifyInstigatorTargetAttributeChanged(Data, Context);
+	InContext.InstigatorComp->NotifyInstigatorTargetAttributeChanged(Data, InContext);
 	//add default replication (PropertyRep) that attribute changed.
 };
 void UAFAbilityComponent::NotifyInstigatorTargetAttributeChanged(const FAFAttributeChangedData& InData,

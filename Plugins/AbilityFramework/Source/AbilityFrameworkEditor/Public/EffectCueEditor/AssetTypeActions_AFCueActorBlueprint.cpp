@@ -1,25 +1,25 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
-#include "../AbilityFrameworkEditor.h"
-#include "AssetTypeActions_GAEffectCueBlueprint.h"
+#include "AbilityFrameworkEditor.h"
+#include "AssetTypeActions_AFCueStaticBlueprint.h"
 #include "Misc/MessageDialog.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "GAEffectCueEditor.h"
-#include "GAEffectCueBlueprint.h"
-#include "Effects/GAEffectCue.h"
-#include "GAEffectCueBlueprintFactory.h"
+#include "AFCueActorBlueprint.h"
+#include "Effects/AFCueActor.h"
+#include "AFCueActorBlueprintFactory.h"
 
 #define LOCTEXT_NAMESPACE "AssetTypeActions"
 
-FText FAssetTypeActions_GAEffectCueBlueprint::GetName() const 
+FText FAssetTypeActions_AFCueActorBlueprint::GetName() const 
 { 
-	return FText::FromString("Effect Cue");
+	return FText::FromString("Cue Actor");
 }
-UClass* FAssetTypeActions_GAEffectCueBlueprint::GetSupportedClass() const
+UClass* FAssetTypeActions_AFCueActorBlueprint::GetSupportedClass() const
 {
-	return UGAEffectCueBlueprint::StaticClass();
+	return UAFCueActorBlueprint::StaticClass();
 }
 
-void FAssetTypeActions_GAEffectCueBlueprint::OpenAssetEditor(const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor)
+void FAssetTypeActions_AFCueActorBlueprint::OpenAssetEditor(const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor)
 {
 	EToolkitMode::Type Mode = EditWithinLevelEditor.IsValid() ? EToolkitMode::WorldCentric : EToolkitMode::Standalone;
 
@@ -42,15 +42,15 @@ void FAssetTypeActions_GAEffectCueBlueprint::OpenAssetEditor(const TArray<UObjec
 	}
 }
 
-bool FAssetTypeActions_GAEffectCueBlueprint::ShouldUseDataOnlyEditor(const UBlueprint* Blueprint) const
+bool FAssetTypeActions_AFCueActorBlueprint::ShouldUseDataOnlyEditor(const UBlueprint* Blueprint) const
 {
 	return false;
 }
 
-UFactory* FAssetTypeActions_GAEffectCueBlueprint::GetFactoryForBlueprintType(UBlueprint* InBlueprint) const
+UFactory* FAssetTypeActions_AFCueActorBlueprint::GetFactoryForBlueprintType(UBlueprint* InBlueprint) const
 {
-	UGAEffectCueBlueprintFactory* EffectCueBlueprintFactory = NewObject<UGAEffectCueBlueprintFactory>();
-	EffectCueBlueprintFactory->ParentClass = TSubclassOf<AGAEffectCue>(*InBlueprint->GeneratedClass);
+	UAFCueActorBlueprintFactory* EffectCueBlueprintFactory = NewObject<UAFCueActorBlueprintFactory>();
+	EffectCueBlueprintFactory->ParentClass = TSubclassOf<AAFCueActor>(*InBlueprint->GeneratedClass);
 	return EffectCueBlueprintFactory;
 }
 

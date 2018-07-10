@@ -243,14 +243,11 @@ pip-log.txt
 .vs/
 .vs/*
 Binaries/
-Plugins/
-Plugins/*
+
 Content/*
 Substance/
 Substance/*
 !Content/Blueprints/
-!Plugins/AbilityFramework/Source
-!Plugins/AbilityFrameworkEditor/Source
 DerivedDataCache/
 Intermediate/
 Saved/
@@ -267,3 +264,8 @@ CodeBackup/States/GASAbilityStateCooldown.h
 *.bin
 *.pak
 Config/DefaultARGame.ini
+Plugins/*
+!Plugins/AbilityFramework/
+!Plugins/AbilityFramework/Source/
+!!Plugins/AbilityFrameworkEditor/
+!Plugins/AbilityFrameworkEditor/Source/

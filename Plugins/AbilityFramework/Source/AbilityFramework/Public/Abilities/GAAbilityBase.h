@@ -168,7 +168,7 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, meta=(AllowedClass="AFAbilityCooldownSpec"), Category = "Config")
 		FAFPropertytHandle CooldownEffect;
-	FGAEffectHandle CooldownEffectHandle;
+	TArray<FGAEffectHandle> CooldownEffectHandle;
 	/*
 		Tags applied to the time of activation ability.
 		Only applies to abilities, which are not instant (for now).
@@ -182,7 +182,7 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, meta = (AllowedClass = "AFAbilityActivationSpec,AFAbilityPeriodSpec,AFAbilityInfiniteDurationSpec,AFAbilityPeriodicInfiniteSpec"), Category = "Config")
 		FAFPropertytHandle ActivationEffect;
-	FGAEffectHandle ActivationEffectHandle;
+	TArray<FGAEffectHandle> ActivationEffectHandle;
 
 	/*
 		These attributes will be reduced by specified amount when ability is activated.
@@ -190,13 +190,13 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, Category = "Config")
 		TArray<FAFPropertytHandle> AttributeCost;
-	TArray<FGAEffectHandle> AttributeCostHandle;
+	TArray<TArray<FGAEffectHandle>> AttributeCostHandle;
 	/*
 		Attribute cost from ability own attributes
 	*/
 	UPROPERTY(EditAnywhere, Category = "Config")
 		TArray<FAFPropertytHandle> AbilityAttributeCost;
-	TArray<FGAEffectHandle> AbilityAttributeCostHandle;
+	TArray<TArray<FGAEffectHandle>> AbilityAttributeCostHandle;
 
 	UPROPERTY(AssetRegistrySearchable)
 		FName AbilityTagSearch;
@@ -224,7 +224,7 @@ public:
 
 public: //because I'm to lazy to write all those friend states..
 	UFUNCTION()
-		void OnActivationEffectPeriod(FGAEffectHandle InHandle);
+		void OnActivationEffectPeriod();
 
 	/* Replication counters for above events. */
 
@@ -395,14 +395,14 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
 		void OnCooldownStart();
 	UFUNCTION(BlueprintImplementableEvent, Category = "AbilityFramework|Abilities")
-		void OnCooldownEnd(FGAEffectHandle InHandle);
+		void OnCooldownEnd();
 
-	void NativeOnCooldownEnd(FGAEffectHandle InHandle);
+	void NativeOnCooldownEnd();
 
 	UFUNCTION()
 		void OnCooldownEffectExpired();
 	UFUNCTION()
-		void NativeOnAbilityActivationFinish(FGAEffectHandle InHandle);
+		void NativeOnAbilityActivationFinish();
 	UFUNCTION()
 		void NativeOnAbilityActivationCancel();
 
@@ -472,7 +472,7 @@ public:
 	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) override { Attributes->RemoveBonus(AttributeIn, HandleIn, InMod); };
 	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn
 	, FGAEffectProperty& InProperty
-	, const FAFContextHandle& InContext) override
+	, const FGAEffectContext& InContext) override
 	{ 
 		if (!Attributes)
 		{

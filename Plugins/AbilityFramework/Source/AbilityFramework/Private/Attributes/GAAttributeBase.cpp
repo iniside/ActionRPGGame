@@ -158,18 +158,16 @@ bool FAFAttributeBase::CheckIfStronger(const FGAEffectMod& InMod)
 	return false;
 }
 float FAFAttributeBase::Modify(const FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn,
-	FGAEffectProperty& InProperty, const FAFContextHandle& InContext)
+	FGAEffectProperty& InProperty, const FGAEffectContext& InContext)
 {
 	//FString name = GetTypeName<FAFAttributeBase>();
 	if (ExtensionClass)
 	{
 		ExtensionClass.GetDefaultObject()->OnPreAttributeModify(AbilityComp, SelfName, CurrentValue);
-		FGAEffectContext* Context = InContext.GetPtr();
-		if (InContext.IsValid())
-		{
-			ExtensionClass.GetDefaultObject()->PreAttributeModify(InContext.GetRef()
-				, CurrentValue);
-		}
+		
+		ExtensionClass.GetDefaultObject()->PreAttributeModify(InContext
+			, CurrentValue);
+		
 		
 	}
 	float returnValue = -1;
@@ -181,7 +179,7 @@ float FAFAttributeBase::Modify(const FGAEffectMod& ModIn, const FGAEffectHandle&
 	if ( !InProperty.GetIsInstant())
 	{
 		FGAModifier AttrMod(ModIn.AttributeMod, ModIn.Value, HandleIn);
-		AttrMod.Tags.AppendTags(InProperty.GetSpec()->AttributeTags);
+		AttrMod.Tags.AppendTags(InProperty.GetSpecData()->AttributeTags);
 		AddBonus(ModIn, HandleIn);
 		return ModIn.Value;
 	}
@@ -232,13 +230,11 @@ float FAFAttributeBase::Modify(const FGAEffectMod& ModIn, const FGAEffectHandle&
 	{
 		ExtensionClass.GetDefaultObject()->OnPostAttributeModify(AbilityComp, SelfName, returnValue);
 		
-		if (InContext.IsValid())
-		{
-			ExtensionClass.GetDefaultObject()->PostAttributeModify(
-			InContext.GetRef()
+		ExtensionClass.GetDefaultObject()->PostAttributeModify(
+			InContext
 			, PreValue
 			, returnValue);
-		}
+		
 	}
 	return returnValue;
 }

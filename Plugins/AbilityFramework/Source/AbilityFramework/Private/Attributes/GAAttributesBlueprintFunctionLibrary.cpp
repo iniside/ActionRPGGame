@@ -67,6 +67,6 @@ void UGAAttributesBlueprintFunctionLibrary::ExchangeAttributesValues(
 		return;
 
 	FAFFunctionModifier ModF;
-	UGABlueprintLibrary::ApplyGameEffectToObject(From, FromHandle, FromTarget, Instigator, Causer, ModF);
-	UGABlueprintLibrary::ApplyGameEffectToObject(To, ToHandle, ToTarget, Instigator, Causer, ModF);
+	UGABlueprintLibrary::ApplyGameEffectToObject(From, FromTarget, Instigator, Causer, ModF);
+	UGABlueprintLibrary::ApplyGameEffectToObject(To, ToTarget, Instigator, Causer, ModF);
 }

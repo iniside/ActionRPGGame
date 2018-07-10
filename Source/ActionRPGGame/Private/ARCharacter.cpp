@@ -16,6 +16,7 @@
 #include "Weapons/ARWeaponInventoryComponent.h"
 #include "ARCharacterMovementComponent.h"
 #include "ARPlayerController.h"
+#include "ARAbilityBase.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AARCharacter
@@ -185,6 +186,41 @@ void AARCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (!TestAbility01.IsNull())
+	{
+		TestAbility01Handle = FAFAbilitySpecHandle::GenerateHandle();
+		FAFOnAbilityReady del1 = FAFOnAbilityReady::CreateUObject(this, &AARCharacter::OnAbility01Ready);
+		Abilities->AddOnAbilityReadyDelegate(TestAbility01Handle, del1);
+
+		Abilities->NativeAddAbility(TestAbility01, TestAbility01Handle);
+	}
+
+	if (!TestAbility02.IsNull())
+	{
+		TestAbility02Handle = FAFAbilitySpecHandle::GenerateHandle();
+		FAFOnAbilityReady del1 = FAFOnAbilityReady::CreateUObject(this, &AARCharacter::OnAbility02Ready);
+		Abilities->AddOnAbilityReadyDelegate(TestAbility02Handle, del1);
+
+		Abilities->NativeAddAbility(TestAbility02, TestAbility02Handle);
+	}
+
+	if (!TestAbility03.IsNull())
+	{
+		TestAbility03Handle = FAFAbilitySpecHandle::GenerateHandle();
+		FAFOnAbilityReady del1 = FAFOnAbilityReady::CreateUObject(this, &AARCharacter::OnAbility03Ready);
+		Abilities->AddOnAbilityReadyDelegate(TestAbility03Handle, del1);
+
+		Abilities->NativeAddAbility(TestAbility03, TestAbility03Handle);
+	}
+
+	if (!TestAbility04.IsNull())
+	{
+		TestAbility04Handle = FAFAbilitySpecHandle::GenerateHandle();
+		FAFOnAbilityReady del1 = FAFOnAbilityReady::CreateUObject(this, &AARCharacter::OnAbility04Ready);
+		Abilities->AddOnAbilityReadyDelegate(TestAbility04Handle, del1);
+
+		Abilities->NativeAddAbility(TestAbility04, TestAbility04Handle);
+	}
 
 	//LegsCloth->SetMasterPoseComponent(GetMesh());
 	WeaponInventory->SetIsReplicated(true);
@@ -195,6 +231,40 @@ void AARCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 }
+
+void AARCharacter::OnAbility01Ready(FAFAbilitySpec Spec, FAFAbilitySpecHandle ServerHandle, FAFAbilitySpecHandle ClientHandle)
+{
+	TestAbility01Handle = ServerHandle;
+
+	TArray<uint8> InputIds;
+	InputIds.Add(static_cast<uint8>(AbilityInput::Ability01));
+	Abilities->BindAbilityToInputIDs(ServerHandle, InputIds);
+}
+void AARCharacter::OnAbility02Ready(FAFAbilitySpec Spec, FAFAbilitySpecHandle ServerHandle, FAFAbilitySpecHandle ClientHandle)
+{
+	TestAbility02Handle = ServerHandle;
+
+	TArray<uint8> InputIds;
+	InputIds.Add(static_cast<uint8>(AbilityInput::Ability02));
+	Abilities->BindAbilityToInputIDs(ServerHandle, InputIds);
+}
+void AARCharacter::OnAbility03Ready(FAFAbilitySpec Spec, FAFAbilitySpecHandle ServerHandle, FAFAbilitySpecHandle ClientHandle)
+{
+	TestAbility03Handle = ServerHandle;
+
+	TArray<uint8> InputIds;
+	InputIds.Add(static_cast<uint8>(AbilityInput::Ability03));
+	Abilities->BindAbilityToInputIDs(ServerHandle, InputIds);
+}
+void AARCharacter::OnAbility04Ready(FAFAbilitySpec Spec, FAFAbilitySpecHandle ServerHandle, FAFAbilitySpecHandle ClientHandle)
+{
+	TestAbility04Handle = ServerHandle;
+
+	TArray<uint8> InputIds;
+	InputIds.Add(static_cast<uint8>(AbilityInput::Ability04));
+	Abilities->BindAbilityToInputIDs(ServerHandle, InputIds);
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -281,7 +351,7 @@ float AARCharacter::GetAttributeValue(FGAAttribute AttributeIn) const
 }
 
 void AARCharacter::ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn,
-	struct FGAEffectProperty& InProperty, const FAFContextHandle& InContext)
+	struct FGAEffectProperty& InProperty, const FGAEffectContext& InContext)
 {
 	Abilities->ModifyAttribute(ModIn, HandleIn, InProperty, InContext);
 }

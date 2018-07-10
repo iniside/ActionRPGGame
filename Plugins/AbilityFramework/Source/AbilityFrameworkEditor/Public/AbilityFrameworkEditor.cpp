@@ -3,7 +3,7 @@
 #include "AbilityFrameworkEditor.h"
 #include "GAAttributePin.h"
 #include "Attributes/GAAttributeGlobals.h"
-#include "Effects/GAEffectCue.h"
+#include "Effects/AFCueActor.h"
 #include "GAAttributePanelGraphPinFactory.h"
 #include "GAAttributeDetailCustomization.h"
 
@@ -18,7 +18,8 @@
 
 #include "EffectEditor/AssetTypeActions_GAEffectBlueprint.h"
 #include "AbilityEditor/AssetTypeActions_GAAbilityBlueprint.h"
-#include "EffectCueEditor/AssetTypeActions_GAEffectCueBlueprint.h"
+#include "EffectCueEditor/AssetTypeActions_AFCueActorBlueprint.h"
+#include "CueStatic/AssetTypeActions_AFCueStaticBlueprint.h"
 #include "EffectCueEditor/AFEffectCueDetails.h"
 
 
@@ -63,7 +64,7 @@ void FAbilityFrameworkEditor::RegisterAssetTypeAction(IAssetTools& AssetTools, T
 void FAbilityFrameworkEditor::OnInitializeSequence(UGAEffectCueSequence* Sequence)
 {
 	auto* ProjectSettings = GetDefault<UMovieSceneToolsProjectSettings>();
-	AGAEffectCue* Cue = Cast<AGAEffectCue>(Sequence->GetOuter());
+	AAFCueActor* Cue = Cast<AAFCueActor>(Sequence->GetOuter());
 	
 	
 	if (Cue)
@@ -107,9 +108,11 @@ void FAbilityFrameworkEditor::StartupModule()
 	RegisterAssetTypeAction(AssetTools, GABAction);
 	TSharedRef<IAssetTypeActions> GAAbilityAction = MakeShareable(new FAssetTypeActions_GAAbilityBlueprint());
 	RegisterAssetTypeAction(AssetTools, GAAbilityAction);
-	TSharedRef<IAssetTypeActions> GAEffectCueAction = MakeShareable(new FAssetTypeActions_GAEffectCueBlueprint());
+	TSharedRef<IAssetTypeActions> GAEffectCueAction = MakeShareable(new FAssetTypeActions_AFCueActorBlueprint());
 	RegisterAssetTypeAction(AssetTools, GAEffectCueAction);
-
+	//AssetTypeActions_AFCueStaticBlueprint
+	TSharedRef<IAssetTypeActions> AFStaticCueAction = MakeShareable(new FAssetTypeActions_AFCueStaticBlueprint());
+	RegisterAssetTypeAction(AssetTools, AFStaticCueAction);
 	//BlueprintEditorTabBinding = MakeShared<FEffectCueSequenceEditorTabBinding>();
 	OnInitializeSequenceHandle = UGAEffectCueSequence::OnInitializeSequence().AddStatic(FAbilityFrameworkEditor::OnInitializeSequence);
 }

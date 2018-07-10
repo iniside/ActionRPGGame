@@ -1,12 +1,12 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 
-#include "../AbilityFramework.h"
-#include "GAEffectCueBlueprintGeneratedClass.h"
+#include "AbilityFramework.h"
+#include "AFCueActorGeneratedClass.h"
 
 //////////////////////////////////////////////////////////////////////////
 // UGameplayAbilityBlueprint
 
-UGAEffectCueBlueprintGeneratedClass::UGAEffectCueBlueprintGeneratedClass(const FObjectInitializer& ObjectInitializer)
+UAFCueActorGeneratedClass::UAFCueActorGeneratedClass(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }

@@ -15,14 +15,14 @@ bool UAFAttributeStongerOverride::CanApply(
 	, struct FGAEffectContainer* InContainer)
 {
 	bool bCanApply = true;
-	FGAAttribute Attribute = Params.GetProperty().GetSpec()->AtributeModifier.Attribute;
+	FGAAttribute Attribute = Params.GetProperty().GetSpecData()->AtributeModifier.Attribute;
 	FAFAttributeBase* AttributePtr = Params.GetContext().TargetInterface->GetAttribute(Attribute);
 	FGAEffectProperty& InProperty = Params.GetProperty();
 
 	if (AttributePtr)
 	{
 		FGAEffectMod mod = FAFStatics::GetAttributeModifier(InProperty.GetAttributeModifier()
-			, InProperty.GetSpec()
+			, InProperty.GetSpecData()
 			, Params.GetContext()
 			, InHandle);
 

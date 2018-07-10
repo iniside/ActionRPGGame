@@ -294,7 +294,7 @@ void UGAAttributesBase::ModifyAttribute(const FGAEffect& EffectIn)
 float UGAAttributesBase::ModifyAttribute(const FGAEffectMod& ModIn
 	, const FGAEffectHandle& HandleIn
 	, FGAEffectProperty& InProperty
-	, const FAFContextHandle& InContext)
+	, const FGAEffectContext& InContext)
 {
 	FAFAttributeBase* attr = nullptr;
 	UGAAttributesBase* atrObj = this;

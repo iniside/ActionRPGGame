@@ -18,7 +18,7 @@ class ABILITYFRAMEWORK_API UAFEffectTask_EffectAppliedToSelf : public UAFEffectT
 {
 	GENERATED_BODY()
 public:
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FAFEffectEventDelegate, FAFContextHandle, Context, FAFPropertytHandle, Property, FAFEffectSpecHandle, Spec);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FAFEffectEventDelegate, FGAEffectContext, Context, FAFPropertytHandle, Property, FAFEffectSpec, Spec);
 	UPROPERTY(BlueprintAssignable)
 		FAFEffectEventDelegate OnEvent;
 	
@@ -33,9 +33,9 @@ public:
 
 	virtual void Activate() override;
 
-	virtual void GameplayEventCallback(FAFContextHandle Context
+	virtual void GameplayEventCallback(FGAEffectContext Context
 		, FAFPropertytHandle Property
-		, FAFEffectSpecHandle Spec);
+		, FAFEffectSpec Spec);
 	
 	virtual void OnTaskEnded() override;
 

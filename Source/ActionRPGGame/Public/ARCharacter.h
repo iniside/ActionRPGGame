@@ -122,6 +122,25 @@ public:
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Player Character Camera")
 		FARCameraTransform CameraTransform;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Test Ability")
+		TSoftClassPtr<UGAAbilityBase> TestAbility01;
+	UPROPERTY(Transient)
+		FAFAbilitySpecHandle TestAbility01Handle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Test Ability")
+		TSoftClassPtr<UGAAbilityBase> TestAbility02;
+	UPROPERTY(Transient)
+		FAFAbilitySpecHandle TestAbility02Handle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Test Ability")
+		TSoftClassPtr<UGAAbilityBase> TestAbility03;
+	UPROPERTY(Transient)
+		FAFAbilitySpecHandle TestAbility03Handle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Test Ability")
+		TSoftClassPtr<UGAAbilityBase> TestAbility04;
+	UPROPERTY(Transient)
+		FAFAbilitySpecHandle TestAbility04Handle;
 public:
 	AARCharacter(const FObjectInitializer& ObjectInitializer);
 	virtual void OnConstruction(const FTransform& Transform) override;
@@ -129,6 +148,12 @@ public:
 	
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
+
+	void OnAbility01Ready(FAFAbilitySpec Spec, FAFAbilitySpecHandle ServerHandle, FAFAbilitySpecHandle ClientHandle);
+	void OnAbility02Ready(FAFAbilitySpec Spec, FAFAbilitySpecHandle ServerHandle, FAFAbilitySpecHandle ClientHandle);
+	void OnAbility03Ready(FAFAbilitySpec Spec, FAFAbilitySpecHandle ServerHandle, FAFAbilitySpecHandle ClientHandle);
+	void OnAbility04Ready(FAFAbilitySpec Spec, FAFAbilitySpecHandle ServerHandle, FAFAbilitySpecHandle ClientHandle);
+
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseTurnRate;
@@ -179,7 +204,7 @@ public:
 		virtual float GetAttributeValue(FGAAttribute AttributeIn) const override;
 
 	virtual void ModifyAttribute(FGAEffectMod& ModIn, const FGAEffectHandle& HandleIn,
-		struct FGAEffectProperty& InProperty, const FAFContextHandle& InContext) override;
+		struct FGAEffectProperty& InProperty, const FGAEffectContext& InContext) override;
 	virtual FAFAttributeBase* GetAttribute(FGAAttribute AttributeIn) override;
 	virtual void RemoveBonus(FGAAttribute AttributeIn, const FGAEffectHandle& HandleIn, EGAAttributeMod InMod) override;
 

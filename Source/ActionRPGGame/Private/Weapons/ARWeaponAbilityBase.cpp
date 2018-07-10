@@ -65,8 +65,7 @@ void UARWeaponAbilityBase::ApplyDamageEffect(UObject* Target, FAFFunctionModifie
 {
 	for (int32 Idx = 0; Idx < DamageEffects.Num(); Idx++)
 	{
-		UGABlueprintLibrary::ApplyEffectToObject(DamageEffects[Idx]
-			, AppliedEffectHandles[Idx]
+		UGABlueprintLibrary::ApplyGameEffectToObject(DamageEffects[Idx]
 			, Target
 			, POwner
 			, this
@@ -106,19 +105,19 @@ void UARWeaponAbilityBase::AddUpgrade(FAFPropertytHandle& PropertyHandle
 		, class AARCharacter* Character
 		, float UpgradeValue)
 {
-	UGABlueprintLibrary::CreateEffectSpec(SpecHandle, PropertyHandle, this, Character, Character);
+	//UGABlueprintLibrary::CreateEffectSpec(SpecHandle, PropertyHandle, this, Character, Character);
 
-	EffectHandle = FGAEffectHandle::GenerateHandle();
-	SpecHandle.CalculateAttributeModifier(EffectHandle);
-	SpecHandle.OverrideAttributeModifier(UpgradeValue);
+	//EffectHandle = FGAEffectHandle::GenerateHandle();
+	//SpecHandle.CalculateAttributeModifier(EffectHandle);
+	//SpecHandle.OverrideAttributeModifier(UpgradeValue);
 
-	FGAEffect Effect(SpecHandle.GetPtr(), EffectHandle);
+	//FGAEffect Effect(SpecHandle.GetPtr(), EffectHandle);
 
-	UpgradeContainer.ApplyEffect(EffectHandle, Effect);
+	//UpgradeContainer.ApplyEffect(EffectHandle, Effect);
 
-	FAFContextHandle Context = FAFContextHandle::Generate(&DefaultContext);
+	//FAFContextHandle Context = FAFContextHandle::Generate(&DefaultContext);
 
-	FGAEffectMod Mod = SpecHandle.GetModifier();
-	ModifyAttribute(Mod, EffectHandle, PropertyHandle.GetRef(), Context);
+	//FGAEffectMod Mod = SpecHandle.GetModifier();
+	//ModifyAttribute(Mod, EffectHandle, PropertyHandle.GetRef(), Context);
 
 }

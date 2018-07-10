@@ -22,7 +22,7 @@ bool UAFPeriodApplicationExtend::ApplyEffect(
 		FGAEffect& ExtEffect = *InContainer->GetEffect(handle);
 		FGAEffect& Effect = const_cast<FGAEffect&>(EffectIn);
 		
-		FGAEffectContext& ExtContext = const_cast<FAFEffectParams&>(Params).GetProperty().GetContext(handle).GetRef();
+		FGAEffectContext& ExtContext = const_cast<FAFEffectParams&>(Params).GetContext();
 
 		FTimerManager& DurationTimer = const_cast<FAFEffectParams&>(Params).GetTargetTimerManager();
 

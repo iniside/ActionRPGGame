@@ -11,9 +11,8 @@ class ABILITYFRAMEWORK_API UGABlueprintLibrary : public UBlueprintFunctionLibrar
 	GENERATED_UCLASS_BODY()
 public:
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Effects")
-		static FGAEffectHandle ApplyGameEffectToObject(
+		static TArray<FGAEffectHandle> ApplyGameEffectToObject(
 			UPARAM(Ref) FAFPropertytHandle& InEffect
-			, FGAEffectHandle Handle
 			, class UObject* Target
 			, class APawn* Instigator
 			, UObject* Causer
@@ -25,9 +24,8 @@ public:
 		and just change context of effect.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Effects")
-		static FGAEffectHandle ApplyGameEffectToActor(
+		static TArray<FGAEffectHandle> ApplyGameEffectToActor(
 			UPARAM(Ref) FAFPropertytHandle& InEffect
-			, FGAEffectHandle Handle
 			, class AActor* Target
 			, class APawn* Instigator
 			, UObject* Causer
@@ -40,52 +38,70 @@ public:
 	*/
 	
 	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Effects")
-		static FGAEffectHandle ApplyGameEffectToLocation(
+		static TArray<FGAEffectHandle> ApplyGameEffectToLocation(
 			UPARAM(Ref) FAFPropertytHandle& InEffect
-			, FGAEffectHandle Handle
 			, const FHitResult& Target
 			, class APawn* Instigator
 			, UObject* Causer
 			, const FAFFunctionModifier& Modifier);
 
-	static FGAEffectHandle ApplyEffect(
+
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Effects")
+		static TArray<FGAEffectHandle> ApplyGameEffectToObjects(
+			UPARAM(Ref) FAFPropertytHandle& InEffect
+			, TArray<class UObject*> Targets
+			, class APawn* Instigator
+			, UObject* Causer
+			, const FAFFunctionModifier& Modifier);
+
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Effects")
+		static TArray<FGAEffectHandle> ApplyGameEffectToActors(
+			UPARAM(Ref) FAFPropertytHandle& InEffect
+			, TArray<class AActor*> Targets
+			, class APawn* Instigator
+			, UObject* Causer
+			, const FAFFunctionModifier& Modifier);
+
+	/*
+	Makes outgoing effect spec and assign handle to it.
+	If valid handle is provided it will instead reuse existing effect spec from handle,
+	and just change context of effect.
+	*/
+
+	UFUNCTION(BlueprintCallable, Category = "AbilityFramework|Effects")
+		static TArray<FGAEffectHandle> ApplyGameEffectToTargets(
+			UPARAM(Ref) FAFPropertytHandle& InEffect
+			, const TArray<FHitResult>& Targets
+			, class APawn* Instigator
+			, UObject* Causer
+			, const FAFFunctionModifier& Modifier);
+
+
+	static TArray<FGAEffectHandle> ApplyEffect(
 		FAFPropertytHandle& InEffect
-		, const FGAEffectHandle& Handle
-		, class UObject* Target
+		, TArray<class UObject*> Targets
 		, class APawn* Instigator
 		, UObject* Causer
-		, const FHitResult& HitIn
+		, const TArray<FHitResult>& HitsIn
 		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
-
-	static FGAEffectHandle ApplyEffect(
-		FGAEffectProperty* InEffect
-		, const FGAEffectHandle& Handle
-		, class UObject* Target
-		, class APawn* Instigator
-		, UObject* Causer
-		, const FHitResult& HitIn
-		, const FAFFunctionModifier& Modifier = FAFFunctionModifier());
-
-	static FGAEffectHandle ApplyEffectFromHit(
+	
+	static TArray<FGAEffectHandle> ApplyEffectFromHit(
 		FAFPropertytHandle& InEffect
-		, const FGAEffectHandle& Handle
-		, const FHitResult& Target
+		, const TArray<FHitResult>& Targets
 		, class APawn* Instigator
 		, UObject* Causer
 		, const FAFFunctionModifier& Modifier);
 	
-	static FGAEffectHandle ApplyEffectToActor(
+	static TArray<FGAEffectHandle> ApplyEffectToActor(
 		FAFPropertytHandle& InEffect
-		, const FGAEffectHandle& Handle
-		, class AActor* Target
+		, TArray<class AActor*> Targets
 		, class APawn* Instigator
 		, UObject* Causer
 		, const FAFFunctionModifier& Modifier);
 
-	static FGAEffectHandle ApplyEffectToObject(
+	static TArray<FGAEffectHandle> ApplyEffectToObject(
 		FAFPropertytHandle& InEffect
-		, const FGAEffectHandle& Handle
-		, class UObject* Target
+		, TArray<class UObject*> Targets
 		, class APawn* Instigator
 		, UObject* Causer
 		, const FAFFunctionModifier& Modifier);

@@ -340,7 +340,7 @@ public:
 	void ModifyAttribute(FGAEffectMod& ModIn
 		, const FGAEffectHandle& HandleIn
 		, FGAEffectProperty& InProperty
-		, const FAFContextHandle& InContext);// { DefaultAttributes->ModifyAttribute(ModIn, HandleIn); };
+		, const FGAEffectContext& InContext);// { DefaultAttributes->ModifyAttribute(ModIn, HandleIn); };
 	void NotifyInstigatorTargetAttributeChanged(const FAFAttributeChangedData& InData, 
 		const FGAEffectContext& InContext);
 
