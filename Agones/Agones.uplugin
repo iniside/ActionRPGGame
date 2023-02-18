@@ -1,0 +1,25 @@
+{
+	"FileVersion" : 3,
+
+	"FriendlyName" : "Agones Plugin",
+	"Version" : 1,
+	"VersionName" : "1.0",
+	"CreatedBy" : "Epic Games, Inc.",
+	"CreatedByURL" : "http://epicgames.com",
+	"Description" : "Integration with Kuberenetes Agones.",
+	"Category" : "Dedicated Server",
+	"EnabledByDefault" : false,
+
+	"Modules": [
+		{
+			"Name": "Agones",
+			"Type": "Runtime"
+		}
+	]
+	"Plugins": [
+		{
+			"Name": "GRPC",
+			"Enabled": true
+		}
+	]
+}

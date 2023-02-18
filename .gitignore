@@ -240,17 +240,14 @@ pip-log.txt
 
 #Unreal Engine
 
+.vs/
+.vs/*
 Binaries/
-Plugins/
-Plugins/*
+
 Content/*
+Substance/
+Substance/*
 !Content/Blueprints/
-!Plugins/GameInventorySystem/Content
-!Plugins/GameInventorySystem/Source
-!Plugins/GameAttributes/Content
-!Plugins/GameAttributes/Source
-!Plugins/TimeOfDay/Content
-!Plugins/TimeOfDay/Source
 DerivedDataCache/
 Intermediate/
 Saved/
@@ -266,3 +263,9 @@ Saved/
 CodeBackup/States/GASAbilityStateCooldown.h
 *.bin
 *.pak
+Config/DefaultARGame.ini
+Plugins/*
+!Plugins/AbilityFramework/
+!Plugins/AbilityFramework/Source/
+!!Plugins/AbilityFrameworkEditor/
+!Plugins/AbilityFrameworkEditor/Source/
